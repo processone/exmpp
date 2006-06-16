@@ -1,0 +1,13 @@
+Évolutions possibles
+¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+
+o  Utiliser des records pour les structures de données et les
+   évènements. Voir include/exmpp.hrl pour une proposition.
+
+o  Corriger le contrôle fait au niveau de `maxsize'.
+
+o  Corriger la gestion des CDATA qui sont au dessus de `root_depth'.
+
+o  Améliorer la compatibilité avec les modules d'origine.
+
+o  Modifier l'API pour la rendre plus cohérente.
