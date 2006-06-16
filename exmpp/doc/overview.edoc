@@ -1,0 +1,12 @@
+@author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
+@version 0.1.0
+@title exmpp - version {@vsn}
+
+@doc
+<p>
+This library is composed of modules providing utilities to
+<strong>handle XML streams</strong>. It's very <strong>tied to the
+XMPP/Jabber protocol</strong>.
+</p>
+
+<!-- vim:set ft=xhtml: -->
