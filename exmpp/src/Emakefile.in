@@ -1,0 +1,22 @@
+% $Id$
+
+{
+	[
+		'@srcdir@/exmpp',
+		'@srcdir@/exmpp_xml',
+		'@srcdir@/exmpp_xmlstream',
+		'@srcdir@/exmpp_jlib',
+		'@srcdir@/iconv',
+		'@srcdir@/sha',
+		'@srcdir@/stringprep',
+		'@srcdir@/tls'
+	],
+	[
+		@EMKOPTS@,
+		{outdir, "@builddir@/../ebin"},
+		{i, "@top_srcdir@/include"},
+		{i, "@top_builddir@/include"}
+	]
+}.
+
+% vim:ft=erlang:
