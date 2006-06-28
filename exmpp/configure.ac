@@ -100,7 +100,7 @@ dnl ------------------------------------------------------------------
 
 append_to_EMKOPTS () {
 	echo "[1] $EMKOPTS"
-	if test -z [$]ERLCFLAGS; then
+	if test -z "[$]EMKOPTS"; then
 		EMKOPTS="[$]1"
 	else
 		EMKOPTS="[$]{EMKOPTS% }, [$]1"
