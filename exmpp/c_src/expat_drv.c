@@ -13,6 +13,7 @@
 /* Control operations. */
 enum {
 	EXPAT_SET_NSPARSER = 1,
+	EXPAT_SET_NAMEASATOM,
 	EXPAT_SET_MAXSIZE,
 	EXPAT_SET_ROOTDEPTH,
 	EXPAT_SET_ENDELEMENT,
@@ -32,6 +33,7 @@ struct expat_drv_data {
 
 	/* Options. */
 	int		 use_ns_parser;
+	int		 name_as_atom;
 	long		 max_size;
 	unsigned long	 root_depth;
 	int		 send_endelement;
@@ -39,8 +41,10 @@ struct expat_drv_data {
 
 #define	TUPLE_DRV_OK			"ok"
 #define	TUPLE_DRV_ERROR			"error"
+
 #define	TUPLE_XML_ELEMENT		"xmlelement"
 #define	TUPLE_XML_NS_ELEMENT		"xmlnselement"
+#define	TUPLE_XML_ATTR			"xmlattr"
 #define	TUPLE_XML_CDATA			"xmlcdata"
 #define	TUPLE_XML_END_ELEMENT		"xmlendelement"
 #define	TUPLE_XML_NS_END_ELEMENT	"xmlnsendelement"
@@ -200,6 +204,9 @@ expat_drv_start(ErlDrvPort port, char *command)
 	/* Without namespace support by default. */
 	ed->use_ns_parser = 0;
 
+	/* Encode tag and attribute names as string. */
+	ed->use_ns_parser = 0;
+
 	/* DOM-like behaviour by default. */
 	ed->root_depth = 0;
 
@@ -280,6 +287,23 @@ expat_drv_control(ErlDrvData drv_data, unsigned int command,
 		index = 0;
 		ei_decode_version(buf, &index, &version); /* Skip version. */
 		ei_decode_boolean(buf, &index, &(ed->send_endelement));
+
+		/* Initialize the ei_x_buff buffer used to store the
+		 * error. */
+		to_send = driver_alloc(sizeof(ei_x_buff));
+		if (to_send == NULL)
+			return (-1);
+		ei_x_new_with_version(to_send);
+
+		/* Store this information in the buffer. */
+		ei_x_encode_atom(to_send, TUPLE_DRV_OK);
+
+		break;
+	case EXPAT_SET_NAMEASATOM:
+		/* Get the send end element flag. */
+		index = 0;
+		ei_decode_version(buf, &index, &version); /* Skip version. */
+		ei_decode_boolean(buf, &index, &(ed->name_as_atom));
 
 		/* Initialize the ei_x_buff buffer used to store the
 		 * error. */
@@ -479,8 +503,7 @@ expat_drv_start_element(void *user_data,
     const char *name, const char **attrs)
 {
 	int i;
-	size_t attr_name_len;
-	char *ns_sep, *attr_name;
+	char *ns_sep;
 	ei_x_buff *tree;
 	struct expat_drv_data *ed;
 
@@ -515,21 +538,35 @@ expat_drv_start_element(void *user_data,
 	 * Without namespace support, it will be:
 	 *   {xmlelement, Node_Name, [Attrs], [Children]} */
 	if (ed->use_ns_parser) {
-		ei_x_encode_tuple_header(tree, 5);
+		ei_x_encode_tuple_header(tree, 6);
 		ei_x_encode_atom(tree, TUPLE_XML_NS_ELEMENT);
 		ns_sep = strchr(name, NS_SEP);
 		if (ns_sep == NULL) {
-			ei_x_encode_atom(tree, "undefined");
-			ei_x_encode_string_fixed(tree, name);
+			ei_x_encode_atom(tree, "undefined"); /* NS */
+			ei_x_encode_atom(tree, "undefined"); /* Prefix */
+			if (ed->name_as_atom) {
+				ei_x_encode_atom(tree, name);
+			} else {
+				ei_x_encode_string_fixed(tree, name);
+			}
 		} else {
-			ei_x_encode_atom_len(tree, name,
+			ei_x_encode_atom_len(tree, name,     /* NS */
 			    ns_sep - name);
-			ei_x_encode_string_fixed(tree, ns_sep + 1);
+			ei_x_encode_atom(tree, "undefined"); /* Prefix */
+			if (ed->name_as_atom) {
+				ei_x_encode_atom(tree, ns_sep + 1);
+			} else {
+				ei_x_encode_string_fixed(tree, ns_sep + 1);
+			}
 		}
 	} else {
 		ei_x_encode_tuple_header(tree, 4);
 		ei_x_encode_atom(tree, TUPLE_XML_ELEMENT);
-		ei_x_encode_string_fixed(tree, name);
+		if (ed->name_as_atom) {
+			ei_x_encode_atom(tree, name);
+		} else {
+			ei_x_encode_string_fixed(tree, name);
+		}
 	}
 
 	/* Count the number of attributes. */
@@ -541,40 +578,51 @@ expat_drv_start_element(void *user_data,
 		ei_x_encode_list_header(tree, i/2);
 
 		for (i = 0; attrs[i] != NULL; i += 2) {
-			/* With namespace support enabled, prefixed
-			 * attributes, like xml:lang, will have a name
-			 * of the form uri|name. */
-			ns_sep = strchr(attrs[i], NS_SEP);
-			if (ns_sep == NULL) {
-				ei_x_encode_tuple_header(tree, 2);
-				ei_x_encode_string_fixed(tree, attrs[i]);
-				ei_x_encode_string_fixed(tree, attrs[i + 1]);
-			} else if (strncmp(
-			    "http://www.w3.org/XML/1998/namespace",
-			    attrs[i], ns_sep - attrs[i]) == 0) {
-				/* Namespace prefix was "xml", restore it
-				 * because nobody use the URI. */
-				attr_name_len = strlen(ns_sep + 1);
-				attr_name = driver_alloc(attr_name_len + 4);
-				if (attr_name == NULL) {
-					ei_x_encode_tuple_header(tree, 2);
+			/* With namespace support, the tuple will be of
+			 * the form:
+			 * {xmlattr, URI, Name, Value}
+			 * Without namespace support, it will be:
+			 * {Name, Value} */
+			if (ed->use_ns_parser) {
+				ei_x_encode_tuple_header(tree, 5);
+				ei_x_encode_atom(tree, TUPLE_XML_ATTR);
+				ns_sep = strchr(attrs[i], NS_SEP);
+				if (ns_sep == NULL) {
+					/* No prefix, take tag namespace. */
+					ei_x_encode_atom(tree, "undefined");
+					ei_x_encode_atom(tree, "undefined");
+					if (ed->name_as_atom) {
+						ei_x_encode_atom(tree,
+						    attrs[i]);
+					} else {
+						ei_x_encode_string_fixed(tree,
+						    attrs[i]);
+					}
 					ei_x_encode_string_fixed(tree,
-					    attrs[i]);
+					    attrs[i + 1]);
+				} else {
+					ei_x_encode_atom_len(tree, attrs[i],
+					    ns_sep - attrs[i]);
+					ei_x_encode_atom(tree, "undefined");
+					if (ed->name_as_atom) {
+						ei_x_encode_atom(tree,
+						    ns_sep + 1);
+					} else {
+						ei_x_encode_string_fixed(tree,
+						    ns_sep + 1);
+					}
 					ei_x_encode_string_fixed(tree,
 					    attrs[i + 1]);
 				}
-				memcpy(attr_name, "xml:", 4);
-				memcpy(attr_name + 4, ns_sep + 1,
-				    attr_name_len);
-				ei_x_encode_tuple_header(tree, 2);
-				ei_x_encode_string_len_fixed(tree, attr_name,
-				    attr_name_len + 4);
-				ei_x_encode_string_fixed(tree, attrs[i + 1]);
-				driver_free(attr_name);
 			} else {
-				/* Unknown namespace and prefix lost... */
 				ei_x_encode_tuple_header(tree, 2);
-				ei_x_encode_string_fixed(tree, attrs[i]);
+				if (ed->name_as_atom) {
+					ei_x_encode_atom(tree,
+					    attrs[i]);
+				} else {
+					ei_x_encode_string_fixed(tree,
+					    attrs[i]);
+				}
 				ei_x_encode_string_fixed(tree, attrs[i + 1]);
 			}
 		}
