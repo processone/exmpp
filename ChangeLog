@@ -1,0 +1,20 @@
+2006-06-28  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	The whole project uses the Autotools now.
+
+	* include/exmpp.hrl: Add a prefix member to xmlnselement record. Add
+	an xmlattr record to handle attribute (with namespace support).
+
+	* src/exmpp_xml.erl: New API (more consistent) with better namespace
+	support (even for attributes). There's a compatibility layer for the
+	old API, which can be enabled by defining WITH_DEPRECATED_API at
+	compile time.
+
+	* c_src/expat_drv.c: Imporve namespace support, especially for
+	attributes. Add an option to put element and attribute name as
+	atom().
+
+	* c_src/tls_drv.c (tls_drv_control): Fixed a warning about different
+	types in an affectation.
+
+	* testsuite/: Add a testsuite.
