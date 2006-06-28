@@ -92,6 +92,7 @@
 	remove_attr/2,
 	remove_tag_attr/2,
 	get_tag_cdata/1,
+	get_path_s/2,
 	element_to_string/1,
 	crypt/1
 ]).
@@ -1133,7 +1134,7 @@ get_tag_cdata(XML_Element) ->
 %% component of it.
 
 get_path_s(XML_Element, Path) ->
-	get_path_s(XML_Element, Path).
+	get_path(XML_Element, Path).
 
 %% @spec (XML_Element) -> XML_Text
 %%     XML_Element = xmlnselement() | xmlelement()
