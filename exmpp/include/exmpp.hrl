@@ -17,15 +17,24 @@
 
 % Elements WITH namespace support.
 -record(xmlnselement, {
-	ns = undefined,	% Tag namespace
-	name,		% Tag name
-	attrs = [],	% Attribute list
-	children = []	% Children (tags or CDATA)
+	ns = undefined,	    % Tag namespace
+	prefix = undefined, % Namespace prefix
+	name,		    % Tag name
+	attrs = [],	    % Attribute list
+	children = []	    % Children (tags or CDATA)
 }).
 
 -record(xmlnsendelement, {
 	ns = undefined,
 	name
+}).
+
+% Attributes WITH namespace support.
+-record(xmlattr, {
+	ns = undefined,
+	prefix = undefined,
+	name,
+	value
 }).
 
 % Character data.
