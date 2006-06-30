@@ -1,3 +1,19 @@
+2006-06-29  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* configure.ac: Fixed a bug with $EMKOPTS handling.
+	Removed two debugging messages. Fixed a typo with `debug_info'.
+
+	* src/exmpp_xml.erl: The function get_path_s/2 wasn't exported; also
+	it now handles old path component format.
+	(remove_attribute_from_list): Rewritten this completly broken
+	function.
+	(xmlnselement_to_xmlelement): Now handle properly default and prefixed
+	namespaces for elements and attributes.
+
+	* src/iconv.erl, src/stringprep.erl: Fixed Erlang warnings.
+
+	* testsuite/: More complete testsuite, with coverage checking.
+
 2006-06-28  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	The whole project uses the Autotools now.
