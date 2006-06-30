@@ -15,7 +15,7 @@ ok(Result) ->
 is(Result, Ref) ->
 	case Result of
 		Ref -> ok;
-		_   -> testsuite:fail(Result)
+		_   -> fail({no_match, Ref, Result})
 	end.
 
 % --------------------------------------------------------------------
