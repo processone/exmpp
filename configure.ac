@@ -99,13 +99,11 @@ dnl Options
 dnl ------------------------------------------------------------------
 
 append_to_EMKOPTS () {
-	echo "[1] $EMKOPTS"
 	if test -z "[$]EMKOPTS"; then
 		EMKOPTS="[$]1"
 	else
 		EMKOPTS="[$]{EMKOPTS% }, [$]1"
 	fi
-	echo "[2] $EMKOPTS"
 }
 
 dnl Debugging option
@@ -116,7 +114,7 @@ AC_ARG_ENABLE([debug],
 if test "x${enable_debug}" = "xyes"; then
 	CPPFLAGS="-DDEBUG ${CPPFLAGS# }"
 	CFLAGS="-g ${CFLAGS# }"
-	append_to_EMKOPTS "debuginfo"
+	append_to_EMKOPTS "debug_info"
 else
 	CPPFLAGS="-DNDEBUG ${CPPFLAGS# }"
 fi
