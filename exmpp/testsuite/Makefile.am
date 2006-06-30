@@ -8,7 +8,7 @@ EXTRA_DIST = testsuite.erl test.sh					\
 	     check_xml_path.erl						\
 	     check_xml_converters.erl					\
 	     check_coverity.erl
-CLEANFILES = *.beam $(TESTS) erl_crash.dump
+CLEANFILES = *.beam *.html $(TESTS) erl_crash.dump
 
 TESTS = check_xml_parser.sh						\
 	check_xml_attribute_handlers.sh					\

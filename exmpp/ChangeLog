@@ -23,6 +23,9 @@
 	check_xml_serializer.erl to add other tests thant juste
 	serialization.
 
+	* ebin/Makefile.am, testsuite/Makefile.am: Every built files were not
+	cleaned properly; fixed.
+
 2006-06-28  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	The whole project uses the Autotools now.
