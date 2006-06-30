@@ -9,6 +9,11 @@
 	function.
 	(xmlnselement_to_xmlelement): Now handle properly default and prefixed
 	namespaces for elements and attributes.
+	(xmlnselement_to_xmlelement): Support for name as atom() was not
+	present in the old format, so convert them as string. Fixed a bug when
+	an element doesn't have any namespace.
+	(xmlnsattributes_to_xmlattributes2): Support for name as atom() was
+	not present in the old format, so convert them as string.
 
 	* src/iconv.erl, src/stringprep.erl: Fixed Erlang warnings.
 
