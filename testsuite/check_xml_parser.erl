@@ -5,10 +5,15 @@
 
 -include("exmpp.hrl").
 
--export([check/0]).
+-export([check/0, do_check/0]).
 
 check() ->
+	do_check(),
+	testsuite:pass().
+
+do_check() ->
 	testsuite:ok(test_parser_without_option()),
+	testsuite:ok(test_parser_with_no_namespace()),
 	testsuite:ok(test_parser_with_atom()),
 	testsuite:ok(test_parser_with_namespace()),
 	testsuite:ok(test_parser_with_namespace_and_atom()),
@@ -18,7 +23,8 @@ check() ->
 	testsuite:ok(test_parser_with_ns_root_depth()),
 	testsuite:ok(test_parser_with_end_element()),
 	testsuite:ok(test_parser_with_ns_end_element()),
-	testsuite:pass().
+	testsuite:ok(test_parser_chunk_by_chunk()),
+	ok.
 
 % --------------------------------------------------------------------
 % Parser testsuite.
@@ -120,8 +126,40 @@ check() ->
 {xmlnsendelement, 'ns_stream', "stream"}
 ]).
 
+-define(CHUNK1, "").
+-define(CHUNK2, "<stream xml:lang='fr' version='1.0'>Content</strea").
+-define(CHUNK3, "m>").
+
+-define(CHUNK1_TREE, continue).
+-define(CHUNK2_TREE, continue).
+-define(CHUNK3_TREE, [
+{xmlelement, "stream", [
+	{"xml:lang", "fr"},
+	{"version", "1.0"}
+], [
+	{xmlcdata, <<"Content">>}
+]}
+]).
+
 test_parser_without_option() ->
 	case exmpp_xml:start_parser() of
+		{ok, Parser} ->
+			Ret = case exmpp_xml:parse_final(Parser, ?SOURCE1) of
+				{error, Reason} ->
+					{error, Reason};
+				{ok, ?TREE1_NO_NS} ->
+					ok;
+				{ok, Tree} ->
+					{test_failed, Tree, ?TREE1_NO_NS}
+			end,
+			exmpp_xml:stop_parser(Parser),
+			Ret;
+		{error, Reason} ->
+			{error, Reason}
+	end.
+
+test_parser_with_no_namespace() ->
+	case exmpp_xml:start_parser([no_namespace]) of
 		{ok, Parser} ->
 			Ret = case exmpp_xml:parse_final(Parser, ?SOURCE1) of
 				{error, Reason} ->
@@ -289,3 +327,29 @@ test_parser_with_ns_end_element() ->
 			{error, Reason}
 	end.
 
+test_parser_chunk_by_chunk() ->
+	{ok, Parser} = exmpp_xml:start_parser(),
+	Ret = case exmpp_xml:parse(Parser, ?CHUNK1) of
+		{ok, ?CHUNK1_TREE} ->
+			case exmpp_xml:parse(Parser, ?CHUNK2) of
+				{ok, ?CHUNK2_TREE} ->
+					case exmpp_xml:parse(Parser, ?CHUNK3) of
+						{ok, ?CHUNK3_TREE} ->
+							ok;
+						Ret3 ->
+							{test_failed,
+							    ?CHUNK3_TREE,
+							    Ret3}
+					end;
+				Ret2 ->
+					{test_failed,
+					    ?CHUNK2_TREE,
+					    Ret2}
+			end;
+		Ret1 ->
+			{test_failed,
+			    ?CHUNK1_TREE,
+			    Ret1}
+	end,
+	exmpp_xml:stop_parser(Parser),
+	Ret.
