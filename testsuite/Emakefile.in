@@ -8,7 +8,7 @@
 		'@srcdir@/check_xml_element_handlers',
 		'@srcdir@/check_xml_cdata_handlers',
 		'@srcdir@/check_xml_path',
-		'@srcdir@/check_xml_serializer',
+		'@srcdir@/check_xml_converters',
 		'@srcdir@/check_coverity'
 	],
 	[
