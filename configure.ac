@@ -14,7 +14,7 @@ configure_paramters="[$]@"
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 AC_PREREQ([2.59])
-AC_REVISION([$Revision: 1.48 $])
+AC_REVISION([$Revision$])
 
 dnl ------------------------------------------------------------------
 dnl Versionning

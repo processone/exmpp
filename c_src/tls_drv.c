@@ -1,4 +1,4 @@
-/* $Id: tls_drv.c 430 2005-11-03 05:04:54Z alexey $ */
+/* $Id$ */
 
 #include <stdio.h>
 #include <string.h>

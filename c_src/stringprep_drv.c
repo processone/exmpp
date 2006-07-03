@@ -1,4 +1,4 @@
-/* $Id: stringprep_drv.c 350 2005-05-18 23:47:33Z alexey $ */
+/* $Id$ */
 
 #include <stdio.h>
 #include <string.h>

@@ -10,7 +10,7 @@
  *
  * Modified for ejabberd by Alexey Shchepin
  *
- * RCS: @(#) $Id: uni_norm.c 350 2005-05-18 23:47:33Z alexey $
+ * RCS: @(#) $Id$
  */
 
 /*
