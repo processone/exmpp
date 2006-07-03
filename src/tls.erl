@@ -3,12 +3,12 @@
 %%% Author  : Alexey Shchepin <alexey@sevcom.net>
 %%% Purpose : Interface to openssl
 %%% Created : 24 Jul 2004 by Alexey Shchepin <alexey@sevcom.net>
-%%% Id      : $Id: tls.erl 483 2006-01-13 01:55:20Z alexey $
+%%% Id      : $Id$
 %%%----------------------------------------------------------------------
 
 -module(tls).
 -author('alexey@sevcom.net').
--vsn('$Revision: 483 $ ').
+-vsn('$Revision$ ').
 
 -behaviour(gen_server).
 

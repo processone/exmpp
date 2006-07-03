@@ -3,12 +3,12 @@
 %%% Author  : Alexey Shchepin <alexey@sevcom.net>
 %%% Purpose : Interface to libiconv
 %%% Created : 16 Feb 2003 by Alexey Shchepin <alexey@sevcom.net>
-%%% Id      : $Id: iconv.erl 427 2005-10-25 02:19:01Z alexey $
+%%% Id      : $Id$
 %%%----------------------------------------------------------------------
 
 -module(iconv).
 -author('alexey@sevcom.net').
--vsn('$Revision: 427 $ ').
+-vsn('$Revision$ ').
 
 -behaviour(gen_server).
 
