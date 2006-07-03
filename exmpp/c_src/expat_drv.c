@@ -6,6 +6,8 @@
 #include <expat.h>
 #include <string.h>
 
+#include "contrib/hashtable.h"
+
 #define	DRIVER_NAME	expat_drv
 #define	_S(s)		#s
 #define S(s)		_S(s)
@@ -24,19 +26,22 @@ enum {
 /* Driver data (also, user data for expat). */
 struct expat_drv_data {
 	/* Internal state. */
-	ErlDrvPort	 port;
-	XML_Parser	 parser;
-	unsigned long	 depth;
-	long		 cur_size;
-	ei_x_buff	*current_tree;
-	ei_x_buff	*complete_trees;
+	ErlDrvPort		 port;
+	XML_Parser		 parser;
+	unsigned long		 depth;
+	long			 cur_size;
+	ei_x_buff		*current_tree;
+	ei_x_buff		*complete_trees;
+
+	/* Lookup tables. */
+	struct hashtable	*prefixes;
 
 	/* Options. */
-	int		 use_ns_parser;
-	int		 name_as_atom;
-	long		 max_size;
-	unsigned long	 root_depth;
-	int		 send_endelement;
+	int			 use_ns_parser;
+	int			 name_as_atom;
+	long			 max_size;
+	unsigned long		 root_depth;
+	int			 send_endelement;
 };
 
 #define	TUPLE_DRV_OK			"ok"
@@ -64,9 +69,11 @@ void	expat_drv_end_element(void *user_data,
 void	expat_drv_character_data(void *user_data,
 	    const char *data, int len);
 
-int	create_parser(struct expat_drv_data *ed);
-int	destroy_parser(struct expat_drv_data *ed);
-int	current_tree_finished(struct expat_drv_data *ed);
+int			create_parser(struct expat_drv_data *ed);
+int			destroy_parser(struct expat_drv_data *ed);
+int			current_tree_finished(struct expat_drv_data *ed);
+static unsigned int	hash_djb2(void *key);
+static int		hash_equalkeys(void *k1, void *k2);
 
 /* -------------------------------------------------------------------
  * Workaround for EI encode_string bug.
@@ -201,6 +208,8 @@ expat_drv_start(ErlDrvPort port, char *command)
 	ed->current_tree   = NULL;
 	ed->complete_trees = NULL;
 
+	ed->prefixes       = NULL;
+
 	/* Without namespace support by default. */
 	ed->use_ns_parser = 0;
 
@@ -222,9 +231,17 @@ expat_drv_start(ErlDrvPort port, char *command)
 static void
 expat_drv_stop(ErlDrvData drv_data)
 {
+	struct expat_drv_data *ed;
+
+	ed = (struct expat_drv_data *)drv_data;
 
 	/* Destroy the Expat parser and the driver data structure. */
-	destroy_parser((struct expat_drv_data *)drv_data);
+	if (ed->prefixes) {
+		hashtable_destroy(ed->prefixes, 1);
+		ed->prefixes = NULL;
+	}
+	destroy_parser(ed);
+
 	driver_free(drv_data);
 
 	return;
@@ -325,6 +342,24 @@ expat_drv_control(ErlDrvData drv_data, unsigned int command,
 		/* Create the Expat parser. */
 		destroy_parser(ed);
 
+		/* Prepare prefixes cache table. */
+		if (ed->prefixes != NULL) {
+			hashtable_destroy(ed->prefixes, 1);
+			ed->prefixes = NULL;
+		}
+
+		if (ed->use_ns_parser) {
+			ed->prefixes = create_hashtable(16,
+			    hash_djb2, hash_equalkeys);
+			if (ed->prefixes == NULL)
+				return (-1);
+
+			/* Already add `xml' prefix which is implied. */
+			hashtable_insert(ed->prefixes,
+			    strdup("http://www.w3.org/XML/1998/namespace"),
+			    strdup("xml"));
+		}
+
 		/* Initialize the ei_x_buff buffer used to store the
 		 * error. */
 		to_send = driver_alloc(sizeof(ei_x_buff));
@@ -332,11 +367,16 @@ expat_drv_control(ErlDrvData drv_data, unsigned int command,
 			return (-1);
 		ei_x_new_with_version(to_send);
 
-		if (create_parser(ed) == 0) {
+		if (create_parser(ed) != 0) {
 			/* Store this information in the buffer. */
 			ei_x_encode_tuple_header(to_send, 2);
 			ei_x_encode_atom(to_send, TUPLE_DRV_ERROR);
 			ei_x_encode_atom(to_send, "setup_parser_failed");
+
+			if (ed->prefixes) {
+				hashtable_destroy(ed->prefixes, 0);
+				ed->prefixes = NULL;
+			}
 		} else {
 			/* Store this information in the buffer. */
 			ei_x_encode_atom(to_send, TUPLE_DRV_OK);
@@ -483,6 +523,16 @@ expat_drv_start_namespace(void *user_data,
 	printf("===> namespace (start): prefix=%s, uri=%s\r\n",
 	    prefix, uri);
 #endif
+
+	if (ed->prefixes == NULL)
+		return;
+
+	if (prefix != NULL) {
+		/* Store the namespace and its prefix in the lookup table.
+		 * We make a copy of `uri' because hashtable_remove and
+		 * hashtable_destroy will free it. */
+		hashtable_insert(ed->prefixes, strdup(uri), strdup(prefix));
+	}
 }
 
 void
@@ -496,6 +546,9 @@ expat_drv_end_namespace(void *user_data,
 #if defined(DRV_DEBUG)
 	printf("---> namespace (end): prefix=%s\r\n", prefix);
 #endif
+
+	/* FIXME Should we remove terminated namespaces from the
+	 * lookup table? */
 }
 
 void
@@ -503,7 +556,7 @@ expat_drv_start_element(void *user_data,
     const char *name, const char **attrs)
 {
 	int i;
-	char *ns_sep;
+	char *ns_sep, *prefix;
 	ei_x_buff *tree;
 	struct expat_drv_data *ed;
 
@@ -552,7 +605,19 @@ expat_drv_start_element(void *user_data,
 		} else {
 			ei_x_encode_atom_len(tree, name,     /* NS */
 			    ns_sep - name);
-			ei_x_encode_atom(tree, "undefined"); /* Prefix */
+			if (ed->prefixes) {
+				*ns_sep = '\0';
+				prefix = (char *)hashtable_search(
+				    ed->prefixes, (char *)name);
+				*ns_sep = NS_SEP;
+			} else {
+				prefix = NULL;
+			}
+			if (prefix != NULL) {
+				ei_x_encode_string_fixed(tree, prefix);
+			} else {
+				ei_x_encode_atom(tree, "undefined");
+			}
 			if (ed->name_as_atom) {
 				ei_x_encode_atom(tree, ns_sep + 1);
 			} else {
@@ -603,7 +668,23 @@ expat_drv_start_element(void *user_data,
 				} else {
 					ei_x_encode_atom_len(tree, attrs[i],
 					    ns_sep - attrs[i]);
-					ei_x_encode_atom(tree, "undefined");
+					if (ed->prefixes) {
+						*ns_sep = '\0';
+						prefix =
+						    (char *)hashtable_search(
+						    ed->prefixes,
+						    (char *)attrs[i]);
+						*ns_sep = NS_SEP;
+					} else {
+						prefix = NULL;
+					}
+					if (prefix != NULL) {
+						ei_x_encode_string_fixed(tree,
+						    prefix);
+					} else {
+						ei_x_encode_atom(tree,
+						    "undefined");
+					}
 					if (ed->name_as_atom) {
 						ei_x_encode_atom(tree,
 						    ns_sep + 1);
@@ -789,6 +870,28 @@ current_tree_finished(struct expat_drv_data *ed)
 	ed->current_tree = NULL;
 
 	return (ret);
+}
+
+static unsigned int
+hash_djb2(void *key)
+{
+	int c;
+	unsigned int hash;
+	unsigned char *str;
+
+	str = key;
+	hash = 5381;
+	while ((c = *str++))
+		hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+
+	return (hash);
+}
+
+static int
+hash_equalkeys(void *k1, void *k2)
+{
+
+	return (strcmp((char *)k1, (char *)k2) == 0);
 }
 
 /* -------------------------------------------------------------------
