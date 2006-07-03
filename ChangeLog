@@ -1,3 +1,22 @@
+2006-07-03  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/exmpp_xml.erl (start_parser/1, handle_options/2): Error sent
+	back by the port driver were ignored, it's now corrected.
+
+	* c_src/contrib/hashtable.h, c_src/contrib/hashtable_private.h,
+	c_src/hashtable.c: Imported an hashtable implementation which is used
+	by the Expat port driver.
+
+	* c_src/Makefile.am: Add hashtable sources to the Expat port driver.
+
+	* c_src/expat_drv.c: Namespace prefixes are now stored in an hash
+	table and set correctly in xmlnselement tuples.
+	(expat_drv_control): Fixed a bug where the return value of
+	create_parser() was not checked correctly.
+
+	* testsuite/check_xml_parser.erl: Updated to handle namespace prefix
+	support in the port driver. Also simplified each test cases.
+
 2006-06-29  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* configure.ac: Fixed a bug with $EMKOPTS handling.
