@@ -12,18 +12,19 @@ check() ->
 	testsuite:pass().
 
 do_check() ->
-	testsuite:ok(test_parser_without_option()),
-	testsuite:ok(test_parser_with_no_namespace()),
-	testsuite:ok(test_parser_with_atom()),
-	testsuite:ok(test_parser_with_namespace()),
-	testsuite:ok(test_parser_with_namespace_and_atom()),
-	testsuite:ok(test_parser_with_data_inf_maxsize()),
-	testsuite:ok(test_parser_with_data_sup_maxsize()),
-	testsuite:ok(test_parser_with_root_depth()),
-	testsuite:ok(test_parser_with_ns_root_depth()),
-	testsuite:ok(test_parser_with_end_element()),
-	testsuite:ok(test_parser_with_ns_end_element()),
-	testsuite:ok(test_parser_chunk_by_chunk()),
+	test_parser_without_option(),
+	test_parser_with_no_namespace(),
+	test_parser_with_atom(),
+	test_parser_with_namespace(),
+	test_parser_with_namespace_and_atom(),
+	test_parser_with_data_inf_maxsize1(),
+	test_parser_with_data_inf_maxsize2(),
+	test_parser_with_data_sup_maxsize(),
+	test_parser_with_root_depth(),
+	test_parser_with_ns_root_depth(),
+	test_parser_with_end_element(),
+	test_parser_with_ns_end_element(),
+	test_parser_chunk_by_chunk(),
 	ok.
 
 % --------------------------------------------------------------------
@@ -59,9 +60,9 @@ do_check() ->
 ]).
 
 -define(TREE1_NS, [
-{xmlnselement, 'ns_stream', undefined, "stream", [], [
+{xmlnselement, 'ns_stream', "stream", "stream", [], [
 	{xmlnselement, 'ns_default', undefined, "iq", [
-		{xmlattr, 'http://www.w3.org/XML/1998/namespace', undefined,
+		{xmlattr, 'http://www.w3.org/XML/1998/namespace', "xml",
 		    "lang", "fr"}
 	], [
 		{xmlcdata, <<"Content">>}
@@ -70,9 +71,9 @@ do_check() ->
 ]).
 
 -define(TREE1_NS_ATOM, [
-{xmlnselement, 'ns_stream', undefined, 'stream', [], [
+{xmlnselement, 'ns_stream', "stream", 'stream', [], [
 	{xmlnselement, 'ns_default', undefined, 'iq', [
-		{xmlattr, 'http://www.w3.org/XML/1998/namespace', undefined,
+		{xmlattr, 'http://www.w3.org/XML/1998/namespace', "xml",
 		    'lang', "fr"}
 	], [
 		{xmlcdata, <<"Content">>}
@@ -93,9 +94,9 @@ do_check() ->
 ]).
 
 -define(TREE1_NS_ROOT_DEPTH, [
-{xmlnselement, 'ns_stream', undefined, "stream", [], []},
+{xmlnselement, 'ns_stream', "stream", "stream", [], []},
 {xmlnselement, 'ns_default', undefined, "iq", [
-	{xmlattr, 'http://www.w3.org/XML/1998/namespace', undefined,
+	{xmlattr, 'http://www.w3.org/XML/1998/namespace', "xml",
 	    "lang", "fr"}
 ], [
 	{xmlcdata, <<"Content">>}
@@ -116,9 +117,9 @@ do_check() ->
 ]).
 
 -define(TREE1_NS_END_EL, [
-{xmlnselement, 'ns_stream', undefined, "stream", [], []},
+{xmlnselement, 'ns_stream', "stream", "stream", [], []},
 {xmlnselement, 'ns_default', undefined, "iq", [
-	{xmlattr, 'http://www.w3.org/XML/1998/namespace', undefined,
+	{xmlattr, 'http://www.w3.org/XML/1998/namespace', "xml",
 	    "lang", "fr"}
 ], [
 	{xmlcdata, <<"Content">>}
@@ -142,214 +143,98 @@ do_check() ->
 ]).
 
 test_parser_without_option() ->
-	case exmpp_xml:start_parser() of
-		{ok, Parser} ->
-			Ret = case exmpp_xml:parse_final(Parser, ?SOURCE1) of
-				{error, Reason} ->
-					{error, Reason};
-				{ok, ?TREE1_NO_NS} ->
-					ok;
-				{ok, Tree} ->
-					{test_failed, Tree, ?TREE1_NO_NS}
-			end,
-			exmpp_xml:stop_parser(Parser),
-			Ret;
-		{error, Reason} ->
-			{error, Reason}
-	end.
+	{ok, Parser} = exmpp_xml:start_parser(),
+	testsuite:is(exmpp_xml:parse_final(Parser, ?SOURCE1),
+	    {ok, ?TREE1_NO_NS}),
+	exmpp_xml:stop_parser(Parser),
+	ok.
 
 test_parser_with_no_namespace() ->
-	case exmpp_xml:start_parser([no_namespace]) of
-		{ok, Parser} ->
-			Ret = case exmpp_xml:parse_final(Parser, ?SOURCE1) of
-				{error, Reason} ->
-					{error, Reason};
-				{ok, ?TREE1_NO_NS} ->
-					ok;
-				{ok, Tree} ->
-					{test_failed, Tree, ?TREE1_NO_NS}
-			end,
-			exmpp_xml:stop_parser(Parser),
-			Ret;
-		{error, Reason} ->
-			{error, Reason}
-	end.
+	{ok, Parser} = exmpp_xml:start_parser([no_namespace]),
+	testsuite:is(exmpp_xml:parse_final(Parser, ?SOURCE1),
+	    {ok, ?TREE1_NO_NS}),
+	exmpp_xml:stop_parser(Parser),
+	ok.
 
 test_parser_with_atom() ->
-	case exmpp_xml:start_parser([name_as_atom]) of
-		{ok, Parser} ->
-			Ret = case exmpp_xml:parse_final(Parser, ?SOURCE1) of
-				{error, Reason} ->
-					{error, Reason};
-				{ok, ?TREE1_NO_NS_ATOM} ->
-					ok;
-				{ok, Tree} ->
-					{test_failed, Tree, ?TREE1_NO_NS_ATOM}
-			end,
-			exmpp_xml:stop_parser(Parser),
-			Ret;
-		{error, Reason} ->
-			{error, Reason}
-	end.
+	{ok, Parser} = exmpp_xml:start_parser([name_as_atom]),
+	testsuite:is(exmpp_xml:parse_final(Parser, ?SOURCE1),
+	    {ok, ?TREE1_NO_NS_ATOM}),
+	exmpp_xml:stop_parser(Parser),
+	ok.
 
 test_parser_with_namespace() ->
-	case exmpp_xml:start_parser([namespace]) of
-		{ok, Parser} ->
-			Ret = case exmpp_xml:parse_final(Parser, ?SOURCE1) of
-				{error, Reason} ->
-					{error, Reason};
-				{ok, ?TREE1_NS} ->
-					ok;
-				{ok, Tree} ->
-					{test_failed, Tree, ?TREE1_NS}
-			end,
-			exmpp_xml:stop_parser(Parser),
-			Ret;
-		{error, Reason} ->
-			{error, Reason}
-	end.
+	{ok, Parser} = exmpp_xml:start_parser([namespace]),
+	testsuite:is(exmpp_xml:parse_final(Parser, ?SOURCE1),
+	    {ok, ?TREE1_NS}),
+	exmpp_xml:stop_parser(Parser),
+	ok.
 
 test_parser_with_namespace_and_atom() ->
-	case exmpp_xml:start_parser([namespace, name_as_atom]) of
-		{ok, Parser} ->
-			Ret = case exmpp_xml:parse_final(Parser, ?SOURCE1) of
-				{error, Reason} ->
-					{error, Reason};
-				{ok, ?TREE1_NS_ATOM} ->
-					ok;
-				{ok, Tree} ->
-					{test_failed, Tree, ?TREE1_NS_ATOM}
-			end,
-			exmpp_xml:stop_parser(Parser),
-			Ret;
-		{error, Reason} ->
-			{error, Reason}
-	end.
+	{ok, Parser} = exmpp_xml:start_parser([namespace, name_as_atom]),
+	testsuite:is(exmpp_xml:parse_final(Parser, ?SOURCE1),
+	    {ok, ?TREE1_NS_ATOM}),
+	exmpp_xml:stop_parser(Parser),
+	ok.
 
-test_parser_with_data_inf_maxsize() ->
-	case exmpp_xml:start_parser([{maxsize, length(?SOURCE1)}]) of
-		{ok, Parser} ->
-			Ret = case exmpp_xml:parse_final(Parser, ?SOURCE1) of
-				{error, Reason} ->
-					{error, Reason};
-				{ok, ?TREE1_NO_NS} ->
-					ok;
-				{ok, Tree} ->
-					{test_failed, Tree, ?TREE1_NO_NS}
-			end,
-			exmpp_xml:stop_parser(Parser),
-			Ret;
-		{error, Reason} ->
-			{error, Reason}
-	end.
+test_parser_with_data_inf_maxsize1() ->
+	{ok, Parser} = exmpp_xml:start_parser([{maxsize, length(?SOURCE1)}]),
+	testsuite:is(exmpp_xml:parse_final(Parser, ?SOURCE1),
+	    {ok, ?TREE1_NO_NS}),
+	exmpp_xml:stop_parser(Parser),
+	ok.
+
+test_parser_with_data_inf_maxsize2() ->
+	{ok, Parser} = exmpp_xml:start_parser([{maxsize, infinity}]),
+	testsuite:is(exmpp_xml:parse_final(Parser, ?SOURCE1),
+	    {ok, ?TREE1_NO_NS}),
+	exmpp_xml:stop_parser(Parser),
+	ok.
 
 test_parser_with_data_sup_maxsize() ->
-	case exmpp_xml:start_parser([{maxsize, length(?SOURCE1) - 1}]) of
-		{ok, Parser} ->
-			Ret = case exmpp_xml:parse_final(Parser, ?SOURCE1) of
-				{error, stanza_too_big} ->
-					ok;
-				Reason ->
-					{test_failed, Reason}
-			end,
-			exmpp_xml:stop_parser(Parser),
-			Ret;
-		{error, Reason} ->
-			{error, Reason}
-	end.
+	{ok, Parser} = exmpp_xml:start_parser([{maxsize,
+	    length(?SOURCE1) - 1}]),
+	testsuite:is(exmpp_xml:parse_final(Parser, ?SOURCE1),
+	    {error, stanza_too_big}),
+	exmpp_xml:stop_parser(Parser),
+	ok.
 
 test_parser_with_root_depth() ->
-	case exmpp_xml:start_parser([{root_depth, 1}]) of
-		{ok, Parser} ->
-			Ret = case exmpp_xml:parse_final(Parser, ?SOURCE1) of
-				{error, Reason} ->
-					{error, Reason};
-				{ok, ?TREE1_ROOT_DEPTH} ->
-					ok;
-				{ok, Tree} ->
-					{test_failed, Tree, ?TREE1_ROOT_DEPTH}
-			end,
-			exmpp_xml:stop_parser(Parser),
-			Ret;
-		{error, Reason} ->
-			{error, Reason}
-	end.
+	{ok, Parser} = exmpp_xml:start_parser([{root_depth, 1}]),
+	testsuite:is(exmpp_xml:parse_final(Parser, ?SOURCE1),
+	    {ok, ?TREE1_ROOT_DEPTH}),
+	exmpp_xml:stop_parser(Parser),
+	ok.
 
 test_parser_with_ns_root_depth() ->
-	case exmpp_xml:start_parser([namespace, {root_depth, 1}]) of
-		{ok, Parser} ->
-			Ret = case exmpp_xml:parse_final(Parser, ?SOURCE1) of
-				{error, Reason} ->
-					{error, Reason};
-				{ok, ?TREE1_NS_ROOT_DEPTH} ->
-					ok;
-				{ok, Tree} ->
-					{test_failed, Tree,
-					    ?TREE1_NS_ROOT_DEPTH}
-			end,
-			exmpp_xml:stop_parser(Parser),
-			Ret;
-		{error, Reason} ->
-			{error, Reason}
-	end.
+	{ok, Parser} = exmpp_xml:start_parser([namespace, {root_depth, 1}]),
+	testsuite:is(exmpp_xml:parse_final(Parser, ?SOURCE1),
+	    {ok, ?TREE1_NS_ROOT_DEPTH}),
+	exmpp_xml:stop_parser(Parser),
+	ok.
 
 test_parser_with_end_element() ->
-	case exmpp_xml:start_parser([{root_depth, 1}, endelement]) of
-		{ok, Parser} ->
-			Ret = case exmpp_xml:parse_final(Parser, ?SOURCE1) of
-				{error, Reason} ->
-					{error, Reason};
-				{ok, ?TREE1_END_EL} ->
-					ok;
-				{ok, Tree} ->
-					{test_failed, Tree, ?TREE1_END_EL}
-			end,
-			exmpp_xml:stop_parser(Parser),
-			Ret;
-		{error, Reason} ->
-			{error, Reason}
-	end.
+	{ok, Parser} = exmpp_xml:start_parser([{root_depth, 1}, endelement]),
+	testsuite:is(exmpp_xml:parse_final(Parser, ?SOURCE1),
+	    {ok, ?TREE1_END_EL}),
+	exmpp_xml:stop_parser(Parser),
+	ok.
 
 test_parser_with_ns_end_element() ->
-	case exmpp_xml:start_parser([namespace, {root_depth, 1}, endelement]) of
-		{ok, Parser} ->
-			Ret = case exmpp_xml:parse_final(Parser, ?SOURCE1) of
-				{error, Reason} ->
-					{error, Reason};
-				{ok, ?TREE1_NS_END_EL} ->
-					ok;
-				{ok, Tree} ->
-					{test_failed, Tree, ?TREE1_NS_END_EL}
-			end,
-			exmpp_xml:stop_parser(Parser),
-			Ret;
-		{error, Reason} ->
-			{error, Reason}
-	end.
+	{ok, Parser} = exmpp_xml:start_parser([namespace, {root_depth, 1},
+	    endelement]),
+	testsuite:is(exmpp_xml:parse_final(Parser, ?SOURCE1),
+	    {ok, ?TREE1_NS_END_EL}),
+	exmpp_xml:stop_parser(Parser),
+	ok.
 
 test_parser_chunk_by_chunk() ->
 	{ok, Parser} = exmpp_xml:start_parser(),
-	Ret = case exmpp_xml:parse(Parser, ?CHUNK1) of
-		{ok, ?CHUNK1_TREE} ->
-			case exmpp_xml:parse(Parser, ?CHUNK2) of
-				{ok, ?CHUNK2_TREE} ->
-					case exmpp_xml:parse(Parser, ?CHUNK3) of
-						{ok, ?CHUNK3_TREE} ->
-							ok;
-						Ret3 ->
-							{test_failed,
-							    ?CHUNK3_TREE,
-							    Ret3}
-					end;
-				Ret2 ->
-					{test_failed,
-					    ?CHUNK2_TREE,
-					    Ret2}
-			end;
-		Ret1 ->
-			{test_failed,
-			    ?CHUNK1_TREE,
-			    Ret1}
-	end,
+	testsuite:is(exmpp_xml:parse(Parser, ?CHUNK1),
+	    {ok, ?CHUNK1_TREE}),
+	testsuite:is(exmpp_xml:parse(Parser, ?CHUNK2),
+	    {ok, ?CHUNK2_TREE}),
+	testsuite:is(exmpp_xml:parse(Parser, ?CHUNK3),
+	    {ok, ?CHUNK3_TREE}),
 	exmpp_xml:stop_parser(Parser),
-	Ret.
+	ok.
