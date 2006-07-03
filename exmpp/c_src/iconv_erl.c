@@ -1,4 +1,4 @@
-/* $Id: iconv_erl.c 470 2005-12-14 01:32:48Z alexey $ */
+/* $Id$ */
 
 #include <stdio.h>
 #include <string.h>

@@ -1,4 +1,4 @@
-% $Id: testsuite.erl,v 1.1 2005/12/13 14:02:20 dumbbell Exp $
+% $Id$
 
 -module(testsuite).
 

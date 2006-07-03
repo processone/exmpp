@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.1 2005/12/14 15:24:56 dumbbell Exp $
+# $Id$
 
 EXTRA_DIST = testsuite.erl test.sh					\
 	     check_xml_parser.erl					\
