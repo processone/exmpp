@@ -10,11 +10,13 @@ EI_LIBS = -lei_st
 libdir = $(ERLANG_INSTALL_LIB_DIR_exmpp)/priv/lib
 
 # Expat port driver
-expat_drv_la_CPPFLAGS = $(EI_CPPFLAGS) -DEI_ENCODE_STRING_BUG
+expat_drv_la_CPPFLAGS = -I$(srcdir)/contrib -I$(builddir)/contrib\
+			$(EI_CPPFLAGS) -DEI_ENCODE_STRING_BUG
 expat_drv_la_LDFLAGS = -module -avoid-version\
 		       $(EI_LDFLAGS) $(EI_LIBS)\
 		       $(EXPAT_LDFLAGS) $(EXPAT_LIBS)
-expat_drv_la_SOURCES = expat_drv.c
+expat_drv_la_SOURCES = contrib/hashtable.c contrib/hashtable_itr.c\
+		       expat_drv.c
 
 # iconv port driver
 iconv_erl_la_CPPFLAGS = $(EI_CPPFLAGS) $(LIBICONV_CPPFLAGS)
