@@ -180,9 +180,13 @@ start_parser(Options) ->
 							[no_namespace | Options]
 					end
 			end,
-			New_Parser = handle_options(
-			    ?DEFAULT_PARSER_OPTIONS ++ Options2, Parser),
-			{ok, New_Parser}
+			case handle_options(
+			    ?DEFAULT_PARSER_OPTIONS ++ Options2, Parser) of
+				{error, Reason} ->
+					{error, Reason};
+				New_Parser ->
+					{ok, New_Parser}
+			end
 	end.
 
 %% @spec (Parser) -> true
@@ -1262,11 +1266,21 @@ load_driver2() ->
 	open_port({spawn, ?DRIVER_NAME_S}, []).
 
 handle_options([namespace | Rest], #xml_parser{port = P} = Parser) ->
-	port_control(P, ?EXPAT_SET_NSPARSER, term_to_binary(true)),
-	handle_options(Rest, Parser);
+	Ret = port_control(P, ?EXPAT_SET_NSPARSER, term_to_binary(true)),
+	case binary_to_term(Ret) of
+		ok ->
+			handle_options(Rest, Parser);
+		Error ->
+			Error
+	end;
 handle_options([no_namespace | Rest], #xml_parser{port = P} = Parser) ->
-	port_control(P, ?EXPAT_SET_NSPARSER, term_to_binary(false)),
-	handle_options(Rest, Parser);
+	Ret = port_control(P, ?EXPAT_SET_NSPARSER, term_to_binary(false)),
+	case binary_to_term(Ret) of
+		ok ->
+			handle_options(Rest, Parser);
+		Error ->
+			Error
+	end;
 
 handle_options([name_as_atom | Rest], #xml_parser{port = P} = Parser) ->
 	port_control(P, ?EXPAT_SET_NAMEASATOM, term_to_binary(true)),
