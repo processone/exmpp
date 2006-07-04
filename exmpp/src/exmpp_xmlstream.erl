@@ -235,14 +235,10 @@ send_event(Stream, Event) ->
 %%
 %% The XML parser is created with default options.
 %%
-%% @see exmpp_xml:start/0.
+%% @see exmpp_xml:start_parser/0.
+%% @see exmpp_xml:parse_document/1.
 parse_element(Data) ->
-	case exmpp_xml:start_parser() of
-		{ok, Parser} ->
-			parse_element2(Parser, Data);
-		{error, Reason} ->
-			{error, Reason}
-	end.
+	parse_element(Data, []).
 
 %% @spec (Data, Parser_Options) -> XML_Element | {error, Reason}
 %%     Data = string() | binary()
@@ -252,17 +248,10 @@ parse_element(Data) ->
 %%
 %% The XML parser is created with given `Parser_Options' options.
 %%
-%% @see exmpp_xml:start/1.
+%% @see exmpp_xml:start_parser/1.
+%% @see exmpp_xml:parse_document/2.
 parse_element(Data, Parser_Options) ->
-	case exmpp_xml:start_parser(Parser_Options) of
-		{ok, Parser} ->
-			parse_element2(Parser, Data);
-		{error, Reason} ->
-			{error, Reason}
-	end.
-
-parse_element2(Parser, Data) ->
-	case exmpp_xml:parse_final(Parser, Data) of
+	case exmpp_xml:parse_document(Data, Parser_Options) of
 		{ok, done} ->
 			{error, parse_error};
 		{ok, []} ->

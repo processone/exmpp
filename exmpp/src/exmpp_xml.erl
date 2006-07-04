@@ -13,18 +13,8 @@
 %% </p>
 %%
 %% <p>
-%% Note that <strong>namespace support is experimental</strong> at
-%% this time and thus isn't recommended for production.
+%% Namespace support is fully tested and is now ready for production use.
 %% </p>
-%%
-%% <p><strong>The API hasn't been validated yet</strong>.
-%% What's left to be done:</p>
-%% <ul>
-%% <li>finish namespace support for attributes (for now, only `xml:'
-%% prefix is supported and not in the best way)</li>
-%% <li>add validation for namespace</li>
-%% <li>add validation for element and attribute names</li>
-%% </ul>
 
 -module(exmpp_xml).
 -vsn('$Revision$').
@@ -37,7 +27,9 @@
 	stop_parser/1,
 	reload_driver/0,
 	parse/2,
-	parse_final/2
+	parse_final/2,
+	parse_document/1,
+	parse_document/2
 ]).
 -export([
 	get_attribute_node_from_list/2,
@@ -254,6 +246,48 @@ parse_final(Parser, Data) when is_list(Data) ->
 
 parse_final(#xml_parser{port = Port} = _Parser, Data) when is_binary(Data) ->
 	binary_to_term(port_control(Port, ?EXPAT_PARSE_FINAL, Data)).
+
+%% @spec (Document) -> {ok, [XML_Element]} | {error, Reason}
+%%     Document = string() | binary()
+%%     XML_Element = xmlnselement() | xmlelement() | xmlnsendelement() | xmlendelement()
+%%     Reason = term()
+%% @doc Parse an entire XML document at once.
+%%
+%% Initializing a parser with {@link start_parser/1} isn't necessary,
+%% this function will take care of it. It'll use default options; see
+%% {@link start_parser/1} for any related informations.
+
+parse_document(Document) when is_list(Document) ->
+	parse_document(list_to_binary(Document)).
+
+parse_document(Document) when is_binary(Document) ->
+	parse_document(Document, []).
+
+%% @spec (Document, Parser_Options) -> {ok, [XML_Element]} | {error, Reason}
+%%     Document = string() | binary()
+%%     Parser_Options = [xmlparseroption()]
+%%     XML_Element = xmlnselement() | xmlelement() | xmlnsendelement() | xmlendelement()
+%%     Reason = term()
+%% @doc Parse an entire XML document at once.
+%%
+%% Initializing a parser with {@link start_parser/1} isn't necessary,
+%% this function will take care of it. `Parser_Options' is passed to the
+%% parser; see {@link start_parser/1} for any related informations.
+%%
+%% Return values are the same as {@link parse_final/2}.
+
+parse_document(Document, Parser_Options) when is_list(Document) ->
+	parse_document(list_to_binary(Document), Parser_Options).
+
+parse_document(Document, Parser_Options) when is_binary(Document) ->
+	case start_parser(Parser_Options) of
+		{ok, Parser} ->
+			Ret = parse_final(Parser, Document),
+			stop_parser(Parser),
+			Ret;
+		{error, Reason} ->
+			{error, Reason}
+	end.
 
 %% @spec () -> ok | {error, Reason}
 %% @doc Reload the driver linked-in library.

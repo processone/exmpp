@@ -5,6 +5,12 @@
 	against a list of known values. If they're not recognized, they're
 	encoded as string(). Those checks can be disabled at runtime.
 
+	* src/exmpp_xml.erl (parse_document/1, parse_document/2): New
+	functions to parse a document at once.
+
+	* src/exmpp_xmlstream.erl (parse_element/1, parse_element/2): These
+	functions now use exmpp_xml:parse_document().
+
 	* c_src/xmpp_{ns,names,attrs}.h.in: New files that contains a list
 	of known namespaces, element names and attributes names, respectively.
 
@@ -52,7 +58,7 @@
 	* testsuite/: More complete testsuite, with coverage checking.
 
 	* testsuite/check_xml_converters.erl: Renamed from
-	check_xml_serializer.erl to add other tests thant juste
+	check_xml_serializer.erl to add other tests than just
 	serialization.
 
 	* ebin/Makefile.am, testsuite/Makefile.am: Every built files were not
