@@ -105,17 +105,23 @@
 -define(DRIVER_NAME, expat_drv).
 -define(DRIVER_NAME_S, "expat_drv").
 
--define(EXPAT_SET_NSPARSER,   1).
--define(EXPAT_SET_NAMEASATOM, 2).
--define(EXPAT_SET_MAXSIZE,    3).
--define(EXPAT_SET_ROOTDEPTH,  4).
--define(EXPAT_SET_ENDELEMENT, 5).
--define(EXPAT_PARSE,          6).
--define(EXPAT_PARSE_FINAL,    7).
+-define(EXPAT_SET_NSPARSER,     1).
+-define(EXPAT_SET_NAMEASATOM,   2).
+-define(EXPAT_SET_CHECK_NS,     3).
+-define(EXPAT_SET_CHECK_NAMES,  4).
+-define(EXPAT_SET_CHECK_ATTRS,  5).
+-define(EXPAT_SET_MAXSIZE,      6).
+-define(EXPAT_SET_ROOTDEPTH,    7).
+-define(EXPAT_SET_ENDELEMENT,   8).
+-define(EXPAT_PARSE,            9).
+-define(EXPAT_PARSE_FINAL,     10).
 
 -define(DEFAULT_PARSER_OPTIONS, [
-	% no_namespace, % Handled by start_parser/1
+	% no_namespace, % Handled by start_parser/1.
 	name_as_string,
+	% ns_check,     % By default in the port driver.
+	% names_check,
+	% attrs_check,
 	no_endelement,
 	{root_depth, 0},
 	no_maxsize
@@ -139,6 +145,9 @@
 %% ```
 %% [no_namespace, name_as_string, no_endelement, {root_depth, 0}, no_maxsize]
 %% '''
+%%
+%% Activating namespace support enables `ns_check'. Activating
+%% `name_as_atom' enables `names_check' and `attrs_check'.
 %%
 %% @see start_parser/1.
 %% @see xmlparseroption().
@@ -1289,6 +1298,27 @@ handle_options([name_as_string | Rest], #xml_parser{port = P} = Parser) ->
 	port_control(P, ?EXPAT_SET_NAMEASATOM, term_to_binary(false)),
 	handle_options(Rest, Parser);
 
+handle_options([ns_check | Rest], #xml_parser{port = P} = Parser) ->
+	port_control(P, ?EXPAT_SET_CHECK_NS, term_to_binary(true)),
+	handle_options(Rest, Parser);
+handle_options([no_ns_check | Rest], #xml_parser{port = P} = Parser) ->
+	port_control(P, ?EXPAT_SET_CHECK_NS, term_to_binary(false)),
+	handle_options(Rest, Parser);
+
+handle_options([names_check | Rest], #xml_parser{port = P} = Parser) ->
+	port_control(P, ?EXPAT_SET_CHECK_NAMES, term_to_binary(true)),
+	handle_options(Rest, Parser);
+handle_options([no_names_check | Rest], #xml_parser{port = P} = Parser) ->
+	port_control(P, ?EXPAT_SET_CHECK_NAMES, term_to_binary(false)),
+	handle_options(Rest, Parser);
+
+handle_options([attrs_check | Rest], #xml_parser{port = P} = Parser) ->
+	port_control(P, ?EXPAT_SET_CHECK_ATTRS, term_to_binary(true)),
+	handle_options(Rest, Parser);
+handle_options([no_attrs_check | Rest], #xml_parser{port = P} = Parser) ->
+	port_control(P, ?EXPAT_SET_CHECK_ATTRS, term_to_binary(false)),
+	handle_options(Rest, Parser);
+
 handle_options([no_maxsize | Rest], #xml_parser{port = P} = Parser) ->
 	port_control(P, ?EXPAT_SET_MAXSIZE, term_to_binary(-1)),
 	handle_options(Rest, Parser);
@@ -1312,6 +1342,9 @@ handle_options([no_endelement | Rest], #xml_parser{port = P} = Parser) ->
 	port_control(P, ?EXPAT_SET_ENDELEMENT, term_to_binary(false)),
 	handle_options(Rest, Parser);
 
+handle_options([Unknown_Option | _Rest], _Parser) ->
+	{error, {unknown_option, Unknown_Option}};
+
 handle_options([], Parser) ->
 	Parser.
 
@@ -1323,14 +1356,34 @@ handle_options([], Parser) ->
 %% Handler for the Expat parser, initialized with a call to {@link
 %% start_parser/0}.
 
-%% @type xmlparseroption() = Namespace_Option | Stanza_Max_Size | Root_Depth | Send_End_Element
+%% @type xmlparseroption() = Namespace_Option | Names_Format | Checks | Stanza_Max_Size | Root_Depth | Send_End_Element
 %%     Namespace_Option = namespace | no_namespace
+%%     Name_Format = name_as_atom | name_as_string
+%%     Checks = NS_Check | Names_Check | Attrs_Check
+%%       NS_Check = ns_check | no_ns_check
+%%       Names_Check = names_check | no_names_check
+%%       Attrs_Check = attrs_check | no_attrs_check
 %%     Stanza_Max_Size  = no_maxsize | {maxsize, infinity} | {maxsize, Size}
 %%     Root_Depth = {root_depth, Depth}
 %%     Send_End_Element = endelement | noendelement.
 %% The `namespace' and `no_namespace' flags enable or disable the
 %% support for namespaces respectively. Note that the support is very
 %% experimental. Tag and attribute namespaces are supported.
+%%
+%% <br/><br/>
+%% The `name_as_atom' and `name_as_string' options set if element and
+%% attribute names should be encoded as an {@link atom()} or a {@link
+%% string()} respectively. "Should" because if names or attributes
+%% checks fail, a name will be encoded as a `string()' (see next
+%% option).
+%%
+%% <br/><br/>
+%% The `Checks' flags enable or disable the control of a namespace, an
+%% element name or an attribute name if `name_as_atom' is enabled. This
+%% is to avoid atom() table pollution and overflow. If a check says
+%% that the verified string is known, it'll be encoded as an atom() in
+%% the tuple; otherwise it'll be encoded as a string(). It's highly
+%% recommended to keep these checks enabled.
 %%
 %% <br/><br/>
 %% The `maxsize' option limits the size in bytes of a stanza to avoid

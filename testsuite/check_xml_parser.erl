@@ -13,10 +13,14 @@ check() ->
 
 do_check() ->
 	test_parser_without_option(),
+	test_parser_with_unknown_option(),
 	test_parser_with_no_namespace(),
 	test_parser_with_atom(),
 	test_parser_with_namespace(),
 	test_parser_with_namespace_and_atom(),
+	test_parser_with_ns_check(),
+	test_parser_with_names_check(),
+	test_parser_with_attrs_check(),
 	test_parser_with_data_inf_maxsize1(),
 	test_parser_with_data_inf_maxsize2(),
 	test_parser_with_data_sup_maxsize(),
@@ -30,6 +34,9 @@ do_check() ->
 % --------------------------------------------------------------------
 % Parser testsuite.
 % --------------------------------------------------------------------
+
+-define(XML_NS, 'http://www.w3.org/XML/1998/namespace').
+-define(XMPP_NS, 'http://etherx.jabber.org/streams').
 
 -define(SOURCE1, "<stream:stream xmlns:stream='ns_stream' xmlns='ns_default'><iq xml:lang='fr'>Content</iq></stream:stream>").
 
@@ -62,8 +69,7 @@ do_check() ->
 -define(TREE1_NS, [
 {xmlnselement, 'ns_stream', "stream", "stream", [], [
 	{xmlnselement, 'ns_default', undefined, "iq", [
-		{xmlattr, 'http://www.w3.org/XML/1998/namespace', "xml",
-		    "lang", "fr"}
+		{xmlattr, ?XML_NS, "xml", "lang", "fr"}
 	], [
 		{xmlcdata, <<"Content">>}
 	]}
@@ -73,8 +79,7 @@ do_check() ->
 -define(TREE1_NS_ATOM, [
 {xmlnselement, 'ns_stream', "stream", 'stream', [], [
 	{xmlnselement, 'ns_default', undefined, 'iq', [
-		{xmlattr, 'http://www.w3.org/XML/1998/namespace', "xml",
-		    'lang', "fr"}
+		{xmlattr, ?XML_NS, "xml", 'lang', "fr"}
 	], [
 		{xmlcdata, <<"Content">>}
 	]}
@@ -96,8 +101,7 @@ do_check() ->
 -define(TREE1_NS_ROOT_DEPTH, [
 {xmlnselement, 'ns_stream', "stream", "stream", [], []},
 {xmlnselement, 'ns_default', undefined, "iq", [
-	{xmlattr, 'http://www.w3.org/XML/1998/namespace', "xml",
-	    "lang", "fr"}
+	{xmlattr, ?XML_NS, "xml", "lang", "fr"}
 ], [
 	{xmlcdata, <<"Content">>}
 ]}
@@ -119,12 +123,38 @@ do_check() ->
 -define(TREE1_NS_END_EL, [
 {xmlnselement, 'ns_stream', "stream", "stream", [], []},
 {xmlnselement, 'ns_default', undefined, "iq", [
-	{xmlattr, 'http://www.w3.org/XML/1998/namespace', "xml",
+	{xmlattr, ?XML_NS, "xml",
 	    "lang", "fr"}
 ], [
 	{xmlcdata, <<"Content">>}
 ]},
 {xmlnsendelement, 'ns_stream', "stream"}
+]).
+
+-define(SOURCE2, "<element xmlns='unknown_ns' xmlns:stream='http://etherx.jabber.org/streams' xml:lang='fr' stream:version='1.0'/>").
+
+-define(TREE2_NS_CHECK, [
+{xmlnselement, "unknown_ns", undefined, "element", [
+	{xmlattr, ?XML_NS, "xml", "lang", "fr"},
+	{xmlattr, ?XMPP_NS, "stream", "version", "1.0"}
+], []}
+]).
+
+-define(SOURCE3, "<message><unknown/></message>").
+
+-define(TREE3_NS_CHECK, [
+{xmlnselement, undefined, undefined, 'message', [], [
+	{xmlnselement, undefined, undefined, "unknown", [], []}
+]}
+]).
+
+-define(SOURCE4, "<stream version='1.0' foo='bar'/>").
+
+-define(TREE4_NS_CHECK, [
+{xmlnselement, undefined, undefined, 'stream', [
+	{xmlattr, undefined, undefined, 'version', "1.0"},
+	{xmlattr, undefined, undefined, "foo", "bar"}
+], []}
 ]).
 
 -define(CHUNK1, "").
@@ -149,6 +179,11 @@ test_parser_without_option() ->
 	exmpp_xml:stop_parser(Parser),
 	ok.
 
+test_parser_with_unknown_option() ->
+	testsuite:is(exmpp_xml:start_parser([bad_option]),
+	    {error, {unknown_option, bad_option}}),
+	ok.
+
 test_parser_with_no_namespace() ->
 	{ok, Parser} = exmpp_xml:start_parser([no_namespace]),
 	testsuite:is(exmpp_xml:parse_final(Parser, ?SOURCE1),
@@ -157,23 +192,49 @@ test_parser_with_no_namespace() ->
 	ok.
 
 test_parser_with_atom() ->
-	{ok, Parser} = exmpp_xml:start_parser([name_as_atom]),
+	{ok, Parser} = exmpp_xml:start_parser([name_as_atom,
+	    no_names_check, no_attrs_check]),
 	testsuite:is(exmpp_xml:parse_final(Parser, ?SOURCE1),
 	    {ok, ?TREE1_NO_NS_ATOM}),
 	exmpp_xml:stop_parser(Parser),
 	ok.
 
 test_parser_with_namespace() ->
-	{ok, Parser} = exmpp_xml:start_parser([namespace]),
+	{ok, Parser} = exmpp_xml:start_parser([namespace,
+	    no_ns_check]),
 	testsuite:is(exmpp_xml:parse_final(Parser, ?SOURCE1),
 	    {ok, ?TREE1_NS}),
 	exmpp_xml:stop_parser(Parser),
 	ok.
 
 test_parser_with_namespace_and_atom() ->
-	{ok, Parser} = exmpp_xml:start_parser([namespace, name_as_atom]),
+	{ok, Parser} = exmpp_xml:start_parser([namespace, name_as_atom,
+	    no_ns_check, no_names_check, no_attrs_check]),
 	testsuite:is(exmpp_xml:parse_final(Parser, ?SOURCE1),
 	    {ok, ?TREE1_NS_ATOM}),
+	exmpp_xml:stop_parser(Parser),
+	ok.
+
+test_parser_with_ns_check() ->
+	{ok, Parser} = exmpp_xml:start_parser([namespace, ns_check]),
+	testsuite:is(exmpp_xml:parse_final(Parser, ?SOURCE2),
+	    {ok, ?TREE2_NS_CHECK}),
+	exmpp_xml:stop_parser(Parser),
+	ok.
+
+test_parser_with_names_check() ->
+	{ok, Parser} = exmpp_xml:start_parser([namespace, name_as_atom,
+	    names_check]),
+	testsuite:is(exmpp_xml:parse_final(Parser, ?SOURCE3),
+	    {ok, ?TREE3_NS_CHECK}),
+	exmpp_xml:stop_parser(Parser),
+	ok.
+
+test_parser_with_attrs_check() ->
+	{ok, Parser} = exmpp_xml:start_parser([namespace, name_as_atom,
+	    attrs_check]),
+	testsuite:is(exmpp_xml:parse_final(Parser, ?SOURCE4),
+	    {ok, ?TREE4_NS_CHECK}),
 	exmpp_xml:stop_parser(Parser),
 	ok.
 
@@ -207,7 +268,8 @@ test_parser_with_root_depth() ->
 	ok.
 
 test_parser_with_ns_root_depth() ->
-	{ok, Parser} = exmpp_xml:start_parser([namespace, {root_depth, 1}]),
+	{ok, Parser} = exmpp_xml:start_parser([namespace, {root_depth, 1},
+	    no_ns_check]),
 	testsuite:is(exmpp_xml:parse_final(Parser, ?SOURCE1),
 	    {ok, ?TREE1_NS_ROOT_DEPTH}),
 	exmpp_xml:stop_parser(Parser),
@@ -222,7 +284,7 @@ test_parser_with_end_element() ->
 
 test_parser_with_ns_end_element() ->
 	{ok, Parser} = exmpp_xml:start_parser([namespace, {root_depth, 1},
-	    endelement]),
+	    endelement, no_ns_check]),
 	testsuite:is(exmpp_xml:parse_final(Parser, ?SOURCE1),
 	    {ok, ?TREE1_NS_END_EL}),
 	exmpp_xml:stop_parser(Parser),

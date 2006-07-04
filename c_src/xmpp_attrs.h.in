@@ -1,0 +1,37 @@
+# $Id$
+# vim:ft=conf
+
+# In the `http://etherx.jabber.org/streams' namespace
+from
+to
+id
+version
+
+# In the `jabber:client' and `jabber:server' namespace
+from
+to
+id
+type
+code
+
+# In the `jabber:server:dialback' namespace
+from
+to
+id
+type
+
+# In the `urn:ietf:params:xml:ns:xmpp-sasl' namespace
+mechanism
+
+# In the `jabber:iq:privacy' namespace
+name
+action
+order
+type
+value
+
+# In the `jabber:iq:privacy' namespace
+ask
+jid
+name
+subscription

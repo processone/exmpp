@@ -8,14 +8,48 @@
 
 #include "contrib/hashtable.h"
 
+#include "xmpp_ns.h"
+#include "xmpp_names.h"
+#include "xmpp_attrs.h"
+
 #define	DRIVER_NAME	expat_drv
 #define	_S(s)		#s
-#define S(s)		_S(s)
+#define	S(s)		_S(s)
+
+#define	TUPLE_DRV_OK			"ok"
+#define	TUPLE_DRV_ERROR			"error"
+
+#define	TUPLE_XML_ELEMENT		"xmlelement"
+#define	TUPLE_XML_NS_ELEMENT		"xmlnselement"
+#define	TUPLE_XML_ATTR			"xmlattr"
+#define	TUPLE_XML_CDATA			"xmlcdata"
+#define	TUPLE_XML_END_ELEMENT		"xmlendelement"
+#define	TUPLE_XML_NS_END_ELEMENT	"xmlnsendelement"
+#define	TUPLE_XML_ERROR			"xmlerror"
+
+#define	NS_SEP				'|'
+
+#define	SKIP_VERSION(buf)	{					\
+	index = 0;							\
+	ei_decode_version(buf, &index, &version);			\
+}
+
+#define MAKE_ATOM_OK(var)	{					\
+	var = driver_alloc(sizeof(ei_x_buff));				\
+	if (var == NULL)						\
+		return (-1);						\
+	ei_x_new_with_version(var);					\
+									\
+	ei_x_encode_atom(var, TUPLE_DRV_OK);				\
+}
 
 /* Control operations. */
 enum {
 	EXPAT_SET_NSPARSER = 1,
 	EXPAT_SET_NAMEASATOM,
+	EXPAT_SET_CHECK_NS,
+	EXPAT_SET_CHECK_NAMES,
+	EXPAT_SET_CHECK_ATTRS,
 	EXPAT_SET_MAXSIZE,
 	EXPAT_SET_ROOTDEPTH,
 	EXPAT_SET_ENDELEMENT,
@@ -35,27 +69,20 @@ struct expat_drv_data {
 
 	/* Lookup tables. */
 	struct hashtable	*prefixes;
+	struct hashtable	*known_ns;
+	struct hashtable	*known_names;
+	struct hashtable	*known_attrs;
 
 	/* Options. */
 	int			 use_ns_parser;
 	int			 name_as_atom;
+	int			 check_ns;
+	int			 check_names;
+	int			 check_attrs;
 	long			 max_size;
 	unsigned long		 root_depth;
 	int			 send_endelement;
 };
-
-#define	TUPLE_DRV_OK			"ok"
-#define	TUPLE_DRV_ERROR			"error"
-
-#define	TUPLE_XML_ELEMENT		"xmlelement"
-#define	TUPLE_XML_NS_ELEMENT		"xmlnselement"
-#define	TUPLE_XML_ATTR			"xmlattr"
-#define	TUPLE_XML_CDATA			"xmlcdata"
-#define	TUPLE_XML_END_ELEMENT		"xmlendelement"
-#define	TUPLE_XML_NS_END_ELEMENT	"xmlnsendelement"
-#define	TUPLE_XML_ERROR			"xmlerror"
-
-#define	NS_SEP				'|'
 
 /* Expat handler prototypes */
 void	expat_drv_start_namespace(void *user_data,
@@ -69,11 +96,23 @@ void	expat_drv_end_element(void *user_data,
 void	expat_drv_character_data(void *user_data,
 	    const char *data, int len);
 
-int			create_parser(struct expat_drv_data *ed);
-int			destroy_parser(struct expat_drv_data *ed);
-int			current_tree_finished(struct expat_drv_data *ed);
-static unsigned int	hash_djb2(void *key);
-static int		hash_equalkeys(void *k1, void *k2);
+int		create_parser(struct expat_drv_data *ed);
+int		destroy_parser(struct expat_drv_data *ed);
+int		current_tree_finished(struct expat_drv_data *ed);
+unsigned int	hash_djb2(void *key);
+int		hash_equalkeys(void *k1, void *k2);
+int		initialize_lookup_tables(struct expat_drv_data *ed);
+int		is_a_known_ns(struct expat_drv_data *ed, const char *ns);
+int		is_a_known_name(struct expat_drv_data *ed, const char *name);
+int		is_a_known_attr(struct expat_drv_data *ed, const char *attr);
+
+/* This constant is used as value in known_ns, known_names and known_attrs
+ * hashtable. */
+const int	KNOWN = 1;
+
+/* XML namespace is implicitly declared. This constant is used in known_ns
+ * and prefixes hashtables. */
+#define	XML_NS	"http://www.w3.org/XML/1998/namespace"
 
 /* -------------------------------------------------------------------
  * Workaround for EI encode_string bug.
@@ -214,7 +253,13 @@ expat_drv_start(ErlDrvPort port, char *command)
 	ed->use_ns_parser = 0;
 
 	/* Encode tag and attribute names as string. */
-	ed->use_ns_parser = 0;
+	ed->name_as_atom = 0;
+
+	/* Because namespaces (and maybe names) are encoded as atom(),
+	 * they should require some verifications. */
+	ed->check_ns    = 1;
+	ed->check_names = 1;
+	ed->check_attrs = 1;
 
 	/* DOM-like behaviour by default. */
 	ed->root_depth = 0;
@@ -224,6 +269,11 @@ expat_drv_start(ErlDrvPort port, char *command)
 
 	/* Do not send end element. */
 	ed->send_endelement = 0;
+
+	/* Initialize lookup tables. */
+	if (initialize_lookup_tables(ed) != 0) {
+		return (NULL);
+	}
 
 	return ((ErlDrvData)ed);
 }
@@ -235,10 +285,23 @@ expat_drv_stop(ErlDrvData drv_data)
 
 	ed = (struct expat_drv_data *)drv_data;
 
-	/* Destroy the Expat parser and the driver data structure. */
+	/* Destroy lookup tables, the Expat parser and the driver data
+	 * structure. */
 	if (ed->prefixes) {
 		hashtable_destroy(ed->prefixes, 1);
 		ed->prefixes = NULL;
+	}
+	if (ed->known_ns) {
+		hashtable_destroy(ed->known_ns, 0);
+		ed->known_ns = NULL;
+	}
+	if (ed->known_names) {
+		hashtable_destroy(ed->known_names, 0);
+		ed->known_names = NULL;
+	}
+	if (ed->known_attrs) {
+		hashtable_destroy(ed->known_attrs, 0);
+		ed->known_attrs = NULL;
 	}
 	destroy_parser(ed);
 
@@ -267,76 +330,56 @@ expat_drv_control(ErlDrvData drv_data, unsigned int command,
 	switch (command) {
 	case EXPAT_SET_MAXSIZE:
 		/* Get the max size value. */
-		index = 0;
-		ei_decode_version(buf, &index, &version); /* Skip version. */
+		SKIP_VERSION(buf);
 		ei_decode_long(buf, &index, &(ed->max_size));
 
-		/* Initialize the ei_x_buff buffer used to store the
-		 * error. */
-		to_send = driver_alloc(sizeof(ei_x_buff));
-		if (to_send == NULL)
-			return (-1);
-		ei_x_new_with_version(to_send);
-
-		/* Store this information in the buffer. */
-		ei_x_encode_atom(to_send, TUPLE_DRV_OK);
-
+		MAKE_ATOM_OK(to_send);
 		break;
 	case EXPAT_SET_ROOTDEPTH:
 		/* Get the root depth value. */
-		index = 0;
-		ei_decode_version(buf, &index, &version); /* Skip version. */
+		SKIP_VERSION(buf);
 		ei_decode_ulong(buf, &index, &(ed->root_depth));
 
-		/* Initialize the ei_x_buff buffer used to store the
-		 * error. */
-		to_send = driver_alloc(sizeof(ei_x_buff));
-		if (to_send == NULL)
-			return (-1);
-		ei_x_new_with_version(to_send);
-
-		/* Store this information in the buffer. */
-		ei_x_encode_atom(to_send, TUPLE_DRV_OK);
-
+		MAKE_ATOM_OK(to_send);
 		break;
 	case EXPAT_SET_ENDELEMENT:
-		/* Get the send end element flag. */
-		index = 0;
-		ei_decode_version(buf, &index, &version); /* Skip version. */
+		/* Get the "send end element" flag. */
+		SKIP_VERSION(buf);
 		ei_decode_boolean(buf, &index, &(ed->send_endelement));
 
-		/* Initialize the ei_x_buff buffer used to store the
-		 * error. */
-		to_send = driver_alloc(sizeof(ei_x_buff));
-		if (to_send == NULL)
-			return (-1);
-		ei_x_new_with_version(to_send);
-
-		/* Store this information in the buffer. */
-		ei_x_encode_atom(to_send, TUPLE_DRV_OK);
-
+		MAKE_ATOM_OK(to_send);
 		break;
 	case EXPAT_SET_NAMEASATOM:
-		/* Get the send end element flag. */
-		index = 0;
-		ei_decode_version(buf, &index, &version); /* Skip version. */
+		/* Get the "name as atom()" flag. */
+		SKIP_VERSION(buf);
 		ei_decode_boolean(buf, &index, &(ed->name_as_atom));
 
-		/* Initialize the ei_x_buff buffer used to store the
-		 * error. */
-		to_send = driver_alloc(sizeof(ei_x_buff));
-		if (to_send == NULL)
-			return (-1);
-		ei_x_new_with_version(to_send);
+		MAKE_ATOM_OK(to_send);
+		break;
+	case EXPAT_SET_CHECK_NS:
+		/* Get the "check namespaces" flag. */
+		SKIP_VERSION(buf);
+		ei_decode_boolean(buf, &index, &(ed->check_ns));
 
-		/* Store this information in the buffer. */
-		ei_x_encode_atom(to_send, TUPLE_DRV_OK);
+		MAKE_ATOM_OK(to_send);
+		break;
+	case EXPAT_SET_CHECK_NAMES:
+		/* Get the "check names" flag. */
+		SKIP_VERSION(buf);
+		ei_decode_boolean(buf, &index, &(ed->check_names));
 
+		MAKE_ATOM_OK(to_send);
+		break;
+	case EXPAT_SET_CHECK_ATTRS:
+		/* Get the "check attributes" flag. */
+		SKIP_VERSION(buf);
+		ei_decode_boolean(buf, &index, &(ed->check_attrs));
+
+		MAKE_ATOM_OK(to_send);
 		break;
 	case EXPAT_SET_NSPARSER:
 		/* Get the flag value. */
-		index = 0;
-		ei_decode_version(buf, &index, &version); /* Skip version. */
+		SKIP_VERSION(buf);
 		ei_decode_boolean(buf, &index, &(ed->use_ns_parser));
 
 		/* Create the Expat parser. */
@@ -356,7 +399,7 @@ expat_drv_control(ErlDrvData drv_data, unsigned int command,
 
 			/* Already add `xml' prefix which is implied. */
 			hashtable_insert(ed->prefixes,
-			    strdup("http://www.w3.org/XML/1998/namespace"),
+			    strdup(XML_NS),
 			    strdup("xml"));
 		}
 
@@ -595,30 +638,50 @@ expat_drv_start_element(void *user_data,
 		ei_x_encode_atom(tree, TUPLE_XML_NS_ELEMENT);
 		ns_sep = strchr(name, NS_SEP);
 		if (ns_sep == NULL) {
-			ei_x_encode_atom(tree, "undefined"); /* NS */
-			ei_x_encode_atom(tree, "undefined"); /* Prefix */
-			if (ed->name_as_atom) {
+			/* Neither a namespace, nor a prefix. */
+			ei_x_encode_atom(tree, "undefined");
+			ei_x_encode_atom(tree, "undefined");
+
+			/* Encode the element name. */
+			if (ed->name_as_atom && is_a_known_name(ed, name)) {
 				ei_x_encode_atom(tree, name);
 			} else {
 				ei_x_encode_string_fixed(tree, name);
 			}
 		} else {
-			ei_x_encode_atom_len(tree, name,     /* NS */
-			    ns_sep - name);
+			/* Terminate the namespace with a NUL character.
+			 * This will be restored later. */
+			*ns_sep = '\0';
+
+			/* Check if the namespace is known, to decide if we
+			 * encode it as an atom() or a string(). */
+			if (is_a_known_ns(ed, name)) {
+				ei_x_encode_atom(tree, name);
+			} else {
+				ei_x_encode_string_fixed(tree, name);
+			}
+
+			/* Lookup a prefix and eventually encode it as a
+			 * string() in the buffer. */
 			if (ed->prefixes) {
-				*ns_sep = '\0';
 				prefix = (char *)hashtable_search(
 				    ed->prefixes, (char *)name);
-				*ns_sep = NS_SEP;
 			} else {
 				prefix = NULL;
 			}
+
 			if (prefix != NULL) {
 				ei_x_encode_string_fixed(tree, prefix);
 			} else {
 				ei_x_encode_atom(tree, "undefined");
 			}
-			if (ed->name_as_atom) {
+
+			/* Restore the namespace separator. */
+			*ns_sep = NS_SEP;
+
+			/* Encode the element name. */
+			if (ed->name_as_atom &&
+			    is_a_known_name(ed, ns_sep + 1)) {
 				ei_x_encode_atom(tree, ns_sep + 1);
 			} else {
 				ei_x_encode_string_fixed(tree, ns_sep + 1);
@@ -627,7 +690,9 @@ expat_drv_start_element(void *user_data,
 	} else {
 		ei_x_encode_tuple_header(tree, 4);
 		ei_x_encode_atom(tree, TUPLE_XML_ELEMENT);
-		if (ed->name_as_atom) {
+
+		/* Encode the element name. */
+		if (ed->name_as_atom && is_a_known_name(ed, name)) {
 			ei_x_encode_atom(tree, name);
 		} else {
 			ei_x_encode_string_fixed(tree, name);
@@ -645,39 +710,57 @@ expat_drv_start_element(void *user_data,
 		for (i = 0; attrs[i] != NULL; i += 2) {
 			/* With namespace support, the tuple will be of
 			 * the form:
-			 * {xmlattr, URI, Name, Value}
+			 *   {xmlattr, URI, Name, Value}
 			 * Without namespace support, it will be:
-			 * {Name, Value} */
+			 *   {Name, Value} */
 			if (ed->use_ns_parser) {
 				ei_x_encode_tuple_header(tree, 5);
 				ei_x_encode_atom(tree, TUPLE_XML_ATTR);
 				ns_sep = strchr(attrs[i], NS_SEP);
 				if (ns_sep == NULL) {
-					/* No prefix, take tag namespace. */
+					/* Neither a namespace, nor a
+					 * prefix. */
 					ei_x_encode_atom(tree, "undefined");
 					ei_x_encode_atom(tree, "undefined");
-					if (ed->name_as_atom) {
+
+					/* Encode the attribute name. */
+					if (ed->name_as_atom &&
+					    is_a_known_attr(ed, attrs[i])) {
 						ei_x_encode_atom(tree,
 						    attrs[i]);
 					} else {
 						ei_x_encode_string_fixed(tree,
 						    attrs[i]);
 					}
-					ei_x_encode_string_fixed(tree,
-					    attrs[i + 1]);
 				} else {
-					ei_x_encode_atom_len(tree, attrs[i],
-					    ns_sep - attrs[i]);
+					/* Terminate the namespace with a NUL
+					 * character. This will be restored
+					 * later. */
+					*ns_sep = '\0';
+
+					/* Check if the namespace is known,
+					 * to decide if wa encode it as an
+					 * atom() or a string(). */
+					if (is_a_known_ns(ed, attrs[i])) {
+						ei_x_encode_atom(tree,
+						    attrs[i]);
+					} else {
+						ei_x_encode_string_fixed(tree,
+						    attrs[i]);
+					}
+
+					/* Lookup a prefix and eventually
+					 * encode it as a string() in the
+					 * buffer. */
 					if (ed->prefixes) {
-						*ns_sep = '\0';
 						prefix =
 						    (char *)hashtable_search(
 						    ed->prefixes,
 						    (char *)attrs[i]);
-						*ns_sep = NS_SEP;
 					} else {
 						prefix = NULL;
 					}
+
 					if (prefix != NULL) {
 						ei_x_encode_string_fixed(tree,
 						    prefix);
@@ -685,27 +768,36 @@ expat_drv_start_element(void *user_data,
 						ei_x_encode_atom(tree,
 						    "undefined");
 					}
-					if (ed->name_as_atom) {
+
+					/* Restore the namespace separator. */
+					*ns_sep = NS_SEP;
+
+					/* Encode the attribute name. */
+					if (ed->name_as_atom &&
+					    is_a_known_attr(ed, ns_sep + 1)) {
 						ei_x_encode_atom(tree,
 						    ns_sep + 1);
 					} else {
 						ei_x_encode_string_fixed(tree,
 						    ns_sep + 1);
 					}
-					ei_x_encode_string_fixed(tree,
-					    attrs[i + 1]);
 				}
 			} else {
 				ei_x_encode_tuple_header(tree, 2);
-				if (ed->name_as_atom) {
+
+				/* Encode the atttribute name. */
+				if (ed->name_as_atom &&
+				    is_a_known_attr(ed, attrs[i])) {
 					ei_x_encode_atom(tree,
 					    attrs[i]);
 				} else {
 					ei_x_encode_string_fixed(tree,
 					    attrs[i]);
 				}
-				ei_x_encode_string_fixed(tree, attrs[i + 1]);
 			}
+
+			/* Encode the attribute value. */
+			ei_x_encode_string_fixed(tree, attrs[i + 1]);
 		}
 	}
 
@@ -872,7 +964,7 @@ current_tree_finished(struct expat_drv_data *ed)
 	return (ret);
 }
 
-static unsigned int
+unsigned int
 hash_djb2(void *key)
 {
 	int c;
@@ -887,11 +979,99 @@ hash_djb2(void *key)
 	return (hash);
 }
 
-static int
+int
 hash_equalkeys(void *k1, void *k2)
 {
 
 	return (strcmp((char *)k1, (char *)k2) == 0);
+}
+
+int
+initialize_lookup_tables(struct expat_drv_data *ed)
+{
+	int i;
+
+	/* Create the 3 tables. */
+	ed->known_ns = create_hashtable(16, hash_djb2, hash_equalkeys);
+	if (ed->known_ns == NULL)
+		return (-1);
+
+	ed->known_names = create_hashtable(16, hash_djb2, hash_equalkeys);
+	if (ed->known_ns == NULL)
+		return (-1);
+
+	ed->known_attrs = create_hashtable(16, hash_djb2, hash_equalkeys);
+	if (ed->known_ns == NULL)
+		return (-1);
+
+	/* Load XML known tokens. */
+	hashtable_insert(ed->known_ns,    strdup(XML_NS), (int *)&KNOWN);
+	hashtable_insert(ed->known_attrs, strdup("lang"), (int *)&KNOWN);
+
+	/* Load custom namespaces. */
+	for (i = 0; xmpp_ns_list[i] != NULL; ++i) {
+		hashtable_insert(ed->known_ns,
+		    strdup(xmpp_ns_list[i]), (int *)&KNOWN);
+	}
+
+	/* Load custom names. */
+	for (i = 0; xmpp_names_list[i] != NULL; ++i) {
+		hashtable_insert(ed->known_names,
+		    strdup(xmpp_names_list[i]), (int *)&KNOWN);
+	}
+
+	/* Load custom attributes. */
+	for (i = 0; xmpp_attrs_list[i] != NULL; ++i) {
+		hashtable_insert(ed->known_attrs,
+		    strdup(xmpp_attrs_list[i]), (int *)&KNOWN);
+	}
+
+	return (0);
+}
+
+void
+destroy_lookup_tables(struct expat_drv_data *ed)
+{
+
+	hashtable_destroy(ed->known_ns, 0);
+	hashtable_destroy(ed->known_names, 0);
+	hashtable_destroy(ed->known_attrs, 0);
+}
+
+int
+is_a_known_ns(struct expat_drv_data *ed, const char *ns)
+{
+	int *is_known;
+
+	if (!ed->check_ns || ed->known_ns == NULL)
+		return (1);
+
+	is_known = hashtable_search(ed->known_ns, (char *)ns);
+	return (is_known == NULL ? 0 : 1);
+}
+
+int
+is_a_known_name(struct expat_drv_data *ed, const char *name)
+{
+	int *is_known;
+
+	if (!ed->check_names || ed->known_names == NULL)
+		return (1);
+
+	is_known = hashtable_search(ed->known_names, (char *)name);
+	return (is_known == NULL ? 0 : 1);
+}
+
+int
+is_a_known_attr(struct expat_drv_data *ed, const char *attr)
+{
+	int *is_known;
+
+	if (!ed->check_attrs || ed->known_attrs == NULL)
+		return (1);
+
+	is_known = hashtable_search(ed->known_attrs, (char *)attr);
+	return (is_known == NULL ? 0 : 1);
 }
 
 /* -------------------------------------------------------------------
