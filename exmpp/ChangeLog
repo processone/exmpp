@@ -1,3 +1,16 @@
+2006-07-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/exmpp_xml.erl, c_src/expat_drv.c: Before namespaces, element
+	names and attributes names are encoded as atom(), they're now checked
+	against a list of known values. If they're not recognized, they're
+	encoded as string(). Those checks can be disabled at runtime.
+
+	* c_src/xmpp_{ns,names,attrs}.h.in: New files that contains a list
+	of known namespaces, element names and attributes names, respectively.
+
+	* c_src/xmpp_{ns,names,attrs}.h.awk: Awk script to convert the lists
+	to C headers.
+
 2006-07-03  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_xml.erl (start_parser/1, handle_options/2): Error sent

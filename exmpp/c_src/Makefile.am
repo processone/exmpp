@@ -15,8 +15,23 @@ expat_drv_la_CPPFLAGS = -I$(srcdir)/contrib -I$(builddir)/contrib\
 expat_drv_la_LDFLAGS = -module -avoid-version\
 		       $(EI_LDFLAGS) $(EI_LIBS)\
 		       $(EXPAT_LDFLAGS) $(EXPAT_LIBS)
-expat_drv_la_SOURCES = contrib/hashtable.c contrib/hashtable_itr.c\
+expat_drv_la_SOURCES = contrib/hashtable.c\
 		       expat_drv.c
+
+EXTRA_DIST = xmpp_ns.h.awk xmpp_ns.h.in \
+	     xmpp_names.h.awk xmpp_names.h.in \
+	     xmpp_attrs.h.awk xmpp_attrs.h.in
+BUILT_SOURCES = xmpp_ns.h xmpp_names.h xmpp_attrs.h
+CLEANFILES = xmpp_ns.h xmpp_names.h xmpp_attrs.h
+
+xmpp_ns.h: $(srcdir)/xmpp_ns.h.awk $(srcdir)/xmpp_ns.h.in
+	$(AWK) -f $(srcdir)/xmpp_ns.h.awk $(srcdir)/xmpp_ns.h.in > $@
+
+xmpp_names.h: $(srcdir)/xmpp_names.h.awk $(srcdir)/xmpp_names.h.in
+	$(AWK) -f $(srcdir)/xmpp_names.h.awk $(srcdir)/xmpp_names.h.in > $@
+
+xmpp_attrs.h: $(srcdir)/xmpp_attrs.h.awk $(srcdir)/xmpp_attrs.h.in
+	$(AWK) -f $(srcdir)/xmpp_attrs.h.awk $(srcdir)/xmpp_attrs.h.in > $@
 
 # iconv port driver
 iconv_erl_la_CPPFLAGS = $(EI_CPPFLAGS) $(LIBICONV_CPPFLAGS)
