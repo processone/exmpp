@@ -18,7 +18,8 @@ expat_drv_la_LDFLAGS = -module -avoid-version\
 expat_drv_la_SOURCES = contrib/hashtable.c\
 		       expat_drv.c
 
-EXTRA_DIST = xmpp_ns.h.awk xmpp_ns.h.in \
+EXTRA_DIST = contrib/hashtable.h contrib/hashtable_private.h \
+	     xmpp_ns.h.awk xmpp_ns.h.in \
 	     xmpp_names.h.awk xmpp_names.h.in \
 	     xmpp_attrs.h.awk xmpp_attrs.h.in
 BUILT_SOURCES = xmpp_ns.h xmpp_names.h xmpp_attrs.h
