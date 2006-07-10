@@ -118,3 +118,11 @@ presence-out
 query
 item
 group
+
+# In the `jabber:iq:auth' namespace
+query
+username
+password
+digest
+resource
+auth
