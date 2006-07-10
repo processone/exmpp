@@ -23,8 +23,6 @@ do_check() ->
 % Element handlers testsuite.
 % --------------------------------------------------------------------
 
--define(XML_NS, 'http://www.w3.org/XML/1998/namespace').
-
 -define(TARGET, {xmlelement, "target",
 	[],
 	[]}
@@ -51,31 +49,31 @@ do_check() ->
 ).
 
 -define(TARGET_NS, {xmlnselement,
-	?XML_NS, undefined, "target",
+	?NS_XML, undefined, "target",
 	[],
 	[]}
 ).
 
 -define(ELEMENT0_NS, {xmlnselement,
-	?XML_NS, undefined, "element",
+	?NS_XML, undefined, "element",
 	[],
 	undefined}
 ).
 
 -define(ELEMENT1_NS, {xmlnselement,
-	?XML_NS, undefined, "element",
+	?NS_XML, undefined, "element",
 	[],
 	[]}
 ).
 
 -define(ELEMENT2_NS, {xmlnselement,
-	?XML_NS, undefined, "element",
+	?NS_XML, undefined, "element",
 	[],
 	[?TARGET_NS]}
 ).
 
 -define(ELEMENT3_NS, {xmlnselement,
-	?XML_NS, undefined, "element",
+	?NS_XML, undefined, "element",
 	[],
 	[?ELEMENT2_NS]}
 ).
@@ -99,13 +97,13 @@ test_get_element_by_name2() ->
 
 test_get_element_by_name3() ->
 	testsuite:is(exmpp_xml:get_element_by_name(?ELEMENT0_NS,
-	    ?XML_NS, "target"), false),
+	    ?NS_XML, "target"), false),
 	testsuite:is(exmpp_xml:get_element_by_name(?ELEMENT1_NS,
-	    ?XML_NS, "target"), false),
+	    ?NS_XML, "target"), false),
 	testsuite:is(exmpp_xml:get_element_by_name(?ELEMENT2_NS,
-	    ?XML_NS, "target"), ?TARGET_NS),
+	    ?NS_XML, "target"), ?TARGET_NS),
 	testsuite:is(exmpp_xml:get_element_by_name(?ELEMENT3_NS,
-	    ?XML_NS, "target"), false),
+	    ?NS_XML, "target"), false),
 	testsuite:is(exmpp_xml:get_element_by_name(?ELEMENT1_NS,
 	    'some_other_ns', "target"), false),
 	testsuite:is(exmpp_xml:get_element_by_name(?ELEMENT2_NS,

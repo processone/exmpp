@@ -9,6 +9,7 @@
 		'@srcdir@/check_xml_cdata_handlers',
 		'@srcdir@/check_xml_path',
 		'@srcdir@/check_xml_converters',
+		'@srcdir@/check_factory_stream',
 		'@srcdir@/check_coverity'
 	],
 	[

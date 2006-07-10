@@ -26,8 +26,6 @@ do_check() ->
 % CDATA handlers testsuite.
 % --------------------------------------------------------------------
 
--define(XML_NS, 'http://www.w3.org/XML/1998/namespace').
-
 -define(CONTENT, <<"Content">>).
 -define(CONTENT_S, "Content").
 -define(CDATA, {xmlcdata, <<"Content">>}).
@@ -69,43 +67,43 @@ do_check() ->
 ).
 
 -define(ELEMENT0_NS, {xmlnselement,
-	?XML_NS, undefined, "element",
+	?NS_XML, undefined, "element",
 	[],
 	undefined}
 ).
 
 -define(ELEMENT1_NS, {xmlnselement,
-	?XML_NS, undefined, "element",
+	?NS_XML, undefined, "element",
 	[],
 	[]}
 ).
 
 -define(ELEMENT2_NS, {xmlnselement,
-	?XML_NS, undefined, "element",
+	?NS_XML, undefined, "element",
 	[],
 	[?CDATA]}
 ).
 
 -define(ELEMENT3_NS, {xmlnselement,
-	?XML_NS, undefined, "element",
+	?NS_XML, undefined, "element",
 	[],
 	[?ELEMENT2_NS]}
 ).
 
 -define(ELEMENT3_2_NS, {xmlnselement,
-	?XML_NS, undefined, "element",
+	?NS_XML, undefined, "element",
 	[],
 	[?ELEMENT2_NS, ?CDATA]}
 ).
 
 -define(ELEMENT4_NS, {xmlnselement,
-	?XML_NS, undefined, "element",
+	?NS_XML, undefined, "element",
 	[],
 	[?CDATA, ?CDATA]}
 ).
 
 -define(ELEMENT4_NS_NORM, {xmlnselement,
-	?XML_NS, undefined, "element",
+	?NS_XML, undefined, "element",
 	[],
 	[?CDATA_DOUBLE]}
 ).
