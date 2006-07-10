@@ -1,3 +1,85 @@
+2006-07-10  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* include/exmpp.hrl: Renamed `NS_XMPP_STANZA' to `NS_XMPP_STANZAS'.
+
+	* src/exmpp_factory.erl: Typos.
+	(legacy_auth_request/2, legacy_auth_password/4,
+	legacy_auth_password_digest/4): New functions to allow the caller to
+	provide its own id.
+	(legacy_auth_password, legacy_auth_password_digest): Added the
+	`type' attribute.
+	(legacy_auth_success): Set the element's children to the empty string.
+	Fixed the namespace.
+	(legacy_auth_failure): Fixed the namespace.
+
+	* src/exmpp_xml.erl: Use the ?NS_XML macro (defined in
+	include/exmpp.hrl) instead of a hard-coded URL.
+
+	* c_src/xmpp_names.h.in: Added the `jabber:iq:auth' namespace
+	elements.
+
+	* testsuite/check_factory_stream.erl: New testsuite for the module
+	exmpp_factory, only for the <stream> handling part.
+
+	* testsuite/check_factory_legacy_auth: New testsuite for the module
+	exmpp_factory, only for the legacy auth part.
+
+	* testsuite/check_xml_*.erl: Use the ?NS_XML macro (defined in
+	include/exmpp.hrl) instead of a hard-coded URL.
+
+	* doc/Makefile.am: Added files to CLEANFILES variable.
+
+2006-07-10  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* include/exmpp.hrl: By default, element's children are now
+	`undefined', not an empty list anymore.
+
+	* src/exmpp_xmlstream.erl: style(9).
+
+	* src/exmpp_jlib.erl: New helpers to handle common attribute
+	operations. Almost every existing functions will be deprecated by new
+	functions like those.
+
+	* src/exmpp_xml.erl: Fixed some function names. Added functions
+	`set_attributes/2', `append_children/2' and `set_children/2' to do
+	massive modifications in one call. Added functions
+	`has_attribute_in_list/2,3' and `has_attribute/2,3' to tests the
+	existence of an attribute. Added `normalize_cdata_in_list/1' and
+	`normalize_cdata/1' to clean character data. Added
+	`set_cdata_in_list/2' and `set_cdata/2' to change character data.
+	Updated documentation about the use of `undefined' for element's
+	children. Fixed a few other syntax issues with the documentation.
+	(parse_document): Simplified function clauses to avoid code
+	duplication.
+	(xmlnsattributes_to_xmlattributes2): Fixed a bug when an attribute
+	namespace is `undefined'.
+	(document_fragment_to_list): If element's children are `undefined', do
+	not close the tag.
+
+	* c_src/Makefile.am: Fixed EXTRA_DIST for contrib/.
+
+	* c_src/xmpp_ns.h.in: New namespace: `jabber:iq:auth'.
+
+	* c_src/expat_drc.c: By default, element's children are now
+	`undefined', not an empty list anymore.
+
+	* ebin/Makefile.am, src/Makefile.am, src/Emakefile.in,
+	src/exmpp_factory.erl: New module; it provides a toolbox to build
+	common stanzas.
+
+	* testsuite/Makefile.am: Coverity check for `exmpp_factory'.
+
+	* testsuite/check_xml_attribute_handlers.erl,
+	testsuite/check_xml_element_handlers.erl,
+	testsuite/check_xml_converters.erl, testsuite/check_xml_parser.erl,
+	testsuite/check_xml_cdata_handlers.erl: Updated with new function
+	names and new test cases.
+
+	* configure.ac, Makefile.am, doc/Makefile.am: Build documentation.
+
+	* configure.ac, src/exmpp_xml.erl: Don't use the WITH_DEPRECATED_API
+	preprocessor flag to avoid headaches with edoc.
+
 2006-07-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_xml.erl, c_src/expat_drv.c: Before namespaces, element
