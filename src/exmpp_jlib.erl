@@ -7,6 +7,14 @@
 
 -include("exmpp.hrl").
 
+-export([
+	exchange_attrs_from_and_to_in_list/1,
+	exchange_attrs_from_and_to/1,
+	rename_attr_to_to_from_in_list/1,
+	rename_attr_to_to_from/1
+]).
+
+% Deprecated API
 -export([get_iq_namespace/1, iq_query_info/1]).
 -export([is_iq_request_type/1, iq_type_to_string/1, iq_to_xml/1]).
 
@@ -28,6 +36,67 @@
 -export([now_to_utc_string/1, now_to_local_string/1]).
 -export([datetime_string_to_timestamp/1]).
 -export([decode_base64/1, encode_base64/1]).
+
+% --------------------------------------------------------------------
+% Helpers to handle common attribute operations.
+% --------------------------------------------------------------------
+
+%% @spec (Attrs) -> New_Attrs
+%%     Attrs = [exmpp_xml:xmlnsattribute() | exmpp_xml:xmlattribute()]
+%%     New_Attrs = [exmpp_xml:xmlnsattribute() | exmpp_xml:xmlattribute()]
+%% @doc Exchange values of attributes `From' and `To' in the list.
+%%
+%% This function expects that names are encoded as atom().
+
+exchange_attrs_from_and_to_in_list(Attrs) ->
+	To = exmpp_xml:get_attribute_from_list(Attrs, 'to'),
+	From = exmpp_xml:get_attribute_from_list(Attrs, 'from'),
+	Attrs1 = exmpp_xml:set_attribute_from_list(Attrs, 'to', From),
+	Attrs2 = exmpp_xml:set_attribute_from_list(Attrs1, 'from', To),
+	Attrs2.
+
+%% @spec (XML_Element) -> New_XML_Element
+%%     XML_Element = exmpp_xml:xmlnselement() | exmpp_xml:xmlelement()
+%%     New_XML_Element = exmpp_xml:xmlnselement() | exmpp_xml:xmlelement()
+%% @doc Exchange values of attributes `From' and `To'.
+%%
+%% This function expects that names are encoded as atom().
+
+exchange_attrs_from_and_to(#xmlnselement{attrs = Attrs} = XML_Element) ->
+	New_Attrs = exchange_attrs_from_and_to_in_list(Attrs),
+	XML_Element#xmlnselement{attrs = New_Attrs};
+
+exchange_attrs_from_and_to(#xmlelement{attrs = Attrs} = XML_Element) ->
+	New_Attrs = exchange_attrs_from_and_to_in_list(Attrs),
+	XML_Element#xmlelement{attrs = New_Attrs}.
+
+%% @spec (Attrs) -> New_Attrs
+%%     Attrs = [exmpp_xml:xmlnsattribute() | exmpp_xml:xmlattribute()]
+%%     New_Attrs = [exmpp_xml:xmlnsattribute() | exmpp_xml:xmlattribute()]
+%% @doc Rename `To' attribute to `From' in the list.
+%%
+%% This function expects that names are encoded as atom().
+
+rename_attr_to_to_from_in_list(Attrs) ->
+	To = exmpp_xml:get_attribute_from_list(Attrs, 'to'),
+	Attrs1 = exmpp_xml:remove_attribute_from_list(Attrs, 'to'),
+	Attrs2 = exmpp_xml:set_attribute_from_list(Attrs1, 'from', To),
+	Attrs2.
+
+%% @spec (XML_Element) -> New_XML_Element
+%%     XML_Element = exmpp_xml:xmlnselement() | exmpp_xml:xmlelement()
+%%     New_XML_Element = exmpp_xml:xmlnselement() | exmpp_xml:xmlelement()
+%% @doc Rename `To' attribute to `From'.
+%%
+%% This function expects that names are encoded as atom().
+
+rename_attr_to_to_from(#xmlnselement{attrs = Attrs} = XML_Element) ->
+	New_Attrs = rename_attr_to_to_from_in_list(Attrs),
+	XML_Element#xmlnselement{attrs = New_Attrs};
+
+rename_attr_to_to_from(#xmlelement{attrs = Attrs} = XML_Element) ->
+	New_Attrs = rename_attr_to_to_from_in_list(Attrs),
+	XML_Element#xmlelement{attrs = New_Attrs}.
 
 % --------------------------------------------------------------------
 % Helpers to handle IQ stanza.
@@ -206,7 +275,7 @@ replace_from_to(From, To, #xmlelement{attrs = Attrs} = Stanza) ->
 
 switch_to_and_from_attrs(Attrs) ->
 	% Get `from' and `to' values.
-	To   = exmpp_xml:get_attr("to", Attrs),
+	To   = exmpp_xml:get_attribute_from_list("to", Attrs),
 	From = exmpp_xml:get_attr("from", Attrs),
 	% Remove them from the list.
 	Attrs1 = exmpp_xml:remove_attr("to", Attrs),
