@@ -15,6 +15,8 @@ do_check() ->
 	test_get_element_by_name2(),
 	test_get_element_by_name3(),
 	test_append_child(),
+	test_append_children(),
+	test_set_children(),
 	ok.
 
 % --------------------------------------------------------------------
@@ -26,6 +28,11 @@ do_check() ->
 -define(TARGET, {xmlelement, "target",
 	[],
 	[]}
+).
+
+-define(ELEMENT0, {xmlelement, "element",
+	[],
+	undefined}
 ).
 
 -define(ELEMENT1, {xmlelement, "element",
@@ -49,6 +56,12 @@ do_check() ->
 	[]}
 ).
 
+-define(ELEMENT0_NS, {xmlnselement,
+	?XML_NS, undefined, "element",
+	[],
+	undefined}
+).
+
 -define(ELEMENT1_NS, {xmlnselement,
 	?XML_NS, undefined, "element",
 	[],
@@ -68,6 +81,8 @@ do_check() ->
 ).
 
 test_get_element_by_name2() ->
+	testsuite:is(exmpp_xml:get_element_by_name(?ELEMENT0,
+	    "target"), false),
 	testsuite:is(exmpp_xml:get_element_by_name(?ELEMENT1,
 	    "target"), false),
 	testsuite:is(exmpp_xml:get_element_by_name(?ELEMENT2,
@@ -83,6 +98,8 @@ test_get_element_by_name2() ->
 	ok.
 
 test_get_element_by_name3() ->
+	testsuite:is(exmpp_xml:get_element_by_name(?ELEMENT0_NS,
+	    ?XML_NS, "target"), false),
 	testsuite:is(exmpp_xml:get_element_by_name(?ELEMENT1_NS,
 	    ?XML_NS, "target"), false),
 	testsuite:is(exmpp_xml:get_element_by_name(?ELEMENT2_NS,
@@ -98,8 +115,38 @@ test_get_element_by_name3() ->
 	ok.
 
 test_append_child() ->
+	testsuite:is(exmpp_xml:append_child(?ELEMENT0, ?TARGET),
+	    ?ELEMENT2),
 	testsuite:is(exmpp_xml:append_child(?ELEMENT1, ?TARGET),
 	    ?ELEMENT2),
+	testsuite:is(exmpp_xml:append_child(?ELEMENT0_NS, ?TARGET_NS),
+	    ?ELEMENT2_NS),
 	testsuite:is(exmpp_xml:append_child(?ELEMENT1_NS, ?TARGET_NS),
+	    ?ELEMENT2_NS),
+	ok.
+
+test_append_children() ->
+	testsuite:is(exmpp_xml:append_children(?ELEMENT0, [?TARGET]),
+	    ?ELEMENT2),
+	testsuite:is(exmpp_xml:append_children(?ELEMENT1, [?TARGET]),
+	    ?ELEMENT2),
+	testsuite:is(exmpp_xml:append_children(?ELEMENT0_NS, [?TARGET_NS]),
+	    ?ELEMENT2_NS),
+	testsuite:is(exmpp_xml:append_children(?ELEMENT1_NS, [?TARGET_NS]),
+	    ?ELEMENT2_NS),
+	ok.
+
+test_set_children() ->
+	testsuite:is(exmpp_xml:set_children(?ELEMENT0, [?TARGET]),
+	    ?ELEMENT2),
+	testsuite:is(exmpp_xml:set_children(?ELEMENT1, [?TARGET]),
+	    ?ELEMENT2),
+	testsuite:is(exmpp_xml:set_children(?ELEMENT2, [?TARGET]),
+	    ?ELEMENT2),
+	testsuite:is(exmpp_xml:set_children(?ELEMENT0_NS, [?TARGET_NS]),
+	    ?ELEMENT2_NS),
+	testsuite:is(exmpp_xml:set_children(?ELEMENT1_NS, [?TARGET_NS]),
+	    ?ELEMENT2_NS),
+	testsuite:is(exmpp_xml:set_children(?ELEMENT2_NS, [?TARGET_NS]),
 	    ?ELEMENT2_NS),
 	ok.
