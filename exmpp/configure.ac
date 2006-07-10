@@ -4,7 +4,7 @@ dnl ------------------------------------------------------------------
 dnl Initialisation d'Autoconf
 dnl ------------------------------------------------------------------
 
-AC_INIT([exmpp], [0.3.0], [js.pedron@meetic-corp.com], [exmpp])
+AC_INIT([exmpp], [0.4.0], [js.pedron@meetic-corp.com], [exmpp])
 AC_CONFIG_SRCDIR([include/exmpp.hrl])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([ac-aux])
@@ -21,7 +21,7 @@ dnl Versionning
 dnl ------------------------------------------------------------------
 
 EXMPP_MAJOR=0
-EXMPP_MINOR=3
+EXMPP_MINOR=4
 EXMPP_MICRO=0
 EXMPP_VERSION="$EXMPP_MAJOR.$EXMPP_MINOR.$EXMPP_MICRO"
 
@@ -132,13 +132,20 @@ if test "x${enable_warnings}" = "xyes" -a "x${GCC}" = "xyes"; then
 fi
 
 dnl What to do with the compatibility layer?
-AC_ARG_ENABLE([compat-layer],
-	AC_HELP_STRING([--enable-compat-layer],
-	    [enable compatility layer [[default=yes]]]),,
-	enable_compat_layer="yes")
-if test "x${enable_compat_layer}" = "xyes"; then
-	append_to_EMKOPTS "{d, 'WITH_DEPRECATED_API'}"
-fi
+dnl AC_ARG_ENABLE([compat-layer],
+dnl 	AC_HELP_STRING([--enable-compat-layer],
+dnl 	    [enable compatility layer [[default=yes]]]),,
+dnl 	enable_compat_layer="yes")
+dnl if test "x${enable_compat_layer}" = "xyes"; then
+dnl 	append_to_EMKOPTS "{d, 'WITH_DEPRECATED_API'}"
+dnl fi
+
+dnl Documentation
+AC_ARG_WITH([documentation],
+	      AC_HELP_STRING([--with-documentation],
+			     [build documentation [[default=yes]]]),,
+	with_documentation="yes")
+AM_CONDITIONAL(BUILD_DOCUMENTATION, test "x${with_documentation}" = "xyes")
 
 dnl ------------------------------------------------------------------
 dnl Environnement Erlang
@@ -215,6 +222,7 @@ AC_CONFIG_FILES([
 	ebin/exmpp.app
 	priv/Makefile
 	priv/lib/Makefile
+	doc/Makefile
 	testsuite/Makefile
 	testsuite/Emakefile
 	Makefile
