@@ -133,7 +133,7 @@
 -define(PREFIXED_NAME(P, N), P ++ ":" ++ N).
 
 -define(IMPLICIT_NAMESPACES, [
-	{'http://www.w3.org/XML/1998/namespace', "xml"}
+	{?NS_XML, "xml"}
 ]).
 
 % --------------------------------------------------------------------
