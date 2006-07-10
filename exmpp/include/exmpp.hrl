@@ -6,9 +6,9 @@
 
 % Elements without namespace support.
 -record(xmlelement, {
-	name,		% Tag name
-	attrs = [],	% Attribute list
-	children = []	% Children (tags or CDATA)
+	name,			% Tag name
+	attrs = [],		% Attribute list
+	children = undefined	% Children (tags or CDATA)
 }).
 
 -record(xmlendelement, {
@@ -17,15 +17,16 @@
 
 % Elements WITH namespace support.
 -record(xmlnselement, {
-	ns = undefined,	    % Tag namespace
-	prefix = undefined, % Namespace prefix
-	name,		    % Tag name
-	attrs = [],	    % Attribute list
-	children = []	    % Children (tags or CDATA)
+	ns = undefined,		% Tag namespace
+	prefix = undefined,	% Namespace prefix
+	name,			% Tag name
+	attrs = [],		% Attribute list
+	children = undefined	% Children (tags or CDATA)
 }).
 
 -record(xmlnsendelement, {
 	ns = undefined,
+	prefix = undefined,
 	name
 }).
 
@@ -86,6 +87,13 @@
 % --------------------------------------------------------------------
 % Defines for exmpp_jlib.
 % --------------------------------------------------------------------
+
+-define(NS_XML,           'http://www.w3.org/XML/1998/namespace').
+-define(NS_XMPP,          'http://etherx.jabber.org/streams').
+-define(NS_JABBER_CLIENT, 'jabber:client').
+-define(NS_JABBER_SERVER, 'jabber:server').
+-define(NS_JABBER_AUTH,   'jabber:iq:auth').
+-define(NS_XMPP_STANZA,   'urn:ietf:params:xml:ns:xmpp-stanzas').
 
 -define(NS_DELAY, "jabber:x:delay").
 
