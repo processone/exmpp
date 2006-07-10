@@ -22,7 +22,7 @@ TESTS_ENVIRONMENT = ERL="$(ERL)"					\
 	TOP_SRCDIR="$(top_srcdir)"					\
 	TOP_BUILDDIR="$(top_builddir)"					\
 	TESTS="check_xml_parser check_xml_attribute_handlers check_xml_element_handlers check_xml_cdata_handlers check_xml_path check_xml_converters"	\
-	COVERED_MODULES="exmpp_xml exmpp_xmlstream"
+	COVERED_MODULES="exmpp_xml exmpp_xmlstream exmpp_factory"
 
 build:
 	$(ERL) -make
