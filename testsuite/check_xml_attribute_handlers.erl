@@ -40,8 +40,6 @@ do_check() ->
 % Attribute handlers testsuite.
 % --------------------------------------------------------------------
 
--define(XML_NS, 'http://www.w3.org/XML/1998/namespace').
-
 -define(ATTRIBUTE_LIST1, []).
 
 -define(ATTRIBUTE_LIST2_1, [
@@ -57,7 +55,7 @@ do_check() ->
 ]).
 -define(ATTRIBUTE_LIST3_2, [
 	{xmlattr, undefined, undefined, "version", "1.0"},
-	{xmlattr, ?XML_NS, undefined, "lang", "fr"}
+	{xmlattr, ?NS_XML, undefined, "lang", "fr"}
 ]).
 
 -define(ATTRIBUTE_LIST4, [
@@ -141,7 +139,7 @@ test_get_attribute_node_from_list2() ->
 	    false),
 	testsuite:is(exmpp_xml:get_attribute_node_from_list(
 	    ?ATTRIBUTE_LIST3_2, "lang"),
-	    {xmlattr, ?XML_NS, undefined, "lang", "fr"}),
+	    {xmlattr, ?NS_XML, undefined, "lang", "fr"}),
 	testsuite:is(exmpp_xml:get_attribute_node_from_list(
 	    ?ATTRIBUTE_LIST4, "lang"),
 	    false),
@@ -149,16 +147,16 @@ test_get_attribute_node_from_list2() ->
 
 test_get_attribute_node_from_list3() ->
 	testsuite:is(exmpp_xml:get_attribute_node_from_list(
-	    ?ATTRIBUTE_LIST1, ?XML_NS, "lang"),
+	    ?ATTRIBUTE_LIST1, ?NS_XML, "lang"),
 	    false),
 	testsuite:is(exmpp_xml:get_attribute_node_from_list(
-	    ?ATTRIBUTE_LIST3_1, ?XML_NS, "lang"),
+	    ?ATTRIBUTE_LIST3_1, ?NS_XML, "lang"),
 	    false),
 	testsuite:is(exmpp_xml:get_attribute_node_from_list(
-	    ?ATTRIBUTE_LIST3_2, ?XML_NS, "lang"),
-	    {xmlattr, ?XML_NS, undefined, "lang", "fr"}),
+	    ?ATTRIBUTE_LIST3_2, ?NS_XML, "lang"),
+	    {xmlattr, ?NS_XML, undefined, "lang", "fr"}),
 	testsuite:is(exmpp_xml:get_attribute_node_from_list(
-	    ?ATTRIBUTE_LIST4, ?XML_NS, "lang"),
+	    ?ATTRIBUTE_LIST4, ?NS_XML, "lang"),
 	    false),
 	ok.
 
@@ -177,7 +175,7 @@ test_get_attribute_node2() ->
 	    false),
 	testsuite:is(exmpp_xml:get_attribute_node(
 	    ?ELEMENT3_2, "lang"),
-	    {xmlattr, ?XML_NS, undefined, "lang", "fr"}),
+	    {xmlattr, ?NS_XML, undefined, "lang", "fr"}),
 	testsuite:is(exmpp_xml:get_attribute_node(
 	    ?ELEMENT4, "lang"),
 	    false),
@@ -185,16 +183,16 @@ test_get_attribute_node2() ->
 
 test_get_attribute_node3() ->
 	testsuite:is(exmpp_xml:get_attribute_node(
-	    ?ELEMENT1, ?XML_NS, "lang"),
+	    ?ELEMENT1, ?NS_XML, "lang"),
 	    false),
 	testsuite:is(exmpp_xml:get_attribute_node(
-	    ?ELEMENT3_1, ?XML_NS, "lang"),
+	    ?ELEMENT3_1, ?NS_XML, "lang"),
 	    false),
 	testsuite:is(exmpp_xml:get_attribute_node(
-	    ?ELEMENT3_2, ?XML_NS, "lang"),
-	    {xmlattr, ?XML_NS, undefined, "lang", "fr"}),
+	    ?ELEMENT3_2, ?NS_XML, "lang"),
+	    {xmlattr, ?NS_XML, undefined, "lang", "fr"}),
 	testsuite:is(exmpp_xml:get_attribute_node(
-	    ?ELEMENT4, ?XML_NS, "lang"),
+	    ?ELEMENT4, ?NS_XML, "lang"),
 	    false),
 	ok.
 
@@ -221,16 +219,16 @@ test_get_attribute_from_list2() ->
 
 test_get_attribute_from_list3() ->
 	testsuite:is(exmpp_xml:get_attribute_from_list(
-	    ?ATTRIBUTE_LIST1, ?XML_NS, "lang"),
+	    ?ATTRIBUTE_LIST1, ?NS_XML, "lang"),
 	    ""),
 	testsuite:is(exmpp_xml:get_attribute_from_list(
-	    ?ATTRIBUTE_LIST3_1, ?XML_NS, "lang"),
+	    ?ATTRIBUTE_LIST3_1, ?NS_XML, "lang"),
 	    ""),
 	testsuite:is(exmpp_xml:get_attribute_from_list(
-	    ?ATTRIBUTE_LIST3_2, ?XML_NS, "lang"),
+	    ?ATTRIBUTE_LIST3_2, ?NS_XML, "lang"),
 	    "fr"),
 	testsuite:is(exmpp_xml:get_attribute_from_list(
-	    ?ATTRIBUTE_LIST4, ?XML_NS, "lang"),
+	    ?ATTRIBUTE_LIST4, ?NS_XML, "lang"),
 	    ""),
 	ok.
 
@@ -257,16 +255,16 @@ test_get_attribute2() ->
 
 test_get_attribute3() ->
 	testsuite:is(exmpp_xml:get_attribute(
-	    ?ELEMENT1, ?XML_NS, "lang"),
+	    ?ELEMENT1, ?NS_XML, "lang"),
 	    ""),
 	testsuite:is(exmpp_xml:get_attribute(
-	    ?ELEMENT3_1, ?XML_NS, "lang"),
+	    ?ELEMENT3_1, ?NS_XML, "lang"),
 	    ""),
 	testsuite:is(exmpp_xml:get_attribute(
-	    ?ELEMENT3_2, ?XML_NS, "lang"),
+	    ?ELEMENT3_2, ?NS_XML, "lang"),
 	    "fr"),
 	testsuite:is(exmpp_xml:get_attribute(
-	    ?ELEMENT4, ?XML_NS, "lang"),
+	    ?ELEMENT4, ?NS_XML, "lang"),
 	    ""),
 	ok.
 
@@ -287,13 +285,13 @@ test_has_attribute_in_list2() ->
 
 test_has_attribute_in_list3() ->
 	testsuite:is(exmpp_xml:has_attribute_in_list(
-	    ?ATTRIBUTE_LIST1, ?XML_NS, "lang"), false),
+	    ?ATTRIBUTE_LIST1, ?NS_XML, "lang"), false),
 	testsuite:is(exmpp_xml:has_attribute_in_list(
-	    ?ATTRIBUTE_LIST3_1, ?XML_NS, "lang"), false),
+	    ?ATTRIBUTE_LIST3_1, ?NS_XML, "lang"), false),
 	testsuite:is(exmpp_xml:has_attribute_in_list(
-	    ?ATTRIBUTE_LIST3_2, ?XML_NS, "lang"), true),
+	    ?ATTRIBUTE_LIST3_2, ?NS_XML, "lang"), true),
 	testsuite:is(exmpp_xml:has_attribute_in_list(
-	    ?ATTRIBUTE_LIST4, ?XML_NS, "lang"), false),
+	    ?ATTRIBUTE_LIST4, ?NS_XML, "lang"), false),
 	ok.
 
 test_has_attribute2() ->
@@ -313,13 +311,13 @@ test_has_attribute2() ->
 
 test_has_attribute3() ->
 	testsuite:is(exmpp_xml:has_attribute(
-	    ?ELEMENT1, ?XML_NS, "lang"), false),
+	    ?ELEMENT1, ?NS_XML, "lang"), false),
 	testsuite:is(exmpp_xml:has_attribute(
-	    ?ELEMENT3_1, ?XML_NS, "lang"), false),
+	    ?ELEMENT3_1, ?NS_XML, "lang"), false),
 	testsuite:is(exmpp_xml:has_attribute(
-	    ?ELEMENT3_2, ?XML_NS, "lang"), true),
+	    ?ELEMENT3_2, ?NS_XML, "lang"), true),
 	testsuite:is(exmpp_xml:has_attribute(
-	    ?ELEMENT4, ?XML_NS, "lang"), false),
+	    ?ELEMENT4, ?NS_XML, "lang"), false),
 	ok.
 
 test_set_attribute_in_list3() ->
@@ -350,7 +348,7 @@ test_set_attribute_in_list3() ->
 	    "lang", "en"),
 	testsuite:is(New3_2, [
 	    {xmlattr, undefined, undefined, "version", "1.0"},
-	    {xmlattr, ?XML_NS, undefined, "lang", "en"}
+	    {xmlattr, ?NS_XML, undefined, "lang", "en"}
 	]),
 	New4 = exmpp_xml:set_attribute_in_list(?ATTRIBUTE_LIST4,
 	    "lang", "en"),
@@ -362,34 +360,34 @@ test_set_attribute_in_list3() ->
 
 test_set_attribute_in_list4() ->
 	New1 = exmpp_xml:set_attribute_in_list(?ATTRIBUTE_LIST1,
-	    ?XML_NS, "lang", "en"),
+	    ?NS_XML, "lang", "en"),
 	testsuite:is(New1, [
-	    {xmlattr, ?XML_NS, undefined, "lang", "en"}
+	    {xmlattr, ?NS_XML, undefined, "lang", "en"}
 	]),
 	New3_1 = exmpp_xml:set_attribute_in_list(?ATTRIBUTE_LIST3_1,
-	    ?XML_NS, "lang", "en"),
+	    ?NS_XML, "lang", "en"),
 	testsuite:is(New3_1, [
 	    {xmlattr, undefined, undefined, "version", "1.0"},
-	    {xmlattr, ?XML_NS, undefined, "lang", "en"}
+	    {xmlattr, ?NS_XML, undefined, "lang", "en"}
 	]),
 	New3_2 = exmpp_xml:set_attribute_in_list(?ATTRIBUTE_LIST3_2,
-	    ?XML_NS, "lang", "en"),
+	    ?NS_XML, "lang", "en"),
 	testsuite:is(New3_2, [
 	    {xmlattr, undefined, undefined, "version", "1.0"},
-	    {xmlattr, ?XML_NS, undefined, "lang", "en"}
+	    {xmlattr, ?NS_XML, undefined, "lang", "en"}
 	]),
 	New3_3 = exmpp_xml:set_attribute_in_list(?ATTRIBUTE_LIST3_2,
 	    'some_other_ns', "lang", "en"),
 	testsuite:is(New3_3, [
 	    {xmlattr, undefined, undefined, "version", "1.0"},
-	    {xmlattr, ?XML_NS, undefined, "lang", "fr"},
+	    {xmlattr, ?NS_XML, undefined, "lang", "fr"},
 	    {xmlattr, 'some_other_ns', undefined, "lang", "en"}
 	]),
 	New4 = exmpp_xml:set_attribute_in_list(?ATTRIBUTE_LIST4,
-	    ?XML_NS, "lang", "en"),
+	    ?NS_XML, "lang", "en"),
 	testsuite:is(New4, [
 	    bad_data,
-	    {xmlattr, ?XML_NS, undefined, "lang", "en"}
+	    {xmlattr, ?NS_XML, undefined, "lang", "en"}
 	]),
 	ok.
 
@@ -430,7 +428,7 @@ test_set_attribute3() ->
 	testsuite:is(New3_2, {xmlnselement,
 	    undefined, undefined, "element", [
 	    {xmlattr, undefined, undefined, "version", "1.0"},
-	    {xmlattr, ?XML_NS, undefined, "lang", "en"}
+	    {xmlattr, ?NS_XML, undefined, "lang", "en"}
 	    ], []
 	}),
 	New4 = exmpp_xml:set_attribute(?ELEMENT4,
@@ -445,26 +443,26 @@ test_set_attribute3() ->
 
 test_set_attribute4() ->
 	New1 = exmpp_xml:set_attribute(?ELEMENT1,
-	    ?XML_NS, "lang", "en"),
+	    ?NS_XML, "lang", "en"),
 	testsuite:is(New1, {xmlnselement,
 	    undefined, undefined, "element", [
-	    {xmlattr, ?XML_NS, undefined, "lang", "en"}
+	    {xmlattr, ?NS_XML, undefined, "lang", "en"}
 	    ], []
 	}),
 	New3_1 = exmpp_xml:set_attribute(?ELEMENT3_1,
-	    ?XML_NS, "lang", "en"),
+	    ?NS_XML, "lang", "en"),
 	testsuite:is(New3_1, {xmlnselement,
 	    undefined, undefined, "element", [
 	    {xmlattr, undefined, undefined, "version", "1.0"},
-	    {xmlattr, ?XML_NS, undefined, "lang", "en"}
+	    {xmlattr, ?NS_XML, undefined, "lang", "en"}
 	    ], []
 	}),
 	New3_2 = exmpp_xml:set_attribute(?ELEMENT3_2,
-	    ?XML_NS, "lang", "en"),
+	    ?NS_XML, "lang", "en"),
 	testsuite:is(New3_2, {xmlnselement,
 	    undefined, undefined, "element", [
 	    {xmlattr, undefined, undefined, "version", "1.0"},
-	    {xmlattr, ?XML_NS, undefined, "lang", "en"}
+	    {xmlattr, ?NS_XML, undefined, "lang", "en"}
 	    ], []
 	}),
 	New3_3 = exmpp_xml:set_attribute(?ELEMENT3_2,
@@ -472,16 +470,16 @@ test_set_attribute4() ->
 	testsuite:is(New3_3, {xmlnselement,
 	    undefined, undefined, "element", [
 	    {xmlattr, undefined, undefined, "version", "1.0"},
-	    {xmlattr, ?XML_NS, undefined, "lang", "fr"},
+	    {xmlattr, ?NS_XML, undefined, "lang", "fr"},
 	    {xmlattr, 'some_other_ns', undefined, "lang", "en"}
 	    ], []
 	}),
 	New4 = exmpp_xml:set_attribute(?ELEMENT4,
-	    ?XML_NS, "lang", "en"),
+	    ?NS_XML, "lang", "en"),
 	testsuite:is(New4, {xmlnselement,
 	    undefined, undefined, "bad_element", [
 	    bad_data,
-	    {xmlattr, ?XML_NS, undefined, "lang", "en"}
+	    {xmlattr, ?NS_XML, undefined, "lang", "en"}
 	    ], []
 	}),
 	ok.
@@ -502,26 +500,26 @@ test_set_attributes() ->
 	testsuite:is(New3_2, {xmlnselement,
 	    undefined, undefined, "element", [
 	    {xmlattr, undefined, undefined, "version", "2.0"},
-	    {xmlattr, ?XML_NS, undefined, "lang", "en"}
+	    {xmlattr, ?NS_XML, undefined, "lang", "en"}
 	    ], []
 	}),
 	ok.
 
 test_set_attributes_ns() ->
 	New3_1 = exmpp_xml:set_attributes(?ELEMENT3_1,
-	    [{undefined, "version", "2.0"}, {?XML_NS, "lang", "en"}]),
+	    [{undefined, "version", "2.0"}, {?NS_XML, "lang", "en"}]),
 	testsuite:is(New3_1, {xmlnselement,
 	    undefined, undefined, "element", [
 	    {xmlattr, undefined, undefined, "version", "2.0"},
-	    {xmlattr, ?XML_NS, undefined, "lang", "en"}
+	    {xmlattr, ?NS_XML, undefined, "lang", "en"}
 	    ], []
 	}),
 	New3_2 = exmpp_xml:set_attributes(?ELEMENT3_2,
-	    [{undefined, "version", "2.0"}, {?XML_NS, "lang", "en"}]),
+	    [{undefined, "version", "2.0"}, {?NS_XML, "lang", "en"}]),
 	testsuite:is(New3_2, {xmlnselement,
 	    undefined, undefined, "element", [
 	    {xmlattr, undefined, undefined, "version", "2.0"},
-	    {xmlattr, ?XML_NS, undefined, "lang", "en"}
+	    {xmlattr, ?NS_XML, undefined, "lang", "en"}
 	    ], []
 	}),
 	ok.
@@ -559,15 +557,15 @@ test_remove_attribute_from_list2() ->
 
 test_remove_attribute_from_list3() ->
 	New1 = exmpp_xml:remove_attribute_from_list(?ATTRIBUTE_LIST1,
-	    ?XML_NS, "lang"),
+	    ?NS_XML, "lang"),
 	testsuite:is(New1, []),
 	New3_1 = exmpp_xml:remove_attribute_from_list(?ATTRIBUTE_LIST3_1,
-	    ?XML_NS, "lang"),
+	    ?NS_XML, "lang"),
 	testsuite:is(New3_1, [
 	    {xmlattr, undefined, undefined, "version", "1.0"}
 	]),
 	New3_2 = exmpp_xml:remove_attribute_from_list(?ATTRIBUTE_LIST3_2,
-	    ?XML_NS, "lang"),
+	    ?NS_XML, "lang"),
 	testsuite:is(New3_2, [
 	    {xmlattr, undefined, undefined, "version", "1.0"}
 	]),
@@ -575,10 +573,10 @@ test_remove_attribute_from_list3() ->
 	    'some_other_ns', "lang"),
 	testsuite:is(New3_3, [
 	    {xmlattr, undefined, undefined, "version", "1.0"},
-	    {xmlattr, ?XML_NS, undefined, "lang", "fr"}
+	    {xmlattr, ?NS_XML, undefined, "lang", "fr"}
 	]),
 	New4 = exmpp_xml:remove_attribute_from_list(?ATTRIBUTE_LIST4,
-	    ?XML_NS, "lang"),
+	    ?NS_XML, "lang"),
 	testsuite:is(New4, [
 	    bad_data
 	]),
@@ -630,20 +628,20 @@ test_remove_attribute2() ->
 
 test_remove_attribute3() ->
 	New1 = exmpp_xml:remove_attribute(?ELEMENT1,
-	    ?XML_NS, "lang"),
+	    ?NS_XML, "lang"),
 	testsuite:is(New1, {xmlnselement,
 	    undefined, undefined, "element", [
 	    ], []
 	}),
 	New3_1 = exmpp_xml:remove_attribute(?ELEMENT3_1,
-	    ?XML_NS, "lang"),
+	    ?NS_XML, "lang"),
 	testsuite:is(New3_1, {xmlnselement,
 	    undefined, undefined, "element", [
 	    {xmlattr, undefined, undefined, "version", "1.0"}
 	    ], []
 	}),
 	New3_2 = exmpp_xml:remove_attribute(?ELEMENT3_2,
-	    ?XML_NS, "lang"),
+	    ?NS_XML, "lang"),
 	testsuite:is(New3_2, {xmlnselement,
 	    undefined, undefined, "element", [
 	    {xmlattr, undefined, undefined, "version", "1.0"}
@@ -654,11 +652,11 @@ test_remove_attribute3() ->
 	testsuite:is(New3_3, {xmlnselement,
 	    undefined, undefined, "element", [
 	    {xmlattr, undefined, undefined, "version", "1.0"},
-	    {xmlattr, ?XML_NS, undefined, "lang", "fr"}
+	    {xmlattr, ?NS_XML, undefined, "lang", "fr"}
 	    ], []
 	}),
 	New4 = exmpp_xml:remove_attribute(?ELEMENT4,
-	    ?XML_NS, "lang"),
+	    ?NS_XML, "lang"),
 	testsuite:is(New4, {xmlnselement,
 	    undefined, undefined, "bad_element", [
 	    bad_data

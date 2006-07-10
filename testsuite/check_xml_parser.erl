@@ -36,9 +36,6 @@ do_check() ->
 % Parser testsuite.
 % --------------------------------------------------------------------
 
--define(XML_NS, 'http://www.w3.org/XML/1998/namespace').
--define(XMPP_NS, 'http://etherx.jabber.org/streams').
-
 -define(SOURCE1, "<stream:stream xmlns:stream='ns_stream' xmlns='ns_default'><iq xml:lang='fr'>Content</iq></stream:stream>").
 
 -define(TREE1_NO_NS, [
@@ -70,7 +67,7 @@ do_check() ->
 -define(TREE1_NS, [
 {xmlnselement, 'ns_stream', "stream", "stream", [], [
 	{xmlnselement, 'ns_default', undefined, "iq", [
-		{xmlattr, ?XML_NS, "xml", "lang", "fr"}
+		{xmlattr, ?NS_XML, "xml", "lang", "fr"}
 	], [
 		{xmlcdata, <<"Content">>}
 	]}
@@ -80,7 +77,7 @@ do_check() ->
 -define(TREE1_NS_ATOM, [
 {xmlnselement, 'ns_stream', "stream", 'stream', [], [
 	{xmlnselement, 'ns_default', undefined, 'iq', [
-		{xmlattr, ?XML_NS, "xml", 'lang', "fr"}
+		{xmlattr, ?NS_XML, "xml", 'lang', "fr"}
 	], [
 		{xmlcdata, <<"Content">>}
 	]}
@@ -102,7 +99,7 @@ do_check() ->
 -define(TREE1_NS_ROOT_DEPTH, [
 {xmlnselement, 'ns_stream', "stream", "stream", [], undefined},
 {xmlnselement, 'ns_default', undefined, "iq", [
-	{xmlattr, ?XML_NS, "xml", "lang", "fr"}
+	{xmlattr, ?NS_XML, "xml", "lang", "fr"}
 ], [
 	{xmlcdata, <<"Content">>}
 ]}
@@ -124,7 +121,7 @@ do_check() ->
 -define(TREE1_NS_END_EL, [
 {xmlnselement, 'ns_stream', "stream", "stream", [], undefined},
 {xmlnselement, 'ns_default', undefined, "iq", [
-	{xmlattr, ?XML_NS, "xml",
+	{xmlattr, ?NS_XML, "xml",
 	    "lang", "fr"}
 ], [
 	{xmlcdata, <<"Content">>}
@@ -136,8 +133,8 @@ do_check() ->
 
 -define(TREE2_NS_CHECK, [
 {xmlnselement, "unknown_ns", undefined, "element", [
-	{xmlattr, ?XML_NS, "xml", "lang", "fr"},
-	{xmlattr, ?XMPP_NS, "stream", "version", "1.0"}
+	{xmlattr, ?NS_XML, "xml", "lang", "fr"},
+	{xmlattr, ?NS_XMPP, "stream", "version", "1.0"}
 ], []}
 ]).
 

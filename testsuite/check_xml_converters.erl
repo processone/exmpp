@@ -20,10 +20,8 @@ do_check() ->
 	ok.
 
 % --------------------------------------------------------------------
-% Serliazer testsuite.
+% Serializer testsuite.
 % --------------------------------------------------------------------
-
--define(XML_NS, 'http://www.w3.org/XML/1998/namespace').
 
 -define(TREE0_NO_NS,
 {xmlelement, "stream:stream", [
@@ -70,7 +68,7 @@ do_check() ->
 -define(TREE2_NS,
 {xmlnselement, 'ns_stream', "stream", "stream", [], [
 	{xmlnselement, 'ns_default', undefined, "iq", [
-		{xmlattr, ?XML_NS, undefined, "lang", "fr"},
+		{xmlattr, ?NS_XML, undefined, "lang", "fr"},
 		{xmlattr, undefined, undefined, "version", "1.0"}
 	], [
 		{xmlcdata, <<"Content">>}
@@ -81,7 +79,7 @@ do_check() ->
 -define(TREE2_NS_NAA,
 {xmlnselement, 'ns_stream', "stream", 'stream', [], [
 	{xmlnselement, 'ns_default', undefined, 'iq', [
-		{xmlattr, ?XML_NS, undefined, 'lang', "fr"},
+		{xmlattr, ?NS_XML, undefined, 'lang', "fr"},
 		{xmlattr, undefined, undefined, 'version', "1.0"}
 	], [
 		{xmlcdata, <<"Content">>}
@@ -93,7 +91,7 @@ do_check() ->
 
 -define(TREE3_NS,
 {xmlnselement, 'ns_iq', undefined, "iq", [
-	{xmlattr, ?XML_NS, undefined, "lang", "fr"}
+	{xmlattr, ?NS_XML, undefined, "lang", "fr"}
 ], [
 	{xmlcdata, <<"Binary">>},
 	{xmlcdata, "List"},
