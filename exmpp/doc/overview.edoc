@@ -1,6 +1,6 @@
 @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
-@version 0.1.0
-@title exmpp - version {@vsn}
+@version {@vsn}
+@title exmpp
 
 @doc
 <p>
