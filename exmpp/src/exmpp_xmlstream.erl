@@ -77,7 +77,6 @@ start(Callback, Parser_Options) ->
 			{error, Reason}
 	end.
 
-
 %% @spec (Stream) -> ok | {error, Reason}
 %%     Stream = xmlstream()
 %% @doc Close a stream handler.
