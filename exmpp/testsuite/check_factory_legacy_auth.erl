@@ -1,7 +1,7 @@
-% $Id: check_factory_stream.erl 53 2006-07-10 15:23:54Z jspedron $
+% $Id$
 
 -module(check_factory_legacy_auth).
--vsn('$Revision: 53 $').
+-vsn('$Revision$').
 
 -include("exmpp.hrl").
 
