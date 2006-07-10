@@ -5,6 +5,7 @@
 		'@srcdir@/exmpp',
 		'@srcdir@/exmpp_xml',
 		'@srcdir@/exmpp_xmlstream',
+		'@srcdir@/exmpp_factory',
 		'@srcdir@/exmpp_jlib',
 		'@srcdir@/iconv',
 		'@srcdir@/sha',
