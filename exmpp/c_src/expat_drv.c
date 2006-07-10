@@ -805,7 +805,7 @@ expat_drv_start_element(void *user_data,
 
 	if (ed->depth < ed->root_depth) {
 		/* Standalone node are moved to the final list. */
-		ei_x_encode_empty_list(tree);
+		ei_x_encode_atom(tree, "undefined");
 		current_tree_finished(ed);
 	}
 
