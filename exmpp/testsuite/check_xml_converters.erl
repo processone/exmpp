@@ -25,6 +25,22 @@ do_check() ->
 
 -define(XML_NS, 'http://www.w3.org/XML/1998/namespace').
 
+-define(TREE0_NO_NS,
+{xmlelement, "stream:stream", [
+	{"xmlns:stream", "ns_stream"}
+], undefined}
+).
+
+-define(TREE0_NS,
+{xmlnselement, 'ns_stream', "stream", "stream", [], undefined}
+).
+
+-define(TREE0_NS_NAA,
+{xmlnselement, 'ns_stream', "stream", 'stream', [], undefined}
+).
+
+-define(SOURCE0, "<stream:stream xmlns:stream=\"ns_stream\">").
+
 -define(TREE1_NO_NS,
 {xmlelement, "stream:stream", [
 	{"xmlns:stream", "ns_stream"}
@@ -43,7 +59,8 @@ do_check() ->
 ], [
 	{xmlelement, "iq", [
 		{"xmlns", "ns_default"},
-		{"xml:lang", "fr"}
+		{"xml:lang", "fr"},
+		{"version", "1.0"}
 	], [
 		{xmlcdata, <<"Content">>}
 	]}
@@ -53,24 +70,26 @@ do_check() ->
 -define(TREE2_NS,
 {xmlnselement, 'ns_stream', "stream", "stream", [], [
 	{xmlnselement, 'ns_default', undefined, "iq", [
-		{xmlattr, ?XML_NS, undefined, "lang", "fr"}
+		{xmlattr, ?XML_NS, undefined, "lang", "fr"},
+		{xmlattr, undefined, undefined, "version", "1.0"}
 	], [
 		{xmlcdata, <<"Content">>}
 	]}
 ]}
 ).
 
--define(TREE2_NS_NAS,
+-define(TREE2_NS_NAA,
 {xmlnselement, 'ns_stream', "stream", 'stream', [], [
 	{xmlnselement, 'ns_default', undefined, 'iq', [
-		{xmlattr, ?XML_NS, undefined, 'lang', "fr"}
+		{xmlattr, ?XML_NS, undefined, 'lang', "fr"},
+		{xmlattr, undefined, undefined, 'version', "1.0"}
 	], [
 		{xmlcdata, <<"Content">>}
 	]}
 ]}
 ).
 
--define(SOURCE2, "<stream:stream xmlns:stream=\"ns_stream\"><iq xmlns=\"ns_default\" xml:lang=\"fr\">Content</iq></stream:stream>").
+-define(SOURCE2, "<stream:stream xmlns:stream=\"ns_stream\"><iq xmlns=\"ns_default\" xml:lang=\"fr\" version=\"1.0\">Content</iq></stream:stream>").
 
 -define(TREE3_NS,
 {xmlnselement, 'ns_iq', undefined, "iq", [
@@ -113,7 +132,27 @@ do_check() ->
 ], []}
 ).
 
+-define(TREE5_NO_NS,
+{xmlendelement, "stream:stream"}
+).
+
+-define(TREE5_NS,
+{xmlnsendelement, 'ns_stream', "stream", "stream"}
+).
+
+-define(TREE5_NS_NAA,
+{xmlnsendelement, 'ns_stream', "stream", 'stream'}
+).
+
+-define(SOURCE5, "</stream:stream>").
+
 test_xmlnselement_to_xmlelement() ->
+	testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE0_NO_NS),
+	    ?TREE0_NO_NS),
+	testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE0_NS),
+	    ?TREE0_NO_NS),
+	testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE0_NS_NAA),
+	    ?TREE0_NO_NS),
 	testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE1_NO_NS),
 	    ?TREE1_NO_NS),
 	testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE1_NS),
@@ -122,15 +161,24 @@ test_xmlnselement_to_xmlelement() ->
 	    ?TREE2_NO_NS),
 	testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE2_NS),
 	    ?TREE2_NO_NS),
-	testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE2_NS_NAS),
+	testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE2_NS_NAA),
 	    ?TREE2_NO_NS),
 	testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE4_NO_NS),
 	    ?TREE4_NO_NS),
 	testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE4_NS),
 	    ?TREE4_NO_NS),
+	testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE5_NO_NS),
+	    ?TREE5_NO_NS),
+	testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE5_NS),
+	    ?TREE5_NO_NS),
+	testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE5_NS_NAA),
+	    ?TREE5_NO_NS),
 	ok.
 
 test_document_to_list_without_namespace() ->
+	testsuite:is(
+	    lists:flatten(exmpp_xml:document_to_list(?TREE0_NO_NS)),
+	    ?SOURCE0),
 	testsuite:is(
 	    lists:flatten(exmpp_xml:document_to_list(?TREE1_NO_NS)),
 	    ?SOURCE1),
@@ -140,6 +188,9 @@ test_document_to_list_without_namespace() ->
 	ok.
 
 test_document_to_list_with_namespace() ->
+	testsuite:is(
+	    lists:flatten(exmpp_xml:document_to_list(?TREE0_NS)),
+	    ?SOURCE0),
 	testsuite:is(
 	    lists:flatten(exmpp_xml:document_to_list(?TREE1_NS)),
 	    ?SOURCE1),
