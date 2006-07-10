@@ -26,7 +26,7 @@
 % Stream opening/closing.
 % --------------------------------------------------------------------
 
-%% @spec (Args) -> Stream_Opening
+%% @spec (Args) -> Stream_Opening | {error, Reason}
 %%     Args = [Arg]
 %%     Arg = Context_Spec | To_Spec | Version_Spec | Lang_Spec
 %%     Context_Spec = {context, client} | {context, server}
@@ -36,7 +36,7 @@
 %%     Stream_Opening = exmpp_xml:xmlnselement()
 %% @doc Make a `<stream>' opening tag.
 %%
-%% This element is supposed to be send by the initiating peer
+%% This element is supposed to be sent by the initiating peer
 %% to the receiving peer (for the other way around, see {@link
 %% stream_opening_reply/1}).
 %%
@@ -107,13 +107,13 @@ check_stream_opening(Stream_Opening) ->
 %%     Arg = Context_Spec | From_Spec | ID_Spec | Version_Spec | Lang_Spec
 %%     Context_Spec = {context, client} | {context, server}
 %%     From_Spec = {from, string()}
-%%     ID_Spec = {id, undefined | string()}
+%%     ID_Spec = {id, string()} | {if, undefined}
 %%     Version_Spec = {version, string()}
 %%     Lang_Spec = {lang, string()}
 %%     Stream_Opening_Reply = exmpp_xml:xmlnselement()
 %% @doc Make a `<stream>' opening reply tag.
 %%
-%% This element is supposed to be send by the receiving peer in reply
+%% This element is supposed to be sent by the receiving peer in reply
 %% to the initiating peer (for the other way around, see {@link
 %% stream_opening/1}).
 %%
