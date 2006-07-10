@@ -15,9 +15,12 @@
 ]).
 -export([
 	legacy_auth_request/1,
+	legacy_auth_request/2,
 	legacy_auth_fields/1,
 	legacy_auth_password/3,
+	legacy_auth_password/4,
 	legacy_auth_password_digest/3,
+	legacy_auth_password_digest/4,
 	legacy_auth_success/1,
 	legacy_auth_failure/2
 ]).
@@ -225,10 +228,20 @@ stream_id() ->
 
 %% @spec (To) -> Auth_Iq
 %%     To = string()
+%% @doc Make an `<iq>' for requesting legacy authentication.
+%%
+%% The stanza `id' is generated automatically.
+
+legacy_auth_request(To) ->
+	legacy_auth_request(auth_id(), To).
+
+%% @spec (Id, To) -> Auth_Iq
+%%     Id = string()
+%%     To = string()
 %%     Auth_Iq = exmpp_xml:xmlnselement()
 %% @doc Make an `<iq>' for requesting legacy authentication.
 
-legacy_auth_request(To) ->
+legacy_auth_request(Id, To) ->
 	% Make empty query.
 	Query = #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'query',
 	    children = []},
@@ -237,7 +250,7 @@ legacy_auth_request(To) ->
 	    #xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
 	    {'type', "get"},
 	    {'to',   To},
-	    {'id',   auth_id()}]),
+	    {'id',   Id}]),
 	exmpp_xml:append_child(Iq, Query).
 
 %% @spec (Id) -> Auth_Iq
@@ -268,16 +281,30 @@ legacy_auth_fields(Id) ->
 
 %% @spec (Username, Password, Resource) -> Auth_Iq
 %%     Username = string()
-%%     Password = string()
+%%     Password = string() | nil()
+%%     Resource = string()
+%%     Auth_Iq = exmpp_xml:xmlnselement()
+%% @doc Make an `<iq>' to send authentication informations.
+%%
+%% The stanza `id' is generated automatically.
+
+legacy_auth_password(Username_S, Password_S, Resource_S) ->
+	legacy_auth_password(auth_id(),
+	    Username_S, Password_S, Resource_S).
+
+%% @spec (Id, Username, Password, Resource) -> Auth_Iq
+%%     Id = string()
+%%     Username = string()
+%%     Password = string() | nil()
 %%     Resource = string()
 %%     Auth_Iq = exmpp_xml:xmlnselement()
 %% @doc Make an `<iq>' to send authentication informations.
 %%
 %% `Password' is in clear plain text in the stanza.
+%%
+%% For an anonymous authentication, `Password' may be the empty string.
 
-legacy_auth_password(Username_S, Password_S, Resource_S) ->
-	% Prepare stanza ID.
-	Id = auth_id(),
+legacy_auth_password(Id, Username_S, Password_S, Resource_S) ->
 	% Fill fields.
 	Username = exmpp_xml:set_cdata(
 	    #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'username'},
@@ -295,6 +322,7 @@ legacy_auth_password(Username_S, Password_S, Resource_S) ->
 	% Make IQ.
 	Iq = exmpp_xml:set_attributes(
 	    #xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
+	    {'type', "set"},
 	    {'id', Id}]),
 	exmpp_xml:append_child(Iq, Query).
 
@@ -305,11 +333,23 @@ legacy_auth_password(Username_S, Password_S, Resource_S) ->
 %%     Auth_Iq = exmpp_xml:xmlnselement()
 %% @doc Make an `<iq>' to send authentication informations.
 %%
-%% `Password' is encoded as specified in the JEP-078.
+%% The stanza `id' is generated automatically.
 
 legacy_auth_password_digest(Username_S, Password_S, Resource_S) ->
-	% Prepare stanza ID.
-	Id = auth_id(),
+	legacy_auth_password_digest(auth_id(),
+	    Username_S, Password_S, Resource_S).
+
+%% @spec (Id, Username, Password, Resource) -> Auth_Iq
+%%     Id = string()
+%%     Username = string()
+%%     Password = string()
+%%     Resource = string()
+%%     Auth_Iq = exmpp_xml:xmlnselement()
+%% @doc Make an `<iq>' to send authentication informations.
+%%
+%% `Password' is encoded as specified in the JEP-078.
+
+legacy_auth_password_digest(Id, Username_S, Password_S, Resource_S) ->
 	% Fill fields.
 	Username = exmpp_xml:set_cdata(
 	    #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'username'},
@@ -327,6 +367,7 @@ legacy_auth_password_digest(Username_S, Password_S, Resource_S) ->
 	% Make IQ.
 	Iq = exmpp_xml:set_attributes(
 	    #xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
+	    {'type', "set"},
 	    {'id', Id}]),
 	exmpp_xml:append_child(Iq, Query).
 
@@ -337,7 +378,7 @@ legacy_auth_password_digest(Username_S, Password_S, Resource_S) ->
 
 legacy_auth_success(Id) ->
 	exmpp_xml:set_attributes(
-	    #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'iq'}, [
+	#xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq', children = []}, [
 	    {'type', "result"},
 	    {'id', Id}]).
 
@@ -352,21 +393,21 @@ legacy_auth_failure(Id, Reason) ->
 	Error0 = #xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'error'},
 	Error = case Reason of
 		not_authorized ->
-			Child = #xmlnselement{ns = ?NS_XMPP_STANZA,
+			Child = #xmlnselement{ns = ?NS_XMPP_STANZAS,
 			    name = 'not-authorized', children = []},
 			exmpp_xml:append_child(
 			    exmpp_xml:set_attributes(Error0, [
 			    {'code', "401"},
 			    {'type', "auth"}]), Child);
 		conflict ->
-			Child = #xmlnselement{ns = ?NS_XMPP_STANZA,
+			Child = #xmlnselement{ns = ?NS_XMPP_STANZAS,
 			    name = 'conflict', children = []},
 			exmpp_xml:append_child(
 			    exmpp_xml:set_attributes(Error0, [
 			    {'code', "409"},
 			    {'type', "cancel"}]), Child);
 		not_acceptable ->
-			Child = #xmlnselement{ns = ?NS_XMPP_STANZA,
+			Child = #xmlnselement{ns = ?NS_XMPP_STANZAS,
 			    name = 'not-acceptable', children = []},
 			exmpp_xml:append_child(
 			    exmpp_xml:set_attributes(Error0, [
@@ -375,7 +416,7 @@ legacy_auth_failure(Id, Reason) ->
 	end,
 	% Make IQ.
 	Iq = exmpp_xml:set_attributes(
-	    #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'iq'}, [
+	    #xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
 	    {'type', "result"},
 	    {'id', Id}]),
 	exmpp_xml:append_child(Iq, Error).
