@@ -12,4 +12,6 @@ all-local: stylesheet.css
 	$(ERL) -noshell -run edoc_run application "'$(PACKAGE_NAME)'" '"$(top_srcdir)"'\
 		'[{def, {vsn, "$(PACKAGE_VERSION)"}}, {dir, "."}, {stylesheet, "stylesheet.css"}, {preprocess, true}]'\
 		-s erlang halt
+
+CLEANFILES = *.html edoc-info
 endif
