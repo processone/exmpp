@@ -93,7 +93,7 @@
 -define(NS_JABBER_CLIENT, 'jabber:client').
 -define(NS_JABBER_SERVER, 'jabber:server').
 -define(NS_JABBER_AUTH,   'jabber:iq:auth').
--define(NS_XMPP_STANZA,   'urn:ietf:params:xml:ns:xmpp-stanzas').
+-define(NS_XMPP_STANZAS,  'urn:ietf:params:xml:ns:xmpp-stanzas').
 
 -define(NS_DELAY, "jabber:x:delay").
 
