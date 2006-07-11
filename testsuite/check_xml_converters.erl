@@ -12,11 +12,13 @@ check() ->
 	testsuite:pass().
 
 do_check() ->
+	test_encode_enities(),
 	test_xmlnselement_to_xmlelement(),
 	test_document_to_list_without_namespace(),
 	test_document_to_list_with_namespace(),
 	test_document_fragment_to_list_with_namespace(),
 	test_document_fragment_to_list_with_namespace2(),
+	test_clear_endelement_tuples(),
 	ok.
 
 % --------------------------------------------------------------------
@@ -134,8 +136,24 @@ do_check() ->
 {xmlendelement, "stream:stream"}
 ).
 
+-define(TREE5_NO_NS2,
+{xmlendelement, "stream"}
+).
+
+-define(TREE5_NO_NS3,
+{xmlendelement, "stream2:stream"}
+).
+
 -define(TREE5_NS,
 {xmlnsendelement, 'ns_stream', "stream", "stream"}
+).
+
+-define(TREE5_NS2,
+{xmlnsendelement, 'ns_stream', undefined, "stream"}
+).
+
+-define(TREE5_NS3,
+{xmlnsendelement, undefined, undefined, "stream"}
 ).
 
 -define(TREE5_NS_NAA,
@@ -171,6 +189,16 @@ test_xmlnselement_to_xmlelement() ->
 	    ?TREE5_NO_NS),
 	testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE5_NS_NAA),
 	    ?TREE5_NO_NS),
+	testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE5_NS,
+	    ['ns_stream', 'other'], []),
+	    ?TREE5_NO_NS2),
+	testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE5_NS,
+	    [], [{'ns_stream', "stream2"}]),
+	    ?TREE5_NO_NS3),
+	testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE5_NS2),
+	    ?TREE5_NO_NS2),
+	testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE5_NS3),
+	    ?TREE5_NO_NS2),
 	ok.
 
 test_document_to_list_without_namespace() ->
@@ -183,6 +211,9 @@ test_document_to_list_without_namespace() ->
 	testsuite:is(
 	    lists:flatten(exmpp_xml:document_to_list(?TREE2_NO_NS)),
 	    ?SOURCE2),
+	testsuite:is(
+	    lists:flatten(exmpp_xml:document_to_list(?TREE5_NO_NS)),
+	    ?SOURCE5),
 	ok.
 
 test_document_to_list_with_namespace() ->
@@ -195,6 +226,12 @@ test_document_to_list_with_namespace() ->
 	testsuite:is(
 	    lists:flatten(exmpp_xml:document_to_list(?TREE2_NS)),
 	    ?SOURCE2),
+	testsuite:is(
+	    lists:flatten(exmpp_xml:document_to_list(?TREE5_NS)),
+	    ?SOURCE5),
+	testsuite:is(
+	    lists:flatten(exmpp_xml:document_to_list(?TREE5_NS_NAA)),
+	    ?SOURCE5),
 	ok.
 
 test_document_fragment_to_list_with_namespace() ->
@@ -209,4 +246,20 @@ test_document_fragment_to_list_with_namespace2() ->
 	    lists:flatten(exmpp_xml:document_fragment_to_list(?TREE3_NS,
 	    ?TREE3_DEFAULT_NS_2, ?TREE3_PREFIXED_NS_2)),
 	    ?SOURCE3_2),
+	ok.
+
+test_encode_enities() ->
+	testsuite:is(exmpp_xml:encode_entities("Entities: &<>\"'"),
+	    "Entities: &amp;&lt;&gt;&quot;&apos;"),
+	testsuite:is(exmpp_xml:encode_entities(<<"Entities: &<>\"'">>),
+	    <<"Entities: &amp;&lt;&gt;&quot;&apos;">>),
+	ok.
+
+test_clear_endelement_tuples() ->
+	testsuite:is(exmpp_xml:clear_endelement_tuples([?TREE5_NO_NS]), []),
+	testsuite:is(exmpp_xml:clear_endelement_tuples(
+	    [?TREE0_NO_NS, ?TREE5_NO_NS]), [?TREE0_NO_NS]),
+	testsuite:is(exmpp_xml:clear_endelement_tuples([?TREE5_NS]), []),
+	testsuite:is(exmpp_xml:clear_endelement_tuples(
+	    [?TREE0_NS, ?TREE5_NS]), [?TREE0_NS]),
 	ok.
