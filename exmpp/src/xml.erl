@@ -213,5 +213,8 @@ element_to_string(XML_Element) ->
 %% @deprecated Please use {@link encode_entities/1}.
 %% @doc Replace sensible characters with entities.
 
-crypt(CData) ->
-	exmpp_xml:encode_entities(CData).
+crypt(CData) when is_list(CData) ->
+	exmpp_xml:encode_entities(CData);
+
+crypt(CData) when is_binary(CData) ->
+	exmpp_xml:encode_entities(binary_to_list(CData)).
