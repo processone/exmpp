@@ -1316,17 +1316,30 @@ clear_endelement_tuples2([], Result) ->
 %% <tt>&gt;</tt>, <tt>&quot;</tt>, <tt>&apos;</tt>.
 
 encode_entities(S) when is_list(S) ->
-	[case C of
+	lists:flatten([case C of
 		$& -> "&amp;";
 		$< -> "&lt;";
 		$> -> "&gt;";
 		$" -> "&quot;";
 		$' -> "&apos;";
 		_ -> C
-		end || C <- S];
+		end || C <- S]);
 
 encode_entities(S) when is_binary(S) ->
-	list_to_binary(encode_entities(binary_to_list(S))).
+	encode_entities2(S, []).
+
+encode_entities2(<<C:8, Rest/binary>>, New_S) ->
+	New_C = case C of
+		$& -> <<"&amp;">>;
+		$< -> <<"&lt;">>;
+		$> -> <<"&gt;">>;
+		$" -> <<"&quot;">>;
+		$' -> <<"&apos;">>;
+		_  -> C
+	end,
+	encode_entities2(Rest, [New_C | New_S]);
+encode_entities2(<<>>, New_S) ->
+	list_to_binary(lists:reverse(New_S)).
 
 % --------------------------------------------------------------------
 % Utilities.
