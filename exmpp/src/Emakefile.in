@@ -10,7 +10,8 @@
 		'@srcdir@/iconv',
 		'@srcdir@/sha',
 		'@srcdir@/stringprep',
-		'@srcdir@/tls'
+		'@srcdir@/tls',
+		'@srcdir@/xml'
 	],
 	[
 		@EMKOPTS@,
