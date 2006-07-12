@@ -14,8 +14,13 @@ ok(Result) ->
 
 is(Result, Ref) ->
 	case Result of
-		Ref -> ok;
-		_   -> fail({no_match, Ref, Result})
+		Ref ->
+			ok;
+		_   ->
+			%io:format(
+			%    "Doesn't match:~nReference: ~p~nResult: ~p~n",
+			%    [Ref, Result]),
+			fail({no_match, Ref, Result})
 	end.
 
 % --------------------------------------------------------------------
@@ -32,4 +37,5 @@ fail() ->
 	fail('FAIL').
 
 fail(Reason) ->
+	io:format("Aborting...~nReason: ~p~n", [Reason]),
 	erlang:error(Reason).
