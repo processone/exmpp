@@ -816,7 +816,7 @@ void
 expat_drv_end_element(void *user_data,
     const char *name)
 {
-	char *ns_sep;
+	char *ns_sep, *prefix;
 	ei_x_buff *tree;
 	struct expat_drv_data *ed;
 
@@ -843,21 +843,71 @@ expat_drv_end_element(void *user_data,
 		 * Without namespace support, it will be:
 		 *   {xmlendelement, Node_Name} */
 		if (ed->use_ns_parser) {
-			ei_x_encode_tuple_header(tree, 3);
+			ei_x_encode_tuple_header(tree, 4);
 			ei_x_encode_atom(tree, TUPLE_XML_NS_END_ELEMENT);
 			ns_sep = strchr(name, NS_SEP);
 			if (ns_sep == NULL) {
+				/* Neither a namespace, nor a prefix. */
 				ei_x_encode_atom(tree, "undefined");
-				ei_x_encode_string_fixed(tree, name);
+				ei_x_encode_atom(tree, "undefined");
+
+				/* Encode the element name. */
+				if (ed->name_as_atom &&
+				    is_a_known_name(ed, name)) {
+					ei_x_encode_atom(tree, name);
+				} else {
+					ei_x_encode_string_fixed(tree, name);
+				}
 			} else {
-				ei_x_encode_atom_len(tree, name,
-				    ns_sep - name);
-				ei_x_encode_string_fixed(tree, ns_sep + 1);
+				/* Terminate the namespace with a NUL
+				 * character. This will be restored later. */
+				*ns_sep = '\0';
+
+				/* Check if the namespace is known, to
+				 * decide if we encode it as an atom()
+				 * or a string(). */
+				if (is_a_known_ns(ed, name)) {
+					ei_x_encode_atom(tree, name);
+				} else {
+					ei_x_encode_string_fixed(tree, name);
+				}
+
+				/* Lookup a prefix and eventually encode it
+				 * as a string() in the buffer. */
+				if (ed->prefixes) {
+					prefix = (char *)hashtable_search(
+					    ed->prefixes, (char *)name);
+				} else {
+					prefix = NULL;
+				}
+
+				if (prefix != NULL) {
+					ei_x_encode_string_fixed(tree, prefix);
+				} else {
+					ei_x_encode_atom(tree, "undefined");
+				}
+
+				/* Restore the namespace separator. */
+				*ns_sep = NS_SEP;
+
+				/* Encode the element name. */
+				if (ed->name_as_atom &&
+				    is_a_known_name(ed, ns_sep + 1)) {
+					ei_x_encode_atom(tree, ns_sep + 1);
+				} else {
+					ei_x_encode_string_fixed(tree, ns_sep + 1);
+				}
 			}
 		} else {
 			ei_x_encode_tuple_header(tree, 2);
 			ei_x_encode_atom(tree, TUPLE_XML_END_ELEMENT);
-			ei_x_encode_string_fixed(tree, name);
+
+			/* Encode the element name. */
+			if (ed->name_as_atom && is_a_known_name(ed, name)) {
+				ei_x_encode_atom(tree, name);
+			} else {
+				ei_x_encode_string_fixed(tree, name);
+			}
 		}
 
 		current_tree_finished(ed);
