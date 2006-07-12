@@ -4,7 +4,7 @@ dnl ------------------------------------------------------------------
 dnl Initialisation d'Autoconf
 dnl ------------------------------------------------------------------
 
-AC_INIT([exmpp], [0.4.0], [js.pedron@meetic-corp.com], [exmpp])
+AC_INIT([exmpp], [0.4.1], [js.pedron@meetic-corp.com], [exmpp])
 AC_CONFIG_SRCDIR([include/exmpp.hrl])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([ac-aux])
@@ -22,7 +22,7 @@ dnl ------------------------------------------------------------------
 
 EXMPP_MAJOR=0
 EXMPP_MINOR=4
-EXMPP_MICRO=0
+EXMPP_MICRO=1
 EXMPP_VERSION="$EXMPP_MAJOR.$EXMPP_MINOR.$EXMPP_MICRO"
 
 dnl On gère un build id qui permet de différencier les versions en
@@ -130,15 +130,6 @@ AC_ARG_ENABLE([warnings],
 if test "x${enable_warnings}" = "xyes" -a "x${GCC}" = "xyes"; then
 	CFLAGS="${CFLAGS% } -Werror"
 fi
-
-dnl What to do with the compatibility layer?
-dnl AC_ARG_ENABLE([compat-layer],
-dnl 	AC_HELP_STRING([--enable-compat-layer],
-dnl 	    [enable compatility layer [[default=yes]]]),,
-dnl 	enable_compat_layer="yes")
-dnl if test "x${enable_compat_layer}" = "xyes"; then
-dnl 	append_to_EMKOPTS "{d, 'WITH_DEPRECATED_API'}"
-dnl fi
 
 dnl Documentation
 AC_ARG_WITH([documentation],
