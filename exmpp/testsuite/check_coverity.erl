@@ -17,8 +17,7 @@ do_check() ->
 	{ok, [Covered_Modules]} = init:get_argument(covered_modules),
 	cover:start(),
 	cover:compile_directory(Top_Srcdir ++ "/src", [
-	    {i, Top_Srcdir ++ "/include"},
-	    {d, 'WITH_DEPRECATED_API'}]),
+	    {i, Top_Srcdir ++ "/include"}]),
 	run_tests(Tests),
 	print_coverage(Covered_Modules),
 	cover:stop(),
@@ -31,17 +30,21 @@ run_tests([Test | Rest]) ->
 run_tests([]) ->
 	ok.
 
-print_coverage([Module | Rest]) ->
+print_coverage(Modules) ->
+	io:format("Coverage:~n"),
+	print_coverage2(Modules).
+
+print_coverage2([Module | Rest]) ->
 	Mod = list_to_atom(Module),
 	{ok, {_Module, {Cov, Not_Cov}}} = cover:analyse(Mod, module),
 	if
 		Cov > 0; Not_Cov > 0 ->
-			io:format("- ~s: ~.1f%#NL#",
+			io:format("- ~s: ~.1f%~n",
 			    [Mod, Cov * 100 / (Cov + Not_Cov)]);
 		true ->
-			io:format("- ~s: n/a~n#NL#", [Mod])
+			io:format("- ~s: n/a~n~n", [Mod])
 	end,
-	cover:analyse_to_file(Mod, "cover_" ++ Module ++ ".html", [html]),
-	print_coverage(Rest);
-print_coverage([]) ->
+	cover:analyse_to_file(Mod, "cover_" ++ Module ++ ".out", []),
+	print_coverage2(Rest);
+print_coverage2([]) ->
 	ok.
