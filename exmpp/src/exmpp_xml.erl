@@ -1560,8 +1560,3 @@ handle_options([], Parser) ->
 %% element named `Elem_Name'. The `attr' tuple points to the value of
 %% the `Attr_Name' attribute. cdata asks for the character data of a
 %% node.
-
-%% @type pathcomponentold() = {elem, Elem_Name} | {attr, Attr_Name} | cdata
-%%     Elem_Name = string() | atom()
-%%     Attr_Name = string() | atom().
-%% Represents a path component.

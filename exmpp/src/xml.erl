@@ -218,3 +218,12 @@ crypt(CData) when is_list(CData) ->
 
 crypt(CData) when is_binary(CData) ->
 	exmpp_xml:encode_entities(binary_to_list(CData)).
+
+% --------------------------------------------------------------------
+% Documentation / type definitions.
+% --------------------------------------------------------------------
+
+%% @type pathcomponentold() = {elem, Elem_Name} | {attr, Attr_Name} | cdata
+%%     Elem_Name = string() | atom()
+%%     Attr_Name = string() | atom().
+%% Represents a path component.
