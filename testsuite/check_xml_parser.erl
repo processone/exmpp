@@ -126,7 +126,7 @@ do_check() ->
 ], [
 	{xmlcdata, <<"Content">>}
 ]},
-{xmlnsendelement, 'ns_stream', "stream"}
+{xmlnsendelement, 'ns_stream', "stream", "stream"}
 ]).
 
 -define(SOURCE2, "<element xmlns='unknown_ns' xmlns:stream='http://etherx.jabber.org/streams' xml:lang='fr' stream:version='1.0'/>").
