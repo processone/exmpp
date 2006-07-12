@@ -49,18 +49,17 @@
 
 % Stream start.
 -record(xmlstreamstart, {
-	name,		% Name of the tag that opened the stream
-	attrs = []	% Attribute list
+	element		% #xmlnselement
 }).
 
 % Depth 1 element, inside a stream.
 -record(xmlstreamelement, {
-	element		% #xmlelement
+	element		% #xmlnselement
 }).
 
 % Stream end.
 -record(xmlstreamend, {
-	name		% Tag name
+	endelement	% xmlnsendelement
 }).
 
 % --------------------------------------------------------------------
