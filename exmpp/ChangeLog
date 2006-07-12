@@ -1,4 +1,63 @@
+2006-07-12  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	Release 0.4.1.
+
+	* include/exmpp.hrl: For #xmlstreamstart and #xmlstreamend record,
+	members are now #xmlnselement, #xmlelement, #xmlnsendelement or
+	#xmlendelement.
+
+	* configure.ac: Completly remove compatibility layer options.
+
+	* src/exmpp_xml.erl, src/xml.erl: Moved pathcomponentold()
+	documentation stub to `xml'.
+
+	* src/exmpp_xmlstream.erl: Updated #xmlstreamstart and #xmlstreamend
+	usage (members have changed).
+	(send_event/2): Callbacks of type `process' or `gen_fsm' won't return
+	an error code, remove this support.
+
+	* c_src/expat_drv.c (expat_drv_end_element): Support for prefix and
+	name as atom was never implemented for end elements; it's now done.
+
+	* testsuite/check_coverity.erl: Completly remove compatibility layer
+	options.
+	(print_coverage): Generate a plain text output, not an HTML one. Also,
+	use real newline characters in display, because testsuite/test.sh was
+	fixed.
+
+	* testsuite/Emakefile.in, testsuite/Makefile.am,
+	testsuite/check_xmlstream.erl: Added a new test for
+	`exmpp_xmlstream'.
+
+	* testsuite/test.sh: Fixed command execution to not strip newline
+	characters. Special treatment for `check_coverity' output was thus
+	removed. Added a small function to convert plain text files produced
+	by `check_coverity' in HTML files.
+
+	* testsuite/check_xml_parser.erl: Fixed a testcase, now that
+	c_src/expat_drv.c handles end element correctly.
+
+	* testsuite/testsuite.erl: Print error report with Erlang to have
+	output wrapped correctly.
+
+2006-07-11  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/exmpp_xml.erl, src/xml.erl, src/Makefile.am, src/Emakefile.in,
+	ebin/Makefile.am: Moved compatibility layer from `exmpp_xml' to
+	`xml'.
+
+	* src/xml.erl (crypt/1): Updated to reflect the original behaviour
+	with binaries (it returns a list).
+
+	* src/exmpp_xml.erl (encode_entities/1): Small optimization with
+	binaries (removed a binary_to_list/1).
+
+	* testsuite/check_xml_converters.erl: Added tests for
+	encode_enities/1 and clear_endelement_tuples/1.
+
 2006-07-10  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	Release 0.4.0.
 
 	* include/exmpp.hrl: Renamed `NS_XMPP_STANZA' to `NS_XMPP_STANZAS'.
 
