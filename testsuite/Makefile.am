@@ -18,6 +18,7 @@ TESTS = check_xml_parser						\
 	check_xml_cdata_handlers					\
 	check_xml_path							\
 	check_xml_converters						\
+	check_xmlstream							\
 	check_factory_stream						\
 	check_factory_legacy_auth					\
 	check_coverity
@@ -25,7 +26,7 @@ TESTS = check_xml_parser						\
 TESTS_ENVIRONMENT = ERL="$(ERL)"					\
 	TOP_SRCDIR="$(top_srcdir)"					\
 	TOP_BUILDDIR="$(top_builddir)"					\
-	TESTS="check_xml_parser check_xml_attribute_handlers check_xml_element_handlers check_xml_cdata_handlers check_xml_path check_xml_converters check_factory_stream check_factory_legacy_auth"					\
+	TESTS="check_xml_parser check_xml_attribute_handlers check_xml_element_handlers check_xml_cdata_handlers check_xml_path check_xml_converters check_xmlstream check_factory_stream check_factory_legacy_auth"					\
 	COVERED_MODULES="exmpp_xml exmpp_xmlstream exmpp_factory"
 
 build:
@@ -47,6 +48,9 @@ check_xml_path: build $(srcdir)/test.sh
 	cp $(srcdir)/test.sh $@ && chmod 755 $@
 
 check_xml_converters: build $(srcdir)/test.sh
+	cp $(srcdir)/test.sh $@ && chmod 755 $@
+
+check_xmlstream: build $(srcdir)/test.sh
 	cp $(srcdir)/test.sh $@ && chmod 755 $@
 
 check_factory_stream: build $(srcdir)/test.sh
