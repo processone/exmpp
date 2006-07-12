@@ -62,7 +62,7 @@ start(Callback) ->
 %%
 %% @see exmpp_xml:start_parser/1.
 start(Callback, Parser_Options) ->
-	Parser_Options2 = [{rootdepth, 1}, endelement | Parser_Options],
+	Parser_Options2 = [{root_depth, 1}, endelement | Parser_Options],
 	case exmpp_xml:start_parser(Parser_Options2) of
 		{ok, Parser} ->
 			Callback2 = case Callback of
@@ -117,11 +117,11 @@ parse(#xml_stream{parser = Parser} = Stream, Data) ->
 process_elements(Stream, [XML_Element | Rest]) ->
 	case XML_Element of
 		% Without namespace support.
-		#xmlelement{name = Name, attrs = Attrs}
+		#xmlelement{}
 		    when Stream#xml_stream.opened == 0 ->
 			% Stream is freshly opened.
 			case send_event(Stream,
-			    #xmlstreamstart{name = Name, attrs = Attrs}) of
+			    #xmlstreamstart{element = XML_Element}) of
 				{ok, New_Stream} ->
 					Opened_Stream = New_Stream#xml_stream{
 					    opened = 1},
@@ -138,9 +138,10 @@ process_elements(Stream, [XML_Element | Rest]) ->
 				{error, Reason} ->
 					{error, Reason}
 			end;
-		#xmlendelement{name = Name} ->
+		#xmlendelement{} ->
 			% Stream is closed.
-			case send_event(Stream, #xmlstreamend{name = Name}) of
+			case send_event(Stream,
+			    #xmlstreamend{endelement = XML_Element}) of
 				{ok, New_Stream} ->
 					Closed_Stream = New_Stream#xml_stream{
 					    opened = 0},
@@ -150,11 +151,11 @@ process_elements(Stream, [XML_Element | Rest]) ->
 			end;
 
 		% With namespace support.
-		#xmlnselement{name = Name, attrs = Attrs}
+		#xmlnselement{}
 		    when Stream#xml_stream.opened == 0 ->
 			% Stream is freshly opened.
 			case send_event(Stream,
-			    #xmlstreamstart{name = Name, attrs = Attrs}) of
+			    #xmlstreamstart{element = XML_Element}) of
 				{ok, New_Stream} ->
 					Opened_Stream = New_Stream#xml_stream{
 					    opened = 1},
@@ -171,9 +172,10 @@ process_elements(Stream, [XML_Element | Rest]) ->
 				{error, Reason} ->
 					{error, Reason}
 			end;
-		#xmlnsendelement{name =Name} ->
+		#xmlnsendelement{} ->
 			% Stream is closed.
-			case send_event(Stream, #xmlstreamend{name = Name}) of
+			case send_event(Stream,
+			    #xmlstreamend{endelement = XML_Element}) of
 				{ok, New_Stream} ->
 					Closed_Stream = New_Stream#xml_stream{
 					    opened = 0},
@@ -194,18 +196,15 @@ process_elements(Stream, []) ->
 
 send_event(#xml_stream{callback = {gen_fsm, Pid}} = Stream, Event) ->
 	case catch gen_fsm:send_event(Pid, Event) of
-		{error, Reason} ->
-			{error, Reason};
 		{'EXIT', Reason} ->
 			{error, {'EXIT', Reason}};
-		_ ->
+		ok ->
 			{ok, Stream}
 	end;
 send_event(#xml_stream{callback = {process, Pid}} = Stream, Event) ->
-	Pid ! Event,
-	receive
-		{error, Reason} ->
-			{error, Reason};
+	case catch Pid ! Event of
+		{'EXIT', Reason} ->
+			{error, {'EXIT', Reason}};
 		_ ->
 			{ok, Stream}
 	end;
@@ -292,9 +291,8 @@ parse_element(Data, Parser_Options) ->
 %% '''
 %% So this function must have an arity of 2.
 %%
-%% Regardless what callback solution is chosen, it must return `{error,
-%% Reason}' if an error occured or anything else if the event is
-%% accepted.
+%% For `Function', it must return `{error, Reason}' if an error occured
+%% or anything else if the event is accepted.
 %%
 %% If the callback() doesn't match any of these specifications
 %% (the `No_Callback' case), the event will be logged with
@@ -305,10 +303,9 @@ parse_element(Data, Parser_Options) ->
 %% start/0} or {@link start/1}.
 
 %% @type xmlstreamevent() = Stream_Start | Stream_Element | Stream_End
-%%     Stream_Start = {xmlstreamstart, Name, Start_Attrs}
-%%       Start_Name = string()
-%%       Attrs = [exmpp_xml:xmlattribute()]
+%%     Stream_Start = {xmlstreamstart, XML_Element}
 %%     Stream_Element = {xmlstreamelement, XML_Element}
-%%       XML_element = exmpp_xml:xmlelement()
-%%     Stream_End = {xmlstreamend, Name}.
+%%     Stream_End = {xmlstreamend, XML_End_Element}.
+%%       XML_Element = exmpp_xml:xmlnselement() | exmpp_xml:xmlelement()
+%%       XML_End_Element = exmpp_xml:xmlnsendelement() | exmpp_xml:xmlendelement()
 %% Records representing an event sent by the {@link parse/2} function.
