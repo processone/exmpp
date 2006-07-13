@@ -2,6 +2,194 @@
 
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
+%% @doc
+%% The module <strong>{@module}</strong> provides utilities to prepare
+%% common XMPP stanzas.
+%%
+%% <h3>Stream handling</h3>
+%%
+%% <p>
+%% {@module} provides 3 functions to:
+%% </p>
+%% <ul>
+%% <li>Open a stream to an XMPP server</li>
+%% <li>Open a stream in reply to initiating peer</li>
+%% <li>Close a stream (regardless who has intiated the stream)</li>
+%% </ul>
+%%
+%% <p>
+%% A common use case is illustrated in <em>table 1</em>.
+%% </p>
+%% <table class="illustration">
+%% <caption>Table 1: stream opening and closing</caption>
+%% <tr>
+%% <th>Client-side</th>
+%% <th>Server-side</th>
+%% </tr>
+%% <tr>
+%% <td>
+%% <p>
+%% The client call `{@module}':
+%% </p>
+%% <pre>Opening = exmpp_factory:stream_opening([
+%%   {context, client},
+%%   {to, "jabber.example.com"},
+%%   {version, "1.0"}<br/>]).</pre>
+%% <p>
+%% After serialization, this produces this XML message:
+%% </p>
+%% <pre>&lt;stream:stream xmlns:stream="http://etherx.jabber.org/streams"
+%%   xmlns="jabber:client" to="jabber.example.org" version="1.0"&gt;</pre>
+%% </td>
+%% <td></td>
+%% </tr>
+%% <tr>
+%% <td></td>
+%% <td>
+%% <p>
+%% If the server accepts the client stream opening, it'll call:
+%% </p>
+%% <pre>Opening_Reply = exmpp_factory:stream_opening_reply(Opening).</pre>
+%% <p>
+%% After serialization, this produces this XML message:
+%% </p>
+%% <pre>&lt;stream:stream xmlns:stream="http://etherx.jabber.org/streams"
+%%   xmlns="jabber:client" version="1.0" from="jabber.example.org"
+%%   id="396429316"&gt;</pre>
+%% <p>
+%% Note that `{@module}' generated an ID automatically; you may override
+%% this.
+%% </p>
+%% </td>
+%% </tr>
+%% <tr>
+%% <td>
+%% <p>
+%% At the end of the communication, the client close its stream:
+%% </p>
+%% <pre>Client_Closing = exmpp_factory:stream_closing().</pre>
+%% <p>
+%% After serialization, this produces this XML message:
+%% </p>
+%% <pre>&lt;/stream:stream"&gt;</pre>
+%% </td>
+%% <td></td>
+%% </tr>
+%% <tr>
+%% <td></td>
+%% <td>
+%% <p>
+%% The server do the same:
+%% </p>
+%% <pre>Server_Closing = exmpp_factory:stream_closing(Client_Closing).</pre>
+%% <p>
+%% After serialization, this produces this XML message:
+%% </p>
+%% <pre>&lt;/stream:stream"&gt;</pre>
+%% <p>
+%% The server may use the same function clause than the client but here,
+%% it gives the client closing to the function. This is to be sure to
+%% use the same XML prefix.
+%% </p>
+%% </td>
+%% </tr>
+%% </table>
+%%
+%% <h3>Authentication</h3>
+%%
+%% <p>
+%% In its current version, {@module} implements only the legacy
+%% authentication mechanism.
+%% </p>
+%%
+%% <p>
+%% Again, a common use case is presented in <em>table 2</em>.
+%% </p>
+%% <table class="illustration">
+%% <caption>Table 1: stream opening and closing</caption>
+%% <tr>
+%% <th>Client-side</th>
+%% <th>Server-side</th>
+%% </tr>
+%% <tr>
+%% <td>
+%% <p>
+%% Once a stream is opened, the client call `{@module}':
+%% </p>
+%% <pre>Request = exmpp_factory:legacy_auth_request("jabber.example.com").</pre>
+%% <p>
+%% After serialization, this produces this XML message:
+%% </p>
+%% <pre>&lt;iq xmlns="jabber:client" type="get" to="jabber.example.com"
+%%   id="auth-1905181425"&gt;
+%%       &lt;query xmlns="jabber:iq:auth"/&gt;<br/>&lt;/iq&gt;</pre>
+%% </td>
+%% <td></td>
+%% </tr>
+%% <tr>
+%% <td></td>
+%% <td>
+%% <p>
+%% The server answer with the available fields:
+%% </p>
+%% <pre>Request_Id = exmpp_xml:get_attribute(Request, 'id'),<br/>Fields = exmpp_factory:legacy_auth_fields(Request_Id).</pre>
+%% <p>
+%% After serialization, this produces this XML message:
+%% </p>
+%% <pre>&lt;iq xmlns="jabber:client" type="result" id="auth-1905181425"&gt;
+%%       &lt;query xmlns="jabber:iq:auth"&gt;
+%%               &lt;username/&gt;
+%%               &lt;password/&gt;
+%%               &lt;digest/&gt;
+%%               &lt;resource/&gt;
+%%       &lt;/query&gt;<br/>&lt;/iq&gt;</pre>
+%% <p>
+%% At this time, this function doesn't offer the possibility to choose
+%% which field to include (one may not want to propose `<password/>' for
+%% instance). And because {@link exmpp_xml} doesn't provide a function
+%% to remove element yet, the only way to achieve this is to walk
+%% through the children and remove it by hand.
+%% </p>
+%% </td>
+%% </tr>
+%% <tr>
+%% <td>
+%% <p>
+%% The client can send its credentials; he choose `<digest/>':
+%% </p>
+%% <pre>Password = exmpp_factory:legacy_auth_password_digest(
+%%   "johndoe",
+%%   "foobar!",
+%%   "home"<br/>).</pre>
+%% <p>
+%% After serialization, this produces this XML message:
+%% </p>
+%% <pre>&lt;q xmlns="jabber:client" type="set" id="auth-3105434037"&gt;
+%%       &lt;query xmlns="jabber:iq:auth"&gt;
+%%               &lt;username&gt;johndoe&lt;/username&gt;
+%%               &lt;digest&gt;
+%%                       93fdad2a795c59c73a6acf68a4dbdd3ddb366239
+%%               &lt;/digest&gt;
+%%               &lt;resource&gt;home&lt;/resource&gt;
+%%       &lt;/query&gt;<br/>&lt;/iq&gt;</pre>
+%% </td>
+%% <td></td>
+%% </tr>
+%% <tr>
+%% <td></td>
+%% <td>
+%% <p>
+%% If the password is correct, the server notify the client:
+%% </p>
+%% <pre>Password_Id = exmpp_xml:get_attribute(Password, 'id'),<br/>Success = exmpp_factory:legacy_auth_success(Password_Id).</pre>
+%% <p>
+%% After serialization, this produces this XML message:
+%% </p>
+%% <pre>&lt;iq xmlns="jabber:client" type="result" id="auth-3105434037"/&gt;</pre>
+%% </td>
+%% </tr>
+%% </table>
+
 -module(exmpp_factory).
 -vsn('$Revision$').
 
@@ -43,7 +231,9 @@
 %% to the receiving peer (for the other way around, see {@link
 %% stream_opening_reply/1}).
 %%
-%% Only `Context_Spec' is mandatory.
+%% Only `Context_Spec' is mandatory. It indicates if the stream to be
+%% opened is between a client and a server (`client') or between two
+%% servers (`server').
 
 stream_opening(Args) ->
 	case stream_opening_attributes(Args) of
@@ -120,7 +310,8 @@ check_stream_opening(Stream_Opening) ->
 %% to the initiating peer (for the other way around, see {@link
 %% stream_opening/1}).
 %%
-%% Only `Context_Spec' is mandatory.
+%% Only `Context_Spec' is mandatory (see {@link stream_opening/1} for
+%% its meaning).
 %%
 %% If `ID_Spec' is `{id, undefined}', one will be generated
 %% automatically.
