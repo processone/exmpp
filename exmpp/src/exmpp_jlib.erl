@@ -51,8 +51,8 @@
 exchange_attrs_from_and_to_in_list(Attrs) ->
 	To = exmpp_xml:get_attribute_from_list(Attrs, 'to'),
 	From = exmpp_xml:get_attribute_from_list(Attrs, 'from'),
-	Attrs1 = exmpp_xml:set_attribute_from_list(Attrs, 'to', From),
-	Attrs2 = exmpp_xml:set_attribute_from_list(Attrs1, 'from', To),
+	Attrs1 = exmpp_xml:set_attribute_in_list(Attrs, 'to', From),
+	Attrs2 = exmpp_xml:set_attribute_in_list(Attrs1, 'from', To),
 	Attrs2.
 
 %% @spec (XML_Element) -> New_XML_Element
@@ -80,7 +80,7 @@ exchange_attrs_from_and_to(#xmlelement{attrs = Attrs} = XML_Element) ->
 rename_attr_to_to_from_in_list(Attrs) ->
 	To = exmpp_xml:get_attribute_from_list(Attrs, 'to'),
 	Attrs1 = exmpp_xml:remove_attribute_from_list(Attrs, 'to'),
-	Attrs2 = exmpp_xml:set_attribute_from_list(Attrs1, 'from', To),
+	Attrs2 = exmpp_xml:set_attribute_in_list(Attrs1, 'from', To),
 	Attrs2.
 
 %% @spec (XML_Element) -> New_XML_Element
