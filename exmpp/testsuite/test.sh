@@ -30,7 +30,7 @@ h1 {
 	margin-bottom: 3em;
 	color: #777;
 	font-style: italic;
-	border-bottom: solid 1px #777;
+	border-bottom: solid 1px #000;
 }
 .cvsid, .func {
 	font-weight: bold;
