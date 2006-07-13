@@ -1,6 +1,20 @@
-2006-07-12  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+2006-07-13  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Release 0.4.1.
+
+	* src/exmpp_factory.erl: Wrote user guide.
+
+	* src/exmpp_jlib.erl (exchange_attrs_from_and_to_in_list,
+	rename_attr_to_to_from_in_list): Fixed a bug where those functions
+	were still calling `exmpp_xml:set_attribute_from_list' which has been
+	renamed since.
+
+	* testsuite/test/sh: Small change on coverity reports stylesheet.
+
+	* doc/stylesheet.css: Changed completly the documentation graphical
+	aspect.
+
+2006-07-12  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl: For #xmlstreamstart and #xmlstreamend record,
 	members are now #xmlnselement, #xmlelement, #xmlnsendelement or
