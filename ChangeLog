@@ -1,3 +1,27 @@
+2006-07-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	Release 0.4.2.
+
+	* src/exmpp_xmlstream.erl: Correction de la documentation qui faisait
+	encore référence à l'option `rootdepth' du parser XML (au lieu de
+	`root_depth').
+	(parse, process_elements, process_elements2, send_events): On gère un
+	nouveau callback `none' qui indique que l'appeleur de parse/2 veut
+	récupérer le résultat directement (au lieu de l'envoyer à un autre
+	process/une autre fonction). La documentation est mise à jour en
+	conséquence.
+
+	* src/exmpp_xml.erl: New parser option `no_root_depth' to force the
+	parser to make an xmlnselement() for each tag.
+	(parser_document_fragment): New function to parse an incomplete
+	document; this takes advantage of the new `no_root_depth' option.
+
+	* testsuite/check_xmlstream.erl: Updated to test the `no_callback'
+	callback.
+
+	* c_src/expat_drv.c: Updated to handle the new `no_root_depth' parser
+	option.
+
 2006-07-13  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Release 0.4.1.
