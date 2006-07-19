@@ -7,6 +7,7 @@ EXTRA_DIST = testsuite.erl test.sh					\
 	     check_xml_cdata_handlers.erl				\
 	     check_xml_path.erl						\
 	     check_xml_converters.erl					\
+	     check_xmlstream.erl					\
 	     check_factory_stream.erl					\
 	     check_factory_legacy_auth.erl				\
 	     check_coverity.erl

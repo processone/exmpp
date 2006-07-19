@@ -19,6 +19,9 @@
 	* testsuite/check_xmlstream.erl: Updated to test the `no_callback'
 	callback.
 
+	* testsuite/Makefile.am: Added check_xmlstrea.erl to the EXTRA_DIST
+	list.
+
 	* c_src/expat_drv.c: Updated to handle the new `no_root_depth' parser
 	option.
 
