@@ -13,6 +13,9 @@ check() ->
 
 do_check() ->
 	test_parse_stream(),
+	test_parse_stream_ns(),
+	test_parse_stream_no_callback(),
+	test_parse_stream_no_callback_ns(),
 	ok.
 
 % --------------------------------------------------------------------
@@ -73,17 +76,19 @@ test_parse_stream() ->
 			exmpp_xmlstream:stop(S4);
 		Other1 ->
 			testsuite:fail({start_error, Other1})
-	end,
+	end.
+
+test_parse_stream_ns() ->
 	case exmpp_xmlstream:start(
 	    {apply, {?MODULE, test_parse_stream_p2, []}},
 	    [namespace, name_as_atom]) of
-		{ok, S5} ->
-			{ok, S6} = exmpp_xmlstream:parse(S5, ?CHUNK1),
-			{ok, S7} = exmpp_xmlstream:parse(S6, ?CHUNK2),
-			{ok, S8} = exmpp_xmlstream:parse(S7, ?CHUNK3),
-			exmpp_xmlstream:stop(S8);
-		Other2 ->
-			testsuite:fail({start_error, Other2})
+		{ok, S1} ->
+			{ok, S2} = exmpp_xmlstream:parse(S1, ?CHUNK1),
+			{ok, S3} = exmpp_xmlstream:parse(S2, ?CHUNK2),
+			{ok, S4} = exmpp_xmlstream:parse(S3, ?CHUNK3),
+			exmpp_xmlstream:stop(S4);
+		Other ->
+			testsuite:fail({start_error, Other})
 	end,
 	ok.
 
@@ -110,3 +115,39 @@ test_parse_stream_p2(Ret, _Extra) ->
 		_ ->
 			testsuite:fail({no_match, Ret})
 	end.
+
+test_parse_stream_no_callback() ->
+	case exmpp_xmlstream:start(no_callback) of
+		{ok, S1} ->
+			{ok, S2, Ret1} =
+			    exmpp_xmlstream:parse(S1, ?CHUNK1),
+			testsuite:is(Ret1, [?CHUNK_EVENT1]),
+			{ok, S3, Ret2} =
+			    exmpp_xmlstream:parse(S2, ?CHUNK2),
+			testsuite:is(Ret2, []),
+			{ok, S4, Ret3} =
+			    exmpp_xmlstream:parse(S3, ?CHUNK3),
+			testsuite:is(Ret3, [?CHUNK_EVENT2, ?CHUNK_EVENT3]),
+			exmpp_xmlstream:stop(S4);
+		Other1 ->
+			testsuite:fail({start_error, Other1})
+	end.
+
+test_parse_stream_no_callback_ns() ->
+	case exmpp_xmlstream:start(no_callback, [namespace, name_as_atom]) of
+		{ok, S1} ->
+			{ok, S2, Ret1} =
+			    exmpp_xmlstream:parse(S1, ?CHUNK1),
+			testsuite:is(Ret1, [?CHUNK_NS_EVENT1]),
+			{ok, S3, Ret2} =
+			    exmpp_xmlstream:parse(S2, ?CHUNK2),
+			testsuite:is(Ret2, []),
+			{ok, S4, Ret3} =
+			    exmpp_xmlstream:parse(S3, ?CHUNK3),
+			testsuite:is(Ret3, [?CHUNK_NS_EVENT2, ?CHUNK_NS_EVENT3]),
+			exmpp_xmlstream:stop(S4);
+		Other ->
+			testsuite:fail({start_error, Other})
+	end,
+	ok.
+
