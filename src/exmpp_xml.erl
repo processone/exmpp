@@ -34,7 +34,9 @@
 	parse/2,
 	parse_final/2,
 	parse_document/1,
-	parse_document/2
+	parse_document/2,
+	parse_document_fragment/1,
+	parse_document_fragment/2
 ]).
 -export([
 	get_attribute_node_from_list/2,
@@ -273,6 +275,44 @@ parse_document(Document, Parser_Options) ->
 	case start_parser(Parser_Options) of
 		{ok, Parser} ->
 			Ret = parse_final(Parser, Document),
+			stop_parser(Parser),
+			Ret;
+		{error, Reason} ->
+			{error, Reason}
+	end.
+
+%% @spec (Fragment) -> {ok, [XML_Element]} | {error, Reason}
+%%     Fragment = string() | binary()
+%%     XML_Element = xmlnselement() | xmlelement() | xmlnsendelement() | xmlendelement()
+%%     Reason = term()
+%% @doc Parse a fragment of an XML document at once.
+%%
+%% Initializing a parser with {@link start_parser/1} isn't necessary,
+%% this function will take care of it. It'll use default options,
+%% but will set `no_root_depth' (which can be overriden); see {@link
+%% start_parser/1} for any related informations.
+
+parse_document_fragment(Fragment) ->
+	parse_document_fragment(Fragment, []).
+
+%% @spec (Fragment, Parser_Options) -> {ok, [XML_Element]} | {error, Reason}
+%%     Fragment = string() | binary()
+%%     Parser_Options = [xmlparseroption()]
+%%     XML_Element = xmlnselement() | xmlelement() | xmlnsendelement() | xmlendelement()
+%%     Reason = term()
+%% @doc Parse an entire XML document at once.
+%%
+%% Initializing a parser with {@link start_parser/1} isn't necessary,
+%% this function will take care of it. `Parser_Options' is passed to the
+%% parser but `no_root_depth' is prepended (this can be overriden); see
+%% {@link start_parser/1} for any related informations.
+%%
+%% Return values are the same as {@link parse_final/2}.
+
+parse_document_fragment(Fragment, Parser_Options) ->
+	case start_parser([no_root_depth | Parser_Options]) of
+		{ok, Parser} ->
+			Ret = parse(Parser, Fragment),
 			stop_parser(Parser),
 			Ret;
 		{error, Reason} ->
@@ -1435,6 +1475,12 @@ handle_options([{maxsize, Max} | Rest], #xml_parser{port = P} = Parser)
 	port_control(P, ?EXPAT_SET_MAXSIZE, term_to_binary(Max)),
 	handle_options(Rest, Parser);
 
+handle_options([no_root_depth | Rest], #xml_parser{port = P} = Parser) ->
+	port_control(P, ?EXPAT_SET_ROOTDEPTH, term_to_binary(-1)),
+	handle_options(Rest, Parser);
+handle_options([{root_depth, none} | Rest], #xml_parser{port = P} = Parser) ->
+	port_control(P, ?EXPAT_SET_ROOTDEPTH, term_to_binary(-1)),
+	handle_options(Rest, Parser);
 handle_options([{root_depth, Depth} | Rest], #xml_parser{port = P} = Parser)
     when is_integer(Depth), Depth >= 0 ->
 	port_control(P, ?EXPAT_SET_ROOTDEPTH, term_to_binary(Depth)),
@@ -1469,7 +1515,7 @@ handle_options([], Parser) ->
 %%       Names_Check = names_check | no_names_check
 %%       Attrs_Check = attrs_check | no_attrs_check
 %%     Stanza_Max_Size  = no_maxsize | {maxsize, infinity} | {maxsize, Size}
-%%     Root_Depth = {root_depth, Depth}
+%%     Root_Depth = no_root_depth | {root_depth, none} | {root_depth, Depth}
 %%     Send_End_Element = endelement | noendelement.
 %% The `namespace' and `no_namespace' flags enable or disable the
 %% support for namespaces respectively. Note that the support is very
@@ -1503,9 +1549,11 @@ handle_options([], Parser) ->
 %% The `root_depth' option specicifies at which level the parser stop
 %% to split each node and start to produce trees. For example, if the
 %% root depth is 0, the parser will return a unique tree for the whole
-%% document. If the root depth is 1, then `<stream>' will produce an
-%% element without any children and `<presence>' will produce a tree with
-%% all its children.
+%% document. If the root depth is 1, then `<stream>' will produce
+%% an element without any children and `<presence>' will produce a
+%% tree with all its children. With `no_root_depth' (or `{root_depth,
+%% none}'), no tree will be made, ie, each opening tag will produce an
+%% element without any children.
 %%
 %% <br/><br/>
 %% The `endelement' and `no_endelement' select if the parser must
