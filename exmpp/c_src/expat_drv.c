@@ -29,19 +29,19 @@
 
 #define	NS_SEP				'|'
 
-#define	SKIP_VERSION(buf)	{					\
+#define	SKIP_VERSION(buf)	do {					\
 	index = 0;							\
 	ei_decode_version(buf, &index, &version);			\
-}
+} while (0)
 
-#define MAKE_ATOM_OK(var)	{					\
+#define MAKE_ATOM_OK(var)	do {					\
 	var = driver_alloc(sizeof(ei_x_buff));				\
 	if (var == NULL)						\
 		return (-1);						\
 	ei_x_new_with_version(var);					\
 									\
 	ei_x_encode_atom(var, TUPLE_DRV_OK);				\
-}
+} while (0)
 
 /* Control operations. */
 enum {
@@ -80,7 +80,7 @@ struct expat_drv_data {
 	int			 check_names;
 	int			 check_attrs;
 	long			 max_size;
-	unsigned long		 root_depth;
+	long			 root_depth;
 	int			 send_endelement;
 };
 
@@ -338,7 +338,7 @@ expat_drv_control(ErlDrvData drv_data, unsigned int command,
 	case EXPAT_SET_ROOTDEPTH:
 		/* Get the root depth value. */
 		SKIP_VERSION(buf);
-		ei_decode_ulong(buf, &index, &(ed->root_depth));
+		ei_decode_long(buf, &index, &(ed->root_depth));
 
 		MAKE_ATOM_OK(to_send);
 		break;
@@ -616,7 +616,7 @@ expat_drv_start_element(void *user_data,
 	 * sent separately but for <message/>, we are building a
 	 * complete tree with the children. */
 
-	if (ed->depth <= ed->root_depth) {
+	if (ed->root_depth == -1 || ed->depth <= ed->root_depth) {
 		/* Initialize a buffer to work on a new tree. */
 		tree = driver_alloc(sizeof(ei_x_buff));
 		if (tree == NULL)
@@ -803,7 +803,7 @@ expat_drv_start_element(void *user_data,
 
 	ei_x_encode_empty_list(tree);
 
-	if (ed->depth < ed->root_depth) {
+	if (ed->root_depth == -1 || ed->depth < ed->root_depth) {
 		/* Standalone node are moved to the final list. */
 		ei_x_encode_atom(tree, "undefined");
 		current_tree_finished(ed);
@@ -830,7 +830,8 @@ expat_drv_end_element(void *user_data,
 	    ed->depth, name);
 #endif
 
-	if (ed->depth < ed->root_depth && ed->send_endelement) {
+	if ((ed->root_depth == -1 || ed->depth < ed->root_depth) &&
+	    ed->send_endelement) {
 		/* Initialize a buffer to work on a new tree. */
 		tree = driver_alloc(sizeof(ei_x_buff));
 		if (tree == NULL)
@@ -911,7 +912,8 @@ expat_drv_end_element(void *user_data,
 		}
 
 		current_tree_finished(ed);
-	} else if (ed->depth >= ed->root_depth && ed->current_tree != NULL) {
+	} else if (ed->root_depth != -1 && ed->depth >= ed->root_depth &&
+	    ed->current_tree != NULL) {
 		ei_x_encode_empty_list(ed->current_tree);
 
 		if (ed->depth == ed->root_depth) {
