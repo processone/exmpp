@@ -36,19 +36,23 @@
 % Stream parsing, chunk by chunk.
 % --------------------------------------------------------------------
 
-%% @spec (Callback | Parser_Options) -> {ok, Stream} | {error, Reason}
+%% @spec (Parser_Options | Callback) -> {ok, Stream} | {error, Reason}
 %%     Callback = callback()
 %%     Parser_Options = [exmpp_xml:xmlparseroption()]
 %%     Stream = xmlstream()
 %% @doc Start a new stream handler.
 %%
 %% If the caller specifies a callback, the XML parser is created with
-%% default options, but the `root_depth' which is 1. This function (or
-%% {@link start/1}) must be called before any use of {@link parse/2}.
+%% default options, but the `root_depth' which is 1 and `endelement'
+%% which is set.
 %%
+%% <br/><br/>
 %% If the caller specifies parser options, the callback will be set to
 %% `no_callback'.
 %%
+%% <br/><br/>
+%% This function (or {@link start/2}) must be called before any use of
+%% {@link parse/2}.
 %% @see exmpp_xml:start_parser/0.
 %% @see exmpp_xml:xmlparseroption().
 
@@ -64,9 +68,9 @@ start(Callback) ->
 %%     Parser_Options = [exmpp_xml:xmlparseroption()]
 %% @doc Start a new stream handler.
 %%
-%% The XML parser is created with `Parser_Options' options (`root_depth'
-%% is 1 by default). This function (or {@link start/0}) must be called
-%% before any use of {@link parse/2}.
+%% The XML parser is created with `Parser_Options' options (by default,
+%% `root_depth' is 1 and `endelement' is set). This function (or {@link
+%% start/1}) must be called before any use of {@link parse/2}.
 %%
 %% @see exmpp_xml:start_parser/1.
 
@@ -275,10 +279,10 @@ parse_element(Data, Parser_Options) ->
 %%     Gen_Fsm = {gen_fsm, Pid_or_Name}
 %%     Pid_or_Name = pid() | atom()
 %%     Process = {process, pid()} | pid()
-%%     Function = {apply, {Module, Function, Extra}}
-%%     Module = atom()
-%%     Function = atom()
-%%     Extra = term()
+%%     Function = {apply, {Mod, Func, Extra}}
+%%         Mod = atom()
+%%         Func = atom()
+%%         Extra = term()
 %%     No_Callback = no_callback
 %%     Log = term().
 %% Represents the recipient of each event.
@@ -293,7 +297,7 @@ parse_element(Data, Parser_Options) ->
 %%
 %% In case of a `Function', the call will be:
 %% ```
-%% Module:Function(Event, Extra)
+%% Mod:Func(Event, Extra)
 %% '''
 %% So this function must have an arity of 2.
 %%
