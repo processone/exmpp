@@ -1,3 +1,20 @@
+2006-08-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	Release 0.4.3.
+
+	* src/ejabberd_zlib.erl, c_src/ejabberd_zlib_drv.c, configure.ac,
+	src/Makefile.am, c_src/Makefile.am, ebin/Makefile.am: Import du module
+	ejabberd_zlib d'ejabberd.
+
+	* configure.ac: La gestion de relase empruntait encore le nom de
+	libcalimero.
+
+	* src/exmpp_xmlstream.erl: Corrections de la documentation.
+
+	* testsuite/check_coverity.erl: On n'inclut pas exmpp.hrl.
+
+	* testsuite/Makefile.am: style(9).
+
 2006-07-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Release 0.4.2.
