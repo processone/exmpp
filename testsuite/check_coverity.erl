@@ -3,8 +3,6 @@
 -module(check_coverity).
 -vsn('$Revision$').
 
--include("exmpp.hrl").
-
 -export([check/0, do_check/0]).
 
 check() ->
