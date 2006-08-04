@@ -4,7 +4,7 @@ dnl ------------------------------------------------------------------
 dnl Initialisation d'Autoconf
 dnl ------------------------------------------------------------------
 
-AC_INIT([exmpp], [0.4.2], [js.pedron@meetic-corp.com], [exmpp])
+AC_INIT([exmpp], [0.4.3], [js.pedron@meetic-corp.com], [exmpp])
 AC_CONFIG_SRCDIR([include/exmpp.hrl])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([ac-aux])
@@ -22,37 +22,37 @@ dnl ------------------------------------------------------------------
 
 EXMPP_MAJOR=0
 EXMPP_MINOR=4
-EXMPP_MICRO=2
+EXMPP_MICRO=3
 EXMPP_VERSION="$EXMPP_MAJOR.$EXMPP_MINOR.$EXMPP_MICRO"
 
 dnl On gère un build id qui permet de différencier les versions en
 dnl développements (entre chaque releases) ou encore préparer une
 dnl version spécifique à un projet ou un client.
-AC_ARG_VAR([LIBCALIMERO_BUILD_ID], [Token specific to this build])
+AC_ARG_VAR([EXMPP_BUILD_ID], [Token specific to this build])
 
-if test "x${LIBCALIMERO_RELEASE_DATE}" = "x" &&
-    test "x${LIBCALIMERO_BUILD_ID}" = "x"; then
-	LIBCALIMERO_BUILD_ID=`date '+%Y%m%d'`-${USER:-unknown}
+if test "x${EXMPP_RELEASE_DATE}" = "x" &&
+    test "x${EXMPP_BUILD_ID}" = "x"; then
+	EXMPP_BUILD_ID=`date '+%Y%m%d'`-${USER:-unknown}
 fi
 
-if test "x${LIBCALIMERO_BUILD_ID}" != "x"; then
-	LIBCALIMERO_VERSION="${LIBCALIMERO_VERSION}-${LIBCALIMERO_BUILD_ID}"
+if test "x${EXMPP_BUILD_ID}" != "x"; then
+	EXMPP_VERSION="${EXMPP_VERSION}-${EXMPP_BUILD_ID}"
 fi
 
-AC_SUBST(LIBCALIMERO_MAJOR)
-AC_SUBST(LIBCALIMERO_MINOR)
-AC_SUBST(LIBCALIMERO_MICRO)
-AC_SUBST(LIBCALIMERO_VERSION)
-AC_SUBST(LIBCALIMERO_RELEASE_DATE)
+AC_SUBST(EXMPP_MAJOR)
+AC_SUBST(EXMPP_MINOR)
+AC_SUBST(EXMPP_MICRO)
+AC_SUBST(EXMPP_VERSION)
+AC_SUBST(EXMPP_RELEASE_DATE)
 
 dnl Environnement et paramètres de compilation
-LIBCALIMERO_BUILD_ARCH="$build"
-LIBCALIMERO_HOST_ARCH="$host"
-LIBCALIMERO_CONFIGURE_ARGS="$configure_parameters"
+EXMPP_BUILD_ARCH="$build"
+EXMPP_HOST_ARCH="$host"
+EXMPP_CONFIGURE_ARGS="$configure_parameters"
 
-AC_SUBST(LIBCALIMERO_BUILD_ARCH)
-AC_SUBST(LIBCALIMERO_HOST_ARCH)
-AC_SUBST(LIBCALIMERO_CONFIGURE_ARGS)
+AC_SUBST(EXMPP_BUILD_ARCH)
+AC_SUBST(EXMPP_HOST_ARCH)
+AC_SUBST(EXMPP_CONFIGURE_ARGS)
 
 dnl ------------------------------------------------------------------
 dnl Compilateur/outils
@@ -93,6 +93,14 @@ dnl ------------------------------------------------------------------
 AC_HEADER_STDC
 AC_PROG_CC_STDC
 AC_HEADER_MAJOR
+
+with_zlib="yes"
+
+AC_CHECK_HEADERS([	\
+	zlib.h		\
+],, with_zlib="no")
+
+AC_CHECK_LIB(z, zlibVersion,, with_zlib="no")
 
 dnl ------------------------------------------------------------------
 dnl Options
