@@ -1,6 +1,6 @@
 # $Id$
 
-lib_LTLIBRARIES = expat_drv.la iconv_erl.la stringprep_drv.la tls_drv.la
+lib_LTLIBRARIES = ejabberd_zlib_drv.la expat_drv.la iconv_erl.la stringprep_drv.la tls_drv.la
 
 EI_CPPFLAGS = -I$(ERLANG_ROOT_DIR)/usr/include\
 	      -I$(ERLANG_LIB_DIR_erl_interface)/include
@@ -8,6 +8,13 @@ EI_LDFLAGS = -L$(ERLANG_LIB_DIR_erl_interface)/lib
 EI_LIBS = -lei_st
 
 libdir = $(ERLANG_INSTALL_LIB_DIR_exmpp)/priv/lib
+
+# ejabberd_zlib port driver
+ejabberd_zlib_drv_la_CPPFLAGS = $(EI_CPPFLAGS)
+ejabberd_zlib_drv_la_LDFLAGS = -module -avoid-version\
+			       $(EI_LDFLAGS) $(EI_LIBS)\
+			       -lz
+ejabberd_zlib_drv_la_SOURCES = ejabberd_zlib_drv.c
 
 # Expat port driver
 expat_drv_la_CPPFLAGS = -I$(srcdir)/contrib -I$(builddir)/contrib\
