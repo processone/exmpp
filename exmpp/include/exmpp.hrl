@@ -43,6 +43,12 @@
 	cdata = []	% Character data
 }).
 
+% Processing Instruction.
+-record(xmlpi, {
+	target,
+	value
+}).
+
 % --------------------------------------------------------------------
 % Records to represent events.
 % --------------------------------------------------------------------
@@ -93,6 +99,9 @@
 -define(NS_JABBER_SERVER, 'jabber:server').
 -define(NS_JABBER_AUTH,   'jabber:iq:auth').
 -define(NS_XMPP_STANZAS,  'urn:ietf:params:xml:ns:xmpp-stanzas').
+-define(NS_TLS,           'urn:ietf:params:xml:ns:xmpp-tls').
+-define(NS_SASL,          'urn:ietf:params:xml:ns:xmpp-sasl').
+-define(NS_COMPRESS,      'http://jabber.org/features/compress').
 
 -define(NS_DELAY, "jabber:x:delay").
 
