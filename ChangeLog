@@ -1,3 +1,27 @@
+2006-08-16  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	Release 0.4.4.
+
+	* ebin/Makefile.am: Le fichier d'application `exmpp.app' n'était pas
+	installé, c'est corrigé.
+
+	* include/exmpp.hrl, src/exmpp_xml.erl (document_fragment_to_list):
+	Support rudimentaire des Processing Instructions pour permettre à
+	l'appelant de générer `<?xml version='1.0' ?>' par exemple.
+
+	* include/exmpp.hrl: Ajout des namespaces pour les demandes de
+	compression, de TLS et de SASL.
+
+	* src/exmpp_factory.erl: Ajout de fonctions pour générer des stanzas
+	de négociations de TLS et de la compression.
+
+	* src/exmpp_xml.erl (xmlelement_to_xmlnselement,
+	xmlelement_to_xmlnselement_and_ns_tables): Ajout de fonctions pour
+	convertir les anciens tuples vers les nouveaux formats.
+	(xmlnselement_to_xmlelement): Correction d'un bug où le cas d'un
+	namespace sous forme de chaîne de caractères (au lieu d'atome) n'était
+	pas géré.
+
 2006-08-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Release 0.4.3.
