@@ -39,7 +39,7 @@ start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 init([]) ->
-    Dir = case code:priv_dir(exmpp:app()) of
+    Dir = case code:priv_dir(exmpp) of
         {error, _Reason} -> "priv/lib";
         Priv_Dir         -> Priv_Dir ++ "/lib"
     end,

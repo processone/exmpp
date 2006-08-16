@@ -1638,7 +1638,7 @@ encode_entities2(<<>>, New_S) ->
 % --------------------------------------------------------------------
 
 driver_dirs() ->
-	case code:priv_dir(exmpp:app()) of
+	case code:priv_dir(exmpp) of
 		{error, _Reason} -> ["priv/lib", "../priv/lib"];
 		Priv_Dir         -> [Priv_Dir ++ "/lib"]
 	end.

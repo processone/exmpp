@@ -49,7 +49,7 @@ start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 init([]) ->
-    Dir = case code:priv_dir(exmpp:app()) of
+    Dir = case code:priv_dir(exmpp) of
         {error, _Reason} -> "priv/lib";
         Priv_Dir         -> Priv_Dir ++ "/lib"
     end,
@@ -99,7 +99,7 @@ terminate(_Reason, Port) ->
 tcp_to_tls(TCPSocket, Options) ->
     case lists:keysearch(certfile, 1, Options) of
 	{value, {certfile, CertFile}} ->
-            Dir = case code:priv_dir(exmpp:app()) of
+            Dir = case code:priv_dir(exmpp) of
                 {error, _Reason} -> "priv/lib";
                 Priv_Dir         -> Priv_Dir ++ "/lib"
             end,
@@ -214,7 +214,7 @@ get_verify_result(#tlssock{tlsport = Port}) ->
 
 
 test() ->
-    Dir = case code:priv_dir(exmpp:app()) of
+    Dir = case code:priv_dir(exmpp) of
         {error, _Reason} -> "priv/lib";
         Priv_Dir         -> Priv_Dir ++ "/lib"
     end,
