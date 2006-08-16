@@ -5,15 +5,17 @@
 	{vsn, "@PACKAGE_VERSION@"},
 	{modules, [
 		exmpp,
+		exmpp_factory,
 		exmpp_xml,
 		exmpp_xmlstream,
 		exmpp_jlib,
+		ejabberd_zlib,
 		iconv,
 		sha,
 		stringprep,
 		tls
 	]},
-	{applications, [kernel, stdlib]},
+	{applications, [kernel, stdlib]}
 ]}.
 
 % vim:ft=erlang:ts=8:
