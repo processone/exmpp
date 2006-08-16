@@ -2,9 +2,6 @@
 
 	Release 0.4.4.
 
-	* ebin/Makefile.am: Le fichier d'application `exmpp.app' n'était pas
-	installé, c'est corrigé.
-
 	* include/exmpp.hrl, src/exmpp_xml.erl (document_fragment_to_list):
 	Support rudimentaire des Processing Instructions pour permettre à
 	l'appelant de générer `<?xml version='1.0' ?>' par exemple.
@@ -21,6 +18,17 @@
 	(xmlnselement_to_xmlelement): Correction d'un bug où le cas d'un
 	namespace sous forme de chaîne de caractères (au lieu d'atome) n'était
 	pas géré.
+
+	* src/exmpp.erl, src/iconv.erl, src/ejabberd_zlib.erl, src/tls.erl,
+	src/exmpp_xml.erl, src/stringprep.erl: On supprime la fonction
+	exmpp:app/0 qui n'a pas de sens et on utilise le nom `exmpp' en dur.
+	Ça permet l'utilisation d'exmpp dans une application, c'est magique.
+
+	* ebin/Makefile.am: Le fichier d'application `exmpp.app' n'était pas
+	installé, c'est corrigé.
+
+	* ebin/exmpp.app.in: Correction d'une erreur de syntaxe. Ajout des
+	modules manquants à la liste.
 
 2006-08-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
