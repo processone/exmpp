@@ -202,6 +202,11 @@
 	stream_closing/1
 ]).
 -export([
+	features_announcement/1,
+	tls_support_announce/1,
+	compress_support_announce/1
+]).
+-export([
 	legacy_auth_request/1,
 	legacy_auth_request/2,
 	legacy_auth_fields/1,
@@ -412,6 +417,47 @@ stream_closing(#xmlnselement{ns = NS, prefix = Prefix, name = Name}) ->
 
 stream_id() ->
 	integer_to_list(random:uniform(65536 * 65536)).
+
+% --------------------------------------------------------------------
+% Features anouncement.
+% --------------------------------------------------------------------
+
+features_announcement(Features) ->
+	#xmlnselement{
+		ns = ?NS_XMPP,
+		name = 'features',
+		children = Features
+	}.
+
+tls_support_announce(Required) ->
+	Announce = #xmlnselement{
+		ns = ?NS_TLS,
+		name = 'starttls',
+		children = []
+	},
+	case Required of
+		true ->
+			Child = #xmlnselement{
+				ns = ?NS_TLS,
+				name = 'required',
+				children = []
+			},
+			exmpp_xml:append_child(Announce, Child);
+		_ ->
+			Announce
+	end.
+
+compress_support_announce(Method) ->
+	Method_El = #xmlnselement{
+		ns = ?NS_COMPRESS,
+		name = 'method',
+		children = [#xmlcdata{cdata = Method}]
+	},
+	#xmlnselement{
+		ns = ?NS_COMPRESS,
+		name = 'compression',
+		children = [Method_El]
+	}.
 
 % --------------------------------------------------------------------
 % Authentication elements.
