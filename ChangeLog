@@ -1,3 +1,24 @@
+2006-08-29  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	Release 0.4.5.
+
+	* configure.ac: Ajout de flags de compilation Erlang pour avoir un
+	maximum de warnings.
+
+	* src/xml.erl: Correction de la documenation pour que les fonctions
+	obsolètes pointent vers `exmpp_xml'.
+	(get_cdata, remove_cdata): Rajout de deux fonctions qui avaient été
+	supprimées avec la séparation `exmpp_xml'/`xml'.
+
+	* src/exmpp_xml.erl: Correction de la documentation.
+	(replace_child): Nouvelle fonction pour remplacer le fils d'un élément
+	XML.
+	(xmlnselement_to_xmlelement, xmlnsattributes_to_xmlattributes2):
+	Correction de plusieurs warnings.
+
+	* ebin/exmpp.app.in: Mise à jour de la liste des modules ; il manquait
+	`xml'.
+
 2006-08-16  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Release 0.4.4.
