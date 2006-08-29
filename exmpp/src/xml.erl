@@ -24,7 +24,9 @@
 	replace_tag_attr/3,
 	remove_attr/2,
 	remove_tag_attr/2,
+	get_cdata/1,
 	get_tag_cdata/1,
+	remove_cdata/1,
 	get_path_s/2,
 	element_to_string/1,
 	crypt/1
@@ -38,7 +40,7 @@
 %%     XML_Element = xmlnselement() | xmlelement()
 %%     Name = string() | atom()
 %%     XML_Subelement = xmlelement() | xmlnselement()
-%% @deprecated Please use {@link get_element_by_name/2}.
+%% @deprecated Please use {@link exmpp_xml:get_element_by_name/2}.
 %% @doc Search in the children of `XML_Element' an element named `Name'.
 
 get_subtag(XML_Element, Name) ->
@@ -48,7 +50,7 @@ get_subtag(XML_Element, Name) ->
 %%     XML_Element = xmlnselement() | xmlelement()
 %%     Child = xmlnselement() | xmlelement()
 %%     New_XML_Element = xmlnselement() | xmlelement()
-%% @deprecated Please use {@link append_child/2}.
+%% @deprecated Please use {@link exmpp_xml:append_child/2}.
 %% @doc Add `Child' to `XML_Element''s children.
 %%
 %% The new `Child' will be at the beginning of the list.
@@ -64,7 +66,7 @@ add_child(#xmlnselement{children = Children} = XML_Element, Child) ->
 %% @spec (Attr_Name, XML_Element) -> {value, Value} | false
 %%     Attr_Name = string() | atom()
 %%     XML_Element = xmlnselement() | xmlelement()
-%% @deprecated Please use {@link get_attribute/2}.
+%% @deprecated Please use {@link exmpp_xml:get_attribute/2}.
 %% @doc Return the `Attr_Name' attribute value (in a tuple) from the
 %% `XML_Element' element.
 
@@ -77,7 +79,7 @@ get_tag_attr(Attr_Name, #xmlnselement{attrs = Attrs}) ->
 %% @spec (Attr_Name, XML_Element) -> Value | false
 %%     Attr_Name = string() | atom()
 %%     XML_Element = xmlnselement() | xmllement()
-%% @deprecated Please use {@link get_attribute/2}.
+%% @deprecated Please use {@link exmpp_xml:get_attribute/2}.
 %% @doc Return the `Attr_Name' attribute value from the `XML_Element'
 %% element.
 
@@ -90,7 +92,7 @@ get_tag_attr_s(Attr_Name, #xmlnselement{attrs = Attrs}) ->
 %% @spec (Attr_Name, Attrs) -> {value, Value} | false
 %%     Attr_Name = string() | atom()
 %%     Attrs = [xmlnsattribute() | xmlattribute()]
-%% @deprecated Please use {@link get_attribute_from_list/2}.
+%% @deprecated Please use {@link exmpp_xml:get_attribute_from_list/2}.
 %% @doc Return the `Attr_Name' attribute value (in a tuple) from the
 %% xmlattribute() list.
 
@@ -107,7 +109,7 @@ get_attr(Attr_Name, Attrs) ->
 %% @spec (Attr_Name, Attrs) -> Value | false
 %%     Attr_Name = string() | atom()
 %%     Attrs = [xmlnsattribute() | xmlattribute()]
-%% @deprecated Please use {@link get_attribute_from_list/2}.
+%% @deprecated Please use {@link exmpp_xml:get_attribute_from_list/2}.
 %% @doc Return the `Attr_Name' attribute value from the xmlattribute()
 %% list.
 
@@ -124,7 +126,7 @@ get_attr_s(Attr_Name, Attrs) ->
 %%     Attr_Value = string()
 %%     Attrs = [xmlattribute()]
 %%     New_Attrs = [xmlnsattribute() | xmlattribute()]
-%% @deprecated Please use {@link set_attribute_in_list/3}.
+%% @deprecated Please use {@link exmpp_xml:set_attribute_in_list/3}.
 %% @doc Replace `Attr_Name' value with `Attr_Value'.
 
 replace_attr(Attr_Name, Attr_Value, Attrs) ->
@@ -135,7 +137,7 @@ replace_attr(Attr_Name, Attr_Value, Attrs) ->
 %%     Value = string()
 %%     XML_Element = xmlelement() | xmlnselement()
 %%     New_XML_Element = xmlelement() | xmlnselement()
-%% @deprecated Please use {@link set_attribute/3}.
+%% @deprecated Please use {@link exmpp_xml:set_attribute/3}.
 %% @doc Replace the value of `Attr_Name' attribute with `Value' in the
 %% given `XML_Element' element.
 
@@ -146,7 +148,7 @@ replace_tag_attr(Attr_Name, Attr_Value, XML_Element) ->
 %%     Attr_Name = string() | atom()
 %%     Attrs = [xmlnsattribute() | xmlattribute()]
 %%     New_Attrs = [xmlnsattribute() | xmlattribute()]
-%% @deprecated Please use {@link remove_attribute_from_list/2}.
+%% @deprecated Please use {@link exmpp_xml:remove_attribute_from_list/2}.
 %% @doc Remove an attribute and return the new list.
 
 remove_attr(Attr_Name, Attrs) ->
@@ -156,20 +158,38 @@ remove_attr(Attr_Name, Attrs) ->
 %%     Attr_Name = string() | atom()
 %%     XML_Element = xmlnselement() | xmlelement()
 %%     New_XML_Element = xmlelement() | xmlnselement()
-%% @deprecated Please use {@link remove_attribute_from_list/2}.
+%% @deprecated Please use {@link exmpp_xml:remove_attribute_from_list/2}.
 %% @doc Remove an attribute and return the new element.
 
 remove_tag_attr(Attr_Name, XML_Element) ->
 	exmpp_xml:remove_attribute(XML_Element, Attr_Name).
 
+%% @spec (Children) -> CData
+%%     Children = undefined | [xmlnselement() | xmlelement() | xmlcdata()]
+%%     CData = string()
+%% @deprecated Please use {@link exmpp_xml:get_cdata_from_list/1}.
+%% @doc Concatenate and return any character data from th given children list.
+
+get_cdata(Children) ->
+	exmpp_xml:get_cdata_from_list(Children).
+
 %% @spec (XML_Element) -> CData
 %%     XML_Element = xmlnselement() | xmlelement()
 %%     CData = string()
-%% @deprecated Please use {@link get_cdata/1}.
+%% @deprecated Please use {@link exmpp_xml:get_cdata/1}.
 %% @doc Concatenate and return any character data of the given XML element.
 
 get_tag_cdata(XML_Element) ->
 	exmpp_xml:get_cdata(XML_Element).
+
+%% @spec (Children) -> New_Children
+%%     Children = undefined | [xmlnselement() | xmlelement() | xmlcdata()]
+%%     New_Children = undefined | [xmlnselement() | xmlelement()]
+%% @deprecated Please use {@link exmpp_xml:remove_data_from_list/1}.
+%% @doc Remove any character data from the given XML element children list.
+
+remove_cdata(Children) ->
+	exmpp_xml:remove_cdata_from_list(Children).
 
 %% @spec (XML_Element, Path) -> XML_Subelement | Attr_Value | CData | Not_Found
 %%     XML_Element = xmlnselement() | xmlelement()
@@ -178,7 +198,7 @@ get_tag_cdata(XML_Element) ->
 %%     Attr_Value = string()
 %%     CData = string()
 %%     Not_Found = nil()
-%% @deprecated Please use {@link get_path/2}.
+%% @deprecated Please use {@link exmpp_xml:get_path/2}.
 %% @doc Follow the given path and return what's pointed by the last
 %% component of it.
 
@@ -201,7 +221,7 @@ update_path2([], New_Path) ->
 %% @spec (XML_Element) -> XML_Text
 %%     XML_Element = xmlnselement() | xmlelement()
 %%     XML_Text = string()
-%% @deprecated Please use {@link document_to_list/1}.
+%% @deprecated Please use {@link exmpp_xml:document_to_list/1}.
 %% @doc Serialize an XML tree to play text.
 
 element_to_string(XML_Element) ->
@@ -210,7 +230,7 @@ element_to_string(XML_Element) ->
 %% @spec (CData) -> Escaped_CData
 %%     CData = string() | binary()
 %%     Escaped_CData = string() | binary()
-%% @deprecated Please use {@link encode_entities/1}.
+%% @deprecated Please use {@link exmpp_xml:encode_entities/1}.
 %% @doc Replace sensible characters with entities.
 
 crypt(CData) when is_list(CData) ->
