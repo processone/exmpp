@@ -13,7 +13,8 @@
 		iconv,
 		sha,
 		stringprep,
-		tls
+		tls,
+		xml
 	]},
 	{applications, [kernel, stdlib]}
 ]}.
