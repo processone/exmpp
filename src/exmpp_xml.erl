@@ -66,6 +66,7 @@
 	get_element_by_name/3,
 	append_child/2,
 	append_children/2,
+	replace_child/3,
 	set_children/2
 ]).
 -export([
@@ -848,6 +849,29 @@ append_children(#xmlelement{children = Children} = XML_Element,
 	Concat_Children = Children ++ New_Children,
 	XML_Element#xmlelement{children = Concat_Children}.
 
+%% @spec (XML_Element, Old_Child, New_Child) -> New_XML_Element
+%%     XML_Element = xmlnselement() | xmlelement()
+%%     Old_Child = xmlnselement() | xmlelement()
+%%     New_Child = xmlnselement() | xmlelement()
+%%     New_XML_Element = xmlnselement() | xmlelement()
+%% @doc Replace `Old_Child' by `New_Child' in `XML_Element' children list.
+
+replace_child(#xmlnselement{children = Children} = XML_Element,
+    Old_Child, New_Child) ->
+	New_Children = [case C of
+		Old_Child -> New_Child;
+		_ -> C
+	end || C <- Children],
+	XML_Element#xmlnselement{children = New_Children};
+
+replace_child(#xmlelement{children = Children} = XML_Element,
+    Old_Child, New_Child) ->
+	New_Children = [case C of
+		Old_Child -> New_Child;
+		_ -> C
+	end || C <- Children],
+	XML_Element#xmlelement{children = New_Children}.
+
 %% @spec (XML_Element, Children) -> New_XML_Element
 %%     XML_Element = xmlnselement() | xmlelement()
 %%     Children = [xmlnselement() | xmlelement() | xmlcdata()]
@@ -863,7 +887,7 @@ set_children(#xmlelement{} = XML_Element, New_Children) ->
 	XML_Element#xmlelement{children = New_Children}.
 
 %% @spec (Children) -> CData
-%%     Children = undefined | [xmlnselement() | xmlelement()]
+%%     Children = undefined | [xmlnselement() | xmlelement() | xmlcdata()]
 %%     CData = string()
 %% @doc Concatenate and return any character data from th given children list.
 
@@ -1106,49 +1130,59 @@ xmlnselement_to_xmlelement(
 		is_atom(Name) -> atom_to_list(Name);
 		true          -> Name
 	end,
-	case Default_NS of
+	{New_Name, New_Attrs, New_Default_NS,
+	    New_Prefixed_NS} = case Default_NS of
 		[NS_A | _] ->
 			% Use the default namespace.
-			New_Name = Name_S,
-			New_Attrs = Attrs2,
-			New_Default_NS = Default_NS,
-			New_Prefixed_NS = Prefixed_NS2;
+			{
+			    Name_S,
+			    Attrs2,
+			    Default_NS,
+			    Prefixed_NS2
+			};
 		_ when NS_A /= undefined ->
 			case lists:keysearch(NS_A, 1, Prefixed_NS2 ++
 			    ?IMPLICIT_NAMESPACES) of
 				{value, {_NS_A, Other_Prefix}} ->
 					% Use an already declared prefix.
-					New_Name = ?PREFIXED_NAME(Other_Prefix,
-					    Name_S),
-					New_Attrs = Attrs2,
-					New_Default_NS = Default_NS,
-					New_Prefixed_NS = Prefixed_NS2;
+					{
+					    ?PREFIXED_NAME(Other_Prefix,
+						Name_S),
+					    Attrs2,
+					    Default_NS,
+					    Prefixed_NS2
+					};
 				false when Prefix /= undefined ->
 					% Never declared and provide a new
 					% prefix.
-					New_Name = ?PREFIXED_NAME(Prefix,
-					    Name_S),
 					NS_Decl = {"xmlns:" ++ Prefix,
 					    atom_to_list(NS_A)},
-					New_Attrs = [NS_Decl | Attrs2],
-					New_Default_NS = Default_NS,
-					New_Prefixed_NS = [{NS_A, Prefix} |
-					    Prefixed_NS2];
+					{
+					    ?PREFIXED_NAME(Prefix,
+						Name_S),
+					    [NS_Decl | Attrs2],
+					    Default_NS,
+					    [{NS_A, Prefix} | Prefixed_NS2]
+					};
 				false ->
 					% Never declared and want a DEFAULT
 					% namespace.
-					New_Name = Name_S,
 					NS_Decl = {"xmlns",
 					    atom_to_list(NS_A)},
-					New_Attrs = [NS_Decl | Attrs2],
-					New_Default_NS = [NS_A | Default_NS],
-					New_Prefixed_NS = Prefixed_NS2
+					{
+					    Name_S,
+					    [NS_Decl | Attrs2],
+					    [NS_A | Default_NS],
+					    Prefixed_NS2
+					}
 			end;
 		_ ->
-			New_Name = Name_S,
-			New_Attrs = Attrs2,
-			New_Default_NS = Default_NS,
-			New_Prefixed_NS = Prefixed_NS2
+			{
+			    Name_S,
+			    Attrs2,
+			    Default_NS,
+			    Prefixed_NS2
+			}
 	end,
 	New_Children = xmlnselements_to_xmlelements(Children,
 	    New_Default_NS, New_Prefixed_NS),
@@ -1164,26 +1198,26 @@ xmlnselement_to_xmlelement(#xmlnsendelement{ns = NS, prefix = Prefix,
 		is_atom(Name) -> atom_to_list(Name);
 		true          -> Name
 	end,
-	case Default_NS of
+	New_Name = case Default_NS of
 		[NS_A | _] ->
-			New_Name = Name_S;
+			Name_S;
 		_ when NS_A /= undefined ->
 			case lists:keysearch(NS_A, 1, Prefixed_NS ++
 			    ?IMPLICIT_NAMESPACES) of
 				{value, {_NS_A, Other_Prefix}} ->
-					New_Name = ?PREFIXED_NAME(Other_Prefix,
+					?PREFIXED_NAME(Other_Prefix,
 					    Name_S);
 				_ when Prefix /= undefined ->
-					New_Name = ?PREFIXED_NAME(Prefix,
+					?PREFIXED_NAME(Prefix,
 					    Name_S);
 				_ ->
 					% Too late to declare something; the
 					% namespace should have been provided
 					% by the caller.
-					New_Name = Name_S
+					Name_S
 			end;
 		_ ->
-			New_Name = Name_S
+			Name_S
 	end,
 	#xmlendelement{name = New_Name};
 xmlnselement_to_xmlelement(XML_El, _Default_NS, _Prefixed_NS) ->
@@ -1217,20 +1251,24 @@ xmlnsattributes_to_xmlattributes2(
 		is_atom(Name) -> atom_to_list(Name);
 		true          -> Name
 	end,
-	case NS of
+	{New_Name, New_Converted_Attrs, New_Prefixed_NS} = case NS of
 		undefined ->
-			New_Name = Name_S,
-			New_Converted_Attrs = Converted_Attrs,
-			New_Prefixed_NS = Prefixed_NS;
+			{
+			    Name_S,
+			    Converted_Attrs,
+			    Prefixed_NS
+			};
 		_ ->
 			case lists:keysearch(NS, 1,
 			    Prefixed_NS ++ ?IMPLICIT_NAMESPACES) of
 				{value, {_NS, Other_Prefix}} ->
 					% Use an already declared prefix.
-					New_Name = ?PREFIXED_NAME(Other_Prefix,
-					    Name_S),
-					New_Converted_Attrs = Converted_Attrs,
-					New_Prefixed_NS = Prefixed_NS;
+					{
+					    ?PREFIXED_NAME(Other_Prefix,
+						Name_S),
+					    Converted_Attrs,
+					    Prefixed_NS
+					};
 				false ->
 					% Never declared.
 					New_Prefix = case Prefix of
@@ -1244,14 +1282,14 @@ xmlnsattributes_to_xmlattributes2(
 						_ ->
 							Prefix
 					end,
-					New_Name = ?PREFIXED_NAME(New_Prefix,
-					    Name_S),
 					NS_Decl = {"xmlns:" ++ New_Prefix,
 					    atom_to_list(NS)},
-					New_Converted_Attrs =
+					{
+					    ?PREFIXED_NAME(New_Prefix,
+						Name_S),
 					    Converted_Attrs ++ [NS_Decl],
-					New_Prefixed_NS =
 					    [{NS, New_Prefix} | Prefixed_NS]
+					}
 			end
 	end,
 	xmlnsattributes_to_xmlattributes2(Rest, New_Prefixed_NS,
