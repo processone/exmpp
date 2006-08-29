@@ -4,7 +4,7 @@ dnl ------------------------------------------------------------------
 dnl Initialisation d'Autoconf
 dnl ------------------------------------------------------------------
 
-AC_INIT([exmpp], [0.4.4], [js.pedron@meetic-corp.com], [exmpp])
+AC_INIT([exmpp], [0.4.5], [js.pedron@meetic-corp.com], [exmpp])
 AC_CONFIG_SRCDIR([include/exmpp.hrl])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([ac-aux])
@@ -22,7 +22,7 @@ dnl ------------------------------------------------------------------
 
 EXMPP_MAJOR=0
 EXMPP_MINOR=4
-EXMPP_MICRO=4
+EXMPP_MICRO=5
 EXMPP_VERSION="$EXMPP_MAJOR.$EXMPP_MINOR.$EXMPP_MICRO"
 
 dnl On gère un build id qui permet de différencier les versions en
@@ -129,6 +129,11 @@ fi
 
 dnl Print any warnings
 CFLAGS="${CFLAGS% } -Wall"
+append_to_EMKOPTS "report_warnings"
+append_to_EMKOPTS "{warn_format, 1}"
+append_to_EMKOPTS "warn_export_vars"
+append_to_EMKOPTS "warn_shadow_vars"
+append_to_EMKOPTS "warn_unused_import"
 
 dnl Treat warnings as errors
 AC_ARG_ENABLE([warnings],
