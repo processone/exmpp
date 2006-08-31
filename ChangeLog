@@ -1,3 +1,13 @@
+2006-08-31  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	Release 0.4.6.
+
+	* include/exmpp.hrl: Ajout du namespace utilisé pour les erreurs au
+	niveau stream.
+
+	* src/exmpp_factory.erl (stream_error): Nouvelle fonction pour générer
+	les erreurs au niveau stream.
+
 2006-08-29  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Release 0.4.5.

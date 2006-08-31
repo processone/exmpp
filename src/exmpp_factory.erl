@@ -199,7 +199,8 @@
 	stream_opening/1,
 	stream_opening_reply/1,
 	stream_closing/0,
-	stream_closing/1
+	stream_closing/1,
+	stream_error/1
 ]).
 -export([
 	features_announcement/1,
@@ -417,6 +418,28 @@ stream_closing(#xmlnselement{ns = NS, prefix = Prefix, name = Name}) ->
 
 stream_id() ->
 	integer_to_list(random:uniform(65536 * 65536)).
+
+% --------------------------------------------------------------------
+% Stream-level errors.
+% --------------------------------------------------------------------
+
+%% @spec (Type) -> Stream_Error
+%%     Type = atom()
+%%     exmpp_xml:xmlnselement()
+%% @doc Make a `<stream:error>' element corresponding to the given `Type'.
+
+stream_error(Type) ->
+	Type_El = #xmlnselement{
+	    ns = ?NS_XMPP_STREAMS,
+	    name = Type,
+	    children = []
+	},
+	#xmlnselement{
+	    ns = ?NS_XMPP,
+	    prefix = "stream",
+	    name = 'error',
+	    children = [Type_El]
+	}.
 
 % --------------------------------------------------------------------
 % Features anouncement.
