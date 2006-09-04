@@ -303,11 +303,10 @@ expat_drv_stop(ErlDrvData drv_data)
 		hashtable_destroy(ed->known_attrs, 0);
 		ed->known_attrs = NULL;
 	}
+
 	destroy_parser(ed);
 
 	driver_free(drv_data);
-
-	return;
 }
 
 static int
@@ -520,6 +519,8 @@ expat_drv_control(ErlDrvData drv_data, unsigned int command,
 		ei_x_new_with_version(to_send);
 
 		/* Store this information in the buffer. */
+		ei_x_encode_tuple_header(to_send, 2);
+		ei_x_encode_atom(to_send, TUPLE_DRV_ERROR);
 		ei_x_encode_atom(to_send, "badarg");
 
 		break;

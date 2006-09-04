@@ -1,13 +1,18 @@
 2006-09-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
-	* exmpp_factory.erl: Correction de la documentation.
+	* src/exmpp_factory.erl: Correction de la documentation.
 
-	* exmpp_xml.erl (load_driver): Correction d'un bug avec le chargement
-	de la librairie. En fait, il faut charger la librairie autant de fois
-	que open_port est appelé car erl_ddll maintient un comptage de
-	référence. C'est pour cette raison qu'avec les version précédentes de
-	`exmpp_xml', tous les parsers instanciés étaient détruits avec le
-	premier appel à `stop_parser'.
+	* src/exmpp_xml.erl (load_driver): Correction d'un bug avec le
+	chargement de la librairie. En fait, il faut charger la librairie
+	autant de fois que open_port est appelé car erl_ddll maintient un
+	comptage de référence. C'est pour cette raison qu'avec les version
+	précédentes de `exmpp_xml', tous les parsers instanciés étaient
+	détruits avec le premier appel à `stop_parser'.
+
+	* c_src/expat_drv.c (expat_drv_stop): Le `return' final est
+	complètement inutile.
+	(expat_drv_control): En cas de commande inconnue, on retourne `{error,
+	badarg}' au lieu de `badarg'.
 
 2006-08-31  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
