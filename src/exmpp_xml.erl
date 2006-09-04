@@ -1682,17 +1682,9 @@ driver_dirs() ->
 	end.
 
 load_driver() ->
-	erl_ddll:start(),
-	{ok, Drivers} = erl_ddll:loaded_drivers(),
-	case lists:member(?DRIVER_NAME_S, Drivers) of
-		true ->
-			% Driver already loaded, just open a new port.
-			load_driver2();
-		false ->
-			% Load the driver, then open a port.
-			Dirs = driver_dirs(),
-			load_driver1(Dirs, undefined)
-	end.
+	% Load the driver, then open a port.
+	Dirs = driver_dirs(),
+	load_driver1(Dirs, undefined).
 
 load_driver1([Dir | Rest], _Reason) ->
 	case erl_ddll:load_driver(Dir, ?DRIVER_NAME) of

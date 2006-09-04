@@ -2,6 +2,13 @@
 
 	* exmpp_factory.erl: Correction de la documentation.
 
+	* exmpp_xml.erl (load_driver): Correction d'un bug avec le chargement
+	de la librairie. En fait, il faut charger la librairie autant de fois
+	que open_port est appelé car erl_ddll maintient un comptage de
+	référence. C'est pour cette raison qu'avec les version précédentes de
+	`exmpp_xml', tous les parsers instanciés étaient détruits avec le
+	premier appel à `stop_parser'.
+
 2006-08-31  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Release 0.4.6.
