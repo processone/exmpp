@@ -1,3 +1,7 @@
+2006-09-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* exmpp_factory.erl: Correction de la documentation.
+
 2006-08-31  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Release 0.4.6.

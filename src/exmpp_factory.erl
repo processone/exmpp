@@ -425,7 +425,7 @@ stream_id() ->
 
 %% @spec (Type) -> Stream_Error
 %%     Type = atom()
-%%     exmpp_xml:xmlnselement()
+%%     Stream_Error = exmpp_xml:xmlnselement()
 %% @doc Make a `<stream:error>' element corresponding to the given `Type'.
 
 stream_error(Type) ->
