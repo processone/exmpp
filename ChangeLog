@@ -1,5 +1,7 @@
 2006-09-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
+	Release 0.4.7.
+
 	* src/exmpp_factory.erl: Correction de la documentation.
 
 	* src/exmpp_xml.erl (load_driver): Correction d'un bug avec le
