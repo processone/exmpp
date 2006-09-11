@@ -20,8 +20,8 @@ AC_DEFUN([AM_EXPAT],
   EXPAT_LIBS="-lexpat"
 
   if test x"${expat_prefix:+set}" = "xset"; then
-    EXPAT_CPPFLAGS="-I${expat_prefix%%\/}/include $EXPAT_CPPFLAGS}"
-    EXPAT_LDFLAGS="-I${expat_prefix%%\/}/libs $EXPAT_LDFLAGS}"
+    EXPAT_CPPFLAGS="-I${expat_prefix%%\/}/include ${EXPAT_CPPFLAGS}"
+    EXPAT_LDFLAGS="-L${expat_prefix%%\/}/lib ${EXPAT_LDFLAGS}"
   fi
 
   ac_save_CPPFLAGS="$CPPFLAGS"
