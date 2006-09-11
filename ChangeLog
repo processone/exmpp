@@ -3,6 +3,10 @@
 	* m4/expat.m4: Corrections de bug dans les flags passés au compilateur
 	si l'utilisateur précise --with-expat=DIR.
 
+2006-09-07  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* ebin/charon.app.in: On ajoute $Id$ pour l'id de l'application.
+
 2006-09-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Release 0.4.7.

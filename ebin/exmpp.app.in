@@ -1,22 +1,27 @@
 % $Id$
 
 {application, exmpp, [
-	{description, "XMPP/Jabber protocol oriented XML library"},
-	{vsn, "@PACKAGE_VERSION@"},
-	{modules, [
-		exmpp,
-		exmpp_factory,
-		exmpp_xml,
-		exmpp_xmlstream,
-		exmpp_jlib,
-		ejabberd_zlib,
-		iconv,
-		sha,
-		stringprep,
-		tls,
-		xml
-	]},
-	{applications, [kernel, stdlib]}
+    {description, "XMPP/Jabber protocol oriented XML library"},
+    {vsn, "@PACKAGE_VERSION@"},
+    {id, "$Id$"},
+    {modules, [
+        exmpp,
+        exmpp_factory,
+        exmpp_jlib,
+        exmpp_xml,
+        exmpp_xmlstream,
+        ejabberd_zlib,
+        iconv,
+        sha,
+        stringprep,
+        tls,
+        xml
+    ]},
+    {registered, []},
+    {applications, [
+        kernel,
+        stdlib
+    ]}
 ]}.
 
 % vim:ft=erlang:ts=8:
