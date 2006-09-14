@@ -1,5 +1,11 @@
 2006-09-11  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
+	Release 0.5.0.
+
+	* configure.ac: Mise à jour de la version.
+
+2006-09-11  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
 	* m4/expat.m4: Corrections de bug dans les flags passés au compilateur
 	si l'utilisateur précise --with-expat=DIR.
 
