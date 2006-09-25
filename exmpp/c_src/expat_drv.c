@@ -54,7 +54,8 @@ enum {
 	EXPAT_SET_ROOTDEPTH,
 	EXPAT_SET_ENDELEMENT,
 	EXPAT_PARSE,
-	EXPAT_PARSE_FINAL
+	EXPAT_PARSE_FINAL,
+	EXPAT_SVN_REVISION
 };
 
 /* Driver data (also, user data for expat). */
@@ -510,6 +511,18 @@ expat_drv_control(ErlDrvData drv_data, unsigned int command,
 		}
 
 		break;
+	case EXPAT_SVN_REVISION:
+		to_send = driver_alloc(sizeof(ei_x_buff));
+		if (to_send == NULL)
+			return (-1);
+		ei_x_new_with_version(to_send);
+
+		/* Store this information in the buffer. */
+		ei_x_encode_tuple_header(to_send, 2);
+		ei_x_encode_atom(to_send, TUPLE_DRV_OK);
+		ei_x_encode_string(to_send, "$Revision$");
+
+		break;
 	default:
 		/* Initialize the ei_x_buff buffer used to store the
 		 * error. */
@@ -534,6 +547,7 @@ expat_drv_control(ErlDrvData drv_data, unsigned int command,
 
 	/* Free the returned tuple. */
 	ei_x_free(to_send);
+	driver_free(to_send);
 
 	if (command == EXPAT_PARSE || command == EXPAT_PARSE_FINAL)
 		ed->complete_trees = NULL;
