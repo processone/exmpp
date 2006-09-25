@@ -1,5 +1,7 @@
 2006-09-25  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
+	* configure.ac: Préparation de la release 0.5.1.
+
 	* c_src/expat_drv.c: Ajout d'une commande pour retourner la revision
 	du fichier.
 	(expat_drv_control): Correction d'un memory leak.
