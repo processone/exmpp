@@ -2,7 +2,7 @@
 
 beamdir =  $(ERLANG_INSTALL_LIB_DIR_exmpp)/ebin
 
-beam_DATA = exmpp.app\
+beam_DATA = exmpp.app exmpp.appup\
 	    exmpp.beam exmpp_xml.beam exmpp_xmlstream.beam\
 	    exmpp_jlib.beam exmpp_factory.beam\
 	    ejabberd_zlib.beam iconv.beam sha.beam stringprep.beam\
