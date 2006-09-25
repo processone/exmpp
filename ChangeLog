@@ -1,3 +1,9 @@
+2006-09-25  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* c_src/expat_drv.c: Ajout d'une commande pour retourner la revision
+	du fichier.
+	(expat_drv_control): Correction d'un memory leak.
+
 2006-09-11  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Release 0.5.0.
