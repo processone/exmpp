@@ -31,6 +31,7 @@
 	start_parser/1,
 	stop_parser/1,
 	reload_driver/0,
+	port_revision/1,
 	parse/2,
 	parse_final/2,
 	parse_document/1,
@@ -109,6 +110,7 @@
 -define(EXPAT_SET_ENDELEMENT,   8).
 -define(EXPAT_PARSE,            9).
 -define(EXPAT_PARSE_FINAL,     10).
+-define(EXPAT_SVN_REVISION,    11).
 
 -define(DEFAULT_PARSER_OPTIONS, [
 	% no_namespace, % Handled by start_parser/1.
@@ -336,6 +338,11 @@ reload_driver() ->
 	erl_ddll:unload_driver(?DRIVER_NAME),
 	Dirs = driver_dirs(),
 	load_driver1(Dirs, undefined).
+
+%% @hidden
+
+port_revision(#xml_parser{port = Port} = _Parser) ->
+	binary_to_term(port_control(Port, ?EXPAT_SVN_REVISION, <<>>)).
 
 % --------------------------------------------------------------------
 % Functions to handle XML elements (xmlnselement() & xmlelement()).

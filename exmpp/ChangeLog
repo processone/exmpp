@@ -4,6 +4,9 @@
 	du fichier.
 	(expat_drv_control): Correction d'un memory leak.
 
+	* src/exmpp_xml.erl: Ajout d'une fonction pour récupérer la revision
+	du port driver `expat_drv'.
+
 2006-09-11  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Release 0.5.0.
