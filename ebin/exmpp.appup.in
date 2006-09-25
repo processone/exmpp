@@ -1,0 +1,13 @@
+% $Id$
+
+{ "0.5.1",
+  [
+    % To upgrade from the specified version to current one.
+    { "0.5.0", [restart_new_emulator]}
+  ], [
+    % To downgrade from the current version to the specified one.
+    { "0.5.0", [restart_new_emulator]}
+  ]
+}.
+
+% vim:ft=erlang:

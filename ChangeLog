@@ -9,6 +9,9 @@
 	* src/exmpp_xml.erl: Ajout d'une fonction pour récupérer la revision
 	du port driver `expat_drv'.
 
+	* configure.ac, ebin/exmpp.appup, ebin/Makefile.am: Ajout du fichier
+	de mise à jour.
+
 2006-09-11  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Release 0.5.0.

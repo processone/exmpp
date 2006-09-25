@@ -224,6 +224,7 @@ AC_CONFIG_FILES([
 	src/Emakefile
 	ebin/Makefile
 	ebin/exmpp.app
+	ebin/exmpp.appup
 	priv/Makefile
 	priv/lib/Makefile
 	doc/Makefile
