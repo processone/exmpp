@@ -4,6 +4,10 @@
 	peut pas s'en servir en l'état.
 	(stop_parser): Après le port_close/1, on décharge la librairie.
 
+	* src/exmpp_factory.erl (legacy_auth_request_with_user): Nouvelle
+	fonction pour préciser le nom d'utilisateur dans la requête
+	d'authentification.
+
 2006-09-25  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* configure.ac: Préparation de la release 0.5.1.
