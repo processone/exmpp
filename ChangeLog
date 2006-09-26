@@ -6,7 +6,7 @@
 
 	* src/exmpp_factory.erl (legacy_auth_request_with_user): Nouvelle
 	fonction pour préciser le nom d'utilisateur dans la requête
-	d'authentification.
+	d'authentification. Correction de l'exportation de la fonction.
 
 2006-09-25  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 

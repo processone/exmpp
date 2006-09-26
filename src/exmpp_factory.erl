@@ -210,8 +210,8 @@
 -export([
 	legacy_auth_request/1,
 	legacy_auth_request/2,
-	legacy_auth_request_with_user/1,
 	legacy_auth_request_with_user/2,
+	legacy_auth_request_with_user/3,
 	legacy_auth_fields/1,
 	legacy_auth_password/3,
 	legacy_auth_password/4,
@@ -523,7 +523,7 @@ legacy_auth_request(Id, To) ->
 %% The stanza `id' is generated automatically.
 
 legacy_auth_request_with_user(To, Username) ->
-	legacy_auth_request(auth_id(), To, Username).
+	legacy_auth_request_with_user(auth_id(), To, Username).
 
 %% @spec (Id, To, Username) -> Auth_Iq
 %%     Id = string()
