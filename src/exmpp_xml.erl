@@ -30,7 +30,6 @@
 	start_parser/0,
 	start_parser/1,
 	stop_parser/1,
-	reload_driver/0,
 	port_revision/1,
 	parse/2,
 	parse_final/2,
@@ -204,7 +203,8 @@ start_parser(Options) ->
 %% @see start_parser/0. `start_parser/0' for an example
 
 stop_parser(#xml_parser{port = Port} = _Parser) ->
-	port_close(Port).
+	port_close(Port),
+	erl_ddll:unload_driver(?DRIVER_NAME).
 
 %% @spec (Parser, Data) -> {ok, [XML_Element]} | {ok, continue} | {error, Reason}
 %%     Parser = xmlparser()
@@ -324,20 +324,6 @@ parse_document_fragment(Fragment, Parser_Options) ->
 		{error, Reason} ->
 			{error, Reason}
 	end.
-
-%% @spec () -> ok | {error, Reason}
-%% @doc Reload the driver linked-in library.
-%%
-%% This should be done after upgrading the application if the C source
-%% code has been modified. This MUST NOT be called is there are parsers
-%% in use.
-%%
-%% @see erl_ddll:load_driver/2.
-
-reload_driver() ->
-	erl_ddll:unload_driver(?DRIVER_NAME),
-	Dirs = driver_dirs(),
-	load_driver1(Dirs, undefined).
 
 %% @hidden
 
