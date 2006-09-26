@@ -1,3 +1,9 @@
+2006-09-26  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/exmpp_xml.erl (reload_driver): Suppression de la fonction, on ne
+	peut pas s'en servir en l'état.
+	(stop_parser): Après le port_close/1, on décharge la librairie.
+
 2006-09-25  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* configure.ac: Préparation de la release 0.5.1.
