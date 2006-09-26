@@ -210,6 +210,8 @@
 -export([
 	legacy_auth_request/1,
 	legacy_auth_request/2,
+	legacy_auth_request_with_user/1,
+	legacy_auth_request_with_user/2,
 	legacy_auth_fields/1,
 	legacy_auth_password/3,
 	legacy_auth_password/4,
@@ -505,6 +507,38 @@ legacy_auth_request(Id, To) ->
 	% Make empty query.
 	Query = #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'query',
 	    children = []},
+	% Make IQ.
+	Iq = exmpp_xml:set_attributes(
+	    #xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
+	    {'type', "get"},
+	    {'to',   To},
+	    {'id',   Id}]),
+	exmpp_xml:append_child(Iq, Query).
+
+%% @spec (To, Username) -> Auth_Iq
+%%     To = string()
+%%     Username = string()
+%% @doc Make an `<iq>' for requesting legacy authentication.
+%%
+%% The stanza `id' is generated automatically.
+
+legacy_auth_request_with_user(To, Username) ->
+	legacy_auth_request(auth_id(), To, Username).
+
+%% @spec (Id, To, Username) -> Auth_Iq
+%%     Id = string()
+%%     To = string()
+%%     Username = string()
+%%     Auth_Iq = exmpp_xml:xmlnselement()
+%% @doc Make an `<iq>' for requesting legacy authentication.
+
+legacy_auth_request_with_user(Id, To, Username_S) ->
+	% Make empty query.
+	Username = exmpp_xml:set_cdata(
+	    #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'username'},
+	    Username_S),
+	Query = #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'query',
+	    children = [Username]},
 	% Make IQ.
 	Iq = exmpp_xml:set_attributes(
 	    #xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
