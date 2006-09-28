@@ -5,6 +5,13 @@
 	* c_src/expat_drv.c (current_tree_finished): Correction d'un autre
 	leak du même type que celui du 2006-09-25.
 
+	* ebin/exmpp.app.in: Utilisation de @VERSION@ au lieu de
+	@PACKAGE_VERSION@ pour rester cohérent.
+
+	* ebin/exmpp.appup.in: Utilisation de @VERSION@ au lieu d'une version
+	en dur. Mise à jour pour prendre en compte une upgrade/downgrade entre
+	la version 0.5.2 et la version 0.5.1.
+
 2006-09-26  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_xml.erl (reload_driver): Suppression de la fonction, on ne
