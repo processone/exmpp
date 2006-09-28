@@ -2,7 +2,7 @@
 
 {application, exmpp, [
     {description, "XMPP/Jabber protocol oriented XML library"},
-    {vsn, "@PACKAGE_VERSION@"},
+    {vsn, "@VERSION@"},
     {id, "$Id$"},
     {modules, [
         exmpp,
