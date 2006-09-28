@@ -1,5 +1,7 @@
 2006-09-28  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
+	* configure.ac: Préparation de la release 0.5.2.
+
 	* c_src/expat_drv.c (current_tree_finished): Correction d'un autre
 	leak du même type que celui du 2006-09-25.
 
