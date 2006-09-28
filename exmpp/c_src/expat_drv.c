@@ -1026,6 +1026,7 @@ current_tree_finished(struct expat_drv_data *ed)
 
 	/* Clear the current tree. */
 	ei_x_free(ed->current_tree);
+	driver_free(ed->current_tree);
 	ed->current_tree = NULL;
 
 	return (ret);
