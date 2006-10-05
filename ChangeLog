@@ -2,6 +2,9 @@
 
 	* configure.ac: Préparation de la release 0.5.3.
 
+	* ebin/exmpp.appup.in: Instructions de mise à jour depuis la version
+	0.5.2.
+
 	* src/exmpp_xml.erl (stop_parser): Avant de décharger la librairie, on
 	vérifie que port_close a fonctionné (en `catch'ant l'exception). Ça
 	évite de trop décrémenter le comptage de référence sur la librairie.
