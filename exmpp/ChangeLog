@@ -1,5 +1,7 @@
 2006-10-05  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
+	* configure.ac: Préparation de la release 0.5.3.
+
 	* src/exmpp_xml.erl (stop_parser): Avant de décharger la librairie, on
 	vérifie que port_close a fonctionné (en `catch'ant l'exception). Ça
 	évite de trop décrémenter le comptage de référence sur la librairie.
