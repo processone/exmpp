@@ -1,3 +1,10 @@
+2006-10-12  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/exmpp_xml.erl (start_parser): Unload driver if an error occurs
+	with options handling.
+	(stop_parser): Don't catch exceptions with port_close/1; the caller is
+	responsible for catching them if he wants.
+
 2006-10-05  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* configure.ac: Préparation de la release 0.5.3.
