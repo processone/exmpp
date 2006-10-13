@@ -187,6 +187,7 @@ start_parser(Options) ->
 			case handle_options(
 			    ?DEFAULT_PARSER_OPTIONS ++ Options2, Parser) of
 				{error, Reason} ->
+					erl_ddll:unload_driver(?DRIVER_NAME),
 					{error, Reason};
 				New_Parser ->
 					{ok, New_Parser}
@@ -203,12 +204,8 @@ start_parser(Options) ->
 %% @see start_parser/0. `start_parser/0' for an example
 
 stop_parser(#xml_parser{port = Port} = _Parser) ->
-	case catch port_close(Port) of
-		{'EXIT', Reason} ->
-			{error, {port_close_failed, Reason}};
-		_ ->
-			erl_ddll:unload_driver(?DRIVER_NAME)
-	end.
+	port_close(Port),
+	erl_ddll:unload_driver(?DRIVER_NAME).
 
 %% @spec (Parser, Data) -> {ok, [XML_Element]} | {ok, continue} | {error, Reason}
 %%     Parser = xmlparser()
