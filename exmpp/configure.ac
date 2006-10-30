@@ -144,6 +144,23 @@ if test "x${enable_warnings}" = "xyes" -a "x${GCC}" = "xyes"; then
 	CFLAGS="${CFLAGS% } -Werror"
 fi
 
+dnl Broken erl_ddll
+AC_ARG_WITH([broken-erl_ddl],
+	AC_HELP_STRING([--with-broken-erl_ddll],
+	    [add a workaround for broken erl_ddll [[default=yes]]]),,
+	with_broken_erl_ddll="yes")
+if test "x${with_broken_erl_ddll}" = "xyes"; then
+	append_to_EMKOPTS "{d, 'WITH_BROKEN_ERL_DDLL'}"
+fi
+AM_CONDITIONAL(WITH_BROKEN_ERL_DDLL, test "x${with_broken_erl_ddll}" = "xyes")
+
+dnl Compatibility modules
+AC_ARG_ENABLE([compat],
+	AC_HELP_STRING([--enable-compat],
+	    [build compatibility modules [[default=no]]]),,
+	enable_compat="no")
+AM_CONDITIONAL(BUILD_COMPAT, test "x${enable_compat}" = "xyes")
+
 dnl Documentation
 AC_ARG_WITH([documentation],
 	      AC_HELP_STRING([--with-documentation],
@@ -257,6 +274,7 @@ echo "    Prefix:             ${prefix}"
 echo
 echo "    Compiler flags:     ${CFLAGS}"
 echo "    Debug/warnings:     ${enable_debug}/${enable_warnings}"
+echo "    Compat modules:     ${enable_compat}"
 echo
 echo "    ERL:                ${ERL}"
 echo "    Install directory:  ${exp_ERLANG_INSTALL_LIB_DIR_exmpp}"

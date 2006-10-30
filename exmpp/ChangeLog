@@ -12,6 +12,9 @@
 	modifications and testing, we took this opportunity to import the last
 	version of `jlib' from today's ejabberd repository.
 
+	* src/exmpp_xml.erl, configure.ac: Add a compile-time flag to enable a
+	workaround for `erl_ddll' reference count bug.
+
 2006-10-12  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_xml.erl (start_parser): Unload driver if an error occurs
