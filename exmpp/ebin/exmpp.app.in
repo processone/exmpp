@@ -12,6 +12,7 @@
         exmpp_xmlstream,
         ejabberd_zlib,
         iconv,
+        jlib,
         sha,
         stringprep,
         tls,
