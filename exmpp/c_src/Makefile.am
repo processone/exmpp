@@ -1,6 +1,13 @@
 # $Id$
 
-lib_LTLIBRARIES = ejabberd_zlib_drv.la expat_drv.la iconv_erl.la stringprep_drv.la tls_drv.la
+lib_LTLIBRARIES = expat_drv.la
+
+if BUILD_COMPAT
+lib_LTLIBRARIES += ejabberd_zlib_drv.la					\
+		   iconv_erl.la						\
+		   stringprep_drv.la					\
+		   tls_drv.la
+endif
 
 EI_CPPFLAGS = -I$(ERLANG_ROOT_DIR)/usr/include\
 	      -I$(ERLANG_LIB_DIR_erl_interface)/include
