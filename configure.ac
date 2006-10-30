@@ -4,7 +4,7 @@ dnl ------------------------------------------------------------------
 dnl Initialisation d'Autoconf
 dnl ------------------------------------------------------------------
 
-AC_INIT([exmpp], [0.5.3], [js.pedron@meetic-corp.com], [exmpp])
+AC_INIT([exmpp], [0.5.4], [js.pedron@meetic-corp.com], [exmpp])
 AC_CONFIG_SRCDIR([include/exmpp.hrl])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([ac-aux])
@@ -22,7 +22,7 @@ dnl ------------------------------------------------------------------
 
 EXMPP_MAJOR=0
 EXMPP_MINOR=5
-EXMPP_MICRO=3
+EXMPP_MICRO=4
 EXMPP_VERSION="$EXMPP_MAJOR.$EXMPP_MINOR.$EXMPP_MICRO"
 
 dnl On gère un build id qui permet de différencier les versions en
@@ -159,7 +159,16 @@ AC_ARG_ENABLE([compat],
 	AC_HELP_STRING([--enable-compat],
 	    [build compatibility modules [[default=no]]]),,
 	enable_compat="no")
+if test "x${enable_compat}" = "xyes"; then
+	COMPAT_MODULES_START=","
+	COMPAT_MODULES=""
+else
+	COMPAT_MODULES_START=" % Compatibility modules disabled:"
+	COMPAT_MODULES="%"
+fi
 AM_CONDITIONAL(BUILD_COMPAT, test "x${enable_compat}" = "xyes")
+AC_SUBST(COMPAT_MODULES_START)
+AC_SUBST(COMPAT_MODULES)
 
 dnl Documentation
 AC_ARG_WITH([documentation],
