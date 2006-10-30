@@ -187,7 +187,7 @@ start_parser(Options) ->
 			case handle_options(
 			    ?DEFAULT_PARSER_OPTIONS ++ Options2, Parser) of
 				{error, Reason} ->
-					erl_ddll:unload_driver(?DRIVER_NAME),
+					unload_driver(),
 					{error, Reason};
 				New_Parser ->
 					{ok, New_Parser}
@@ -205,7 +205,7 @@ start_parser(Options) ->
 
 stop_parser(#xml_parser{port = Port} = _Parser) ->
 	port_close(Port),
-	erl_ddll:unload_driver(?DRIVER_NAME).
+	unload_driver().
 
 %% @spec (Parser, Data) -> {ok, [XML_Element]} | {ok, continue} | {error, Reason}
 %%     Parser = xmlparser()
@@ -1694,6 +1694,16 @@ load_driver1([], Reason) ->
 
 load_driver2() ->
 	open_port({spawn, ?DRIVER_NAME_S}, []).
+
+-ifdef(WITH_BROKEN_ERL_DDLL).
+unload_driver() ->
+	% At least until R11B-1, erl_ddll messes up its libraries reference
+	% count, so we can't unload the driver.
+	ok.
+-else.
+unload_driver() ->
+	erl_ddll:unload_driver(?DRIVER_NAME).
+-endif.
 
 handle_options([namespace | Rest], #xml_parser{port = P} = Parser) ->
 	Ret = port_control(P, ?EXPAT_SET_NSPARSER, term_to_binary(true)),
