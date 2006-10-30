@@ -90,7 +90,7 @@
 }).
 
 % --------------------------------------------------------------------
-% Defines for exmpp_jlib.
+% Namespaces used in exmpp_factory.
 % --------------------------------------------------------------------
 
 -define(NS_XML,           'http://www.w3.org/XML/1998/namespace').
@@ -103,6 +103,10 @@
 -define(NS_TLS,           'urn:ietf:params:xml:ns:xmpp-tls').
 -define(NS_SASL,          'urn:ietf:params:xml:ns:xmpp-sasl').
 -define(NS_COMPRESS,      'http://jabber.org/features/compress').
+
+% --------------------------------------------------------------------
+% Defines for jlib.
+% --------------------------------------------------------------------
 
 -define(NS_DELAY, "jabber:x:delay").
 
