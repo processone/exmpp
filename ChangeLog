@@ -18,6 +18,9 @@
 	* configure.ac, c_src/Makefile.am, ebin/Makefile.am: Add a flag to
 	disable the compatibility modules.
 
+	* ebin/exmpp.app.in, ebin/exmpp.appup.in: Mise à jour des fichiers
+	d'application et d'upgrade.
+
 2006-10-12  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_xml.erl (start_parser): Unload driver if an error occurs
