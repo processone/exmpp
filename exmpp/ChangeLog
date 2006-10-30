@@ -1,7 +1,8 @@
 2006-10-30  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
-	* priv/lib/Makefile.am: Symbolic link for stringprep_drv.so,
-	tls_drv.so and iconv_erl.so are useless.
+	* priv/lib/Makefile.am: Copies of stringprep_drv.so,
+	tls_drv.so and iconv_erl.so are useless, because they're not tested by
+	the current testsuite.
 
 	* include/exmpp.hrl: Corrections in comments.
 
@@ -18,8 +19,11 @@
 	* configure.ac, c_src/Makefile.am, ebin/Makefile.am: Add a flag to
 	disable the compatibility modules.
 
-	* ebin/exmpp.app.in, ebin/exmpp.appup.in: Mise à jour des fichiers
-	d'application et d'upgrade.
+	* ebin/exmpp.app.in, ebin/exmpp.appup.in: Application file and upgrade
+	file update.
+
+	* configure.ac, src/Emakefile.in, ebin/exmpp.app.in: If compatibility
+	modules are disabled, don't build/list them.
 
 2006-10-12  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 

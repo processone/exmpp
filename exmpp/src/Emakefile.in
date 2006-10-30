@@ -6,14 +6,14 @@
 		'@srcdir@/exmpp_xml',
 		'@srcdir@/exmpp_xmlstream',
 		'@srcdir@/exmpp_factory',
-		'@srcdir@/exmpp_jlib',
-		'@srcdir@/ejabberd_zlib',
-		'@srcdir@/iconv',
-		'@srcdir@/jlib',
-		'@srcdir@/sha',
-		'@srcdir@/stringprep',
-		'@srcdir@/tls',
-		'@srcdir@/xml'
+		'@srcdir@/exmpp_jlib'@COMPAT_MODULES_START@
+		@COMPAT_MODULES@'@srcdir@/ejabberd_zlib',
+		@COMPAT_MODULES@'@srcdir@/iconv',
+		@COMPAT_MODULES@'@srcdir@/jlib',
+		@COMPAT_MODULES@'@srcdir@/sha',
+		@COMPAT_MODULES@'@srcdir@/stringprep',
+		@COMPAT_MODULES@'@srcdir@/tls',
+		@COMPAT_MODULES@'@srcdir@/xml'
 	],
 	[
 		@EMKOPTS@,

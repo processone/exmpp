@@ -9,14 +9,14 @@
         exmpp_factory,
         exmpp_jlib,
         exmpp_xml,
-        exmpp_xmlstream,
-        ejabberd_zlib,
-        iconv,
-        jlib,
-        sha,
-        stringprep,
-        tls,
-        xml
+        exmpp_xmlstream@COMPAT_MODULES_START@
+	@COMPAT_MODULES@ejabberd_zlib,
+	@COMPAT_MODULES@iconv,
+	@COMPAT_MODULES@jlib,
+	@COMPAT_MODULES@sha,
+	@COMPAT_MODULES@stringprep,
+	@COMPAT_MODULES@tls,
+	@COMPAT_MODULES@xml
     ]},
     {registered, []},
     {applications, [
