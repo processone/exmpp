@@ -15,6 +15,9 @@
 	* src/exmpp_xml.erl, configure.ac: Add a compile-time flag to enable a
 	workaround for `erl_ddll' reference count bug.
 
+	* configure.ac, c_src/Makefile.am, ebin/Makefile.am: Add a flag to
+	disable the compatibility modules.
+
 2006-10-12  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_xml.erl (start_parser): Unload driver if an error occurs
