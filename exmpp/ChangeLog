@@ -5,6 +5,12 @@
 
 	* include/exmpp.hrl: Corrections in comments.
 
+	* src/exmpp_jlib.erl, src/jlib.erl: As we did with `exmpp_xml' and
+	`xml', we split `exmpp_jlib' in `exmpp_jlib' and `jlib' to separate
+	the old code with the new one. Because this module didn't received a
+	lot of modifications and testing, we took this opportunity to import
+	the last version of `jlib' from today's ejabberd repository.
+
 2006-10-12  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_xml.erl (start_parser): Unload driver if an error occurs
