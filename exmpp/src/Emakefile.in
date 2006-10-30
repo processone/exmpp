@@ -9,6 +9,7 @@
 		'@srcdir@/exmpp_jlib',
 		'@srcdir@/ejabberd_zlib',
 		'@srcdir@/iconv',
+		'@srcdir@/jlib',
 		'@srcdir@/sha',
 		'@srcdir@/stringprep',
 		'@srcdir@/tls',
