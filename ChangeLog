@@ -16,6 +16,8 @@
 	* src/exmpp_jlib.erl: Add functions to convert #jid{} to string and
 	the other way around. Style.
 
+	* testsuite/test.sh: Fixed portability issues with sed(1) and head(1).
+
 2006-10-30  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* priv/lib/Makefile.am: Copies of stringprep_drv.so,
