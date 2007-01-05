@@ -93,16 +93,23 @@
 % Namespaces used in exmpp_factory.
 % --------------------------------------------------------------------
 
--define(NS_XML,           'http://www.w3.org/XML/1998/namespace').
--define(NS_XMPP,          'http://etherx.jabber.org/streams').
--define(NS_JABBER_CLIENT, 'jabber:client').
--define(NS_JABBER_SERVER, 'jabber:server').
--define(NS_JABBER_AUTH,   'jabber:iq:auth').
--define(NS_XMPP_STREAMS,  'urn:ietf:params:xml:ns:xmpp-streams').
--define(NS_XMPP_STANZAS,  'urn:ietf:params:xml:ns:xmpp-stanzas').
--define(NS_TLS,           'urn:ietf:params:xml:ns:xmpp-tls').
--define(NS_SASL,          'urn:ietf:params:xml:ns:xmpp-sasl').
--define(NS_COMPRESS,      'http://jabber.org/features/compress').
+-define(NS_XML,            'http://www.w3.org/XML/1998/namespace').
+-define(NS_XMPP,           'http://etherx.jabber.org/streams').
+-define(NS_JABBER_CLIENT,  'jabber:client').
+-define(NS_JABBER_SERVER,  'jabber:server').
+-define(NS_JABBER_AUTH,    'jabber:iq:auth').
+-define(NS_JABBER_PRIVACY, 'jabber:iq:privacy').
+-define(NS_JABBER_ROSTER,  'jabber:iq:roster').
+-define(NS_JABBER_SESSION, 'urn:ietf:params:xml:ns:xmpp-session').
+-define(NS_XMPP_STREAMS,   'urn:ietf:params:xml:ns:xmpp-streams').
+-define(NS_XMPP_STANZAS,   'urn:ietf:params:xml:ns:xmpp-stanzas').
+-define(NS_TLS,            'urn:ietf:params:xml:ns:xmpp-tls').
+-define(NS_SASL,           'urn:ietf:params:xml:ns:xmpp-sasl').
+-define(NS_COMPRESS,       'http://jabber.org/features/compress').
+-define(NS_PUBSUB,         'http://jabber.org/protocol/pubsub').
+-define(NS_PUBSUB_ERRORS,  'http://jabber.org/protocol/pubsub#errors').
+-define(NS_PUBSUB_EVENT,   'http://jabber.org/protocol/pubsub#event').
+-define(NS_PUBSUB_OWNER,   'http://jabber.org/protocol/pubsub#owner').
 
 % --------------------------------------------------------------------
 % Defines for jlib.
