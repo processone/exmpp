@@ -21,6 +21,9 @@
 	* c_src/xmpp_ns.h.in, c_src/xmpp_attrs.h.in, c_src/xmpp_names.h.in:
 	Added pubsub-related namespaces, element names and attribute names.
 
+	* c_src/Makefile.am: Fixed CPPFLAGS for expat_drv (EXPAT_CPPFLAS was
+	missing).
+
 2006-10-30  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* priv/lib/Makefile.am: Copies of stringprep_drv.so,

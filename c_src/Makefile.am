@@ -24,8 +24,9 @@ ejabberd_zlib_drv_la_LDFLAGS = -module -avoid-version\
 ejabberd_zlib_drv_la_SOURCES = ejabberd_zlib_drv.c
 
 # Expat port driver
-expat_drv_la_CPPFLAGS = -I$(srcdir)/contrib -I$(builddir)/contrib\
-			$(EI_CPPFLAGS) -DEI_ENCODE_STRING_BUG
+expat_drv_la_CPPFLAGS = -I$(srcdir)/contrib\
+			$(EI_CPPFLAGS) -DEI_ENCODE_STRING_BUG\
+			$(EXPAT_CPPFLAGS)
 expat_drv_la_LDFLAGS = -module -avoid-version\
 		       $(EI_LDFLAGS) $(EI_LIBS)\
 		       $(EXPAT_LDFLAGS) $(EXPAT_LIBS)
