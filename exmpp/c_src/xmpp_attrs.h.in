@@ -35,3 +35,29 @@ ask
 jid
 name
 subscription
+
+# In the `http://jabber.org/protocol/pubsub' namespace
+affiliation
+id
+jid
+max_items
+node
+notify
+subid
+subscription
+
+# In the `http://jabber.org/protocol/pubsub#errors' namespace
+feature
+
+# In the `http://jabber.org/protocol/pubsub#event' namespace
+id
+jid
+node
+subid
+subscription
+
+# In the `http://jabber.org/protocol/pubsub#owner' namespace
+affiliation
+jid
+node
+subscription

@@ -14,3 +14,7 @@ urn:ietf:params:xml:ns:xmpp-tls
 jabber:iq:privacy
 jabber:iq:roster
 jabber:iq:auth
+http://jabber.org/protocol/pubsub
+http://jabber.org/protocol/pubsub#errors
+http://jabber.org/protocol/pubsub#event
+http://jabber.org/protocol/pubsub#owner
