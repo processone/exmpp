@@ -11,6 +11,8 @@
 	* doc/Makefile.am: Clean stylesheet.css if it was copied at compile
 	time.
 
+	* src/exmpp_factory.erl: Add functions to make common pubsub stanzas.
+
 2006-10-30  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* priv/lib/Makefile.am: Copies of stringprep_drv.so,
