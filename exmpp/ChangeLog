@@ -13,6 +13,9 @@
 
 	* src/exmpp_factory.erl: Add functions to make common pubsub stanzas.
 
+	* src/exmpp_jlib.erl: Add functions to convert #jid{} to string and
+	the other way around. Style.
+
 2006-10-30  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* priv/lib/Makefile.am: Copies of stringprep_drv.so,
