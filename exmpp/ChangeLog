@@ -8,6 +8,9 @@
 	* include/exmpp.hrl: Add `jabber:iq:privacy', `jabber:iq:roster' and
 	`urn:ietf:params:xml:ns:xmpp-session' namespaces.
 
+	* doc/Makefile.am: Clean stylesheet.css if it was copied at compile
+	time.
+
 2006-10-30  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* priv/lib/Makefile.am: Copies of stringprep_drv.so,

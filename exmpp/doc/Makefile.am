@@ -13,5 +13,8 @@ all-local: stylesheet.css
 		'[{def, {vsn, "$(PACKAGE_VERSION)"}}, {dir, "."}, {stylesheet, "stylesheet.css"}, {preprocess, true}]'\
 		-s erlang halt
 
+clean-local:
+	(test "$(srcdir)" != "." && rm -f stylesheet.css) || :
+
 CLEANFILES = *.html edoc-info
 endif
