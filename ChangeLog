@@ -1,7 +1,12 @@
 2007-01-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
-	* include/exmpp.hrl: Ajout des namespaces `jabber:iq:privacy',
-	`jabber:iq:roster' et `urn:ietf:params:xml:ns:xmpp-session'.
+	* configure.ac: Head is now the future 0.6 branch. Dropped
+	`EXMPP_BUILD_ID'. Debug is diabled by default when
+	`EXMPP_RELEASE_DATE' is set and enabled otherwise. Comments translated
+	in english.
+
+	* include/exmpp.hrl: Add `jabber:iq:privacy', `jabber:iq:roster' and
+	`urn:ietf:params:xml:ns:xmpp-session' namespaces.
 
 2006-10-30  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
