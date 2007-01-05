@@ -56,13 +56,13 @@ h1 {
 EOF
 
 	line_nb=`wc -l "$in"`
-	tail -n $((${line_nb% *} - 4)) "$in" | sed -r			\
-	-e 's,<,\&lt;,g' -e 's,>,\&gt;,g'				\
-	-e 's,(.*0\.\.\|.*),<span class="notcov">\1</span>,'		\
-	-e 's,(.*[0-9]+\.\.\|.*),<span class="cov">\1</span>,'		\
-	-e 's,(.*\|\s+% \$Id.*),<span class="cvsid">\1</span>,'		\
-	-e 's,(.*\|\s+%.*),<span class="comment">\1</span>,'		\
-	-e 's,(.*\|\s{2}\w+.*),<span class="func">\1</span>,'		\
+	tail -n $((${line_nb% *} - 4)) "$in" | sed								\
+	-e 's,<,\&lt;,g' -e 's,>,\&gt;,g'									\
+	-e 's,^\([[:space:]]*0\.\.|.*\),<span class="notcov">\1</span>,'					\
+	-e 's,^\([[:space:]]*[1-9][0-9]*\.\.|.*\),<span class="cov">\1</span>,'					\
+	-e 's,^\([[:space:]]*|[[:space:]][[:space:]]*% \$Id.*\),<span class="cvsid">\1</span>,'			\
+	-e 's,^\([[:space:]]*|[[:space:]][[:space:]]*%.*\),<span class="comment">\1</span>,'			\
+	-e 's,^\([[:space:]]*|[[:space:]]\{2\}[[:alpha:]][[:alpha:]]*.*\),<span class="func">\1</span>,'	\
 	>> "$out"
 
 	cat << EOF >> "$out"
@@ -75,12 +75,18 @@ EOF
 
 script=`basename $0`
 
-flags="-top_srcdir ${TOP_SRCDIR} -top_builddir ${TOP_BUILDIR} -tests ${TESTS} -covered_modules ${COVERED_MODULES}"
+flags="-tests ${TESTS} -covered_modules ${COVERED_MODULES}"
+
+flags="$flags -top_srcdir ${TOP_SRCDIR:-.}"
+flags="$flags -top_builddir ${TOP_BUILDDIR:-.}"
 
 IFS=" " # To avoid newline strip
 
-ret=`$ERL -pa ../ebin -noshell -eval "${script}:check(), init:stop()." $flags`
-output=`echo "$ret" | head -n -1`
+ret=`$ERL -pa ${TOP_BUILDDIR}/ebin -noshell -eval "${script}:check(), init:stop()." $flags`
+linecount=`echo "$ret" | wc -l`
+if test $linecount -gt 1; then
+	output=`echo "$ret" | head -n $((linecount - 1))`
+fi
 exit_code=`echo "$ret" | tail -n 1`
 
 case $exit_code in
