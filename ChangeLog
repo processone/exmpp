@@ -1,7 +1,11 @@
+2007-01-09  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* configure.ac: Fixed the name of a variable.
+
 2007-01-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* configure.ac: Head is now the future 0.6 branch. Dropped
-	`EXMPP_BUILD_ID'. Debug is diabled by default when
+	`EXMPP_BUILD_ID'. Debug is disabled by default when
 	`EXMPP_RELEASE_DATE' is set and enabled otherwise. Comments translated
 	in english.
 

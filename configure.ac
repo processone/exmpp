@@ -99,7 +99,7 @@ expand_var () {
 }
 
 dnl Debugging option.
-if test "x${CHARON_RELEASE_DATE}" = "x"; then
+if test "x${EXMPP_RELEASE_DATE}" = "x"; then
 	enable_debug="yes"
 else
 	enable_debug="no"
