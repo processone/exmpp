@@ -4,7 +4,7 @@ dnl ------------------------------------------------------------------
 dnl Autoconf initialisation.
 dnl ------------------------------------------------------------------
 
-AC_INIT([exmpp], [0.6.0], [js.pedron@meetic-corp.com], [exmpp])
+AC_INIT([exmpp], [0.7.0], [js.pedron@meetic-corp.com], [exmpp])
 AC_CONFIG_SRCDIR([include/exmpp.hrl])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([ac-aux])
@@ -21,7 +21,7 @@ dnl Versionning
 dnl ------------------------------------------------------------------
 
 EXMPP_MAJOR=0
-EXMPP_MINOR=6
+EXMPP_MINOR=7
 EXMPP_MICRO=0
 EXMPP_VERSION="$EXMPP_MAJOR.$EXMPP_MINOR.$EXMPP_MICRO"
 
