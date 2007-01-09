@@ -1,5 +1,9 @@
 2007-01-09  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
+	* configure.ac: Next branch will be 0.7.
+
+2007-01-09  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
 	* configure.ac: Fixed the name of a variable.
 
 2007-01-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
