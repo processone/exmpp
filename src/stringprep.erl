@@ -1,7 +1,7 @@
 %%%----------------------------------------------------------------------
 %%% File    : stringprep.erl
 %%% Author  : Alexey Shchepin <alexey@sevcom.net>
-%%% Purpose : Interface to stringprep_drv
+%%% Purpose : Interface to exmpp_stringprep_drv
 %%% Created : 16 Feb 2003 by Alexey Shchepin <alexey@sevcom.net>
 %%% Id      : $Id$
 %%%----------------------------------------------------------------------
@@ -43,11 +43,11 @@ init([]) ->
         {error, _Reason} -> "priv/lib";
         Priv_Dir         -> Priv_Dir ++ "/lib"
     end,
-    case erl_ddll:load_driver(Dir, stringprep_drv) of
+    case erl_ddll:load_driver(Dir, exmpp_stringprep_drv) of
 	ok -> ok;
 	{error, already_loaded} -> ok
     end,
-    Port = open_port({spawn, stringprep_drv}, []),
+    Port = open_port({spawn, exmpp_stringprep_drv}, []),
     register(?STRINGPREP_PORT, Port),
     {ok, Port}.
 
