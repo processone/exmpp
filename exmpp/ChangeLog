@@ -1,7 +1,10 @@
 2007-02-06  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
-	* uni_data.c, uni_norm.c, stringprep_uni_data.h,
-	stringprep_uni_norm.h: Renamed as real headers.
+	* c_src/uni_data.c, c_src/uni_norm.c, c_src/stringprep_uni_data.h,
+	c_src/stringprep_uni_norm.h: Renamed as real headers.
+
+	* c_src/stringprep_drv.c: Internal name of the driver changed to
+	`exmpp_stringprep_erl'.
 
 2007-01-09  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 

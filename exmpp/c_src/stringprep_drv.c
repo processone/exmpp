@@ -5,8 +5,12 @@
 #include <erl_driver.h>
 #include <ei.h>
 
-#include "uni_data.c"
-#include "uni_norm.c"
+#include "stringprep_uni_data.h"
+#include "stringprep_uni_norm.h"
+
+#define	DRIVER_NAME	exmpp_stringprep_drv
+#define	_S(s)		#s
+#define	S(s)		_S(s)
 
 #define NAMEPREP_COMMAND 1
 #define NODEPREP_COMMAND 2
@@ -377,7 +381,7 @@ ErlDrvEntry stringprep_driver_entry = {
    NULL,			/* F_PTR output, called when erlang has sent */
    NULL,			/* F_PTR ready_input, called when input descriptor ready */
    NULL,			/* F_PTR ready_output, called when output descriptor ready */
-   "stringprep_drv",		/* char *driver_name, the argument to open_port */
+   S(DRIVER_NAME),		/* char *driver_name, the argument to open_port */
    NULL,			/* F_PTR finish, called when unloaded */
    NULL,			/* handle */
    stringprep_erl_control,	/* F_PTR control, port_command callback */
@@ -385,7 +389,7 @@ ErlDrvEntry stringprep_driver_entry = {
    NULL				/* F_PTR outputv, reserved */
 };
 
-DRIVER_INIT(stringprep_erl) /* must match name in driver_entry */
+DRIVER_INIT(DRIVER_NAME) /* must match name in driver_entry */
 {
     return &stringprep_driver_entry;
 }
