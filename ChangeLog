@@ -7,9 +7,9 @@
 	`exmpp_stringprep_erl'.
 
 	* c_src/exmpp_stringprep_drv.c, c_src/exmpp_stringprep_drv.c,
-	c_src/Makefile.am, src/stringprep.erl: Prefixed `stringprep_drv' with
-	`exmpp_' to avoid conflicts with ejabberd's own stringprep_drv. This
-	permits exmpp to coexist with ejabberd.
+	c_src/Makefile.am, src/stringprep.erl, priv/lib/Makefile.am: Prefixed
+	`stringprep_drv' with `exmpp_' to avoid conflicts with ejabberd's own
+	stringprep_drv. This permits exmpp to coexist with ejabberd.
 
 2007-01-09  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
