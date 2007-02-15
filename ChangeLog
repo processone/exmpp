@@ -15,6 +15,9 @@
 	* src/exmpp_jid.erl: New module which provides functions to manipulate
 	JIDs.
 
+	* src/Emakefile.in, src/Makefile.am, ebin/Makefile.am: Link each new
+	modules to the build.
+
 2007-02-06  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* c_src/uni_data.c, c_src/uni_norm.c, c_src/stringprep_uni_data.h,
