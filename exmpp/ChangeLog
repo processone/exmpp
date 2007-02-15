@@ -9,6 +9,9 @@
 	* src/exmpp_sup.erl: Supervisor who is responsible for
 	exmpp_stringprep startup.
 
+	* src/exmpp.erl, ebin/exmpp.app.in: This module uses the `application'
+	behaviour now. It starts `exmpp_sup'.
+
 2007-02-06  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* c_src/uni_data.c, c_src/uni_norm.c, c_src/stringprep_uni_data.h,
