@@ -22,7 +22,8 @@
     {applications, [
         kernel,
         stdlib
-    ]}
+    ]},
+    {mod, {exmpp, []}}
 ]}.
 
 % vim:ft=erlang:ts=8:
