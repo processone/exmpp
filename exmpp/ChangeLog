@@ -12,6 +12,9 @@
 	* src/exmpp.erl, ebin/exmpp.app.in: This module uses the `application'
 	behaviour now. It starts `exmpp_sup'.
 
+	* src/exmpp_jid.erl: New module which provides functions to manipulate
+	JIDs.
+
 2007-02-06  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* c_src/uni_data.c, c_src/uni_norm.c, c_src/stringprep_uni_data.h,
