@@ -1,3 +1,8 @@
+2007-02-15  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/exmpp_stringprep.erl: New frontend for the exmpp_stringprep_drv
+	port driver.
+
 2007-02-06  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* c_src/uni_data.c, c_src/uni_norm.c, c_src/stringprep_uni_data.h,
