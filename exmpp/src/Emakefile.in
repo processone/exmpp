@@ -3,8 +3,12 @@
 {
 	[
 		'@srcdir@/exmpp',
+		'@srcdir@/exmpp_sup',
+		'@srcdir@/exmpp_internals',
 		'@srcdir@/exmpp_xml',
 		'@srcdir@/exmpp_xmlstream',
+		'@srcdir@/exmpp_stringprep',
+		'@srcdir@/exmpp_jid',
 		'@srcdir@/exmpp_factory',
 		'@srcdir@/exmpp_jlib'@COMPAT_MODULES_START@
 		@COMPAT_MODULES@'@srcdir@/ejabberd_zlib',

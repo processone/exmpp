@@ -5,10 +5,14 @@ beamdir =  $(ERLANG_INSTALL_LIB_DIR_exmpp)/ebin
 beam_DATA = exmpp.app							\
 	    exmpp.appup							\
 	    exmpp.beam							\
+	    exmpp_sup.beam						\
+	    exmpp_internals.beam					\
 	    exmpp_xml.beam						\
 	    exmpp_xmlstream.beam					\
-	    exmpp_jlib.beam						\
-	    exmpp_factory.beam
+	    exmpp_stringprep.beam					\
+	    exmpp_jid.beam						\
+	    exmpp_factory.beam						\
+	    exmpp_jlib.beam
 
 if BUILD_COMPAT
 beam_DATA +=
