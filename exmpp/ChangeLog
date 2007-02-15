@@ -18,6 +18,9 @@
 	* src/Emakefile.in, src/Makefile.am, ebin/Makefile.am: Link each new
 	modules to the build.
 
+	* testsuite/check_jid.erl, testsuite/Emakefile.in,
+	testsuite/Makefile.am: Add a first testsuite for `exmpp_jid'.
+
 2007-02-06  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* c_src/uni_data.c, c_src/uni_norm.c, c_src/stringprep_uni_data.h,
