@@ -1,3 +1,9 @@
+2007-02-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/exmpp_jid.erl: Reworked JID parsing to handle more error cases.
+	Now, the resource for a bare JID is set to `undefined', not the empty
+	string.
+
 2007-02-15  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_stringprep.erl: New frontend for the exmpp_stringprep_drv
