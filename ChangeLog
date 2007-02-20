@@ -19,6 +19,10 @@
 	Disable documentation by default, because `xmerl' is broken in Erlang
 	R11B-3.
 
+	* c_src/iconv_erl.c: Fixed a warning with iconv(3): on some platforms,
+	`inbuf' is qualified by `const'. The configure script will check the
+	prototype for us.
+
 2007-02-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_jid.erl: Reworked JID parsing to handle more error cases.
