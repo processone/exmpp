@@ -6,6 +6,8 @@
 #include <ei.h>
 #include <iconv.h>
 
+#include "config.h"
+
 typedef struct {
       ErlDrvPort port;
       iconv_t cd;
@@ -76,7 +78,8 @@ static int iconv_erl_control(ErlDrvData drv_data,
    inleft = size;
    rtmp = rstring = malloc(avail);
    while (inleft > 0) {
-      if (iconv(cd, &stmp, &inleft, &rtmp, &outleft) == (size_t) -1) {
+      if (iconv(cd, (ICONV_CONST char **)&stmp,
+	&inleft, &rtmp, &outleft) == (size_t) -1) {
 	 stmp++;
 	 inleft--;
       }
