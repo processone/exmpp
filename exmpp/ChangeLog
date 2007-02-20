@@ -1,3 +1,9 @@
+2007-02-20  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/exmpp_stringprep.erl: Catch up with original `stringprep' level
+	of feature: a function to lowercase strings was added. Add functions
+	if an identifier is a valid node, name or resource.
+
 2007-02-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_jid.erl: Reworked JID parsing to handle more error cases.

@@ -16,7 +16,11 @@
   start_link/0,
   nodeprep/1,
   nameprep/1,
-  resourceprep/1
+  resourceprep/1,
+  is_node/1,
+  is_name/1,
+  is_resource/1,
+  to_lower/1
 ]).
 
 % gen_server(3erl) callbacks.
@@ -37,6 +41,7 @@
 -define(DRIVER_NAME, exmpp_stringprep_drv).
 -define(PORT_REGISTERED_NAME, exmpp_stringprep_port).
 
+-define(COMMAND_LOWERCASE,    0).
 -define(COMMAND_NAMEPREP,     1).
 -define(COMMAND_NODEPREP,     2).
 -define(COMMAND_RESOURCEPREP, 3).
@@ -63,6 +68,32 @@ nameprep(String) ->
 
 resourceprep(String) ->
     control(?COMMAND_RESOURCEPREP, String).
+
+% --------------------------------------------------------------------
+% Tools.
+% --------------------------------------------------------------------
+
+is_node("") ->
+    false;
+is_node(String) ->
+    nodeprep(String) /= error.
+
+is_name("") ->
+    false;
+is_name(String) ->
+    nameprep(String) /= error.
+
+is_resource("") ->
+    false;
+is_resource(String) ->
+    resourceprep(String) /= error.
+
+to_lower(String) ->
+    control(?COMMAND_LOWERCASE, String).
+
+% --------------------------------------------------------------------
+% Internal functions.
+% --------------------------------------------------------------------
 
 control(Command, String) ->
     case port_control(?PORT_REGISTERED_NAME, Command, String) of
