@@ -140,90 +140,28 @@ remove_attr(Attr, {xmlelement, Name, Attrs, Els}) ->
     {xmlelement, Name, NewAttrs, Els}.
 
 
-make_jid(User, Server, Resource) ->
-    case nodeprep(User) of
-	error -> error;
-	LUser ->
-	    case nameprep(Server) of
-		error -> error;
-		LServer ->
-		    case resourceprep(Resource) of
-			error -> error;
-			LResource ->
-			    #jid{user = User,
-				 server = Server,
-				 resource = Resource,
-				 luser = LUser,
-				 lserver = LServer,
-				 lresource = LResource}
-		    end
-	    end
-    end.
+make_jid(Node, Domain, Resource) ->
+    exmpp_jid:make_jid(Node, Domain, Resource).
 
-make_jid({User, Server, Resource}) ->
-    make_jid(User, Server, Resource).
+make_jid({Node, Domain, Resource}) ->
+    exmpp_jid:make_jid(Node, Domain, Resource).
 
-string_to_jid(J) ->
-    string_to_jid1(J, "").
+string_to_jid(String) ->
+    exmpp_jid:string_to_jid(String).
 
-string_to_jid1([$@ | _J], "") ->
-    error;
-string_to_jid1([$@ | J], N) ->
-    string_to_jid2(J, lists:reverse(N), "");
-string_to_jid1([$/ | _J], "") ->
-    error;
-string_to_jid1([$/ | J], N) ->
-    string_to_jid3(J, "", lists:reverse(N), "");
-string_to_jid1([C | J], N) ->
-    string_to_jid1(J, [C | N]);
-string_to_jid1([], "") ->
-    error;
-string_to_jid1([], N) ->
-    make_jid("", lists:reverse(N), "").
-
-%% Only one "@" is admitted per JID
-string_to_jid2([$@ | _J], _N, _S) ->
-    error;
-string_to_jid2([$/ | _J], _N, "") ->
-    error;
-string_to_jid2([$/ | J], N, S) ->
-    string_to_jid3(J, N, lists:reverse(S), "");
-string_to_jid2([C | J], N, S) ->
-    string_to_jid2(J, N, [C | S]);
-string_to_jid2([], _N, "") ->
-    error;
-string_to_jid2([], N, S) ->
-    make_jid(N, lists:reverse(S), "").
-
-string_to_jid3([C | J], N, S, R) ->
-    string_to_jid3(J, N, S, [C | R]);
-string_to_jid3([], N, S, R) ->
-    make_jid(N, S, lists:reverse(R)).
-
-jid_to_string(#jid{user = User, server = Server, resource = Resource}) ->
-    jid_to_string({User, Server, Resource});
-jid_to_string({Node, Server, Resource}) ->
-    S1 = case Node of
-	     "" ->
-		 "";
-	     _ ->
-		 Node ++ "@"
-	 end,
-    S2 = S1 ++ Server,
-    S3 = case Resource of
-	     "" ->
-		 S2;
-	     _ ->
-		 S2 ++ "/" ++ Resource
-	 end,
-    S3.
+jid_to_string({Node, Domain, Resource}) ->
+    case exmpp_jid:make_jid(Node, Domain, Resource) of
+        {error, Reason} ->
+            {error, Reason};
+        Jid ->
+            exmpp_jid:jid_to_string(Jid)
+    end;
+jid_to_string(Jid) ->
+    exmpp_jid:jid_to_string(Jid).
 
 
-is_nodename([]) ->
-    false;
-is_nodename(J) ->
-    nodeprep(J) /= error.
-
+is_nodename(String) ->
+    exmpp_stringprep:is_node(String).
 
 %tolower_c(C) when C >= $A, C =< $Z ->
 %    C + 32;
@@ -264,7 +202,7 @@ tolower([]) ->
 
 
 nodeprep(S) when length(S) < 1024 ->
-    R = stringprep:nodeprep(S),
+    R = exmpp_stringprep:nodeprep(S),
     if
 	length(R) < 1024 -> R;
 	true -> error
@@ -273,7 +211,7 @@ nodeprep(_) ->
     error.
 
 nameprep(S) when length(S) < 1024 ->
-    R = stringprep:nameprep(S),
+    R = exmpp_stringprep:nameprep(S),
     if
 	length(R) < 1024 -> R;
 	true -> error
@@ -282,7 +220,7 @@ nameprep(_) ->
     error.
 
 resourceprep(S) when length(S) < 1024 ->
-    R = stringprep:resourceprep(S),
+    R = exmpp_stringprep:resourceprep(S),
     if
 	length(R) < 1024 -> R;
 	true -> error

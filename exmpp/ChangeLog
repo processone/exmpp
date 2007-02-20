@@ -13,6 +13,8 @@
 
 	* src/exmpp_jlib.erl: Drop JID handling functions.
 
+	* src/jlib.erl: Use `exmpp_jid' and `exmpp_stringprep' to treat JIDs.
+
 2007-02-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_jid.erl: Reworked JID parsing to handle more error cases.
