@@ -13,6 +13,7 @@ check() ->
 
 do_check() ->
 	exmpp:start(),
+        test_too_long_identifiers(),
         test_good_jid_creation(),
         test_jid_creation_with_bad_syntax(),
         test_jid_creation_with_bad_chars(),
@@ -29,6 +30,14 @@ do_check() ->
 % JID handling testsuite.
 % --------------------------------------------------------------------
 
+-define(NODE, "n").
+-define(DOMAIN, "d").
+-define(RESOURCE, "r").
+
+-define(NODE_TOO_LONG, "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn").
+-define(DOMAIN_TOO_LONG, "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd").
+-define(RESOURCE_TOO_LONG, "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr").
+
 -define(FJ1, #jid{
   user = "John",
   server = "example.org",
@@ -38,9 +47,9 @@ do_check() ->
   lresource = "Work"
 }).
 -define(FJ1_S, "John@example.org/Work").
--define(FJ1_S_Bad1, "John" ++ [0] ++ "@example.org/Work").
--define(FJ1_S_Bad2, "John@example.org" ++ [128] ++ "/Work").
--define(FJ1_S_Bad3, "John@example.org/Work" ++ [0]).
+-define(FJ1_S_BAD1, "John" ++ [0] ++ "@example.org/Work").
+-define(FJ1_S_BAD2, "John@example.org" ++ [128] ++ "/Work").
+-define(FJ1_S_BAD3, "John@example.org/Work" ++ [0]).
 
 -define(FJ2, #jid{
   user = undefined,
@@ -51,8 +60,8 @@ do_check() ->
   lresource = "Work"
 }).
 -define(FJ2_S, "example.org/Work").
--define(FJ2_S_Bad1, "example.org" ++ [128] ++ "/Work").
--define(FJ2_S_Bad2, "example.org/Work" ++ [0]).
+-define(FJ2_S_BAD1, "example.org" ++ [128] ++ "/Work").
+-define(FJ2_S_BAD2, "example.org/Work" ++ [0]).
 
 -define(BJ1, #jid{
   user = "John",
@@ -63,8 +72,8 @@ do_check() ->
   lresource = undefined
 }).
 -define(BJ1_S, "John@example.org").
--define(BJ1_S_Bad1, "John" ++ [0] ++ "@example.org").
--define(BJ1_S_Bad2, "John@example.org" ++ [128]).
+-define(BJ1_S_BAD1, "John" ++ [0] ++ "@example.org").
+-define(BJ1_S_BAD2, "John@example.org" ++ [128]).
 
 -define(BJ2, #jid{
   user = undefined,
@@ -75,10 +84,25 @@ do_check() ->
   lresource = undefined
 }).
 -define(BJ2_S, "example.org").
--define(BJ2_S_Bad1, "example.org" ++ [128]).
+-define(BJ2_S_BAD1, "example.org" ++ [128]).
 
--define(Res, "Work").
--define(Res_Bad, "Work" ++ [0]).
+-define(RES, "Work").
+-define(RES_BAD, "Work" ++ [0]).
+
+test_too_long_identifiers() ->
+    testsuite:is(exmpp_jid:make_jid(?NODE, ?DOMAIN_TOO_LONG, ?RESOURCE),
+      {error, domain_too_long}),
+    testsuite:is(exmpp_jid:make_jid(?NODE_TOO_LONG, ?DOMAIN, ?RESOURCE),
+      {error, node_too_long}),
+    testsuite:is(exmpp_jid:make_jid(?NODE, ?DOMAIN, ?RESOURCE_TOO_LONG),
+      {error, resource_too_long}),
+    testsuite:is(exmpp_jid:string_to_bare_jid(
+      ?NODE_TOO_LONG ++ [$@] ++ ?DOMAIN_TOO_LONG),
+      {error, jid_too_long}),
+    testsuite:is(exmpp_jid:string_to_jid(
+      ?NODE_TOO_LONG ++ [$@] ++ ?DOMAIN_TOO_LONG ++ [$/] ++ ?RESOURCE_TOO_LONG),
+      {error, jid_too_long}),
+    ok.
 
 test_good_jid_creation() ->
     FJ1 = exmpp_jid:string_to_jid(?FJ1_S),
@@ -125,22 +149,22 @@ test_jid_creation_with_bad_syntax() ->
     ok.
 
 test_jid_creation_with_bad_chars() ->
-    FJ1_Bad1 = exmpp_jid:string_to_jid(?FJ1_S_Bad1),
-    testsuite:is(FJ1_Bad1, {error, bad_user}),
-    FJ1_Bad2 = exmpp_jid:string_to_jid(?FJ1_S_Bad2),
-    testsuite:is(FJ1_Bad2, {error, bad_server}),
-    FJ1_Bad3 = exmpp_jid:string_to_jid(?FJ1_S_Bad3),
+    FJ1_Bad1 = exmpp_jid:string_to_jid(?FJ1_S_BAD1),
+    testsuite:is(FJ1_Bad1, {error, bad_node}),
+    FJ1_Bad2 = exmpp_jid:string_to_jid(?FJ1_S_BAD2),
+    testsuite:is(FJ1_Bad2, {error, bad_domain}),
+    FJ1_Bad3 = exmpp_jid:string_to_jid(?FJ1_S_BAD3),
     testsuite:is(FJ1_Bad3, {error, bad_resource}),
-    FJ2_Bad1 = exmpp_jid:string_to_jid(?FJ2_S_Bad1),
-    testsuite:is(FJ2_Bad1, {error, bad_server}),
-    FJ2_Bad2 = exmpp_jid:string_to_jid(?FJ2_S_Bad2),
+    FJ2_Bad1 = exmpp_jid:string_to_jid(?FJ2_S_BAD1),
+    testsuite:is(FJ2_Bad1, {error, bad_domain}),
+    FJ2_Bad2 = exmpp_jid:string_to_jid(?FJ2_S_BAD2),
     testsuite:is(FJ2_Bad2, {error, bad_resource}),
-    BJ1_Bad1 = exmpp_jid:string_to_jid(?BJ1_S_Bad1),
-    testsuite:is(BJ1_Bad1, {error, bad_user}),
-    BJ1_Bad2 = exmpp_jid:string_to_jid(?BJ1_S_Bad2),
-    testsuite:is(BJ1_Bad2, {error, bad_server}),
-    BJ2_Bad1 = exmpp_jid:string_to_jid(?BJ2_S_Bad1),
-    testsuite:is(BJ2_Bad1, {error, bad_server}),
+    BJ1_Bad1 = exmpp_jid:string_to_jid(?BJ1_S_BAD1),
+    testsuite:is(BJ1_Bad1, {error, bad_node}),
+    BJ1_Bad2 = exmpp_jid:string_to_jid(?BJ1_S_BAD2),
+    testsuite:is(BJ1_Bad2, {error, bad_domain}),
+    BJ2_Bad1 = exmpp_jid:string_to_jid(?BJ2_S_BAD1),
+    testsuite:is(BJ2_Bad1, {error, bad_domain}),
     ok.
 
 test_good_bare_jid_creation() ->
@@ -155,22 +179,22 @@ test_good_bare_jid_creation() ->
     ok.
 
 test_bare_jid_creation_with_bad_chars() ->
-    FJ1_Bad1 = exmpp_jid:string_to_bare_jid(?FJ1_S_Bad1),
-    testsuite:is(FJ1_Bad1, {error, bad_user}),
-    FJ1_Bad2 = exmpp_jid:string_to_bare_jid(?FJ1_S_Bad2),
-    testsuite:is(FJ1_Bad2, {error, bad_server}),
-    FJ1_Bad3 = exmpp_jid:string_to_bare_jid(?FJ1_S_Bad3),
+    FJ1_Bad1 = exmpp_jid:string_to_bare_jid(?FJ1_S_BAD1),
+    testsuite:is(FJ1_Bad1, {error, bad_node}),
+    FJ1_Bad2 = exmpp_jid:string_to_bare_jid(?FJ1_S_BAD2),
+    testsuite:is(FJ1_Bad2, {error, bad_domain}),
+    FJ1_Bad3 = exmpp_jid:string_to_bare_jid(?FJ1_S_BAD3),
     testsuite:is(FJ1_Bad3, ?BJ1),
-    FJ2_Bad1 = exmpp_jid:string_to_bare_jid(?FJ2_S_Bad1),
-    testsuite:is(FJ2_Bad1, {error, bad_server}),
-    FJ2_Bad2 = exmpp_jid:string_to_bare_jid(?FJ2_S_Bad2),
+    FJ2_Bad1 = exmpp_jid:string_to_bare_jid(?FJ2_S_BAD1),
+    testsuite:is(FJ2_Bad1, {error, bad_domain}),
+    FJ2_Bad2 = exmpp_jid:string_to_bare_jid(?FJ2_S_BAD2),
     testsuite:is(FJ2_Bad2, ?BJ2),
-    BJ1_Bad1 = exmpp_jid:string_to_bare_jid(?BJ1_S_Bad1),
-    testsuite:is(BJ1_Bad1, {error, bad_user}),
-    BJ1_Bad2 = exmpp_jid:string_to_bare_jid(?BJ1_S_Bad2),
-    testsuite:is(BJ1_Bad2, {error, bad_server}),
-    BJ2_Bad1 = exmpp_jid:string_to_bare_jid(?BJ2_S_Bad1),
-    testsuite:is(BJ2_Bad1, {error, bad_server}),
+    BJ1_Bad1 = exmpp_jid:string_to_bare_jid(?BJ1_S_BAD1),
+    testsuite:is(BJ1_Bad1, {error, bad_node}),
+    BJ1_Bad2 = exmpp_jid:string_to_bare_jid(?BJ1_S_BAD2),
+    testsuite:is(BJ1_Bad2, {error, bad_domain}),
+    BJ2_Bad1 = exmpp_jid:string_to_bare_jid(?BJ2_S_BAD1),
+    testsuite:is(BJ2_Bad1, {error, bad_domain}),
     ok.
 
 test_jid_stringification() ->
@@ -207,23 +231,33 @@ test_jid_conversion() ->
     ok.
 
 test_bare_jid_conversion() ->
-    FJ1 = exmpp_jid:bare_jid_to_jid(?FJ1, ?Res),
+    FJ1 = exmpp_jid:bare_jid_to_jid(?FJ1, ?RES),
     testsuite:is(FJ1, ?FJ1),
-    BJ1 = exmpp_jid:bare_jid_to_jid(?BJ1, ?Res),
+    BJ1 = exmpp_jid:bare_jid_to_jid(?BJ1, ?RES),
     testsuite:is(BJ1, ?FJ1),
-    FJ2 = exmpp_jid:bare_jid_to_jid(?FJ2, ?Res),
+    FJ2 = exmpp_jid:bare_jid_to_jid(?FJ2, ?RES),
     testsuite:is(FJ2, ?FJ2),
-    BJ2 = exmpp_jid:bare_jid_to_jid(?BJ2, ?Res),
+    BJ2 = exmpp_jid:bare_jid_to_jid(?BJ2, ?RES),
     testsuite:is(BJ2, ?FJ2),
+    testsuite:is(exmpp_jid:bare_jid_to_jid(?FJ1, undefined), ?FJ1),
+    testsuite:is(exmpp_jid:bare_jid_to_jid(?BJ1, undefined), ?BJ1),
     ok.
 
 test_bare_jid_conversion_with_bad_resource() ->
-    FJ1 = exmpp_jid:bare_jid_to_jid(?FJ1, ?Res_Bad),
+    FJ1 = exmpp_jid:bare_jid_to_jid(?FJ1, ?RES_BAD),
     testsuite:is(FJ1, {error, bad_resource}),
-    BJ1 = exmpp_jid:bare_jid_to_jid(?BJ1, ?Res_Bad),
+    FJ1_Long = exmpp_jid:bare_jid_to_jid(?FJ1, ?RESOURCE_TOO_LONG),
+    testsuite:is(FJ1_Long, {error, resource_too_long}),
+    BJ1 = exmpp_jid:bare_jid_to_jid(?BJ1, ?RES_BAD),
     testsuite:is(BJ1, {error, bad_resource}),
-    FJ2 = exmpp_jid:bare_jid_to_jid(?FJ2, ?Res_Bad),
+    BJ1_Long = exmpp_jid:bare_jid_to_jid(?BJ1, ?RESOURCE_TOO_LONG),
+    testsuite:is(BJ1_Long, {error, resource_too_long}),
+    FJ2 = exmpp_jid:bare_jid_to_jid(?FJ2, ?RES_BAD),
     testsuite:is(FJ2, {error, bad_resource}),
-    BJ2 = exmpp_jid:bare_jid_to_jid(?BJ2, ?Res_Bad),
+    FJ2_Long = exmpp_jid:bare_jid_to_jid(?FJ2, ?RESOURCE_TOO_LONG),
+    testsuite:is(FJ2_Long, {error, resource_too_long}),
+    BJ2 = exmpp_jid:bare_jid_to_jid(?BJ2, ?RES_BAD),
     testsuite:is(BJ2, {error, bad_resource}),
+    BJ2_Long = exmpp_jid:bare_jid_to_jid(?BJ2, ?RESOURCE_TOO_LONG),
+    testsuite:is(BJ2_Long, {error, resource_too_long}),
     ok.
