@@ -7,6 +7,10 @@
 	* src/stringprep.erl: `stringprep' is now a simple frontend to
 	`exmpp_stringprep'.
 
+	* src/exmpp_jid.erl: Identifiers length are now checked.
+
+	* testsuite/check_jid.erl: Complete testsuite with length checks.
+
 2007-02-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_jid.erl: Reworked JID parsing to handle more error cases.
