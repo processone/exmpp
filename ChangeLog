@@ -15,6 +15,10 @@
 
 	* src/jlib.erl: Use `exmpp_jid' and `exmpp_stringprep' to treat JIDs.
 
+	* configure.ac: Fixed a bug with --enable-debug option handling.
+	Disable documentation by default, because `xmerl' is broken in Erlang
+	R11B-3.
+
 2007-02-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_jid.erl: Reworked JID parsing to handle more error cases.

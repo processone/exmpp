@@ -100,13 +100,14 @@ expand_var () {
 
 dnl Debugging option.
 if test "x${EXMPP_RELEASE_DATE}" = "x"; then
-	enable_debug="yes"
+	default_enable_debug="yes"
 else
-	enable_debug="no"
+	default_enable_debug="no"
 fi
 AC_ARG_ENABLE([debug],
 	AC_HELP_STRING([--enable-debug],
-	    [turn on debugging [[default=yes]]]),,)
+	    [turn on debugging [[default=auto]]]),,
+	enable_debug=$default_enable_debug)
 if test "x${enable_debug}" = "xyes"; then
 	CPPFLAGS="-DDEBUG ${CPPFLAGS# }"
 	CFLAGS="-g ${CFLAGS# }"
@@ -162,8 +163,8 @@ AC_SUBST(COMPAT_MODULES)
 dnl Documentation.
 AC_ARG_WITH([documentation],
 	AC_HELP_STRING([--with-documentation],
-	    [build documentation [[default=yes]]]),,
-	with_documentation="yes")
+	    [build documentation [[default=no]]]),,
+	with_documentation="no")
 AM_CONDITIONAL(BUILD_DOCUMENTATION, test "x${with_documentation}" = "xyes")
 
 dnl ------------------------------------------------------------------
