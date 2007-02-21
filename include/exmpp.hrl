@@ -73,11 +73,11 @@
 % --------------------------------------------------------------------
 
 -record(jid, {
-	user,
-	server,
+	node,
+	domain,
 	resource,
-	luser,
-	lserver,
+	lnode,
+	ldomain,
 	lresource
 }).
 
