@@ -42,11 +42,11 @@ do_check() ->
 -define(RESOURCE_TOO_LONG, "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr").
 
 -define(FJ1, #jid{
-  user = "John",
-  server = "example.org",
+  node = "John",
+  domain = "example.org",
   resource = "Work",
-  luser = "john",
-  lserver = "example.org",
+  lnode = "john",
+  ldomain = "example.org",
   lresource = "Work"
 }).
 -define(FJ1_S, "John@example.org/Work").
@@ -55,11 +55,11 @@ do_check() ->
 -define(FJ1_S_BAD3, "John@example.org/Work" ++ [0]).
 
 -define(FJ2, #jid{
-  user = undefined,
-  server = "example2.org",
+  node = undefined,
+  domain = "example2.org",
   resource = "Work",
-  luser = undefined,
-  lserver = "example2.org",
+  lnode = undefined,
+  ldomain = "example2.org",
   lresource = "Work"
 }).
 -define(FJ2_S, "example2.org/Work").
@@ -67,11 +67,11 @@ do_check() ->
 -define(FJ2_S_BAD2, "example2.org/Work" ++ [0]).
 
 -define(BJ1, #jid{
-  user = "John",
-  server = "example.org",
+  node = "John",
+  domain = "example.org",
   resource = undefined,
-  luser = "john",
-  lserver = "example.org",
+  lnode = "john",
+  ldomain = "example.org",
   lresource = undefined
 }).
 -define(BJ1_S, "John@example.org").
@@ -79,11 +79,11 @@ do_check() ->
 -define(BJ1_S_BAD2, "John@example.org" ++ [128]).
 
 -define(BJ2, #jid{
-  user = undefined,
-  server = "example2.org",
+  node = undefined,
+  domain = "example2.org",
   resource = undefined,
-  luser = undefined,
-  lserver = "example2.org",
+  lnode = undefined,
+  ldomain = "example2.org",
   lresource = undefined
 }).
 -define(BJ2_S, "example2.org").

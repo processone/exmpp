@@ -4,6 +4,10 @@
 
 	* testsuite/check_jid.erl: Add JID comparison testsuite.
 
+	* include/exmpp.hrl, src/exmpp_jid.erl, src/jlib.erl,
+	testsuite/check_jid.erl: Fields of the #jid record were renamed to use
+	the names found in RFC 3920. THIS CHANGE BREAKS API (not ABI).
+
 2007-02-20  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_stringprep.erl: Catch up with original `stringprep' level

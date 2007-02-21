@@ -229,7 +229,7 @@ resourceprep(_) ->
     error.
 
 
-jid_tolower(#jid{luser = U, lserver = S, lresource = R}) ->
+jid_tolower(#jid{lnode = U, ldomain = S, lresource = R}) ->
     {U, S, R};
 jid_tolower({U, S, R}) ->
     case nodeprep(U) of

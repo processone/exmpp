@@ -56,11 +56,11 @@ make_bare_jid(undefined, Domain) ->
             {error, bad_domain};
         LDomain ->
             #jid{
-              user = undefined,
-              server = Domain,
+              node = undefined,
+              domain = Domain,
               resource = undefined,
-              luser = undefined,
-              lserver = LDomain,
+              lnode = undefined,
+              ldomain = LDomain,
               lresource = undefined
             }
     end;
@@ -77,11 +77,11 @@ make_bare_jid(Node, Domain) ->
                     {error, bad_domain};
                 LDomain ->
                     #jid{
-                      user = Node,
-                      server = Domain,
+                      node = Node,
+                      domain = Domain,
                       resource = undefined,
-                      luser = LNode,
-                      lserver = LDomain,
+                      lnode = LNode,
+                      ldomain = LDomain,
                       lresource = undefined
                     }
             end
@@ -201,7 +201,7 @@ parse_jid(full, [], Node, Domain) ->
 % JID serialization.
 % --------------------------------------------------------------------
 
-jid_to_string(#jid{user = Node, server = Domain, resource = Resource}) ->
+jid_to_string(#jid{node = Node, domain = Domain, resource = Resource}) ->
     jid_to_string(Node, Domain, Resource).
 
 jid_to_string(Node, Domain, Resource) ->
@@ -211,7 +211,7 @@ jid_to_string(Node, Domain, Resource) ->
         _         -> S1 ++ "/" ++ Resource
     end.
 
-bare_jid_to_string(#jid{user = Node, server = Domain}) ->
+bare_jid_to_string(#jid{node = Node, domain = Domain}) ->
     bare_jid_to_string(Node, Domain).
 
 bare_jid_to_string(Node, Domain) ->
@@ -226,22 +226,22 @@ bare_jid_to_string(Node, Domain) ->
 % --------------------------------------------------------------------
 
 compare_jids(
-  #jid{luser = LNode, lserver = LDomain, lresource = LResource},
-  #jid{luser = LNode, lserver = LDomain, lresource = LResource}) ->
+  #jid{lnode = LNode, ldomain = LDomain, lresource = LResource},
+  #jid{lnode = LNode, ldomain = LDomain, lresource = LResource}) ->
     true;
 compare_jids(_Jid1, _Jid2) ->
     false.
 
 compare_bare_jids(
-  #jid{luser = LNode, lserver = LDomain},
-  #jid{luser = LNode, lserver = LDomain}) ->
+  #jid{lnode = LNode, ldomain = LDomain},
+  #jid{lnode = LNode, ldomain = LDomain}) ->
     true;
 compare_bare_jids(_Jid1, _Jid2) ->
     false.
 
 have_same_domain(
-  #jid{lserver = LDomain},
-  #jid{lserver = LDomain}) ->
+  #jid{ldomain = LDomain},
+  #jid{ldomain = LDomain}) ->
     true;
 have_same_domain(_Jid1, _Jid2) ->
     false.
