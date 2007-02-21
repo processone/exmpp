@@ -8,6 +8,10 @@
 	testsuite/check_jid.erl: Fields of the #jid record were renamed to use
 	the names found in RFC 3920. THIS CHANGE BREAKS API (not ABI).
 
+	* ebin/Makefile.am: Because of a misuse of Automake conditionnals, the
+	`beam_DATA' variable was not correct and the compat modules were never
+	installed nor cleaned.
+
 2007-02-20  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_stringprep.erl: Catch up with original `stringprep' level
