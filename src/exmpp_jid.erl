@@ -30,6 +30,13 @@
   bare_jid_to_string/1
 ]).
 
+% Comparison.
+-export([
+  compare_jids/2,
+  compare_bare_jids/2,
+  have_same_domain/2
+]).
+
 -define(NODE_MAX_LENGTH,     1023).
 -define(DOMAIN_MAX_LENGTH,   1023).
 -define(RESOURCE_MAX_LENGTH, 1023).
@@ -213,3 +220,28 @@ bare_jid_to_string(Node, Domain) ->
         _         -> Node ++ "@"
     end,
     S1 ++ Domain.
+
+% --------------------------------------------------------------------
+% JID comparison.
+% --------------------------------------------------------------------
+
+compare_jids(
+  #jid{luser = LNode, lserver = LDomain, lresource = LResource},
+  #jid{luser = LNode, lserver = LDomain, lresource = LResource}) ->
+    true;
+compare_jids(_Jid1, _Jid2) ->
+    false.
+
+compare_bare_jids(
+  #jid{luser = LNode, lserver = LDomain},
+  #jid{luser = LNode, lserver = LDomain}) ->
+    true;
+compare_bare_jids(_Jid1, _Jid2) ->
+    false.
+
+have_same_domain(
+  #jid{lserver = LDomain},
+  #jid{lserver = LDomain}) ->
+    true;
+have_same_domain(_Jid1, _Jid2) ->
+    false.

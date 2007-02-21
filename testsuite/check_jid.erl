@@ -24,6 +24,9 @@ do_check() ->
         test_jid_conversion(),
         test_bare_jid_conversion(),
         test_bare_jid_conversion_with_bad_resource(),
+        test_jid_comparison(),
+        test_bare_jid_comparison(),
+        test_domain_comparison(),
 	ok.
 
 % --------------------------------------------------------------------
@@ -53,15 +56,15 @@ do_check() ->
 
 -define(FJ2, #jid{
   user = undefined,
-  server = "example.org",
+  server = "example2.org",
   resource = "Work",
   luser = undefined,
-  lserver = "example.org",
+  lserver = "example2.org",
   lresource = "Work"
 }).
--define(FJ2_S, "example.org/Work").
--define(FJ2_S_BAD1, "example.org" ++ [128] ++ "/Work").
--define(FJ2_S_BAD2, "example.org/Work" ++ [0]).
+-define(FJ2_S, "example2.org/Work").
+-define(FJ2_S_BAD1, "example2.org" ++ [128] ++ "/Work").
+-define(FJ2_S_BAD2, "example2.org/Work" ++ [0]).
 
 -define(BJ1, #jid{
   user = "John",
@@ -77,14 +80,14 @@ do_check() ->
 
 -define(BJ2, #jid{
   user = undefined,
-  server = "example.org",
+  server = "example2.org",
   resource = undefined,
   luser = undefined,
-  lserver = "example.org",
+  lserver = "example2.org",
   lresource = undefined
 }).
--define(BJ2_S, "example.org").
--define(BJ2_S_BAD1, "example.org" ++ [128]).
+-define(BJ2_S, "example2.org").
+-define(BJ2_S_BAD1, "example2.org" ++ [128]).
 
 -define(RES, "Work").
 -define(RES_BAD, "Work" ++ [0]).
@@ -260,4 +263,31 @@ test_bare_jid_conversion_with_bad_resource() ->
     testsuite:is(BJ2, {error, bad_resource}),
     BJ2_Long = exmpp_jid:bare_jid_to_jid(?BJ2, ?RESOURCE_TOO_LONG),
     testsuite:is(BJ2_Long, {error, resource_too_long}),
+    ok.
+
+test_jid_comparison() ->
+    testsuite:is(exmpp_jid:compare_jids(?FJ1, ?FJ1), true),
+    testsuite:is(exmpp_jid:compare_jids(?FJ1, ?BJ1), false),
+    testsuite:is(exmpp_jid:compare_jids(?FJ2, ?FJ2), true),
+    testsuite:is(exmpp_jid:compare_jids(?FJ2, ?BJ2), false),
+    testsuite:is(exmpp_jid:compare_jids(?FJ1, ?FJ2), false),
+    testsuite:is(exmpp_jid:compare_jids(?BJ1, ?BJ2), false),
+    ok.
+
+test_bare_jid_comparison() ->
+    testsuite:is(exmpp_jid:compare_bare_jids(?FJ1, ?FJ1), true),
+    testsuite:is(exmpp_jid:compare_bare_jids(?FJ1, ?BJ1), true),
+    testsuite:is(exmpp_jid:compare_bare_jids(?FJ2, ?FJ2), true),
+    testsuite:is(exmpp_jid:compare_bare_jids(?FJ2, ?BJ2), true),
+    testsuite:is(exmpp_jid:compare_bare_jids(?FJ1, ?FJ2), false),
+    testsuite:is(exmpp_jid:compare_bare_jids(?BJ1, ?BJ2), false),
+    ok.
+
+test_domain_comparison() ->
+    testsuite:is(exmpp_jid:have_same_domain(?FJ1, ?FJ1), true),
+    testsuite:is(exmpp_jid:have_same_domain(?FJ1, ?BJ1), true),
+    testsuite:is(exmpp_jid:have_same_domain(?FJ2, ?FJ2), true),
+    testsuite:is(exmpp_jid:have_same_domain(?FJ2, ?BJ2), true),
+    testsuite:is(exmpp_jid:have_same_domain(?FJ1, ?FJ2), false),
+    testsuite:is(exmpp_jid:have_same_domain(?FJ1, ?BJ2), false),
     ok.
