@@ -13,6 +13,10 @@
 	* m4/expat.m4: Renamed AM_EXPAT to EXMPP_EXPAT to avoid Automake AM
 	namespace pollution.
 
+	* m4/iconv.m4, m4/lib-link.m4, m4/lib-prefix.m4, m4/lib-ld.m4: Rewrote
+	iconv.m4 because the one from gettext seems broken with
+	cross-compilation and win32 environment.
+
 2007-02-21  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_jid.erl: Add support for JID comparison.
