@@ -1,3 +1,11 @@
+2007-02-28  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/exmpp_internals.erl, src/exmpp_xml.erl: To avoid conflicts
+	between an installed exmpp and a fresh build during testsuite runs,
+	port drivers are first checked in working subdirectories. However,
+	this is not done in modules from the compat layer (ejabberd_zlib,
+	iconv and tls).
+
 2007-02-21  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_jid.erl: Add support for JID comparison.

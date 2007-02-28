@@ -21,9 +21,10 @@
 % --------------------------------------------------------------------
 
 driver_dirs() ->
+    Dirs = ["priv/lib", "../priv/lib"],
     case code:priv_dir(exmpp) of
-        {error, _Reason} -> ["priv/lib", "../priv/lib"];
-        Priv_Dir         -> [Priv_Dir ++ "/lib"]
+        {error, _Reason} -> Dirs;
+        Priv_Dir         -> Dirs ++ [Priv_Dir ++ "/lib"]
     end.
 
 load_driver(Driver_Name) ->
