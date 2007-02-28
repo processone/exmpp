@@ -20,6 +20,10 @@
 	* configure.ac: Add support for cross-compilation and win32 platform.
 	Updated checks for Expat and libiconv. Added checks for OpenSSL.
 
+	* c_src/Makefile.am: Added more AM_CONDITIONNAL's to enable/disable
+	port drivers one by one. Fixed `tls_drv' dependencies. Added support
+	for win32.
+
 2007-02-21  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_jid.erl: Add support for JID comparison.
