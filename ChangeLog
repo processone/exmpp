@@ -10,6 +10,9 @@
 
 	* m4/openssl.m4: New M4 to check OpenSSL presence.
 
+	* m4/expat.m4: Renamed AM_EXPAT to EXMPP_EXPAT to avoid Automake AM
+	namespace pollution.
+
 2007-02-21  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_jid.erl: Add support for JID comparison.

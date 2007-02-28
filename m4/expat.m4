@@ -1,13 +1,14 @@
+dnl $Id$
 dnl
 dnl Configure path for Expat
 dnl
 
-dnl AM_EXPAT([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
+dnl EXMPP_EXPAT([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 dnl Substitutes
 dnl   EXPAT_CPPFLAGS
 dnl   EXPAT_LDFLAGS
 dnl   EXPAT_LIBS
-AC_DEFUN([AM_EXPAT],
+AC_DEFUN([EXMPP_EXPAT],
 [
   AC_ARG_WITH(expat,
     AC_HELP_STRING([--with-expat=PREFIX],
