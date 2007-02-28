@@ -6,6 +6,10 @@
 	this is not done in modules from the compat layer (ejabberd_zlib,
 	iconv and tls).
 
+	* m4/zlib.m4: New M4 to check Zlib presence.
+
+	* m4/openssl.m4: New M4 to check OpenSSL presence.
+
 2007-02-21  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_jid.erl: Add support for JID comparison.
