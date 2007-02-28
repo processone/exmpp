@@ -13,6 +13,8 @@ configure_paramters="[$]@"
 
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
+AC_CANONICAL_HOST
+
 AC_PREREQ([2.59])
 AC_REVISION([$Revision$])
 
@@ -43,9 +45,6 @@ AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 
 #AC_C_CONST
-#AC_C_INLINE
-
-#AC_C_BIGENDIAN
 
 dnl ------------------------------------------------------------------
 dnl libtool
@@ -59,6 +58,7 @@ m4_defun([AC_PROG_F77],[])
 
 AM_DISABLE_STATIC
 AM_ENABLE_SHARED
+AC_LIBTOOL_WIN32_DLL
 
 AM_PROG_LIBTOOL
 
@@ -69,14 +69,6 @@ dnl ------------------------------------------------------------------
 AC_HEADER_STDC
 AC_PROG_CC_STDC
 AC_HEADER_MAJOR
-
-with_zlib="yes"
-
-AC_CHECK_HEADERS([	\
-	zlib.h		\
-],, with_zlib="no")
-
-AC_CHECK_LIB(z, zlibVersion,, with_zlib="no")
 
 dnl ------------------------------------------------------------------
 dnl Options.
@@ -128,8 +120,8 @@ append_to_EMKOPTS "warn_unused_import"
 dnl Treat warnings as errors.
 AC_ARG_ENABLE([warnings],
 	AC_HELP_STRING([--enable-warnings],
-	    [treat warnings as errors [[default=no]]]),,
-	enable_warnings="no")
+	    [treat warnings as errors [[default=yes]]]),,
+	enable_warnings="yes")
 if test "x${enable_warnings}" = "xyes" -a "x${GCC}" = "xyes"; then
 	CFLAGS="${CFLAGS% } -Werror"
 fi
@@ -171,22 +163,49 @@ dnl ------------------------------------------------------------------
 dnl Erlang environment.
 dnl ------------------------------------------------------------------
 
-dnl Get Erlang $ROOT dir and lib dir.
-AC_ERLANG_SUBST_ROOT_DIR
-AC_ERLANG_SUBST_LIB_DIR
+dnl If we're cross-compiling, no Erlang checks will be ran.
 
-dnl Check for standard Erlang/OTP libraries.
-AC_ERLANG_CHECK_LIB([kernel], [],
-	[AC_MSG_ERROR([kernel was not found!])]
-)
+AC_ARG_WITH([erlang],
+	AC_HELP_STRING([--with-erlang],
+	    [prefix where Erlang is installed]),,
+	with_erlang="")
+AC_ARG_WITH([erl_interface],
+	AC_HELP_STRING([--with-erl_interface],
+	    [prefix where erl_interface is installed]),,
+	with_erl_interface="")
 
-AC_ERLANG_CHECK_LIB([stdlib], [],
-	[AC_MSG_ERROR([stdlib was not found!])]
-)
+if test "x${cross_compiling}" = "xno"; then
+	dnl Get Erlang $ROOT dir and lib dir.
+	AC_ERLANG_SUBST_ROOT_DIR
+	AC_ERLANG_SUBST_LIB_DIR
 
-AC_ERLANG_CHECK_LIB([erl_interface], [],
-	[AC_MSG_ERROR([erl_interface was not found!])]
-)
+	dnl Check for standard Erlang/OTP libraries.
+	AC_ERLANG_CHECK_LIB([kernel], [],
+		[AC_MSG_ERROR([kernel was not found!])]
+	)
+
+	AC_ERLANG_CHECK_LIB([stdlib], [],
+		[AC_MSG_ERROR([stdlib was not found!])]
+	)
+
+	AC_ERLANG_CHECK_LIB([erl_interface], [],
+		[AC_MSG_ERROR([erl_interface was not found!])]
+	)
+else
+	if test "x${with_erlang}" = "x"; then
+		AC_MSG_ERROR([Erlang not found. Prefix must be provided with --with-erlang])
+	fi
+	if test "x${with_erl_interface}" = "x"; then
+		AC_MSG_ERROR([erl_interface not found. Prefix must be provided with --with-erl_interface])
+	fi
+
+	dnl We use the native Erlang binary to compile Erlang sources.
+	AC_ERLANG_PATH_ERL
+
+	ERLANG_ROOT_DIR="${with_erlang}"
+	ERLANG_LIB_DIR="${ERLANG_ROOT_DIR}/lib"
+	ERLANG_LIB_DIR_erl_interface="${with_erl_interface}"
+fi
 
 dnl Determine directories for installation.
 if test "x${prefix}" = "xNONE"; then
@@ -201,14 +220,47 @@ AC_ERLANG_SUBST_INSTALL_LIB_DIR
 AC_ERLANG_SUBST_INSTALL_LIB_SUBDIR(exmpp, ${VERSION})
 
 dnl ------------------------------------------------------------------
+dnl Plateform-specific cases.
+dnl ------------------------------------------------------------------
+
+case $host_os in
+	*mingw*)
+		# Pour compiler une DLL Win32, libtool a besoin
+		# de -no-undefined.
+		ERL_DRIVER_LDFLAGS="${ERL_DRIVER_LDFLAGS% } -no-undefined"
+
+		canonical_host="win32"
+		;;
+esac
+
+AM_CONDITIONAL([HOST_WIN32], [test "x${canonical_host}" = "xwin32"])
+
+dnl ------------------------------------------------------------------
 dnl Dependencies.
 dnl ------------------------------------------------------------------
 
 dnl Expat port driver
-AM_EXPAT
+EXMPP_EXPAT(build_with_expat="yes", build_with_expat="no")
+AM_CONDITIONAL(WITH_EXPAT, test "x${build_with_expat}" = "xyes")
 
-dnl iconv port driver
-AM_ICONV
+build_with_zlib="no"
+build_with_iconv="no"
+build_with_openssl="no"
+
+if test "x${enable_compat}" = "xyes"; then
+	dnl Zlib
+	EXMPP_ZLIB(build_with_zlib="yes", build_with_zlib="no")
+
+	dnl iconv port driver
+	EXMPP_ICONV(build_with_iconv="yes", build_with_iconv="no")
+
+	dnl OpenSSL
+	EXMPP_OPENSSL(build_with_openssl="yes", build_with_openssl="no")
+fi
+
+AM_CONDITIONAL(WITH_ZLIB, test "x${build_with_zlib}" = "xyes")
+AM_CONDITIONAL(WITH_ICONV, test "x${build_with_iconv}" = "xyes")
+AM_CONDITIONAL(WITH_OPENSSL, test "x${build_with_openssl}" = "xyes")
 
 dnl ------------------------------------------------------------------
 dnl Finale substitutions.
@@ -236,6 +288,8 @@ AC_SUBST(EXMPP_CONFIGURE_ARGS)
 
 exp_ERLANG_INSTALL_LIB_DIR_exmpp=`expand_var ERLANG_INSTALL_LIB_DIR_exmpp`
 AC_SUBST(exp_ERLANG_INSTALL_LIB_DIR_exmpp)
+
+AC_SUBST(ERL_DRIVER_LDFLAGS)
 
 dnl ------------------------------------------------------------------
 dnl Autoconf output.
