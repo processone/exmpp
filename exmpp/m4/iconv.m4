@@ -1,37 +1,35 @@
-# iconv.m4 serial AM4 (gettext-0.11.3)
-dnl Copyright (C) 2000-2002 Free Software Foundation, Inc.
-dnl This file is free software; the Free Software Foundation
-dnl gives unlimited permission to copy and/or distribute it,
-dnl with or without modifications, as long as this notice is preserved.
+dnl $Id$
+dnl
+dnl Configure path for libiconv
+dnl
 
-dnl From Bruno Haible.
-
-AC_DEFUN([AM_ICONV_LINKFLAGS_BODY],
+dnl EXMPP_ICONV([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
+dnl Substitutes
+dnl   ICONV_CPPFLAGS
+dnl   ICONV_LDFLAGS
+dnl   ICONV_LIBS
+AC_DEFUN([EXMPP_ICONV],
 [
-  dnl Prerequisites of AC_LIB_LINKFLAGS_BODY.
-  AC_REQUIRE([AC_LIB_PREPARE_PREFIX])
-  AC_REQUIRE([AC_LIB_RPATH])
+  AC_ARG_WITH(iconv,
+    AC_HELP_STRING([--with-iconv=PREFIX],
+      [prefix where libiconv is installed (optional)]),
+    iconv_prefix="$withval",)
 
-  dnl Search for libiconv and define LIBICONV, LTLIBICONV and INCICONV
-  dnl accordingly.
-  AC_LIB_LINKFLAGS_BODY([iconv])
-])
+  no_iconv=""
+  ICONV_CPPFLAGS=""
+  ICONV_LDFLAGS=""
+  ICONV_LIBS=""
 
-AC_DEFUN([AM_ICONV_LINK],
-[
-  dnl Some systems have iconv in libc, some have it in libiconv (OSF/1 and
-  dnl those with the standalone portable GNU libiconv installed).
+  if test x"${iconv_prefix:+set}" = "xset"; then
+    ICONV_CPPFLAGS="-I${iconv_prefix%%\/}/include ${ICONV_CPPFLAGS}"
+    ICONV_LDFLAGS="-L${iconv_prefix%%\/}/lib ${ICONV_LDFLAGS}"
+  fi
 
-  dnl Search for libiconv and define LIBICONV, LTLIBICONV and INCICONV
-  dnl accordingly.
-  AC_REQUIRE([AM_ICONV_LINKFLAGS_BODY])
-
-  dnl Add $INCICONV to CPPFLAGS before performing the following checks,
-  dnl because if the user has installed libiconv and not disabled its use
-  dnl via --without-libiconv-prefix, he wants to use it. The first
-  dnl AC_TRY_LINK will then fail, the second AC_TRY_LINK will succeed.
-  am_save_CPPFLAGS="$CPPFLAGS"
-  AC_LIB_APPENDTOVAR([CPPFLAGS], [$INCICONV])
+  ac_save_CPPFLAGS="$CPPFLAGS"
+  ac_save_LDFLAGS="$LDFLAGS"
+  ac_save_LIBS="$LIBS"
+  CPPFLAGS="$CPPFLAGS $ICONV_CPPFLAGS"
+  LDFLAGS="$LDFLAGS $ICONV_LDFLAGS"
 
   AC_CACHE_CHECK(for iconv, am_cv_func_iconv, [
     am_cv_func_iconv="no, consider installing GNU libiconv"
@@ -43,8 +41,8 @@ AC_DEFUN([AM_ICONV_LINK],
        iconv_close(cd);],
       am_cv_func_iconv=yes)
     if test "$am_cv_func_iconv" != yes; then
-      am_save_LIBS="$LIBS"
-      LIBS="$LIBS $LIBICONV"
+      ICONV_LIBS="-liconv"
+      LIBS="$LIBS $ICONV_LIBS"
       AC_TRY_LINK([#include <stdlib.h>
 #include <iconv.h>],
         [iconv_t cd = iconv_open("","");
@@ -52,30 +50,41 @@ AC_DEFUN([AM_ICONV_LINK],
          iconv_close(cd);],
         am_cv_lib_iconv=yes
         am_cv_func_iconv=yes)
-      LIBS="$am_save_LIBS"
     fi
   ])
+
+  CPPFLAGS="$ac_save_CPPFLAGS"
+  LDFLAGS="$ac_save_LDFLAGS"
+  LIBS="$ac_save_LIBS"
+
   if test "$am_cv_func_iconv" = yes; then
     AC_DEFINE(HAVE_ICONV, 1, [Define if you have the iconv() function.])
   fi
   if test "$am_cv_lib_iconv" = yes; then
     AC_MSG_CHECKING([how to link with libiconv])
-    AC_MSG_RESULT([$LIBICONV])
-  else
-    dnl If $LIBICONV didn't lead to a usable library, we don't need $INCICONV
-    dnl either.
-    CPPFLAGS="$am_save_CPPFLAGS"
-    LIBICONV=
-    LTLIBICONV=
-  fi
-  AC_SUBST(LIBICONV)
-  AC_SUBST(LTLIBICONV)
-])
+    AC_MSG_RESULT([$ICONV_LIBS])
 
-AC_DEFUN([AM_ICONV],
-[
-  AM_ICONV_LINK
+    ifelse([$1], , :, [$1])
+  else
+    ifelse([$2], , :, [$2])
+
+    ICONV_CPPFLAGS=""
+    ICONV_LDFLAGS=""
+    ICONV_LIBS=""
+  fi
+
+  AC_SUBST(ICONV_CPPFLAGS)
+  AC_SUBST(ICONV_LDFLAGS)
+  AC_SUBST(ICONV_LIBS)
+
   if test "$am_cv_func_iconv" = yes; then
+    ac_save_CPPFLAGS="$CPPFLAGS"
+    ac_save_LDFLAGS="$LDFLAGS"
+    ac_save_LIBS="$LIBS"
+    CPPFLAGS="$CPPFLAGS $ICONV_CPPFLAGS"
+    LDFLAGS="$LDFLAGS $ICONV_LDFLAGS"
+    LIBS="$LIBS $ICONV_LIBS"
+
     AC_MSG_CHECKING([for iconv declaration])
     AC_CACHE_VAL(am_cv_proto_iconv, [
       AC_TRY_COMPILE([
@@ -97,5 +106,9 @@ size_t iconv();
          }[$]am_cv_proto_iconv)
     AC_DEFINE_UNQUOTED(ICONV_CONST, $am_cv_proto_iconv_arg1,
       [Define as const if the declaration of iconv() needs const.])
+
+    CPPFLAGS="$ac_save_CPPFLAGS"
+    LDFLAGS="$ac_save_LDFLAGS"
+    LIBS="$ac_save_LIBS"
   fi
 ])
