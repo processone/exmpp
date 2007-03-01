@@ -1,3 +1,9 @@
+2007-03-01  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/exmpp_internals.erl (driver_dirs): Revised port drivers search
+	path. This allows us to remove priv/lib/Makefile hack needed to run
+	the package testsuite.
+
 2007-02-28  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_internals.erl, src/exmpp_xml.erl: To avoid conflicts
