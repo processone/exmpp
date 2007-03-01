@@ -97,7 +97,6 @@
 }).
 
 -define(DRIVER_NAME, expat_drv).
--define(DRIVER_NAME_S, "expat_drv").
 
 -define(EXPAT_SET_NSPARSER,     1).
 -define(EXPAT_SET_NAMEASATOM,   2).
@@ -1669,42 +1668,23 @@ encode_entities2(<<>>, New_S) ->
 % Utilities.
 % --------------------------------------------------------------------
 
-driver_dirs() ->
-	Dirs = ["priv/lib", "../priv/lib"],
-	case code:priv_dir(exmpp) of
-		{error, _Reason} -> Dirs;
-		Priv_Dir         -> Dirs ++ [Priv_Dir ++ "/lib"]
+load_driver() ->
+	case exmpp_internals:load_driver(?DRIVER_NAME) of
+		{error, Reason} ->
+			{error, Reason};
+		ok ->
+			case exmpp_internals:open_port(?DRIVER_NAME) of
+                                {error, Reason} ->
+					exmpp_internals:unload_driver(
+                                            ?DRIVER_NAME),
+					{error, Reason};
+				Port ->
+					Port
+			end
 	end.
 
-load_driver() ->
-	% Load the driver, then open a port.
-	Dirs = driver_dirs(),
-	load_driver1(Dirs, undefined).
-
-load_driver1([Dir | Rest], _Reason) ->
-	case erl_ddll:load_driver(Dir, ?DRIVER_NAME) of
-		ok ->
-			load_driver2();
-		{error, Reason} ->
-			load_driver1(Rest, Reason)
-	end;
-
-load_driver1([], Reason) ->
-	error_logger:info_msg([{error, Reason}]),
-	{error, Reason}.
-
-load_driver2() ->
-	open_port({spawn, ?DRIVER_NAME_S}, []).
-
--ifdef(WITH_BROKEN_ERL_DDLL).
 unload_driver() ->
-	% At least until R11B-1, erl_ddll messes up its libraries reference
-	% count, so we can't unload the driver.
-	ok.
--else.
-unload_driver() ->
-	erl_ddll:unload_driver(?DRIVER_NAME).
--endif.
+	exmpp_internals:unload_driver(?DRIVER_NAME).
 
 handle_options([namespace | Rest], #xml_parser{port = P} = Parser) ->
 	Ret = port_control(P, ?EXPAT_SET_NSPARSER, term_to_binary(true)),
