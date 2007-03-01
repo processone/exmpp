@@ -7,6 +7,9 @@
 	* src/exmpp_xml.erl: Use exmpp_internals to load/unload its port
 	driver.
 
+	* configure.ac, Makefile.am: Disconnect priv directory from the build,
+	prior to its removal.
+
 2007-02-28  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_internals.erl, src/exmpp_xml.erl: To avoid conflicts

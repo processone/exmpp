@@ -304,8 +304,6 @@ AC_CONFIG_FILES([
 	ebin/Makefile
 	ebin/exmpp.app
 	ebin/exmpp.appup
-	priv/Makefile
-	priv/lib/Makefile
 	doc/Makefile
 	testsuite/Makefile
 	testsuite/Emakefile
