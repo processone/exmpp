@@ -4,6 +4,9 @@
 	path. This allows us to remove priv/lib/Makefile hack needed to run
 	the package testsuite.
 
+	* src/exmpp_xml.erl: Use exmpp_internals to load/unload its port
+	driver.
+
 2007-02-28  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_internals.erl, src/exmpp_xml.erl: To avoid conflicts
