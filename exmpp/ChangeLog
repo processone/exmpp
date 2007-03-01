@@ -10,6 +10,9 @@
 	* configure.ac, Makefile.am: Disconnect priv directory from the build,
 	prior to its removal.
 
+	* priv/: Removed directory, because it's not needed anymore by the
+	testsuite.
+
 2007-02-28  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_internals.erl, src/exmpp_xml.erl: To avoid conflicts
