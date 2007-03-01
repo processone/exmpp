@@ -10,6 +10,7 @@
 -vsn('$Revision$').
 
 -export([
+  driver_dirs/0,
   load_driver/1,
   unload_driver/1,
   open_port/1,
@@ -21,10 +22,32 @@
 % --------------------------------------------------------------------
 
 driver_dirs() ->
-    Dirs = ["priv/lib", "../priv/lib"],
+    Mod_Path = case code:is_loaded(?MODULE) of
+        {file, preloaded} ->
+            undefined;
+        {file, cover_compiled} ->
+            case code:is_loaded(check_coverity) of
+                {file, preloaded}      -> undefined;
+                {file, cover_compiled} -> undefined;
+                {file, Path}           -> Path
+            end;
+        {file, Path} ->
+            Path
+    end,
+    Dirs0 = case Mod_Path of
+        undefined ->
+            [];
+        _ ->
+            Base_Dir = filename:dirname(filename:dirname(Mod_Path)),
+            [
+              filename:join([Base_Dir, "priv", "lib"]),
+              filename:join([Base_Dir, "c_src", ".libs"]),
+              filename:join([Base_Dir, "c_src"])
+            ]
+    end,
     case code:priv_dir(exmpp) of
-        {error, _Reason} -> Dirs;
-        Priv_Dir         -> Dirs ++ [Priv_Dir ++ "/lib"]
+        {error, _Reason} -> Dirs0;
+        Priv_Dir         -> Dirs0 ++ [filename:join(Priv_Dir, "lib")]
     end.
 
 load_driver(Driver_Name) ->
