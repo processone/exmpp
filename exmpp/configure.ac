@@ -180,14 +180,6 @@ if test "x${cross_compiling}" = "xno"; then
 	AC_ERLANG_SUBST_LIB_DIR
 
 	dnl Check for standard Erlang/OTP libraries.
-	AC_ERLANG_CHECK_LIB([kernel], [],
-		[AC_MSG_ERROR([kernel was not found!])]
-	)
-
-	AC_ERLANG_CHECK_LIB([stdlib], [],
-		[AC_MSG_ERROR([stdlib was not found!])]
-	)
-
 	AC_ERLANG_CHECK_LIB([erl_interface], [],
 		[AC_MSG_ERROR([erl_interface was not found!])]
 	)
