@@ -14,22 +14,26 @@ EXTRA_DIST = testsuite.erl test.sh					\
 	     check_coverity.erl
 CLEANFILES = *.beam *.html $(TESTS) erl_crash.dump
 
-TESTS = check_xml_parser						\
-	check_xml_attribute_handlers					\
-	check_xml_element_handlers					\
-	check_xml_cdata_handlers					\
-	check_xml_path							\
-	check_xml_converters						\
-	check_xmlstream							\
-	check_jid							\
-	check_factory_stream						\
-	check_factory_legacy_auth					\
-	check_coverity
+REAL_TESTS = check_xml_attribute_handlers				\
+	     check_xml_element_handlers					\
+	     check_xml_cdata_handlers					\
+	     check_xml_path						\
+	     check_xml_converters					\
+	     check_jid							\
+	     check_factory_stream					\
+	     check_factory_legacy_auth
+
+if WITH_EXPAT
+REAL_TESTS += check_xml_parser						\
+	      check_xmlstream
+endif
+
+TESTS = $(REAL_TESTS) check_coverity
 
 TESTS_ENVIRONMENT = ERL="$(ERL)"					\
 	TOP_SRCDIR="$(top_srcdir)"					\
 	TOP_BUILDDIR="$(top_builddir)"					\
-	TESTS="check_xml_parser check_xml_attribute_handlers check_xml_element_handlers check_xml_cdata_handlers check_xml_path check_xml_converters check_xmlstream check_jid check_factory_stream check_factory_legacy_auth"			\
+	TESTS="$(REAL_TESTS)"						\
 	COVERED_MODULES="exmpp_xml exmpp_xmlstream exmpp_jid exmpp_factory"
 
 build:

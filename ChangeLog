@@ -13,6 +13,9 @@
 	* priv/: Removed directory, because it's not needed anymore by the
 	testsuite.
 
+	* testsuite/Makefile.am: Do not run `check_xml_parser' and
+	`check_xmlstream' tests if Expat support isn't present.
+
 2007-02-28  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_internals.erl, src/exmpp_xml.erl: To avoid conflicts
