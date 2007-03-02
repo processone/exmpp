@@ -3,7 +3,7 @@
 lib_LTLIBRARIES = exmpp_stringprep_drv.la
 
 if WITH_EXPAT
-lib_LTLIBRARIES += expat_drv.la
+lib_LTLIBRARIES += exmpp_expat_drv.la
 endif
 
 if BUILD_COMPAT
@@ -46,6 +46,30 @@ endif
 
 libdir = $(ERLANG_INSTALL_LIB_DIR_exmpp)/priv/lib
 
+# --------------------------------------------------------------------
+# Supported port drivers.
+# --------------------------------------------------------------------
+
+# Expat port driver
+exmpp_expat_drv_la_CPPFLAGS = -I$(srcdir)/contrib			\
+			      $(EI_CPPFLAGS) -DEI_ENCODE_STRING_BUG	\
+			      $(EXPAT_CPPFLAGS)
+exmpp_expat_drv_la_LDFLAGS = -module -avoid-version			\
+			     $(EI_LDFLAGS) $(EI_LIBS)			\
+			     $(EXPAT_LDFLAGS) $(EXPAT_LIBS)
+exmpp_expat_drv_la_SOURCES = contrib/hashtable.c			\
+			     exmpp_expat_drv.c
+
+# Stringprep
+exmpp_stringprep_drv_la_CPPFLAGS = $(EI_CPPFLAGS)
+exmpp_stringprep_drv_la_LDFLAGS = -module -avoid-version		\
+				  $(EI_LDFLAGS) $(EI_LIBS)
+exmpp_stringprep_drv_la_SOURCES = exmpp_stringprep_drv.c
+
+# --------------------------------------------------------------------
+# Port drivers which are not ported yet.
+# --------------------------------------------------------------------
+
 # ejabberd_zlib port driver
 ejabberd_zlib_drv_la_CPPFLAGS = $(EI_CPPFLAGS)				\
 				$(ZLIB_CPPFLAGS)
@@ -53,16 +77,6 @@ ejabberd_zlib_drv_la_LDFLAGS = -module -avoid-version			\
 			       $(EI_LDFLAGS) $(EI_LIBS)			\
 			       $(ZLIB_LDFLAGS) $(ZLIB_LIBS)
 ejabberd_zlib_drv_la_SOURCES = ejabberd_zlib_drv.c
-
-# Expat port driver
-expat_drv_la_CPPFLAGS = -I$(srcdir)/contrib				\
-			$(EI_CPPFLAGS) -DEI_ENCODE_STRING_BUG		\
-			$(EXPAT_CPPFLAGS)
-expat_drv_la_LDFLAGS = -module -avoid-version				\
-		       $(EI_LDFLAGS) $(EI_LIBS)				\
-		       $(EXPAT_LDFLAGS) $(EXPAT_LIBS)
-expat_drv_la_SOURCES = contrib/hashtable.c				\
-		       expat_drv.c
 
 xmpp_ns.h: $(srcdir)/xmpp_ns.h.awk $(srcdir)/xmpp_ns.h.in
 	$(AWK) -f $(srcdir)/xmpp_ns.h.awk $(srcdir)/xmpp_ns.h.in > $@
@@ -80,12 +94,6 @@ iconv_erl_la_LDFLAGS = -module -avoid-version				\
 		       $(EI_LDFLAGS) $(EI_LIBS)				\
 		       $(ICONV_LDFLAGS) $(ICONV_LIBS)
 iconv_erl_la_SOURCES = iconv_erl.c
-
-# Stringprep
-exmpp_stringprep_drv_la_CPPFLAGS = $(EI_CPPFLAGS)
-exmpp_stringprep_drv_la_LDFLAGS = -module -avoid-version		\
-				  $(EI_LDFLAGS) $(EI_LIBS)
-exmpp_stringprep_drv_la_SOURCES = exmpp_stringprep_drv.c
 
 # TLS port driver
 tls_drv_la_CPPFLAGS = $(EI_CPPFLAGS)					\

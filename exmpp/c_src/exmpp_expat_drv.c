@@ -12,7 +12,7 @@
 #include "xmpp_names.h"
 #include "xmpp_attrs.h"
 
-#define	DRIVER_NAME	expat_drv
+#define	DRIVER_NAME	exmpp_expat_drv
 #define	_S(s)		#s
 #define	S(s)		_S(s)
 
