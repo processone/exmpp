@@ -80,7 +80,7 @@ flags="-tests ${TESTS} -covered_modules ${COVERED_MODULES}"
 flags="$flags -top_srcdir ${TOP_SRCDIR:-.}"
 flags="$flags -top_builddir ${TOP_BUILDDIR:-.}"
 
-IFS=" " # To avoid newline strip
+IFS=" 	" # To avoid newline strip
 
 ret=`$ERL -pa ${TOP_BUILDDIR}/ebin -noshell -eval "${script}:check(), init:stop()." $flags`
 linecount=`echo "$ret" | wc -l`
