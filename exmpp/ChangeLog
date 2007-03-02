@@ -3,6 +3,9 @@
 	* configure.ac: Remove checks for `kernel' and `stdlib' Erlang
 	applications. They're not used at build time.
 
+	* testsuite/test.sh: Fixed IFS variable because the TESTS variable
+	contains Tab characters.
+
 2007-03-01  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_internals.erl (driver_dirs): Revised port drivers search
