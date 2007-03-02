@@ -6,6 +6,10 @@
 	* testsuite/test.sh: Fixed IFS variable because the TESTS variable
 	contains Tab characters.
 
+	* c_src/expat_drv.c, c_src/exmpp_expat_drv.c, c_src/Makefile.am,
+	src/exmpp_xml.erl: Renamed Expat port driver to have the `exmpp_'
+	prefix.
+
 2007-03-01  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_internals.erl (driver_dirs): Revised port drivers search
