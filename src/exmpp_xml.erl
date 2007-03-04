@@ -64,6 +64,7 @@
 -export([
 	get_element_by_name/2,
 	get_element_by_name/3,
+	get_element_by_ns/2,
 	append_child/2,
 	append_children/2,
 	replace_child/3,
@@ -96,7 +97,7 @@
 	port
 }).
 
--define(DRIVER_NAME, exmpp_expat_drv).
+-define(DRIVER_NAME, expat_drv).
 
 -define(EXPAT_SET_NSPARSER,     1).
 -define(EXPAT_SET_NAMEASATOM,   2).
@@ -794,8 +795,34 @@ get_element_by_name2([], _NS, _Name) ->
 	false;
 
 get_element_by_name2(undefined, _NS, _Name) ->
-	false.
+        false.
 
+%% @spec (XML_Element, NS) -> XML_Subelement | false
+%%     XML_Element = xmlnselement()
+%%     NS = atom()
+%%     XML_Subelement = xmlnselement()
+%% @doc Search in the children of `XML_Element' an element with `NS'
+%% namespace URI.
+%%
+%% If no element with the given namespace is found, it returns
+%% `false'.  This will only search among direct children.
+%%
+%% This function is particularly usefull to extract XMPP error codes.
+get_element_by_ns(#xmlnselement{children = Children}, NS) ->
+        get_element_by_ns2(Children, NS).
+
+get_element_by_ns2([Node | Rest], NS) ->
+        case Node of
+	        #xmlnselement{ns = NS} ->
+			Node;
+		_ ->
+			get_element_by_ns2(Rest, NS)
+	end;
+get_element_by_ns2([], _NS) ->
+        false;
+get_element_by_ns2(undefined, _NS) ->
+        false.
+	        
 %% @spec (XML_Element, Child) -> New_XML_Element
 %%     XML_Element = xmlnselement() | xmlelement()
 %%     Child = xmlnselement() | xmlelement() | xmlcdata()
