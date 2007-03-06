@@ -1,3 +1,19 @@
+2007-03-06  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/exmpp_xml.erl: Restore DRIVER_NAME value. Style.
+
+2007-03-05  Mickaël Rémond  <mickael.remond@process-one.net>
+
+	* src/exmpp_xml.erl (get_cdata): Handle a false value. This clause
+	make it possible to write code like:
+	exmpp_xml:get_cdata(exmpp_xml:get_element_by_name(XML_El, body))
+
+2007-03-04  Mickaël Rémond  <mickael.remond@process-one.net>
+
+	* src/exmpp_xml.erl: Added get_element_by_ns/2. This function is
+	useful to extract XMPP error codes (to make sure you are getting the
+	correct tag).
+
 2007-03-02  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* configure.ac: Remove checks for `kernel' and `stdlib' Erlang
