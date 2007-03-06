@@ -947,7 +947,7 @@ get_cdata(#xmlelement{children = Children}) ->
 get_cdata(false) ->
 	% This clause makes it possible to write code like:
 	% exmpp_xml:get_cdata(exmpp_xml:get_element_by_name(XML_El, body))
-	undefined.
+	false.
 
 %% @spec (Children) -> New_Children
 %%     Children = undefined | [xmlnselement() | xmlelement() | xmlcdata()]
