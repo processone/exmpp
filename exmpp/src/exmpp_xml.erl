@@ -97,7 +97,7 @@
 	port
 }).
 
--define(DRIVER_NAME, expat_drv).
+-define(DRIVER_NAME, exmpp_expat_drv).
 
 -define(EXPAT_SET_NSPARSER,     1).
 -define(EXPAT_SET_NAMEASATOM,   2).
@@ -795,7 +795,7 @@ get_element_by_name2([], _NS, _Name) ->
 	false;
 
 get_element_by_name2(undefined, _NS, _Name) ->
-        false.
+	false.
 
 %% @spec (XML_Element, NS) -> XML_Subelement | false
 %%     XML_Element = xmlnselement()
@@ -805,24 +805,27 @@ get_element_by_name2(undefined, _NS, _Name) ->
 %% namespace URI.
 %%
 %% If no element with the given namespace is found, it returns
-%% `false'.  This will only search among direct children.
+%% `false'. This will only search among direct children.
 %%
 %% This function is particularly usefull to extract XMPP error codes.
+
 get_element_by_ns(#xmlnselement{children = Children}, NS) ->
-        get_element_by_ns2(Children, NS).
+	get_element_by_ns2(Children, NS).
 
 get_element_by_ns2([Node | Rest], NS) ->
-        case Node of
-	        #xmlnselement{ns = NS} ->
+	case Node of
+		#xmlnselement{ns = NS} ->
 			Node;
 		_ ->
 			get_element_by_ns2(Rest, NS)
 	end;
+
 get_element_by_ns2([], _NS) ->
-        false;
+	false;
+
 get_element_by_ns2(undefined, _NS) ->
-        false.
-	        
+	false.
+
 %% @spec (XML_Element, Child) -> New_XML_Element
 %%     XML_Element = xmlnselement() | xmlelement()
 %%     Child = xmlnselement() | xmlelement() | xmlcdata()
@@ -941,9 +944,10 @@ get_cdata(#xmlnselement{children = Children}) ->
 get_cdata(#xmlelement{children = Children}) ->
 	get_cdata_from_list(Children);
 
-%% This clause make it possible to write code like:
-%% exmpp_xml:get_cdata(exmpp_xml:get_element_by_name(XML_Element, body))
-get_cdata(false) -> undefined.
+get_cdata(false) ->
+	% This clause makes it possible to write code like:
+	% exmpp_xml:get_cdata(exmpp_xml:get_element_by_name(XML_El, body))
+	undefined.
 
 %% @spec (Children) -> New_Children
 %%     Children = undefined | [xmlnselement() | xmlelement() | xmlcdata()]
@@ -1705,9 +1709,9 @@ load_driver() ->
 			{error, Reason};
 		ok ->
 			case exmpp_internals:open_port(?DRIVER_NAME) of
-                                {error, Reason} ->
+				{error, Reason} ->
 					exmpp_internals:unload_driver(
-                                            ?DRIVER_NAME),
+					    ?DRIVER_NAME),
 					{error, Reason};
 				Port ->
 					Port
