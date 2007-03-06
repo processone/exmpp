@@ -8,14 +8,14 @@
 -include("exmpp.hrl").
 
 -export([
-	pubsub_create_node/2,
-	pubsub_create_node/3,
-	pubsub_delete_node/2,
-	pubsub_delete_node/3,
-	pubsub_subscribe/3,
-	pubsub_subscribe/4,
-	pubsub_publish/3,
-	pubsub_publish/4
+	create_node/2,
+	create_node/3,
+	delete_node/2,
+	delete_node/3,
+	subscribe/3,
+	subscribe/4,
+	publish/3,
+	publish/4
 ]).
 
 % --------------------------------------------------------------------
@@ -30,8 +30,8 @@
 %%
 %% The stanza `id' is generated automatically.
 
-pubsub_create_node(Service, Node) ->
-	pubsub_create_node(pubsub_id(), Service, Node).
+create_node(Service, Node) ->
+	create_node(pubsub_id(), Service, Node).
 
 %% @spec (Id, Service, Node) -> Pubsub_Iq
 %%     Id = string()
@@ -40,7 +40,7 @@ pubsub_create_node(Service, Node) ->
 %%     Pubsub_Iq = exmpp_xml:xmlnselement()
 %% @doc Make an `<iq>' for creating a node on a pubsub service.
 
-pubsub_create_node(Id, Service, Node) ->
+create_node(Id, Service, Node) ->
 	% Make the <create/> element.
 	Create = exmpp_xml:set_attributes(
 	    #xmlnselement{ns = ?NS_PUBSUB, name = 'create', children = []}, [
@@ -64,8 +64,8 @@ pubsub_create_node(Id, Service, Node) ->
 %%
 %% The stanza `id' is generated automatically.
 
-pubsub_delete_node(Service, Node) ->
-	pubsub_delete_node(pubsub_id(), Service, Node).
+delete_node(Service, Node) ->
+	delete_node(pubsub_id(), Service, Node).
 
 %% @spec (Id, Service, Node) -> Pubsub_Iq
 %%     Id = string()
@@ -74,7 +74,7 @@ pubsub_delete_node(Service, Node) ->
 %%     Pubsub_Iq = exmpp_xml:xmlnselement()
 %% @doc Make an `<iq>' for deleting a node on a pubsub service.
 
-pubsub_delete_node(Id, Service, Node) ->
+delete_node(Id, Service, Node) ->
 	% Make the <delete/> element.
 	Create = exmpp_xml:set_attributes(
 	    #xmlnselement{ns = ?NS_PUBSUB, name = 'delete', children = []}, [
@@ -99,8 +99,8 @@ pubsub_delete_node(Id, Service, Node) ->
 %%
 %% The stanza `id' is generated automatically.
 
-pubsub_subscribe(From, Service, Node) ->
-	pubsub_subscribe(pubsub_id(), From, Service, Node).
+subscribe(From, Service, Node) ->
+	subscribe(pubsub_id(), From, Service, Node).
 
 %% @spec (Id, From, Service, Node) -> Pubsub_Iq
 %%     Id = string()
@@ -110,7 +110,7 @@ pubsub_subscribe(From, Service, Node) ->
 %%     Pubsub_Iq = exmpp_xml:xmlnselement()
 %% @doc Make an `<iq>' for creating a node on a pubsub service.
 
-pubsub_subscribe(Id, From, Service, Node) ->
+subscribe(Id, From, Service, Node) ->
 	% Make the <subscribe/> element.
 	Subscribe = exmpp_xml:set_attributes(
 	    #xmlnselement{ns = ?NS_PUBSUB, name = 'subscribe', children = []}, [
@@ -136,11 +136,11 @@ pubsub_subscribe(Id, From, Service, Node) ->
 %%
 %% The stanza `id' is generated automatically.
 
-pubsub_publish(Service, Node, Item_Child) when is_tuple(Item_Child) ->
-	pubsub_publish(pubsub_id(), Service, Node, [Item_Child]);
+publish(Service, Node, Item_Child) when is_tuple(Item_Child) ->
+	publish(pubsub_id(), Service, Node, [Item_Child]);
 
-pubsub_publish(Service, Node, Item_Children) ->
-	pubsub_publish(pubsub_id(), Service, Node, Item_Children).
+publish(Service, Node, Item_Children) ->
+	publish(pubsub_id(), Service, Node, Item_Children).
 
 %% @spec (Id, Service, Node, Items) -> Pubsub_Iq
 %%     Id = string()
@@ -151,10 +151,10 @@ pubsub_publish(Service, Node, Item_Children) ->
 %%     Pubsub_Iq = exmpp_xml:xmlnselement()
 %% @doc Make an `<iq>' for creating a node on a pubsub service.
 
-pubsub_publish(Id, Service, Node, Item_Child) when is_tuple(Item_Child) ->
-	pubsub_publish(Id, Service, Node, [Item_Child]);
+publish(Id, Service, Node, Item_Child) when is_tuple(Item_Child) ->
+	publish(Id, Service, Node, [Item_Child]);
 
-pubsub_publish(Id, Service, Node, Item_Children) ->
+publish(Id, Service, Node, Item_Children) ->
 	% Prepare item.
 	Item = #xmlnselement{ns = ?NS_PUBSUB, name = 'item',
 	    children = Item_Children},
