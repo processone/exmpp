@@ -2,22 +2,23 @@
 
 {
 	[
-		'@srcdir@/exmpp',
-		'@srcdir@/exmpp_sup',
-		'@srcdir@/exmpp_internals',
-		'@srcdir@/exmpp_xml',
-		'@srcdir@/exmpp_xmlstream',
-		'@srcdir@/exmpp_stringprep',
-		'@srcdir@/exmpp_jid',
+		'@srcdir@/core/exmpp',
+		'@srcdir@/core/exmpp_sup',
+		'@srcdir@/core/exmpp_internals',
+		'@srcdir@/core/exmpp_xml',
+		'@srcdir@/core/exmpp_xmlstream',
+		'@srcdir@/core/exmpp_stringprep',
+		'@srcdir@/core/exmpp_jid',
 		'@srcdir@/exmpp_factory',
-		'@srcdir@/exmpp_jlib'@COMPAT_MODULES_START@
-		@COMPAT_MODULES@'@srcdir@/ejabberd_zlib',
-		@COMPAT_MODULES@'@srcdir@/iconv',
-		@COMPAT_MODULES@'@srcdir@/jlib',
-		@COMPAT_MODULES@'@srcdir@/sha',
-		@COMPAT_MODULES@'@srcdir@/stringprep',
-		@COMPAT_MODULES@'@srcdir@/tls',
-		@COMPAT_MODULES@'@srcdir@/xml'
+		'@srcdir@/core/exmpp_jlib',
+        '@srcdir@/client/exmpp_client_pubsub'@COMPAT_MODULES_START@
+		@COMPAT_MODULES@'@srcdir@/comp/ejabberd_zlib',
+		@COMPAT_MODULES@'@srcdir@/comp/iconv',
+		@COMPAT_MODULES@'@srcdir@/comp/jlib',
+		@COMPAT_MODULES@'@srcdir@/comp/sha',
+		@COMPAT_MODULES@'@srcdir@/comp/stringprep',
+		@COMPAT_MODULES@'@srcdir@/comp/tls',
+		@COMPAT_MODULES@'@srcdir@/comp/xml'
 	],
 	[
 		@EMKOPTS@,
