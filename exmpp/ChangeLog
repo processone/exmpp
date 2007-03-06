@@ -2,6 +2,10 @@
 
 	* src/exmpp_xml.erl: Restore DRIVER_NAME value. Style.
 
+2007-03-06  Christophe Romain  <christophe.romain@process-one.net>
+
+	* src/exmpp_factory.erl: Add functions to delete a pubsub node.
+
 2007-03-05  Mickaël Rémond  <mickael.remond@process-one.net>
 
 	* src/exmpp_xml.erl (get_cdata): Handle a false value. This clause
