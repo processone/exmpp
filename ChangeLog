@@ -1,6 +1,8 @@
 2007-03-06  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_xml.erl: Restore DRIVER_NAME value. Style.
+	(get_cdata): Changed return value of the new function clause to the
+	`false', like related functions.
 
 2007-03-06  Christophe Romain  <christophe.romain@process-one.net>
 
