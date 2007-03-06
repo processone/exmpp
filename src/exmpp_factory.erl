@@ -223,6 +223,8 @@
 -export([
 	pubsub_create_node/2,
 	pubsub_create_node/3,
+	pubsub_delete_node/2,
+	pubsub_delete_node/3,
 	pubsub_subscribe/3,
 	pubsub_subscribe/4,
 	pubsub_publish/3,
@@ -771,6 +773,40 @@ pubsub_create_node(Id, Service, Node) ->
 	% Make the <create/> element.
 	Create = exmpp_xml:set_attributes(
 	    #xmlnselement{ns = ?NS_PUBSUB, name = 'create', children = []}, [
+	    {'node', Node}]),
+	% Prepare the final <iq/>.
+	Pubsub = exmpp_xml:append_child(
+	    #xmlnselement{ns = ?NS_PUBSUB, name = 'pubsub', children = []},
+	    Create),
+	Iq = exmpp_xml:set_attributes(
+	    #xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
+	    {'type', "set"},
+	    {'to', Service},
+	    {'id', Id}]),
+	exmpp_xml:append_child(Iq, Pubsub).
+
+%% @spec (Service, Node) -> Pubsub_Iq
+%%     Service = string()
+%%     Node = string()
+%%     Pubsub_Iq = exmpp_xml:xmlnselement()
+%% @doc Make an `<iq>' for deleting a node on a pubsub service.
+%%
+%% The stanza `id' is generated automatically.
+
+pubsub_delete_node(Service, Node) ->
+	pubsub_delete_node(pubsub_id(), Service, Node).
+
+%% @spec (Id, Service, Node) -> Pubsub_Iq
+%%     Id = string()
+%%     Service = string()
+%%     Node = string()
+%%     Pubsub_Iq = exmpp_xml:xmlnselement()
+%% @doc Make an `<iq>' for deleting a node on a pubsub service.
+
+pubsub_delete_node(Id, Service, Node) ->
+	% Make the <delete/> element.
+	Create = exmpp_xml:set_attributes(
+	    #xmlnselement{ns = ?NS_PUBSUB, name = 'delete', children = []}, [
 	    {'node', Node}]),
 	% Prepare the final <iq/>.
 	Pubsub = exmpp_xml:append_child(
