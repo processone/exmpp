@@ -8,6 +8,8 @@
 
 	* src/exmpp_factory.erl: Add functions to delete a pubsub node.
 
+	* src/*.erl: Reorganize source files in separate subdirectories.
+
 2007-03-05  Mickaël Rémond  <mickael.remond@process-one.net>
 
 	* src/exmpp_xml.erl (get_cdata): Handle a false value. This clause
