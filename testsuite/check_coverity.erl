@@ -14,8 +14,12 @@ do_check() ->
 	{ok, [Tests]} = init:get_argument(tests),
 	{ok, [Covered_Modules]} = init:get_argument(covered_modules),
 	cover:start(),
-	cover:compile_directory(Top_Srcdir ++ "/src", [
-	    {i, Top_Srcdir ++ "/include"}]),
+	cover:compile_directory(filename:join([Top_Srcdir, "src", "core"]), [
+	    {i, filename:join(Top_Srcdir, "include")}]),
+	cover:compile_directory(filename:join([Top_Srcdir, "src", "server"]), [
+	    {i, filename:join(Top_Srcdir, "include")}]),
+	cover:compile_directory(filename:join([Top_Srcdir, "src", "client"]), [
+	    {i, filename:join(Top_Srcdir, "include")}]),
 	run_tests(Tests),
 	print_coverage(Covered_Modules),
 	cover:stop(),

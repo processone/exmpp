@@ -9,16 +9,16 @@
 		'@srcdir@/core/exmpp_xmlstream',
 		'@srcdir@/core/exmpp_stringprep',
 		'@srcdir@/core/exmpp_jid',
-		'@srcdir@/exmpp_factory',
+		'@srcdir@/core/exmpp_factory',
 		'@srcdir@/core/exmpp_jlib',
-        '@srcdir@/client/exmpp_client_pubsub'@COMPAT_MODULES_START@
-		@COMPAT_MODULES@'@srcdir@/comp/ejabberd_zlib',
-		@COMPAT_MODULES@'@srcdir@/comp/iconv',
-		@COMPAT_MODULES@'@srcdir@/comp/jlib',
-		@COMPAT_MODULES@'@srcdir@/comp/sha',
-		@COMPAT_MODULES@'@srcdir@/comp/stringprep',
-		@COMPAT_MODULES@'@srcdir@/comp/tls',
-		@COMPAT_MODULES@'@srcdir@/comp/xml'
+		'@srcdir@/client/exmpp_client_pubsub'@COMPAT_MODULES_START@
+		@COMPAT_MODULES@'@srcdir@/compat/ejabberd_zlib',
+		@COMPAT_MODULES@'@srcdir@/compat/iconv',
+		@COMPAT_MODULES@'@srcdir@/compat/jlib',
+		@COMPAT_MODULES@'@srcdir@/compat/sha',
+		@COMPAT_MODULES@'@srcdir@/compat/stringprep',
+		@COMPAT_MODULES@'@srcdir@/compat/tls',
+		@COMPAT_MODULES@'@srcdir@/compat/xml'
 	],
 	[
 		@EMKOPTS@,

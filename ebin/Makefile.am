@@ -12,7 +12,8 @@ BEAM_FILES = exmpp.app							\
 	     exmpp_stringprep.beam					\
 	     exmpp_jid.beam						\
 	     exmpp_factory.beam						\
-	     exmpp_jlib.beam 
+	     exmpp_jlib.beam 						\
+	     exmpp_client_pubsub.beam
 
 if BUILD_COMPAT
 BEAM_FILES += ejabberd_zlib.beam					\
