@@ -1,6 +1,9 @@
 2007-03-07  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
-	* src/compat: Renamed `src/comp' to `src/compat'.
+	* src/comp: Renamed `src/comp' to `src/compat'.
+
+	* src/exmpp_factory.erl: Move to `src/core'; some code still needs to
+	be moved in appropriate modules in `src/server' or `src/client'.
 
 2007-03-06  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
