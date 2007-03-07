@@ -1,3 +1,7 @@
+2007-03-07  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/compat: Renamed `src/comp' to `src/compat'.
+
 2007-03-06  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_xml.erl: Restore DRIVER_NAME value. Style.
