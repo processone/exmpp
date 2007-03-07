@@ -5,6 +5,10 @@
 	* src/exmpp_factory.erl: Move to `src/core'; some code still needs to
 	be moved in appropriate modules in `src/server' or `src/client'.
 
+	* src/Makefile.am, src/Emakefile.in, ebin/Makefile.am,
+	ebin/exmpp.app.in, testsuite/check_coverity.erl: Updates to take into
+	account new `src' layout.
+
 2007-03-06  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/exmpp_xml.erl: Restore DRIVER_NAME value. Style.
