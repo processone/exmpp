@@ -7,6 +7,10 @@
 	testsuite/Makefile.am: Moved stream handling code to dedicated
 	modules.
 
+	* testsuite/check_factory_stream.erl, testsuite/check_stream.erl,
+	testsuite/Makefile.am, testsuite/Emakefile.in: Renamed test for
+	`exmpp_stream'.
+
 2007-03-07  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/comp: Renamed `src/comp' to `src/compat'.

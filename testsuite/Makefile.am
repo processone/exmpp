@@ -9,7 +9,7 @@ EXTRA_DIST = testsuite.erl test.sh					\
 	     check_xml_converters.erl					\
 	     check_xmlstream.erl					\
 	     check_jid.erl						\
-	     check_factory_stream.erl					\
+	     check_stream.erl						\
 	     check_factory_legacy_auth.erl				\
 	     check_coverity.erl
 CLEANFILES = *.beam *.html $(TESTS) erl_crash.dump
@@ -20,7 +20,7 @@ REAL_TESTS = check_xml_attribute_handlers				\
 	     check_xml_path						\
 	     check_xml_converters					\
 	     check_jid							\
-	     check_factory_stream					\
+	     check_stream						\
 	     check_factory_legacy_auth
 
 if WITH_EXPAT
@@ -63,7 +63,7 @@ check_xmlstream: build $(srcdir)/test.sh
 check_jid: build $(srcdir)/test.sh
 	cp $(srcdir)/test.sh $@ && chmod 755 $@
 
-check_factory_stream: build $(srcdir)/test.sh
+check_stream: build $(srcdir)/test.sh
 	cp $(srcdir)/test.sh $@ && chmod 755 $@
 
 check_factory_legacy_auth: build $(srcdir)/test.sh
