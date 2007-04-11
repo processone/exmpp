@@ -97,58 +97,58 @@ do_check() ->
 ).
 
 test_stream_opening() ->
-	testsuite:is(exmpp_factory:stream_opening([]),
+	testsuite:is(exmpp_stream:stream_opening([]),
 	    {error, unspecified_context}),
-	testsuite:is(exmpp_factory:stream_opening([bad_arg]),
+	testsuite:is(exmpp_stream:stream_opening([bad_arg]),
 	    {error, {unknown_argument, bad_arg}}),
-	testsuite:is(exmpp_factory:stream_opening([{context, bad}]),
+	testsuite:is(exmpp_stream:stream_opening([{context, bad}]),
 	    {error, {unknown_context, bad}}),
-	testsuite:is(exmpp_factory:stream_opening([
+	testsuite:is(exmpp_stream:stream_opening([
 	    {context, client}
 	    ]), ?OPENING1),
-	testsuite:is(exmpp_factory:stream_opening([
+	testsuite:is(exmpp_stream:stream_opening([
 	    {context, server}
 	    ]), ?OPENING2),
-	testsuite:is(exmpp_factory:stream_opening([
+	testsuite:is(exmpp_stream:stream_opening([
 	    {context, client},
 	    {to, "dest"}
 	    ]), ?OPENING3),
-	testsuite:is(exmpp_factory:stream_opening([
+	testsuite:is(exmpp_stream:stream_opening([
 	    {context, client},
 	    {lang, "fr"}
 	    ]), ?OPENING4),
-	testsuite:is(exmpp_factory:stream_opening([
+	testsuite:is(exmpp_stream:stream_opening([
 	    {context, client},
 	    {version, "1.0"}
 	    ]), ?OPENING5),
 	ok.
 
 test_stream_opening_reply() ->
-	testsuite:is(exmpp_factory:stream_opening_reply([]),
+	testsuite:is(exmpp_stream:stream_opening_reply([]),
 	    {error, unspecified_context}),
-	testsuite:is(exmpp_factory:stream_opening_reply([bad_arg]),
+	testsuite:is(exmpp_stream:stream_opening_reply([bad_arg]),
 	    {error, {unknown_argument, bad_arg}}),
-	testsuite:is(exmpp_factory:stream_opening_reply([{context, bad}]),
+	testsuite:is(exmpp_stream:stream_opening_reply([{context, bad}]),
 	    {error, {unknown_context, bad}}),
-	testsuite:is(exmpp_factory:stream_opening_reply([
+	testsuite:is(exmpp_stream:stream_opening_reply([
 	    {context, client},
 	    {id, "foobar"}
 	    ]), ?OPENING_REPLY1),
-	testsuite:is(exmpp_factory:stream_opening_reply([
+	testsuite:is(exmpp_stream:stream_opening_reply([
 	    {context, server},
 	    {id, "foobar"}
 	    ]), ?OPENING_REPLY2),
-	testsuite:is(exmpp_factory:stream_opening_reply([
+	testsuite:is(exmpp_stream:stream_opening_reply([
 	    {context, client},
 	    {id, "foobar"},
 	    {from, "orig"}
 	    ]), ?OPENING_REPLY3),
-	testsuite:is(exmpp_factory:stream_opening_reply([
+	testsuite:is(exmpp_stream:stream_opening_reply([
 	    {context, client},
 	    {id, "foobar"},
 	    {lang, "fr"}
 	    ]), ?OPENING_REPLY4),
-	testsuite:is(exmpp_factory:stream_opening_reply([
+	testsuite:is(exmpp_stream:stream_opening_reply([
 	    {context, client},
 	    {id, "foobar"},
 	    {version, "1.0"}
@@ -156,8 +156,8 @@ test_stream_opening_reply() ->
 	ok.
 
 test_stream_closing() ->
-	testsuite:is(exmpp_factory:stream_closing(),
+	testsuite:is(exmpp_stream:stream_closing(),
 	    ?CLOSING1),
-	testsuite:is(exmpp_factory:stream_closing(?OPENING1),
+	testsuite:is(exmpp_stream:stream_closing(?OPENING1),
 	    ?CLOSING1),
 	ok.

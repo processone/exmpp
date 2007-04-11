@@ -34,7 +34,7 @@ TESTS_ENVIRONMENT = ERL="$(ERL)"					\
 	TOP_SRCDIR="$(top_srcdir)"					\
 	TOP_BUILDDIR="$(top_builddir)"					\
 	TESTS="$(REAL_TESTS)"						\
-	COVERED_MODULES="exmpp_xml exmpp_xmlstream exmpp_jid exmpp_factory"
+	COVERED_MODULES="exmpp_xml exmpp_xmlstream exmpp_jid exmpp_stream exmpp_factory"
 
 build:
 	$(ERL) -make

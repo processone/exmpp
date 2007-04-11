@@ -1,3 +1,12 @@
+2007-04-11  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_factory.erl, src/core/exmpp_stream.erl,
+	src/client/exmpp_client_stream.erl,
+	src/server/exmpp_server_stream.erl, src/Makefile.am, src/Emakefile.in,
+	ebin/Makefile.am, testsuite/check_factory_stream.erl,
+	testsuite/Makefile.am: Moved stream handling code to dedicated
+	modules.
+
 2007-03-07  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/comp: Renamed `src/comp' to `src/compat'.

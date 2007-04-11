@@ -11,7 +11,10 @@
 		'@srcdir@/core/exmpp_jid',
 		'@srcdir@/core/exmpp_factory',
 		'@srcdir@/core/exmpp_jlib',
-		'@srcdir@/client/exmpp_client_pubsub'@COMPAT_MODULES_START@
+		'@srcdir@/core/exmpp_stream',
+		'@srcdir@/client/exmpp_client_stream',
+		'@srcdir@/client/exmpp_client_pubsub',
+		'@srcdir@/server/exmpp_server_stream'@COMPAT_MODULES_START@
 		@COMPAT_MODULES@'@srcdir@/compat/ejabberd_zlib',
 		@COMPAT_MODULES@'@srcdir@/compat/iconv',
 		@COMPAT_MODULES@'@srcdir@/compat/jlib',
