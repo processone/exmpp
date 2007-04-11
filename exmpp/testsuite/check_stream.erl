@@ -1,6 +1,6 @@
 % $Id$
 
--module(check_factory_stream).
+-module(check_stream).
 -vsn('$Revision$').
 
 -include("exmpp.hrl").
