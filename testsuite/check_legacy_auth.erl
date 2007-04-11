@@ -1,6 +1,6 @@
 % $Id$
 
--module(check_factory_legacy_auth).
+-module(check_legacy_auth).
 -vsn('$Revision$').
 
 -include("exmpp.hrl").

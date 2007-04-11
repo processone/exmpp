@@ -10,7 +10,7 @@ EXTRA_DIST = testsuite.erl test.sh					\
 	     check_xmlstream.erl					\
 	     check_jid.erl						\
 	     check_stream.erl						\
-	     check_factory_legacy_auth.erl				\
+	     check_legacy_auth.erl					\
 	     check_coverity.erl
 CLEANFILES = *.beam *.html $(TESTS) erl_crash.dump
 
@@ -21,7 +21,7 @@ REAL_TESTS = check_xml_attribute_handlers				\
 	     check_xml_converters					\
 	     check_jid							\
 	     check_stream						\
-	     check_factory_legacy_auth
+	     check_legacy_auth
 
 if WITH_EXPAT
 REAL_TESTS += check_xml_parser						\
@@ -34,7 +34,7 @@ TESTS_ENVIRONMENT = ERL="$(ERL)"					\
 	TOP_SRCDIR="$(top_srcdir)"					\
 	TOP_BUILDDIR="$(top_builddir)"					\
 	TESTS="$(REAL_TESTS)"						\
-	COVERED_MODULES="exmpp_xml exmpp_xmlstream exmpp_jid exmpp_stream exmpp_factory"
+	COVERED_MODULES="exmpp_xml exmpp_xmlstream exmpp_jid exmpp_stream exmpp_client_legacy_auth exmpp_server_legacy_auth"
 
 build:
 	$(ERL) -make
@@ -66,7 +66,7 @@ check_jid: build $(srcdir)/test.sh
 check_stream: build $(srcdir)/test.sh
 	cp $(srcdir)/test.sh $@ && chmod 755 $@
 
-check_factory_legacy_auth: build $(srcdir)/test.sh
+check_legacy_auth: build $(srcdir)/test.sh
 	cp $(srcdir)/test.sh $@ && chmod 755 $@
 
 check_coverity: build $(srcdir)/test.sh

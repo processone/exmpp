@@ -12,7 +12,7 @@
 		'@srcdir@/check_xmlstream',
 		'@srcdir@/check_jid',
 		'@srcdir@/check_stream',
-		'@srcdir@/check_factory_legacy_auth',
+		'@srcdir@/check_legacy_auth',
 		'@srcdir@/check_coverity'
 	],
 	[
