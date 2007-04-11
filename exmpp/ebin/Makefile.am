@@ -15,8 +15,10 @@ BEAM_FILES = exmpp.app							\
 	     exmpp_jlib.beam 						\
 	     exmpp_stream.beam 						\
 	     exmpp_client_stream.beam 					\
+	     exmpp_client_legacy_auth.beam 				\
 	     exmpp_client_pubsub.beam					\
-	     exmpp_server_stream.beam
+	     exmpp_server_stream.beam					\
+	     exmpp_server_legacy_auth.beam
 
 if BUILD_COMPAT
 BEAM_FILES += ejabberd_zlib.beam					\
