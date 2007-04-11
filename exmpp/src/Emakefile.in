@@ -13,8 +13,10 @@
 		'@srcdir@/core/exmpp_jlib',
 		'@srcdir@/core/exmpp_stream',
 		'@srcdir@/client/exmpp_client_stream',
+		'@srcdir@/client/exmpp_client_legacy_auth',
 		'@srcdir@/client/exmpp_client_pubsub',
-		'@srcdir@/server/exmpp_server_stream'@COMPAT_MODULES_START@
+		'@srcdir@/server/exmpp_server_stream',
+		'@srcdir@/server/exmpp_server_legacy_auth'@COMPAT_MODULES_START@
 		@COMPAT_MODULES@'@srcdir@/compat/ejabberd_zlib',
 		@COMPAT_MODULES@'@srcdir@/compat/iconv',
 		@COMPAT_MODULES@'@srcdir@/compat/jlib',

@@ -136,37 +136,37 @@ do_check() ->
 ).
 
 test_legacy_auth_request() ->
-	testsuite:is(exmpp_factory:legacy_auth_request("foobar", "dest"),
+	testsuite:is(exmpp_client_legacy_auth:request("foobar", "dest"),
 	    ?REQUEST1),
 	ok.
 
 test_legacy_auth_fields() ->
-	testsuite:is(exmpp_factory:legacy_auth_fields("foobar"),
+	testsuite:is(exmpp_server_legacy_auth:fields("foobar"),
 	    ?FIELDS1),
 	ok.
 
 test_legacy_auth_password() ->
-	testsuite:is(exmpp_factory:legacy_auth_password("foobar",
+	testsuite:is(exmpp_client_legacy_auth:password("foobar",
 	    "User", "Password", "Resource"),
 	    ?PASSWORD1),
-	testsuite:is(exmpp_factory:legacy_auth_password_digest("foobar",
+	testsuite:is(exmpp_client_legacy_auth:password_digest("foobar",
 	    "User", "Password", "Resource"),
 	    ?PASSWORD2),
 	ok.
 
 test_legacy_auth_success() ->
-	testsuite:is(exmpp_factory:legacy_auth_success("foobar"),
+	testsuite:is(exmpp_server_legacy_auth:success("foobar"),
 	    ?SUCCESS1),
 	ok.
 
 test_legacy_auth_failure() ->
-	testsuite:is(exmpp_factory:legacy_auth_failure("foobar",
+	testsuite:is(exmpp_server_legacy_auth:failure("foobar",
 	    not_authorized),
 	    ?FAILURE1),
-	testsuite:is(exmpp_factory:legacy_auth_failure("foobar",
+	testsuite:is(exmpp_server_legacy_auth:failure("foobar",
 	    conflict),
 	    ?FAILURE2),
-	testsuite:is(exmpp_factory:legacy_auth_failure("foobar",
+	testsuite:is(exmpp_server_legacy_auth:failure("foobar",
 	    not_acceptable),
 	    ?FAILURE3),
 	ok.

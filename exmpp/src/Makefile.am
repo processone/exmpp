@@ -11,8 +11,10 @@ EXTRA_DIST = core/exmpp.erl						\
 	     core/exmpp_jlib.erl					\
 	     core/exmpp_stream.erl					\
 	     client/exmpp_client_stream.erl				\
+	     client/exmpp_client_legacy_auth.erl			\
 	     client/exmpp_client_pubsub.erl				\
 	     server/exmpp_server_stream.erl				\
+	     server/exmpp_server_legacy_auth.erl			\
 	     compat/ejabberd_zlib.erl					\
 	     compat/iconv.erl						\
 	     compat/jlib.erl						\
