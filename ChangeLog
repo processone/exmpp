@@ -11,6 +11,11 @@
 	testsuite/Makefile.am, testsuite/Emakefile.in: Renamed test for
 	`exmpp_stream'.
 
+	* src/core/exmpp_factory.erl, src/client/exmpp_client_legacy_auth.erl,
+	src/server/exmpp_server_legacy_auth.erl, src/Makefile.am,
+	src/Emakefile.in, testsuite/check_factory_legacy_auth.erl: Moved
+	legacy authentication handling to dedicated modules.
+
 2007-03-07  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/comp: Renamed `src/comp' to `src/compat'.
