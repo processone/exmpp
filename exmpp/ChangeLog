@@ -17,6 +17,11 @@
 	testsuite/check_factory_legacy_auth.erl: Moved legacy authentication
 	handling to dedicated modules.
 
+	* testsuite/check_factory_legacy_auth.erl,
+	testsuite/check_legacy_auth.erl, testsuite/Makefile.am,
+	testsuite/Emakefile.in: Renamed test for `exmpp_client_legacy_auth'
+	and `exmpp_server_legacy_auth'.
+
 2007-03-07  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/comp: Renamed `src/comp' to `src/compat'.
