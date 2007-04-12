@@ -6,20 +6,20 @@
 -vsn('$Revision$').
 
 -export([
-  stream_opening/1,
-  stream_closing/0,
-  stream_closing/1
+  opening/1,
+  closing/0,
+  closing/1
 ]).
 
 % --------------------------------------------------------------------
 % Stream opening/closing.
 % --------------------------------------------------------------------
 
-stream_opening(Args) ->
-    exmpp_stream:stream_opening([{context, client} | Args]).
+opening(Args) ->
+    exmpp_stream:opening([{context, client} | Args]).
 
-stream_closing() ->
-    exmpp_stream:stream_closing().
+closing() ->
+    exmpp_stream:closing().
 
-stream_closing(Opening) ->
-    exmpp_stream:stream_closing(Opening).
+closing(Opening) ->
+    exmpp_stream:closing(Opening).

@@ -5,25 +5,39 @@
 -module(exmpp_server_stream).
 -vsn('$Revision$').
 
+-include("exmpp.hrl").
+
 -export([
-  stream_opening/1,
-  stream_opening_reply/1,
-  stream_closing/0,
-  stream_closing/1
+  opening/1,
+  opening_reply/1,
+  closing/0,
+  closing/1,
+  features/1
 ]).
 
 % --------------------------------------------------------------------
 % Stream opening/closing.
 % --------------------------------------------------------------------
 
-stream_opening(Args) ->
-    exmpp_stream:stream_opening([{context, server} | Args]).
+opening(Args) ->
+    exmpp_stream:opening([{context, server} | Args]).
 
-stream_opening_reply(Opening_Or_Args) ->
-    exmpp_stream:stream_opening_reply(Opening_Or_Args).
+opening_reply(Opening_Or_Args) ->
+    exmpp_stream:opening_reply(Opening_Or_Args).
 
-stream_closing() ->
-    exmpp_stream:stream_closing().
+closing() ->
+    exmpp_stream:closing().
 
-stream_closing(Opening) ->
-    exmpp_stream:stream_closing(Opening).
+closing(Opening) ->
+    exmpp_stream:closing(Opening).
+
+% --------------------------------------------------------------------
+% Features announcement.
+% --------------------------------------------------------------------
+
+features(Features) ->
+    #xmlnselement{
+      ns = ?NS_XMPP,
+      name = 'features',
+      children = Features
+    }.
