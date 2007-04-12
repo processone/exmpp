@@ -27,6 +27,9 @@
 	new modules to the build. Disconnected `exmpp_factory' for future
 	removal.
 
+	* src/core/exmpp_factory.erl: Removed because all code was moved to
+	dedicated modules.
+
 2007-04-11  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_factory.erl, src/core/exmpp_stream.erl,
