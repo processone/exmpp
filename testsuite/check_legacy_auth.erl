@@ -20,7 +20,7 @@ do_check() ->
 	ok.
 
 % --------------------------------------------------------------------
-% Stream factory testsuite.
+% Legacy authentication testsuite.
 % --------------------------------------------------------------------
 
 -define(REQUEST1,
