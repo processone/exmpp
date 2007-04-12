@@ -23,6 +23,10 @@
 	* src/client/exmpp_client_sasl.erl, src/server/exmpp_server_sasl.erl:
 	New modules to deal with SASL transport.
 
+	* src/Makefile.am, src/Emakefile.in, ebin/Makefile.am: Connected all
+	new modules to the build. Disconnected `exmpp_factory' for future
+	removal.
+
 2007-04-11  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_factory.erl, src/core/exmpp_stream.erl,
