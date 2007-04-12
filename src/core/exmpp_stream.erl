@@ -35,7 +35,7 @@
 %% <p>
 %% The client call `{@module}':
 %% </p>
-%% <pre>Opening = exmpp_client_stream:stream_opening([
+%% <pre>Opening = exmpp_client_stream:opening([
 %%   {to, "jabber.example.com"},
 %%   {version, "1.0"}<br/>]).</pre>
 %% <p>
@@ -52,7 +52,7 @@
 %% <p>
 %% If the server accepts the client stream opening, it'll call:
 %% </p>
-%% <pre>Opening_Reply = exmpp_server_stream:stream_opening_reply(Opening).</pre>
+%% <pre>Opening_Reply = exmpp_server_stream:opening_reply(Opening).</pre>
 %% <p>
 %% After serialization, this produces this XML message:
 %% </p>
@@ -70,7 +70,7 @@
 %% <p>
 %% At the end of the communication, the client close its stream:
 %% </p>
-%% <pre>Client_Closing = exmpp_client_stream:stream_closing().</pre>
+%% <pre>Client_Closing = exmpp_client_stream:closing().</pre>
 %% <p>
 %% After serialization, this produces this XML message:
 %% </p>
@@ -84,7 +84,7 @@
 %% <p>
 %% The server do the same:
 %% </p>
-%% <pre>Server_Closing = exmpp_server_stream:stream_closing(Client_Closing).</pre>
+%% <pre>Server_Closing = exmpp_server_stream:closing(Client_Closing).</pre>
 %% <p>
 %% After serialization, this produces this XML message:
 %% </p>
@@ -104,11 +104,11 @@
 -include("exmpp.hrl").
 
 -export([
-  stream_opening/1,
-  stream_opening_reply/1,
-  stream_closing/0,
-  stream_closing/1,
-  stream_error/1
+  opening/1,
+  opening_reply/1,
+  closing/0,
+  closing/1,
+  error/1
 ]).
 
 % --------------------------------------------------------------------
@@ -127,14 +127,14 @@
 %%
 %% This element is supposed to be sent by the initiating peer
 %% to the receiving peer (for the other way around, see {@link
-%% stream_opening_reply/1}).
+%% opening_reply/1}).
 %%
 %% Only `Context_Spec' is mandatory. It indicates if the stream to be
 %% opened is between a client and a server (`client') or between two
 %% servers (`server').
 
-stream_opening(Args) ->
-    case stream_opening_attributes(Args) of
+opening(Args) ->
+    case opening_attributes(Args) of
         {error, Reason} ->
             {error, Reason};
         Attrs ->
@@ -144,7 +144,7 @@ stream_opening(Args) ->
               name   = stream,
               attrs  = Attrs
             },
-            case check_stream_opening(Stream_Opening) of
+            case check_opening(Stream_Opening) of
                 ok ->
                     Stream_Opening;
                 {error, Reason} ->
@@ -152,39 +152,39 @@ stream_opening(Args) ->
             end
     end.
 
-stream_opening_attributes(Args) ->
-    stream_opening_attributes2(Args, []).
+opening_attributes(Args) ->
+    opening_attributes2(Args, []).
 
-stream_opening_attributes2([{to, To} | Rest], Attrs) ->
+opening_attributes2([{to, To} | Rest], Attrs) ->
     New_Attrs = exmpp_xml:set_attribute_in_list(Attrs,
       'to', To),
-    stream_opening_attributes2(Rest, New_Attrs);
-stream_opening_attributes2([{version, Version} | Rest], Attrs) ->
+    opening_attributes2(Rest, New_Attrs);
+opening_attributes2([{version, Version} | Rest], Attrs) ->
     New_Attrs = exmpp_xml:set_attribute_in_list(Attrs,
       'version', Version),
-    stream_opening_attributes2(Rest, New_Attrs);
-stream_opening_attributes2([{lang, Lang} | Rest], Attrs) ->
+    opening_attributes2(Rest, New_Attrs);
+opening_attributes2([{lang, Lang} | Rest], Attrs) ->
     New_Attrs = exmpp_xml:set_attribute_in_list(Attrs,
       ?NS_XML, 'lang', Lang),
-    stream_opening_attributes2(Rest, New_Attrs);
-stream_opening_attributes2([{context, client} | Rest], Attrs) ->
+    opening_attributes2(Rest, New_Attrs);
+opening_attributes2([{context, client} | Rest], Attrs) ->
     New_Attrs = exmpp_xml:set_attribute_in_list(Attrs,
       'xmlns', atom_to_list(?NS_JABBER_CLIENT)),
-    stream_opening_attributes2(Rest, New_Attrs);
-stream_opening_attributes2([{context, server} | Rest], Attrs) ->
+    opening_attributes2(Rest, New_Attrs);
+opening_attributes2([{context, server} | Rest], Attrs) ->
     New_Attrs = exmpp_xml:set_attribute_in_list(Attrs,
       'xmlns', atom_to_list(?NS_JABBER_SERVER)),
-    stream_opening_attributes2(Rest, New_Attrs);
-stream_opening_attributes2([{context, Bad_Context} | _Rest], _Attrs) ->
+    opening_attributes2(Rest, New_Attrs);
+opening_attributes2([{context, Bad_Context} | _Rest], _Attrs) ->
     {error, {unknown_context, Bad_Context}};
 
-stream_opening_attributes2([Bad_Arg | _Rest], _Attrs) ->
+opening_attributes2([Bad_Arg | _Rest], _Attrs) ->
     {error, {unknown_argument, Bad_Arg}};
 
-stream_opening_attributes2([], Attrs) ->
+opening_attributes2([], Attrs) ->
     Attrs.
 
-check_stream_opening(Stream_Opening) ->
+check_opening(Stream_Opening) ->
     case exmpp_xml:has_attribute(Stream_Opening, 'xmlns') of
         true ->
             ok;
@@ -206,22 +206,22 @@ check_stream_opening(Stream_Opening) ->
 %%
 %% This element is supposed to be sent by the receiving peer in reply
 %% to the initiating peer (for the other way around, see {@link
-%% stream_opening/1}).
+%% opening/1}).
 %%
-%% Only `Context_Spec' is mandatory (see {@link stream_opening/1} for
+%% Only `Context_Spec' is mandatory (see {@link opening/1} for
 %% its meaning).
 %%
 %% If `ID_Spec' is `{id, undefined}', one will be generated
 %% automatically.
 
-stream_opening_reply(#xmlnselement{attrs = Attrs} = Stream_Opening) ->
+opening_reply(#xmlnselement{attrs = Attrs} = Stream_Opening) ->
     Id = stream_id(),
     Attrs1 = exmpp_jlib:rename_attr_to_to_from_in_list(Attrs),
     Attrs2 = exmpp_xml:set_attribute_in_list(Attrs1, 'id', Id),
     Stream_Opening#xmlnselement{attrs = Attrs2};
 
-stream_opening_reply(Args) ->
-    case stream_opening_reply_attributes(Args) of
+opening_reply(Args) ->
+    case opening_reply_attributes(Args) of
         {error, Reason} ->
             {error, Reason};
         Attrs ->
@@ -231,7 +231,7 @@ stream_opening_reply(Args) ->
               name   = stream,
               attrs  = Attrs
             },
-            case check_stream_opening_reply(Stream_Opening_Reply) of
+            case check_opening_reply(Stream_Opening_Reply) of
                 ok ->
                     Stream_Opening_Reply;
                 {error, Reason} ->
@@ -239,47 +239,47 @@ stream_opening_reply(Args) ->
             end
     end.
 
-stream_opening_reply_attributes(Args) ->
-    stream_opening_reply_attributes2(Args, []).
+opening_reply_attributes(Args) ->
+    opening_reply_attributes2(Args, []).
 
-stream_opening_reply_attributes2([{from, From} | Rest], Attrs) ->
+opening_reply_attributes2([{from, From} | Rest], Attrs) ->
     New_Attrs = exmpp_xml:set_attribute_in_list(Attrs,
       'from', From),
-    stream_opening_reply_attributes2(Rest, New_Attrs);
-stream_opening_reply_attributes2([{id, undefined} | Rest], Attrs) ->
+    opening_reply_attributes2(Rest, New_Attrs);
+opening_reply_attributes2([{id, undefined} | Rest], Attrs) ->
     New_Attrs = exmpp_xml:set_attribute_in_list(Attrs,
       'id', stream_id()),
-    stream_opening_reply_attributes2(Rest, New_Attrs);
-stream_opening_reply_attributes2([{id, ID} | Rest], Attrs) ->
+    opening_reply_attributes2(Rest, New_Attrs);
+opening_reply_attributes2([{id, ID} | Rest], Attrs) ->
     New_Attrs = exmpp_xml:set_attribute_in_list(Attrs,
       'id', ID),
-    stream_opening_reply_attributes2(Rest, New_Attrs);
-stream_opening_reply_attributes2([{version, Version} | Rest], Attrs) ->
+    opening_reply_attributes2(Rest, New_Attrs);
+opening_reply_attributes2([{version, Version} | Rest], Attrs) ->
     New_Attrs = exmpp_xml:set_attribute_in_list(Attrs,
       'version', Version),
-    stream_opening_reply_attributes2(Rest, New_Attrs);
-stream_opening_reply_attributes2([{lang, Lang} | Rest], Attrs) ->
+    opening_reply_attributes2(Rest, New_Attrs);
+opening_reply_attributes2([{lang, Lang} | Rest], Attrs) ->
     New_Attrs = exmpp_xml:set_attribute_in_list(Attrs,
       ?NS_XML, 'lang', Lang),
-    stream_opening_reply_attributes2(Rest, New_Attrs);
-stream_opening_reply_attributes2([{context, client} | Rest], Attrs) ->
+    opening_reply_attributes2(Rest, New_Attrs);
+opening_reply_attributes2([{context, client} | Rest], Attrs) ->
     New_Attrs = exmpp_xml:set_attribute_in_list(Attrs,
       'xmlns', atom_to_list(?NS_JABBER_CLIENT)),
-    stream_opening_reply_attributes2(Rest, New_Attrs);
-stream_opening_reply_attributes2([{context, server} | Rest], Attrs) ->
+    opening_reply_attributes2(Rest, New_Attrs);
+opening_reply_attributes2([{context, server} | Rest], Attrs) ->
     New_Attrs = exmpp_xml:set_attribute_in_list(Attrs,
       'xmlns', atom_to_list(?NS_JABBER_SERVER)),
-    stream_opening_reply_attributes2(Rest, New_Attrs);
-stream_opening_reply_attributes2([{context, Bad_Context} | _Rest], _Attrs) ->
+    opening_reply_attributes2(Rest, New_Attrs);
+opening_reply_attributes2([{context, Bad_Context} | _Rest], _Attrs) ->
     {error, {unknown_context, Bad_Context}};
 
-stream_opening_reply_attributes2([Bad_Arg | _Rest], _Attrs) ->
+opening_reply_attributes2([Bad_Arg | _Rest], _Attrs) ->
     {error, {unknown_argument, Bad_Arg}};
 
-stream_opening_reply_attributes2([], Attrs) ->
+opening_reply_attributes2([], Attrs) ->
     Attrs.
 
-check_stream_opening_reply(Stream_Opening_Reply) ->
+check_opening_reply(Stream_Opening_Reply) ->
     case exmpp_xml:has_attribute(Stream_Opening_Reply, 'xmlns') of
         true ->
             ok;
@@ -291,14 +291,14 @@ check_stream_opening_reply(Stream_Opening_Reply) ->
 %%     Stream_Closing = exmpp_xml:xmlnsendelement()
 %% @doc Make a `</stream>' closing tag.
 
-stream_closing() ->
+closing() ->
     #xmlnsendelement{ns = ?NS_XMPP, prefix = "stream", name = 'stream'}.
 
 %% @spec (Stream_Opening) -> Stream_Closing
 %%     XML_End_Element = exmpp_xml:xmlnsendelement()
 %% @doc Make a `</stream>' closing tag from the given `Stream_Opening' tag.
 
-stream_closing(#xmlnselement{ns = NS, prefix = Prefix, name = Name}) ->
+closing(#xmlnselement{ns = NS, prefix = Prefix, name = Name}) ->
     #xmlnsendelement{ns = NS, prefix = Prefix, name = Name}.
 
 %% @spec () -> Stream_ID
@@ -320,7 +320,7 @@ stream_id() ->
 %%     Stream_Error = exmpp_xml:xmlnselement()
 %% @doc Make a `<stream:error>' element corresponding to the given `Type'.
 
-stream_error(Type) ->
+error(Type) ->
     Type_El = #xmlnselement{
       ns = ?NS_XMPP_STREAMS,
       name = Type,

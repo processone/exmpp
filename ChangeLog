@@ -1,3 +1,12 @@
+2007-04-12  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* core/exmpp_stream.erl, client/exmpp_client_stream.erl,
+	server/exmpp_server_stream.erl: Removed `stream_' prefix from all
+	functions.
+
+	* server/exmpp_server_stream.erl (features): New function to build a
+	features announcement stanza.
+
 2007-04-11  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_factory.erl, src/core/exmpp_stream.erl,
