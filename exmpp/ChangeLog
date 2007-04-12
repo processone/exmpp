@@ -14,6 +14,9 @@
 	src/server/exmpp_server_compression.erl: New modules to deal with
 	stream compression negotiation.
 
+	* src/client/exmpp_client_sasl.erl, src/server/exmpp_server_sasl.erl:
+	New modules to deal with SASL transport.
+
 2007-04-11  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_factory.erl, src/core/exmpp_stream.erl,
