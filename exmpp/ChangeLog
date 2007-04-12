@@ -7,6 +7,9 @@
 	* server/exmpp_server_stream.erl (features): New function to build a
 	features announcement stanza.
 
+	* src/client/exmpp_client_tls.erl, src/server/exmpp_server_tls.erl:
+	New modules to deal with TLS negotiation.
+
 2007-04-11  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_factory.erl, src/core/exmpp_stream.erl,
