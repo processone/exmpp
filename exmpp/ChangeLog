@@ -1,3 +1,8 @@
+2007-04-18  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* include/exmpp.hrl: Ajout du namespace utilisé pour le resource
+	binding.
+
 2007-04-12  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_stream.erl, src/client/exmpp_client_stream.erl,
