@@ -18,8 +18,8 @@
 
 announced_support(#xmlnselement{ns = ?NS_XMPP, name = 'features'} = El) ->
     case exmpp_xml:get_element_by_name(El, ?NS_TLS, 'starttls') of
-        false   -> none;
-        Methods -> announced_support(Methods)
+        false -> none;
+        Child -> announced_support(Child)
     end;
 announced_support(#xmlnselement{ns = ?NS_TLS, name = 'starttls',
   children = []}) ->

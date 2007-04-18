@@ -10,6 +10,9 @@
 	src/server/exmpp_server_session.erl: New modules to deal with Session
 	Establishment.
 
+	* src/client/exmpp_client_tls.erl: Renamed a variable to be consistent
+	with other modules.
+
 2007-04-12  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_stream.erl, src/client/exmpp_client_stream.erl,
