@@ -13,12 +13,16 @@ EXTRA_DIST = core/exmpp.erl						\
 	     client/exmpp_client_tls.erl				\
 	     client/exmpp_client_compression.erl			\
 	     client/exmpp_client_sasl.erl				\
+	     client/exmpp_client_binding.erl				\
+	     client/exmpp_client_session.erl				\
 	     client/exmpp_client_legacy_auth.erl			\
 	     client/exmpp_client_pubsub.erl				\
 	     server/exmpp_server_stream.erl				\
 	     server/exmpp_server_tls.erl				\
 	     server/exmpp_server_compression.erl			\
 	     server/exmpp_server_sasl.erl				\
+	     server/exmpp_server_binding.erl				\
+	     server/exmpp_server_session.erl				\
 	     server/exmpp_server_legacy_auth.erl			\
 	     compat/ejabberd_zlib.erl					\
 	     compat/iconv.erl						\
