@@ -15,14 +15,18 @@ BEAM_FILES = exmpp.app							\
 	     exmpp_stream.beam 						\
 	     exmpp_client_stream.beam 					\
 	     exmpp_client_tls.beam 					\
-	     exmpp_client_sasl.beam 					\
 	     exmpp_client_compression.beam 				\
+	     exmpp_client_sasl.beam 					\
+	     exmpp_client_binding.beam 					\
+	     exmpp_client_session.beam 					\
 	     exmpp_client_legacy_auth.beam 				\
 	     exmpp_client_pubsub.beam					\
 	     exmpp_server_stream.beam					\
 	     exmpp_server_tls.beam					\
 	     exmpp_server_compression.beam				\
 	     exmpp_server_sasl.beam					\
+	     exmpp_server_binding.beam					\
+	     exmpp_server_session.beam					\
 	     exmpp_server_legacy_auth.beam
 
 if BUILD_COMPAT

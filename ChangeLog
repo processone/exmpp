@@ -13,6 +13,9 @@
 	* src/client/exmpp_client_tls.erl: Renamed a variable to be consistent
 	with other modules.
 
+	* src/Makefile.am, src/Emakefile.in, ebin/Makefile.am: Connected new
+	modules to the build.
+
 2007-04-12  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_stream.erl, src/client/exmpp_client_stream.erl,
