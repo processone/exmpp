@@ -1,3 +1,8 @@
+2007-04-20  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* doc/Makefile.am: Fixed documentation build: the new sources layout
+	broke it. Also add `make install' support.
+
 2007-04-18  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl: Added resource binding namespace.
