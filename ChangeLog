@@ -3,6 +3,8 @@
 	* src/core/exmpp_xml.erl: Unlink port before stopping it. This
 	prevents an 'EXIT' message sent to the port owner.
 
+	* doc/overview.edoc: Nano update of the application overview.
+
 2007-04-20  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* doc/Makefile.am: Fixed documentation build: the new sources layout
