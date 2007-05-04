@@ -204,6 +204,7 @@ start_parser(Options) ->
 %% @see start_parser/0. `start_parser/0' for an example
 
 stop_parser(#xml_parser{port = Port} = _Parser) ->
+	unlink(Port),
 	port_close(Port),
 	unload_driver().
 
