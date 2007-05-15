@@ -1,3 +1,9 @@
+2007-05-15  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/server/exmpp_server_compression.erl (methods_list2),
+	src/server/exmpp_server_sasl.erl (mechanisms_list2): Verify if the
+	given argument is an authentic string.
+
 2007-05-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_xml.erl: Unlink port before stopping it. This
