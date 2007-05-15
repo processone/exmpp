@@ -35,13 +35,18 @@ mechanisms_list(Mechanisms) ->
     mechanisms_list2(Mechanisms, []).
 
 mechanisms_list2([Mechanism | Rest], Children) ->
-    Child = #xmlnselement{
-      ns = ?NS_SASL,
-      name = 'mechanism',
-      children = []
-    },
-    mechanisms_list2(Rest,
-      Children ++ [exmpp_xml:set_cdata(Child, Mechanism)]);
+    case io_lib:deep_char_list(Mechanism) of
+        true ->
+            Child = #xmlnselement{
+              ns = ?NS_SASL,
+              name = 'mechanism',
+              children = []
+            },
+            mechanisms_list2(Rest,
+              Children ++ [exmpp_xml:set_cdata(Child, Mechanism)]);
+        false ->
+            {error, bad_mechanisms_list}
+    end;
 mechanisms_list2([], Children) ->
     Children.
 

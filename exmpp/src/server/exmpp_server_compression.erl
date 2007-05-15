@@ -32,12 +32,17 @@ methods_list(Methods) ->
     methods_list2(Methods, []).
 
 methods_list2([Method | Rest], Children) ->
-    Child = #xmlnselement{
-      ns = ?NS_COMPRESS,
-      name = 'method',
-      children = []
-    },
-    methods_list2(Rest,
-      Children ++ [exmpp_xml:set_cdata(Child, Method)]);
+    case io_lib:deep_char_list(Method) of
+        true ->
+            Child = #xmlnselement{
+              ns = ?NS_COMPRESS,
+              name = 'method',
+              children = []
+            },
+            methods_list2(Rest,
+              Children ++ [exmpp_xml:set_cdata(Child, Method)]);
+        false ->
+            {error, bad_methods_list}
+    end;
 methods_list2([], Children) ->
     Children.
