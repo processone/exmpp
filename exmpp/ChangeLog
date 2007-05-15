@@ -4,6 +4,9 @@
 	src/server/exmpp_server_sasl.erl (mechanisms_list2): Verify if the
 	given argument is an authentic string.
 
+	* src/core/exmpp_sup.erl: Do not use supervisor:start/3 because it
+	never existed. Spotted by Dialyzer.
+
 2007-05-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_xml.erl: Unlink port before stopping it. This
