@@ -42,6 +42,7 @@ CFLAGS="$cflags_save"
 
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
+AC_PROG_SED
 
 dnl ------------------------------------------------------------------
 dnl libtool
