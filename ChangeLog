@@ -19,6 +19,11 @@
 	* m4/ax_compare_version.m4: New M4 macro to compare version numbers in
 	a configure script.
 
+	* configure.ac: Updated the required autoconf version to 2.60 (for
+	official Erlang support). Removed directives which were never used
+	and already commented out. Check Erlang kernel's version to
+	automatically enable or disable erl_ddll workaround.
+
 2007-05-15  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/server/exmpp_server_compression.erl (methods_list2),

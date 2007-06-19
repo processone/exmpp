@@ -15,7 +15,7 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 AC_CANONICAL_HOST
 
-AC_PREREQ([2.59])
+AC_PREREQ([2.60])
 AC_REVISION([$Revision$])
 
 dnl ------------------------------------------------------------------
@@ -38,13 +38,10 @@ dnl ------------------------------------------------------------------
 
 cflags_save="$CFLAGS"
 AC_PROG_CC
-#AC_PROG_CC_C99
 CFLAGS="$cflags_save"
 
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
-
-#AC_C_CONST
 
 dnl ------------------------------------------------------------------
 dnl libtool
@@ -126,16 +123,6 @@ if test "x${enable_warnings}" = "xyes" -a "x${GCC}" = "xyes"; then
 	CFLAGS="${CFLAGS% } -Werror"
 fi
 
-dnl Broken erl_ddll.
-AC_ARG_WITH([broken-erl_ddl],
-	AC_HELP_STRING([--with-broken-erl_ddll],
-	    [add a workaround for broken erl_ddll [[default=yes]]]),,
-	with_broken_erl_ddll="yes")
-if test "x${with_broken_erl_ddll}" = "xyes"; then
-	append_to_EMKOPTS "{d, 'WITH_BROKEN_ERL_DDLL'}"
-fi
-AM_CONDITIONAL(WITH_BROKEN_ERL_DDLL, test "x${with_broken_erl_ddll}" = "xyes")
-
 dnl Compatibility modules.
 AC_ARG_ENABLE([compat],
 	AC_HELP_STRING([--enable-compat],
@@ -180,6 +167,9 @@ if test "x${cross_compiling}" = "xno"; then
 	AC_ERLANG_SUBST_LIB_DIR
 
 	dnl Check for standard Erlang/OTP libraries.
+	AC_ERLANG_CHECK_LIB([kernel], [],
+		[AC_MSG_ERROR([kernel was not found!])]
+	)
 	AC_ERLANG_CHECK_LIB([erl_interface], [],
 		[AC_MSG_ERROR([erl_interface was not found!])]
 	)
@@ -210,6 +200,46 @@ fi
 
 AC_ERLANG_SUBST_INSTALL_LIB_DIR
 AC_ERLANG_SUBST_INSTALL_LIB_SUBDIR(exmpp, ${VERSION})
+
+dnl Broken erl_ddll.
+dnl Before kernel-2.11, port drivers refcount is not updated correctly,
+dnl leading to premature unload of the library.
+AC_MSG_CHECKING([for the need for erl_ddll workaround])
+
+if test "x${cross_compiling}" = "xno"; then
+	AX_COMPARE_VERSION(${ERLANG_LIB_VER_kernel}, [lt], [2.11],
+	    [default_with_broken_erl_ddll="yes"],
+	    [default_with_broken_erl_ddll="no"])
+else
+	default_with_broken_erl_ddll="yes"
+fi
+
+AC_ARG_WITH([broken-erl_ddll],
+	AC_HELP_STRING([--with-broken-erl_ddll],
+	    [add a workaround for broken erl_ddll [[default=auto]]]),,
+	with_broken_erl_ddll=$default_with_broken_erl_ddll)
+if test "x${with_broken_erl_ddll}" = "xyes"; then
+	append_to_EMKOPTS "{d, 'WITH_BROKEN_ERL_DDLL'}"
+fi
+AM_CONDITIONAL(WITH_BROKEN_ERL_DDLL, test "x${with_broken_erl_ddll}" = "xyes")
+
+if test "x${with_broken_erl_ddll}" = "xyes"; then
+	if test "x${default_with_broken_erl_ddll}" = "xyes"; then
+		if test "x${cross_compiling}" = "xno"; then
+			AC_MSG_RESULT([yes (kernel < 2.11)])
+		else
+			AC_MSG_RESULT([yes (cross-compiling)])
+		fi
+	else
+		AC_MSG_RESULT([yes (forced by user)])
+	fi
+else
+	if test "x${default_with_broken_erl_ddll}" = "xno"; then
+		AC_MSG_RESULT([no (kernel >= 2.11)])
+	else
+		AC_MSG_RESULT([no (disabled by user)])
+	fi
+fi
 
 dnl ------------------------------------------------------------------
 dnl Plateform-specific cases.
