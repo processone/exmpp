@@ -13,6 +13,9 @@
 	src/client/exmpp_client_stream.erl: Add helpers to access common
 	attributes.
 
+	* src/core/exmpp_xml.erl: Add functions to prepend one or more
+	children to a given element's children.
+
 2007-05-15  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/server/exmpp_server_compression.erl (methods_list2),
