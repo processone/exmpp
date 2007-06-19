@@ -108,7 +108,10 @@
   opening_reply/1,
   closing/0,
   closing/1,
-  error/1
+  error/1,
+  get_version/1,
+  get_lang/1,
+  parse_version/1
 ]).
 
 % --------------------------------------------------------------------
@@ -332,3 +335,36 @@ error(Type) ->
       name = 'error',
       children = [Type_El]
     }.
+
+% --------------------------------------------------------------------
+% Stream standard attributes.
+% --------------------------------------------------------------------
+
+get_version(Opening) ->
+    case exmpp_xml:get_attribute(Opening, 'version') of
+        false   -> parse_version("");
+        Version -> parse_version(Version)
+    end.
+
+get_lang(Opening) ->
+    case exmpp_xml:get_attribute(Opening, ?NS_XML, 'lang') of
+        false -> false;
+        Lang  -> Lang
+    end.
+
+% --------------------------------------------------------------------
+% Utilities.
+% --------------------------------------------------------------------
+
+parse_version("") ->
+    {0, 0};
+parse_version(Version_S) ->
+    case string:to_integer(Version_S) of
+        {Major, [$. | Rest]} ->
+            case string:to_integer(Rest) of
+                {Minor, []} -> {Major, Minor};
+                _           -> {error, invalid_version}
+            end;
+        _ ->
+            {error, invalid_version}
+    end.
