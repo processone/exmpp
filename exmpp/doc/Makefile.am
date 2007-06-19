@@ -27,5 +27,5 @@ clean-local:
 htmldocdir = $(ERLANG_INSTALL_LIB_DIR_exmpp)/doc/html
 nodist_htmldoc_DATA = *.html stylesheet.css erlang.png
 
-CLEANFILES = *.html edoc-info
+CLEANFILES = *.html edoc-info erlang.png
 endif
