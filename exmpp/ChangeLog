@@ -22,10 +22,11 @@
 	* configure.ac: Updated the required autoconf version to 2.60 (for
 	official Erlang support). Removed directives which were never used
 	and already commented out. Check Erlang kernel's version to
-	automatically enable or disable erl_ddll workaround.
+	automatically enable or disable erl_ddll workaround. Check for sed(1).
 
 	* doc/Makefile.am: Documentation is now rebuilt only if one of the
-	source files is updated. Add `erlang.png' to the CLEANFILES.
+	source files is updated. Add `erlang.png' to the CLEANFILES. Add the
+	correct encoding to every HTML documents with sed(1).
 
 2007-05-15  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
