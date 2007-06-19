@@ -65,6 +65,8 @@
 	get_element_by_name/2,
 	get_element_by_name/3,
 	get_element_by_ns/2,
+	prepend_child/2,
+	prepend_children/2,
 	append_child/2,
 	append_children/2,
 	replace_child/3,
@@ -826,6 +828,52 @@ get_element_by_ns2([], _NS) ->
 
 get_element_by_ns2(undefined, _NS) ->
 	false.
+
+%% @spec (XML_Element, Child) -> New_XML_Element
+%%     XML_Element = xmlnselement() | xmlelement()
+%%     Child = xmlnselement() | xmlelement() | xmlcdata()
+%%     New_XML_Element = xmlnselement() | xmlelement()
+%% @doc Prepend `Child' to `XML_Element''s children list.
+
+prepend_child(#xmlnselement{children = undefined} = XML_Element, Child) ->
+	New_Children = [Child],
+	XML_Element#xmlnselement{children = New_Children};
+
+prepend_child(#xmlelement{children = undefined} = XML_Element, Child) ->
+	New_Children = [Child],
+	XML_Element#xmlelement{children = New_Children};
+
+prepend_child(#xmlnselement{children = Children} = XML_Element, Child) ->
+	New_Children = [Child | Children],
+	XML_Element#xmlnselement{children = New_Children};
+
+prepend_child(#xmlelement{children = Children} = XML_Element, Child) ->
+	New_Children = [Child | Children],
+	XML_Element#xmlelement{children = New_Children}.
+
+%% @spec (XML_Element, Children) -> New_XML_Element
+%%     XML_Element = xmlnselement() | xmlelement()
+%%     Children = [xmlnselement() | xmlelement() | xmlcdata()]
+%%     New_XML_Element = xmlnselement() | xmlelement()
+%% @doc Prepend every `Children' to `XML_Element''s children list.
+
+prepend_children(#xmlnselement{children = undefined} = XML_Element,
+    New_Children) ->
+	XML_Element#xmlnselement{children = New_Children};
+
+prepend_children(#xmlelement{children = undefined} = XML_Element,
+    New_Children) ->
+	XML_Element#xmlelement{children = New_Children};
+
+prepend_children(#xmlnselement{children = Children} = XML_Element,
+    New_Children) ->
+	Concat_Children = [New_Children | Children],
+	XML_Element#xmlnselement{children = Concat_Children};
+
+prepend_children(#xmlelement{children = Children} = XML_Element,
+    New_Children) ->
+	Concat_Children = [New_Children | Children],
+	XML_Element#xmlelement{children = Concat_Children}.
 
 %% @spec (XML_Element, Child) -> New_XML_Element
 %%     XML_Element = xmlnselement() | xmlelement()
