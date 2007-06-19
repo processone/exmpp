@@ -88,4 +88,6 @@ next_step(#xmlnselement{ns = ?NS_SASL, name = 'response'} = El) ->
     Encoded = exmpp_xml:get_cdata(El),
     {response, http_base_64:decode(Encoded)};
 next_step(#xmlnselement{ns = ?NS_SASL, name = 'abort'}) ->
-    abort.
+    abort;
+next_step(#xmlnselement{}) ->
+    {error, unexpected_stanza}.
