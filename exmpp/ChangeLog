@@ -16,6 +16,9 @@
 	* src/core/exmpp_xml.erl: Add functions to prepend one or more
 	children to a given element's children.
 
+	* m4/ax_compare_version.m4: New M4 macro to compare version numbers in
+	a configure script.
+
 2007-05-15  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/server/exmpp_server_compression.erl (methods_list2),
