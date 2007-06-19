@@ -1,8 +1,6 @@
 # $Id$
 
 if BUILD_DOCUMENTATION
-.PHONY: stylesheet.css
-
 stylesheet.css:
 	(test "$(srcdir)" != "." &&\
 	 (test ! -e "$@" || test "$(srcdir)/$@" -nt "$@") &&\
@@ -10,10 +8,18 @@ stylesheet.css:
 
 erlang.png:
 
-all-local: stylesheet.css
-	$(ERL) -noshell -run edoc_run application "'$(PACKAGE_NAME)'" '"$(top_srcdir)"'\
+ERL_SRCS = $(top_srcdir)/src/core/*.erl					\
+	   $(top_srcdir)/src/server/*.erl				\
+	   $(top_srcdir)/src/client/*.erl				\
+	   $(top_srcdir)/src/compat/*.erl
+
+index.html: overview.edoc $(ERL_SRCS) stylesheet.css
+	$(ERL) -noshell\
+		-run edoc_run application "'$(PACKAGE_NAME)'" '"$(top_srcdir)"'\
 		'[{def, {vsn, "$(PACKAGE_VERSION)"}}, {dir, "."}, {stylesheet, "stylesheet.css"}, {preprocess, true}, no_packages]'\
 		-s erlang halt
+
+all-local: index.html
 
 clean-local:
 	(test "$(srcdir)" != "." && rm -f stylesheet.css) || :
