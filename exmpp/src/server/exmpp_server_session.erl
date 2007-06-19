@@ -36,11 +36,13 @@ want_establishment(#xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'} = Iq) ->
                 #xmlnselement{} ->
                     ok;
                 _ ->
-                    {error, no_session}
+                    {error, unexpected_stanza}
             end;
         _ ->
-            {error, unexpected_iq}
-    end.
+            {error, unexpected_stanza}
+    end;
+want_establishment(#xmlnselement{}) ->
+    {error, unexpected_stanza}.
 
 establish(Iq) ->
     Iq1 = exmpp_xml:set_children(Iq, []),
