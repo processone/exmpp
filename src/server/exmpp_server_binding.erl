@@ -41,11 +41,13 @@ wished_resource(#xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'} = Iq) ->
                             {ok, none}
                     end;
                 _ ->
-                    {error, no_bind}
+                    {error, unexpected_stanza}
             end;
         _ ->
-            {error, unexpected_iq}
-    end.
+            {error, unexpected_stanza}
+    end;
+wished_resource(#xmlnselement{}) ->
+    {error, unexpected_stanza}.
 
 bind(Iq, Jid) ->
     Jid_S = exmpp_jid:jid_to_string(Jid),
@@ -63,8 +65,8 @@ bind(Iq, Jid) ->
     Iq1 = exmpp_xml:set_children(Iq, [Bind]),
     exmpp_xml:set_attribute(Iq1, 'type', "result").
 
-error(Iq, Reason) ->
-    El = #xmlnselement{
+error(El, Reason) ->
+    Reason_El = #xmlnselement{
       ns = ?NS_XMPP_STANZAS,
       name = Reason,
       children = []
@@ -72,13 +74,15 @@ error(Iq, Reason) ->
     Error0 = #xmlnselement{
       ns = ?NS_JABBER_CLIENT,
       name = 'error',
-      children = [El]
+      children = [Reason_El]
     },
     Error = case Reason of
         'bad-request' ->
             exmpp_xml:set_attribute(Error0, 'type', "modify");
+        'not-authorized' ->
+            exmpp_xml:set_attribute(Error0, 'type', "auth");
         _ ->
             exmpp_xml:set_attribute(Error0, 'type', "cancel")
     end,
-    Iq1 = exmpp_xml:append_child(Iq, Error),
-    exmpp_xml:set_attribute(Iq1, 'type', "result").
+    El1 = exmpp_xml:append_child(El, Error),
+    exmpp_xml:set_attribute(El1, 'type', "error").
