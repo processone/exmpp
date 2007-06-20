@@ -3,6 +3,13 @@
 	* c_src/Makefile.am: Moved some targets around to reorder them more
 	logically.
 
+	* Makefile.unix, c_src/Makefile.unix, src/Makefile.unix,
+	ebin/Makefile.unix: Added Makefiles to provide an alternate build
+	procedure. It's intended for Unix plateforms where the autotools are
+	not as common as under Linux/*BSD. Note that this method doesn't have
+	option to disable the compatibility layer or to build the
+	documentation yet. They require GNU make(1).
+
 2007-06-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/server/exmpp_server_sasl.erl (next_step),
