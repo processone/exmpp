@@ -51,6 +51,15 @@ libdir = $(ERLANG_INSTALL_LIB_DIR_exmpp)/priv/lib
 # --------------------------------------------------------------------
 
 # Expat port driver
+xmpp_ns.h: $(srcdir)/xmpp_ns.h.awk $(srcdir)/xmpp_ns.h.in
+	$(AWK) -f $(srcdir)/xmpp_ns.h.awk $(srcdir)/xmpp_ns.h.in > $@
+
+xmpp_names.h: $(srcdir)/xmpp_names.h.awk $(srcdir)/xmpp_names.h.in
+	$(AWK) -f $(srcdir)/xmpp_names.h.awk $(srcdir)/xmpp_names.h.in > $@
+
+xmpp_attrs.h: $(srcdir)/xmpp_attrs.h.awk $(srcdir)/xmpp_attrs.h.in
+	$(AWK) -f $(srcdir)/xmpp_attrs.h.awk $(srcdir)/xmpp_attrs.h.in > $@
+
 exmpp_expat_drv_la_CPPFLAGS = -I$(srcdir)/contrib			\
 			      $(EI_CPPFLAGS) -DEI_ENCODE_STRING_BUG	\
 			      $(EXPAT_CPPFLAGS)
@@ -77,15 +86,6 @@ ejabberd_zlib_drv_la_LDFLAGS = -module -avoid-version			\
 			       $(EI_LDFLAGS) $(EI_LIBS)			\
 			       $(ZLIB_LDFLAGS) $(ZLIB_LIBS)
 ejabberd_zlib_drv_la_SOURCES = ejabberd_zlib_drv.c
-
-xmpp_ns.h: $(srcdir)/xmpp_ns.h.awk $(srcdir)/xmpp_ns.h.in
-	$(AWK) -f $(srcdir)/xmpp_ns.h.awk $(srcdir)/xmpp_ns.h.in > $@
-
-xmpp_names.h: $(srcdir)/xmpp_names.h.awk $(srcdir)/xmpp_names.h.in
-	$(AWK) -f $(srcdir)/xmpp_names.h.awk $(srcdir)/xmpp_names.h.in > $@
-
-xmpp_attrs.h: $(srcdir)/xmpp_attrs.h.awk $(srcdir)/xmpp_attrs.h.in
-	$(AWK) -f $(srcdir)/xmpp_attrs.h.awk $(srcdir)/xmpp_attrs.h.in > $@
 
 # iconv port driver
 iconv_erl_la_CPPFLAGS = $(EI_CPPFLAGS)					\

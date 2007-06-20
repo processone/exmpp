@@ -1,3 +1,8 @@
+2007-06-20  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* c_src/Makefile.am: Moved some targets around to reorder them more
+	logically.
+
 2007-06-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/server/exmpp_server_sasl.erl (next_step),
