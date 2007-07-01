@@ -1,3 +1,8 @@
+2007-07-01  Mickael Remond  <mremond@process-one.net>
+
+	* src/core/exmpp_jid.erl: Make jid can generate random resource when
+	asked. A new is_jid function has been added.
+
 2007-06-26  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Branch 0.7.

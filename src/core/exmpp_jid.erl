@@ -37,6 +37,11 @@
   have_same_domain/2
 ]).
 
+% Checks.
+-export([
+  is_jid/1
+]).
+
 -define(NODE_MAX_LENGTH,     1023).
 -define(DOMAIN_MAX_LENGTH,   1023).
 -define(RESOURCE_MAX_LENGTH, 1023).
@@ -89,6 +94,9 @@ make_bare_jid(Node, Domain) ->
 
 make_jid(Node, Domain, undefined) ->
     make_bare_jid(Node, Domain);
+make_jid(Node, Domain, random) ->
+    Resource = generate_resource(),
+    make_jid(Node, Domain, Resource);
 make_jid(_Node, _Domain, Resource)
   when length(Resource) > ?RESOURCE_MAX_LENGTH ->
     {error, resource_too_long};
@@ -245,3 +253,25 @@ have_same_domain(
     true;
 have_same_domain(_Jid1, _Jid2) ->
     false.
+
+% --------------------------------------------------------------------
+% JID checks.
+% --------------------------------------------------------------------
+
+is_jid(JID) when record(JID, jid) ->
+    true;
+is_jid(_) ->
+    false.
+
+% --------------------------------------------------------------------
+% Helper functions
+% --------------------------------------------------------------------
+
+%% We do not use random generator to avoid having to decided when and 
+%% how to seed the Erlang random number generator.
+generate_resource() ->
+    {A,B,C} = erlang:now(),
+    lists:flatten(["exmpp#",
+		   integer_to_list(A),
+		   integer_to_list(B),
+		   integer_to_list(C)]).
