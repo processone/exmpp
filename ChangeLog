@@ -3,6 +3,9 @@
 	* include/Makefile.am, src/Makefile.am, src/Emakefile.in,
 	ebin/Makefile.am: Updated Makefiles to include the new modules.
 
+	* ebin/exmpp.app.in: The modules list wasn't up-to-date; it's now
+	fixed.
+
 2007-07-01  Christophe Romain  <christophe.romain@process-one.net>
 
 	* include/xmpp.hrl, src/network/exmpp_callbacks.erl,
