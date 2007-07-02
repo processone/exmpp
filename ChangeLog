@@ -1,3 +1,13 @@
+2007-07-02  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* include/Makefile.am, src/Makefile.am, src/Emakefile.in,
+	ebin/Makefile.am: Updated Makefiles to include the new modules.
+
+2007-07-01  Christophe Romain  <christophe.romain@process-one.net>
+
+	* include/xmpp.hrl, src/network/exmpp_callbacks.erl,
+	src/network/exmpp_tcp.erl: Add network modules for direct client use.
+
 2007-07-01  Mickael Remond  <mremond@process-one.net>
 
 	* src/core/exmpp_jid.erl: Make jid can generate random resource when

@@ -7,12 +7,14 @@ BEAM_FILES = exmpp.app							\
 	     exmpp.beam							\
 	     exmpp_sup.beam						\
 	     exmpp_internals.beam					\
-	     exmpp_xml.beam						\
-	     exmpp_xmlstream.beam					\
-	     exmpp_stringprep.beam					\
 	     exmpp_jid.beam						\
 	     exmpp_jlib.beam 						\
 	     exmpp_stream.beam 						\
+	     exmpp_stringprep.beam					\
+	     exmpp_xml.beam						\
+	     exmpp_xmlstream.beam					\
+	     exmpp_callbacks.beam					\
+	     exmpp_tcp.beam						\
 	     exmpp_client_stream.beam 					\
 	     exmpp_client_tls.beam 					\
 	     exmpp_client_compression.beam 				\
