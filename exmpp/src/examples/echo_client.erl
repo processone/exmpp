@@ -50,7 +50,9 @@ session(MySession, MyJID) ->
 	    io:format("Register~n",[]),
 	    %% In a real life client, we should trap error case here
 	    %% and print the correct message.
-	    exmpp_session:register_account(MySession, "password")
+	    exmpp_session:register_account(MySession, "password"),
+	    %% After registration, retry to login:
+	    exmpp_session:login(MySession)
     end,
     %% We explicitely send presence:
     exmpp_session:presence(MySession, ?P_AVAILABLE, "Echo Ready"),
