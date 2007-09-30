@@ -99,6 +99,7 @@
 -define(NS_JABBER_SERVER,  'jabber:server').
 -define(NS_JABBER_AUTH,    'jabber:iq:auth').
 -define(NS_JABBER_PRIVACY, 'jabber:iq:privacy').
+-define(NS_JABBER_REGISTER,'jabber:iq:register').
 -define(NS_JABBER_ROSTER,  'jabber:iq:roster').
 -define(NS_JABBER_SESSION, 'urn:ietf:params:xml:ns:xmpp-session').
 -define(NS_XMPP_STREAMS,   'urn:ietf:params:xml:ns:xmpp-streams').
@@ -111,6 +112,23 @@
 -define(NS_PUBSUB_ERRORS,  'http://jabber.org/protocol/pubsub#errors').
 -define(NS_PUBSUB_EVENT,   'http://jabber.org/protocol/pubsub#event').
 -define(NS_PUBSUB_OWNER,   'http://jabber.org/protocol/pubsub#owner').
+
+%% -------------------------------------------------------------------
+%% Presence types and status
+%% -------------------------------------------------------------------
+
+-define(P_AVAILABLE, available).
+-define(P_UNAVAILABLE, unavailable).
+-define(P_INVISIBLE, invisible).
+-define(P_AWAY, away).
+-define(P_CHAT, chat).
+-define(P_DND, dnd).
+-define(P_XA, xa).
+
+%% -------------------------------------------------------------------
+%% Special case value
+%% -------------------------------------------------------------------
+-define(NO_ELEMENT, no_element).
 
 % --------------------------------------------------------------------
 % Defines for jlib.
