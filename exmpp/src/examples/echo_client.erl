@@ -11,13 +11,15 @@
 %% </p>
 %%
 %% <p>Usage:
-%%    {ok, Session} = echo_client:start().
+%%    {ok, session} = echo_client:start().
 %%    echo_client:stop(Session).
 %%
 %% <p>This code is copyright Process-one (http://www.process-one.net/)</p>
 %% 
 
 -module(echo_client).
+
+-include("exmpp.hrl").
 
 -export([start/0, stop/1]).
 
@@ -46,10 +48,12 @@ session(MySession, MyJID) ->
 	throw:{auth_error, 'not-authorized'} ->
 	    %% Try creating a new user:
 	    io:format("Register~n",[]),
+	    %% In a real life client, we should trap error case here
+	    %% and print the correct message.
 	    exmpp_session:register_account(MySession, "password")
     end,
     %% We explicitely send presence:
-    exmpp_session:presence(MySession),
+    exmpp_session:presence(MySession, ?P_AVAILABLE, "Echo Ready"),
     MySession.
 
 stop(Session) ->

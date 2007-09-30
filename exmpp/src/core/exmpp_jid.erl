@@ -4,6 +4,9 @@
 
 %% @doc
 %% The module <strong>{@module}</strong> provides functions to handle JID.
+%%
+%% TODO: The JIDs internal structure should use binary instead of
+%% list.
 
 -module(exmpp_jid).
 -vsn('$Revision$').

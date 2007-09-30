@@ -11,6 +11,7 @@
 -behaviour(supervisor).
 
 -export([
+  start/0,
   start_link/0
 ]).
 
@@ -24,6 +25,9 @@
 % --------------------------------------------------------------------
 % Public API.
 % --------------------------------------------------------------------
+
+start() ->
+    supervisor:start({local, ?SUPERVISOR}, ?MODULE, []).
 
 start_link() ->
     supervisor:start_link({local, ?SUPERVISOR}, ?MODULE, []).
