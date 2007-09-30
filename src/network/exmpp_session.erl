@@ -16,6 +16,7 @@
 %% TODO: - manage timeouts
 %%       - Callback should not be module, but anonymous or named
 %%       functions
+%%       - Do function callback need to have priority ?
 
 -module(exmpp_session).
 -behaviour(gen_fsm).
@@ -25,8 +26,7 @@
 -export([auth_basic/3, auth_basic_digest/3,
 	 add_callback_module/2,
 	 connect_TCP/3, register_account/2, login/1,
-	 presence/3]).
-%% TODO: Send packet
+	 send_packet/2]).
 
 %% gen_fsm callbacks
 -export([init/1,
@@ -141,12 +141,14 @@ login(Session) when pid(Session) ->
 	Error when tuple(Error) -> erlang:throw(Error)
     end.
 
-%% Send user presence
-presence(Session, Status, Show) ->
-    case gen_fsm:sync_send_event(Session, {presence, Status, Show}) of
+%% Send any exmpp formatted packet
+send_packet(Session, Packet) when pid(Session) ->
+    case gen_fsm:sync_send_event(Session, {send_packet, Packet}) of
 	ok -> ok;
 	Error when tuple(Error) -> erlang:throw(Error)
     end.
+    
+    
 
 %%====================================================================
 %% gen_fsm callbacks
@@ -395,11 +397,13 @@ wait_for_register_result(?iq, State = #state{from_pid=From}) ->
 
 %% ---
 %% Send packets
-logged_in({presence, Status, Show}, _From,
+logged_in({send_packet, Packet}, _From,
 	  State = #state{connection = Module,
 			 connection_ref = ConnRef}) ->
-    Module:send(ConnRef,
-		exmpp_client_presence:presence(Status, Show)),
+    %% TODO: 
+    %% If the packet is an iq set or get:
+    %% We check that there is a valid id and store it to match the reply
+    Module:send(ConnRef, Packet),
     {reply, ok, logged_in, State}.
 
 %% ---
