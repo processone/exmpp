@@ -48,14 +48,14 @@
 -include("exmpp.hrl").
 
 -record(state, {
-	  auth_method = undefined,
-	  callback_modules = [],
-	  connection = exmpp_tcp,
-	  connection_ref,
-	  stream_ref,
-	  stream_id = false, %% XMPP StreamID (Used for digest_auth)
-	  from_pid           %% Use by gen_fsm to handle postponed replies
-	 }).
+  auth_method = undefined,
+  callback_modules = [],
+  connection = exmpp_tcp,
+  connection_ref,
+  stream_ref,
+  stream_id = false, %% XMPP StreamID (Used for digest_auth)
+  from_pid           %% Use by gen_fsm to handle postponed replies
+               }).
 
 %%====================================================================
 %% API
@@ -88,8 +88,8 @@ stop(Session) ->
 
 %% Set authentication mode to basic (password)
 auth_basic(Session, JID, Password)
-  when pid(Session),
-       list(Password) ->
+when pid(Session),
+list(Password) ->
     case exmpp_jid:is_jid(JID) of
 	false -> erlang:error({incorrect_jid,JID});
 	true ->
@@ -99,8 +99,8 @@ auth_basic(Session, JID, Password)
 
 %% Set authentication mode to basic (digest)
 auth_basic_digest(Session, JID, Password)
-  when pid(Session),
-       list(Password) ->
+when pid(Session),
+list(Password) ->
     case exmpp_jid:is_jid(JID) of
 	false -> erlang:error({incorrect_jid,JID});
 	true ->
@@ -110,16 +110,16 @@ auth_basic_digest(Session, JID, Password)
 
 %% Add a new callback module
 add_callback_module(Session, Module)
-  when pid(Session), 
-       atom(Module) ->
+when pid(Session), 
+atom(Module) ->
     gen_fsm:sync_send_event(Session, {add_cb_module, Module}).
 
 %% Initiate standard TCP XMPP server connection
 %% Returns StreamId (String)
 connect_TCP(Session, Server, Port) 
-  when pid(Session),
-       list(Server),
-       integer(Port) ->
+when pid(Session),
+list(Server),
+integer(Port) ->
     case gen_fsm:sync_send_event(Session, {connect_tcp, Server, Port}) of
 	Error when tuple(Error) -> erlang:throw(Error);
 	StreamId -> StreamId
@@ -260,21 +260,21 @@ setup(UnknownMessage, _From, State) ->
 %% Standard opening stream:
 -define(stream,
 	#xmlstreamstart{element=#xmlnselement{
-			  ns='http://etherx.jabber.org/streams',
-			  name=stream}}).
+          ns='http://etherx.jabber.org/streams',
+          name=stream}}).
 %% Standard stream error:
 -define(streamerror,
 	#xmlstreamelement{element=#xmlnselement{
-			    ns='http://etherx.jabber.org/streams',
-			    name=error,
-			    children=[#xmlnselement{name=Reason}]}}).
+          ns='http://etherx.jabber.org/streams',
+          name=error,
+          children=[#xmlnselement{name=Reason}]}}).
 
 %% Special stream error: disconnected
 -define(streamdisconnected,
-       #xmlstreamelement{element=#xmlnselement{
-			   ns='http://etherx.jabber.org/streams',
-			   name=error,
-			   children=[#xmlcdata{cdata=  <<"Disconnected">> }]}}).
+        #xmlstreamelement{element=#xmlnselement{
+          ns='http://etherx.jabber.org/streams',
+          name=error,
+          children=[#xmlcdata{cdata=  <<"Disconnected">> }]}}).
 
 %% Extract IQElement from IQ 
 -define(iq,
@@ -322,7 +322,7 @@ stream_opened({register_account, Password}, From,
     Username = get_username(Auth),
     Module:send(ConnRef,
 		exmpp_client_register:register_account([{username, Username},
-						{password, Password}])),
+                                                        {password, Password}])),
     {next_state, wait_for_register_result, State#state{from_pid=From}};
 
 %% We can define update login informations after we are connected to
@@ -350,7 +350,7 @@ wait_for_legacy_auth_method(?iq, State = #state{connection = Module,
     case check_auth_method(Method, IQElement) of
 	ok -> 
 	    case do_auth(Method, ConnRef, Module, Username, Password, Resource,
-		    StreamId) of
+                         StreamId) of
 		ok ->
 		    {next_state, wait_for_auth_result, State};
 		Error ->
@@ -365,35 +365,39 @@ wait_for_legacy_auth_method(?streamerror, State) ->
 %% TODO: We should be able to match on iq type directly on the first
 %% level record
 wait_for_auth_result(?iq, State = #state{from_pid=From}) ->
-     case exmpp_xml:get_attribute(IQElement, type) of
+    case exmpp_xml:get_attribute(IQElement, type) of
  	"result" ->
-	     gen_fsm:reply(From, ok),	     
-	     {next_state, logged_in, State#state{from_pid=undefined}};
-	 "error" ->
-	     Reason = exmpp_error:get_reason(IQElement),
-	     gen_fsm:reply(From, {auth_error, Reason}),
-	     {next_state, stream_opened, State#state{from_pid=undefined}}
-     end.
+            gen_fsm:reply(From, ok),	     
+            {next_state, logged_in, State#state{from_pid=undefined}};
+        "error" ->
+            Reason = exmpp_error:get_reason(IQElement),
+            gen_fsm:reply(From, {auth_error, Reason}),
+            {next_state, stream_opened, State#state{from_pid=undefined}}
+    end.
 
 %% Note: We do not get the field received from server to perform register
 %% TODO: The API should be flexible to adapt to server
 %% requirements. Check that a client can get the list of fields and
 %% override this simple method of registration.
 wait_for_register_result(?iq, State = #state{from_pid=From}) ->
-     case exmpp_xml:get_attribute(IQElement, type) of
+    case exmpp_xml:get_attribute(IQElement, type) of
  	"result" ->
-	     gen_fsm:reply(From, ok),	     
-	     {next_state, stream_opened, State#state{from_pid=undefined}};
-	 "error" ->
-	     Reason = exmpp_error:get_reason(IQElement),
-	     gen_fsm:reply(From, {register_error, Reason}),
-	     {next_state, stream_opened, State#state{from_pid=undefined}}
-     end.    
+            gen_fsm:reply(From, ok),	     
+            {next_state, stream_opened, State#state{from_pid=undefined}};
+        "error" ->
+            Reason = exmpp_error:get_reason(IQElement),
+            gen_fsm:reply(From, {register_error, Reason}),
+            {next_state, stream_opened, State#state{from_pid=undefined}}
+    end.    
 
 %% Used to match a presence packet in stream.
 -define(presence,
 	#xmlstreamelement{
 	  element=#xmlnselement{name=presence, attrs=Attrs}=PresenceElement}).
+%% Used to match a message packet in stream
+-define(message,
+	#xmlstreamelement{
+	  element=#xmlnselement{name=message, attrs=Attrs}=MessageElement}). 
 %% To match an XMLNSElement of type Iq:
 -define(iqattrs, #xmlnselement{name=iq, attrs=Attrs}=IQElement).
 
@@ -428,24 +432,33 @@ logged_in({send_packet, Packet}, _From,
 %% ---
 %% Receive packets
 %% When logged in we dispatch the event we receive
+%% Dispatch incoming presence packets
 logged_in(?presence,
 	  State = #state{connection = Module,
 			 connection_ref = ConnRef}) ->
-    case exmpp_xml:get_attribute_node_from_list(Attrs, type) of
-	false -> process_presence(
-		   self(),
-		   State#state.connection_ref,
-		   State#state.callback_modules,
-		   "available", Attrs, PresenceElement);
-	#xmlattr{value=Type} ->
-	    process_presence(
-	      self(),
-	      State#state.connection_ref,
-	      State#state.callback_modules,
-	      Type, Attrs, PresenceElement)
-    end,
+    Type = case exmpp_xml:get_attribute_node_from_list(Attrs, type) of
+	       false -> available;
+	       #xmlattr{value=PresenceType} -> PresenceType
+	   end,
+    process_presence(self(), State#state.connection_ref,
+		     State#state.callback_modules,
+		     Type, Attrs, PresenceElement),
+    {next_state, logged_in, State};
+%% Dispatch incoming messages
+logged_in(?message, State = #state{connection = Module,
+				   connection_ref = ConnRef}) ->
+    %% Set default type
+    Type = case exmpp_xml:get_attribute_node_from_list(Attrs, type) of
+	       false -> "normal";
+               %% TODO: Check for known types ?
+	       #xmlattr{value=MessageType} -> MessageType
+	   end,
+    process_message(self(), State#state.connection_ref,
+		    State#state.callback_modules,
+		    Type, Attrs, MessageElement),
     {next_state, logged_in, State}.
 
+%% TODO:
 %% Handle disconnections
 %% Connection replaced.
 
@@ -460,7 +473,7 @@ do_auth(password, ConnRef, Module, Username, Password, Resource, _StreamId) ->
 		exmpp_client_legacy_auth:password(Username, Password, 
 						  Resource));
 do_auth(digest, ConnRef, Module, Username, Password, Resource, StreamId) 
-  when list(StreamId) ->
+when list(StreamId) ->
     Module:send(ConnRef,
 		exmpp_client_legacy_auth:password_digest(StreamId,
 							 Username,
@@ -468,7 +481,7 @@ do_auth(digest, ConnRef, Module, Username, Password, Resource, StreamId)
 							 Resource));
 %% In this case StreamId can be false
 do_auth(digest, ConnRef, Module, Username, Password, Resource, StreamId) 
-  when atom(StreamId) ->
+when atom(StreamId) ->
     {auth_error, no_streamid_for_digest_auth}.
 
 %% Extraction functions
@@ -523,11 +536,21 @@ check_auth_method2(Method, IQElement) ->
 	    ok
     end.
 
-%% Message processing functions
+%% Packet processing functions
 process_presence(Pid, _Socket, Modules, Type, Attrs, Packet) -> 
     #xmlattr{value=Who} = exmpp_xml:get_attribute_node_from_list(Attrs, from),    
     lists:foreach(fun(Module) ->
 			  Module:presence(Pid, Type, Who, Attrs, Packet)
+		  end,
+		  Modules).
+
+process_message(Pid, _Socket, Modules, Type, Attrs, Msg) ->
+    #xmlattr{value=Who} = exmpp_xml:get_attribute_node_from_list(Attrs, from),
+    Body = exmpp_xml:get_cdata(exmpp_xml:get_element_by_name(Msg, body)),
+    Subject = exmpp_xml:get_cdata(exmpp_xml:get_element_by_name(Msg, subject)),
+    lists:foreach(fun(Module) ->
+                          Module:message(Pid, Type, Who, Subject,
+                                         Body, Attrs, Msg)
 		  end,
 		  Modules).
 
