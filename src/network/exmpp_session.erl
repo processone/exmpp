@@ -1,4 +1,4 @@
-% $Id: $
+%% $Id: $
 
 %% @author Mickael Remond <mickael.remond@process-one.net>
 
@@ -13,6 +13,9 @@
 %%
 %% <p>This code is copyright Process-one (http://www.process-one.net/)</p>
 %% 
+%% TODO: - manage timeouts
+%%       - Callback should not be module, but anonymous or named
+%%       functions
 
 -module(exmpp_session).
 -behaviour(gen_fsm).
@@ -22,7 +25,7 @@
 -export([auth_basic/3, auth_basic_digest/3,
 	 add_callback_module/2,
 	 connect_TCP/3, register_account/2, login/1,
-	 presence/1]).
+	 presence/3]).
 %% TODO: Send packet
 
 %% gen_fsm callbacks
@@ -38,7 +41,8 @@
 	 stream_opened/3,
 	 wait_for_legacy_auth_method/2,
 	 wait_for_auth_result/2,
-	 wait_for_register_result/2
+	 wait_for_register_result/2,
+	 logged_in/3
 	]).
 
 -include("exmpp.hrl").
@@ -137,10 +141,12 @@ login(Session) when pid(Session) ->
 	Error when tuple(Error) -> erlang:throw(Error)
     end.
 
-%% Send presence available
-presence(Session) ->
-    %% TODO
-    ok.
+%% Send user presence
+presence(Session, Status, Show) ->
+    case gen_fsm:sync_send_event(Session, {presence, Status, Show}) of
+	ok -> ok;
+	Error when tuple(Error) -> erlang:throw(Error)
+    end.
 
 %%====================================================================
 %% gen_fsm callbacks
@@ -238,6 +244,8 @@ setup({connect_tcp, Host, Port}, From, State) ->
 	    {next_state, setup, State#state{stream_ref = StreamRef,
 					    from_pid = From}}
     end;
+setup({presence, _Status, _Show}, _From, State) ->
+    {reply, {error, not_connected}, setup, State};
 setup(UnknownMessage, _From, State) ->
     {reply, {error, unallowed_command}, setup, State}.
 
@@ -323,7 +331,9 @@ stream_opened({set_auth, Auth}, _From, State) when tuple(Auth) ->
 %% Add a new callback module
 stream_opened({add_cb_module, Module}, _From, State) when atom(Module) ->
     Modules = State#state.callback_modules,
-    {reply, ok, setup, State#state{callback_modules=[Module|Modules]}}.
+    {reply, ok, setup, State#state{callback_modules=[Module|Modules]}};
+stream_opened({presence, _Status, _Show}, _From, State) ->
+    {reply, {error, not_logged_in}, setup, State}.
 
 
 %% Reason comes from streamerror macro
@@ -377,6 +387,41 @@ wait_for_register_result(?iq, State = #state{from_pid=From}) ->
 	     gen_fsm:reply(From, {register_error, Reason}),
 	     {next_state, stream_opened, State#state{from_pid=undefined}}
      end.    
+
+%% Extract IQElement from IQ 
+-define(presence,
+	#xmlstreamelement{
+	  element=#xmlnselement{name=presence, attrs=Attrs}=PresenseElement}).
+
+%% ---
+%% Send packets
+logged_in({presence, Status, Show}, _From,
+	  State = #state{connection = Module,
+			 connection_ref = ConnRef}) ->
+    Module:send(ConnRef,
+		exmpp_client_presence:presence(Status, Show)),
+    {reply, ok, setup, State};  
+
+%% ---
+%% Receive packets
+%% When logged in we dispatch the event we receive
+logged_in(?presence, _From,
+	  State = #state{connection = Module,
+			 connection_ref = ConnRef}) ->
+    case exmpp_xml:get_attribute_node_from_list(Attrs, type) of
+	false -> process_presence(
+		   self(),
+		   StateData#state.socket,
+		   StateData#state.callback_module,
+		   "available", Attrs, Pres);
+	#xmlattr{value=Type} ->
+	    process_presence(
+	      self(),
+	      StateData#state.socket,
+	      StateData#state.callback_module,
+	      Type, Attrs, Pres)
+    end,
+    {next_state, logged_in, StateData}.
 
 %%--------------------------------------------------------------------
 %% Internal functions
@@ -451,3 +496,9 @@ check_auth_method2(Method, IQElement) ->
 	_ ->
 	    ok
     end.
+
+%% Message processing functions
+process_presence(Pid, _Socket, Module, Type, Attrs, Pres) -> 
+    #xmlattr{value=Who} = exmpp_xml:get_attribute_node_from_list(Attrs, from),    
+    Module:presence(Pid, Type, Who, Attrs, Pres).
+
