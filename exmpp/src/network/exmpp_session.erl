@@ -390,19 +390,38 @@ wait_for_register_result(?iq, State = #state{from_pid=From}) ->
 	     {next_state, stream_opened, State#state{from_pid=undefined}}
      end.    
 
-%% Extract IQElement from IQ 
+%% Used to match a presence packet in stream.
 -define(presence,
 	#xmlstreamelement{
 	  element=#xmlnselement{name=presence, attrs=Attrs}=PresenceElement}).
+%% To match an XMLNSElement of type Iq:
+-define(iqattrs, #xmlnselement{name=iq, attrs=Attrs}=IQElement).
 
 %% ---
 %% Send packets
+%% TODO: 
+%% If the packet is an iq set or get:
+%% We check that there is a valid id and store it to match the reply
+logged_in({send_packet, ?iqattrs}, _From,
+	  State = #state{connection = Module,
+			 connection_ref = ConnRef}) ->
+    Type = exmpp_xml:get_attribute_from_list(Attrs, type),
+    case Type of 
+	%% Do not care about packet id:
+	"error" ->  Module:send(ConnRef, IQElement);
+	"result" -> Module:send(ConnRef, IQElement);
+	%% Enforce packet id:
+	"set" ->
+	    Attrs2 = check_id(Attrs),
+	    Module:send(ConnRef, IQElement#xmlnselement{attrs=Attrs2});
+	"get" ->
+	    Attrs2 = check_id(Attrs),
+	    Module:send(ConnRef, IQElement#xmlnselement{attrs=Attrs2})
+    end,
+    {reply, ok, logged_in, State};	  
 logged_in({send_packet, Packet}, _From,
 	  State = #state{connection = Module,
 			 connection_ref = ConnRef}) ->
-    %% TODO: 
-    %% If the packet is an iq set or get:
-    %% We check that there is a valid id and store it to match the reply
     Module:send(ConnRef, Packet),
     {reply, ok, logged_in, State}.
 
@@ -512,3 +531,15 @@ process_presence(Pid, _Socket, Modules, Type, Attrs, Packet) ->
 		  end,
 		  Modules).
 
+%% Add a packet ID is needed:
+%% Check that the attribute list has defined an ID.
+%% If no ID has been defined, add a packet id to the list of attributes
+%% This function uses {@link random:uniform/1}. It's up to the caller to
+%% seed the generator.
+check_id(Attrs) ->
+    case exmpp_xml:get_attribute_from_list(Attrs, id) of
+	"" -> 	
+	    Value = "session-"++integer_to_list(random:uniform(65536 * 65536)),
+	    exmpp_xml:set_attribute_in_list(Attrs, id, Value);
+	ID -> Attrs
+    end.
