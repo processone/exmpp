@@ -42,7 +42,7 @@
 	 wait_for_legacy_auth_method/2,
 	 wait_for_auth_result/2,
 	 wait_for_register_result/2,
-	 logged_in/3
+	 logged_in/2, logged_in/3
 	]).
 
 -include("exmpp.hrl").
@@ -391,7 +391,7 @@ wait_for_register_result(?iq, State = #state{from_pid=From}) ->
 %% Extract IQElement from IQ 
 -define(presence,
 	#xmlstreamelement{
-	  element=#xmlnselement{name=presence, attrs=Attrs}=PresenseElement}).
+	  element=#xmlnselement{name=presence, attrs=Attrs}=PresenceElement}).
 
 %% ---
 %% Send packets
@@ -400,28 +400,31 @@ logged_in({presence, Status, Show}, _From,
 			 connection_ref = ConnRef}) ->
     Module:send(ConnRef,
 		exmpp_client_presence:presence(Status, Show)),
-    {reply, ok, setup, State};  
+    {reply, ok, logged_in, State}.
 
 %% ---
 %% Receive packets
 %% When logged in we dispatch the event we receive
-logged_in(?presence, _From,
+logged_in(?presence,
 	  State = #state{connection = Module,
 			 connection_ref = ConnRef}) ->
     case exmpp_xml:get_attribute_node_from_list(Attrs, type) of
 	false -> process_presence(
 		   self(),
-		   StateData#state.socket,
-		   StateData#state.callback_module,
-		   "available", Attrs, Pres);
+		   State#state.connection_ref,
+		   State#state.callback_modules,
+		   "available", Attrs, PresenceElement);
 	#xmlattr{value=Type} ->
 	    process_presence(
 	      self(),
-	      StateData#state.socket,
-	      StateData#state.callback_module,
-	      Type, Attrs, Pres)
+	      State#state.connection_ref,
+	      State#state.callback_modules,
+	      Type, Attrs, PresenceElement)
     end,
-    {next_state, logged_in, StateData}.
+    {next_state, logged_in, State}.
+
+%% Handle disconnections
+%% Connection replaced.
 
 %%--------------------------------------------------------------------
 %% Internal functions
@@ -498,7 +501,10 @@ check_auth_method2(Method, IQElement) ->
     end.
 
 %% Message processing functions
-process_presence(Pid, _Socket, Module, Type, Attrs, Pres) -> 
+process_presence(Pid, _Socket, Modules, Type, Attrs, Packet) -> 
     #xmlattr{value=Who} = exmpp_xml:get_attribute_node_from_list(Attrs, from),    
-    Module:presence(Pid, Type, Who, Attrs, Pres).
+    lists:foreach(fun(Module) ->
+			  Module:presence(Pid, Type, Who, Attrs, Packet)
+		  end,
+		  Modules).
 
