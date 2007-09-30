@@ -63,11 +63,11 @@ session(MySession, MyJID) ->
 stop(Session) ->
     exmpp_session:stop(Session).
 
-presence(XMPP, Type, _From, Attrs, Elts) ->
-    io:format("Presence ~p: ~s (~p) (~p)", [XMPP, Type, Attrs, Elts]).
+presence(XMPP, Type, _From, Attrs, Packet) ->
+    io:format("Presence ~p: ~s (~p) (~p)", [XMPP, Type, Attrs, Packet]).
 
-message(XMPP, Type, _From, _Subject, _Body, Attrs, Elts) ->
-    io:format("Message ~p: ~s (~p) (~p)", [XMPP, Type, Attrs, Elts]).
+message(XMPP, Type, _From, _Subject, _Body, Attrs, Packet) ->
+    io:format("Message ~p: ~s (~p) (~p)", [XMPP, Type, Attrs, Packet]).
 
-iq(XMPP, Type, _From, _QueryNS, _PacketID, Attrs, Elts) ->
-    io:format("IQ ~p: ~s (~p) (~p)", [XMPP, Type, Attrs, Elts]).
+iq(XMPP, Type, _From, _QueryNS, _PacketID, Attrs, Packet) ->
+    io:format("IQ ~p: ~s (~p) (~p)", [XMPP, Type, Attrs, Packet]).
