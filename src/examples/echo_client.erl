@@ -20,13 +20,19 @@
 -module(echo_client).
 
 -include("exmpp.hrl").
+-include("exmpp_client.hrl").
 
 -export([start/0, stop/1]).
-
-%% exmpp_session callbacks:
--export([presence/5, message/7, iq/7]).
+-export([init/0]).
 
 start() ->
+    spawn(?MODULE, init, []).
+
+stop(EchoClientPid) ->
+    EchoClientPid ! stop.
+
+
+init() ->    
     %% Start XMPP session: Needed to start service (Like
     %% exmpp_stringprep):
     MySession = exmpp_session:start(),
@@ -34,13 +40,11 @@ start() ->
     MyJID = exmpp_jid:make_jid("echo", "localhost", random),
     %% Create a new session with basic (digest) authentication:
     exmpp_session:auth_basic_digest(MySession, MyJID, "password"),
-    %% Define callback module to use on incoming packets:
-    exmpp_session:add_callback_module(MySession, ?MODULE),
     %% Connect in standard TCP:
     _StreamId = exmpp_session:connect_TCP(MySession, "localhost", 5222),
-    session(MySession, MyJID),
-    MySession.
+    session(MySession, MyJID).
 
+%% We are connected. We now log in (and tyr registering if authentication fails)
 session(MySession, MyJID) ->
     %% Login with defined JID / Authentication:
     try exmpp_session:login(MySession)
@@ -58,16 +62,28 @@ session(MySession, MyJID) ->
     exmpp_session:send_packet(MySession,
 			      exmpp_client_presence:presence(?P_AVAILABLE,
 							     "Echo Ready")),
-    MySession.
+    loop(MySession).
 
-stop(Session) ->
-    exmpp_session:stop(Session).
-
-presence(XMPP, Type, _From, Attrs, Packet) ->
-    io:format("Presence ~p: ~s (~p) (~p)", [XMPP, Type, Attrs, Packet]).
-
-message(XMPP, Type, _From, _Subject, _Body, Attrs, Packet) ->
-    io:format("Message ~p: ~s (~p) (~p)", [XMPP, Type, Attrs, Packet]).
-
-iq(XMPP, Type, _From, _QueryNS, _PacketID, Attrs, Packet) ->
-    io:format("IQ ~p: ~s (~p) (~p)", [XMPP, Type, Attrs, Packet]).
+%% Process exmpp packet:
+loop(MySession) ->
+    receive
+        stop ->
+            exmpp_session:stop(MySession);
+        %% If we receive a message, we reply with the same message
+        Record = #received_packet{packet_type=message, raw_packet=Packet} ->
+            io:format("~p~n", [Record]),
+            echo_packet(MySession, Packet),
+            loop(MySession);
+        Record ->
+            io:format("~p~n", [Record]),
+            loop(MySession)
+    end.
+   
+%% Send the same packet back for each message received
+echo_packet(MySession, Packet) ->
+    From = exmpp_xml:get_attribute(Packet, from),
+    To = exmpp_xml:get_attribute(Packet, to),
+    TmpPacket = exmpp_xml:set_attribute(Packet, from, To),
+    TmpPacket2 = exmpp_xml:set_attribute(TmpPacket, to, From),
+    NewPacket = exmpp_xml:remove_attribute(TmpPacket2, id),
+    exmpp_session:send_packet(MySession, NewPacket).
