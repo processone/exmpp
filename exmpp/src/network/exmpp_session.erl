@@ -13,10 +13,22 @@
 %%
 %% <p>This code is copyright Process-one (http://www.process-one.net/)</p>
 %% 
+%% TODO: Rewrite the following text into a comprehensive documentation.
+%%   explain priority matching of iq query reply. Illustration with echo_client.
+%%   Illustration with an Erlang/OTP example.
+%%
 %% TODO: - manage timeouts
 %%       - Callback should not be module, but anonymous or named
 %%       functions
 %%       - Do function callback need to have priority ?
+%%
+%% Currently thinking about a design purely based on sending back messages to
+%% the client process: Would allow selection of the order of packets (whic
+%% seems more powerful)
+%% Sending a packet is async and return the packet id
+%% If this is an IQ, the next reply can be a blocking receive on an IQ result
+%% with the same refid.
+%% It could be a generic receive, getting packets in order.
 
 -module(exmpp_session).
 -behaviour(gen_fsm).
@@ -24,7 +36,6 @@
 %% XMPP Session API:
 -export([start/0, start_link/0, start_debug/0, stop/1]).
 -export([auth_basic/3, auth_basic_digest/3,
-	 add_callback_module/2,
 	 connect_TCP/3, register_account/2, login/1,
 	 send_packet/2]).
 
@@ -46,10 +57,11 @@
 	]).
 
 -include("exmpp.hrl").
+-include("exmpp_client.hrl").
 
 -record(state, {
   auth_method = undefined,
-  callback_modules = [],
+  client_pid,
   connection = exmpp_tcp,
   connection_ref,
   stream_ref,
@@ -68,13 +80,13 @@
 %%--------------------------------------------------------------------
 %% Start the session (used to get a reference):
 start() ->
-    case gen_fsm:start(?MODULE, [], []) of
+    case gen_fsm:start(?MODULE, [self()], []) of
 	{ok, PID} -> PID;
 	{error, Reason} -> erlang:error({error, Reason})
     end.
 %% Start the session (used to get a reference):
 start_link() ->
-    gen_fsm:start_link(?MODULE, [], []).    
+    gen_fsm:start_link(?MODULE, [self()], []).    
 
 %% Start the session in debug mode
 %% (trace events)
@@ -108,12 +120,6 @@ list(Password) ->
 	    gen_fsm:sync_send_event(Session, {set_auth, Auth})
     end.
 
-%% Add a new callback module
-add_callback_module(Session, Module)
-when pid(Session), 
-atom(Module) ->
-    gen_fsm:sync_send_event(Session, {add_cb_module, Module}).
-
 %% Initiate standard TCP XMPP server connection
 %% Returns StreamId (String)
 connect_TCP(Session, Server, Port) 
@@ -144,19 +150,17 @@ login(Session) when pid(Session) ->
 %% Send any exmpp formatted packet
 send_packet(Session, Packet) when pid(Session) ->
     case gen_fsm:sync_send_event(Session, {send_packet, Packet}) of
-	ok -> ok;
-	Error when tuple(Error) -> erlang:throw(Error)
+	Error when tuple(Error) -> erlang:throw(Error);
+        Id -> Id
     end.
-    
-    
 
 %%====================================================================
 %% gen_fsm callbacks
 %%====================================================================
-init(_) ->
+init([Pid]) ->
     exmpp_stringprep:start(),
     %% TODO: Init random numbers generator ?
-    {ok, setup, #state{}}.
+    {ok, setup, #state{client_pid=Pid}}.
 
 handle_event(_Event, StateName, State) ->
     {next_state, StateName, State}.
@@ -218,12 +222,6 @@ code_change(_OldVsn, StateName, State, _Extra) ->
 %% Define JID and authentication method
 setup({set_auth, Auth}, _From, State) when tuple(Auth) ->
     {reply, ok, setup, State#state{auth_method=Auth}};
-%% Add a new callback module
-setup({add_cb_module, Module}, _From, State) when atom(Module) ->
-    Modules = State#state.callback_modules,
-    {reply, ok, setup, State#state{callback_modules=[Module|Modules]}};
-setup({connect_tcp, _Host, _Port}, _From, State=#state{callback_modules=[]}) ->
-    {reply, {error, no_callback_modules}, setup, State};
 setup({connect_tcp, Host, Port}, From, State) ->
     Domain = get_domain(State#state.auth_method),
     Module = exmpp_tcp,
@@ -296,7 +294,6 @@ wait_for_stream(Start = ?stream, State = #state{connection = Module,
     {next_state, stream_opened, State#state{from_pid=undefined,
 					    stream_id = StreamId}}.
 
-
 %% ---------------------------
 %% Between stream opening and session opening
 
@@ -330,10 +327,6 @@ stream_opened({register_account, Password}, From,
 %% Define JID and authentication method
 stream_opened({set_auth, Auth}, _From, State) when tuple(Auth) ->
     {reply, ok, stream_opened, State#state{auth_method=Auth}};
-%% Add a new callback module
-stream_opened({add_cb_module, Module}, _From, State) when atom(Module) ->
-    Modules = State#state.callback_modules,
-    {reply, ok, setup, State#state{callback_modules=[Module|Modules]}};
 stream_opened({presence, _Status, _Show}, _From, State) ->
     {reply, {error, not_logged_in}, setup, State}.
 
@@ -400,34 +393,43 @@ wait_for_register_result(?iq, State = #state{from_pid=From}) ->
 	  element=#xmlnselement{name=message, attrs=Attrs}=MessageElement}). 
 %% To match an XMLNSElement of type Iq:
 -define(iqattrs, #xmlnselement{name=iq, attrs=Attrs}=IQElement).
+%% To match either presence or message
+-define(elementattrs, #xmlnselement{attrs=Attrs}=Element).
 
 %% ---
 %% Send packets
 %% TODO: 
 %% If the packet is an iq set or get:
 %% We check that there is a valid id and store it to match the reply
-logged_in({send_packet, ?iqattrs}, _From,
+logged_in({send_packet, ?iqattrs}, From,
 	  State = #state{connection = Module,
 			 connection_ref = ConnRef}) ->
     Type = exmpp_xml:get_attribute_from_list(Attrs, type),
-    case Type of 
-	%% Do not care about packet id:
-	"error" ->  Module:send(ConnRef, IQElement);
-	"result" -> Module:send(ConnRef, IQElement);
-	%% Enforce packet id:
-	"set" ->
-	    Attrs2 = check_id(Attrs),
-	    Module:send(ConnRef, IQElement#xmlnselement{attrs=Attrs2});
-	"get" ->
-	    Attrs2 = check_id(Attrs),
-	    Module:send(ConnRef, IQElement#xmlnselement{attrs=Attrs2})
-    end,
-    {reply, ok, logged_in, State};	  
-logged_in({send_packet, Packet}, _From,
+    Id = case Type of 
+             "error" ->
+                 {Attrs2, PacketId} = check_id(Attrs),
+                 Module:send(ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
+                 PacketId;
+             "result" -> 
+                 {Attrs2, PacketId} = check_id(Attrs),
+                 Module:send(ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
+                 PacketId;
+             "set" ->
+                 {Attrs2, PacketId} = check_id(Attrs),
+                 Module:send(ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
+                 PacketId;
+             "get" ->
+                 {Attrs2, PacketId} = check_id(Attrs),
+                 Module:send(ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
+                 PacketId
+         end,
+    {reply, Id, logged_in, State};	  
+logged_in({send_packet, ?elementattrs}, _From,
 	  State = #state{connection = Module,
 			 connection_ref = ConnRef}) ->
-    Module:send(ConnRef, Packet),
-    {reply, ok, logged_in, State}.
+    {Attrs2, Id} = check_id(Attrs),
+    Module:send(ConnRef, Element#xmlnselement{attrs=Attrs2}),
+    {reply, Id, logged_in, State}.
 
 %% ---
 %% Receive packets
@@ -436,26 +438,12 @@ logged_in({send_packet, Packet}, _From,
 logged_in(?presence,
 	  State = #state{connection = Module,
 			 connection_ref = ConnRef}) ->
-    Type = case exmpp_xml:get_attribute_node_from_list(Attrs, type) of
-	       false -> available;
-	       #xmlattr{value=PresenceType} -> PresenceType
-	   end,
-    process_presence(self(), State#state.connection_ref,
-		     State#state.callback_modules,
-		     Type, Attrs, PresenceElement),
+    process_presence(State#state.client_pid, Attrs, PresenceElement),
     {next_state, logged_in, State};
 %% Dispatch incoming messages
 logged_in(?message, State = #state{connection = Module,
 				   connection_ref = ConnRef}) ->
-    %% Set default type
-    Type = case exmpp_xml:get_attribute_node_from_list(Attrs, type) of
-	       false -> "normal";
-               %% TODO: Check for known types ?
-	       #xmlattr{value=MessageType} -> MessageType
-	   end,
-    process_message(self(), State#state.connection_ref,
-		    State#state.callback_modules,
-		    Type, Attrs, MessageElement),
+    process_message(State#state.client_pid, Attrs, MessageElement),
     {next_state, logged_in, State}.
 
 %% TODO:
@@ -537,22 +525,25 @@ check_auth_method2(Method, IQElement) ->
     end.
 
 %% Packet processing functions
-process_presence(Pid, _Socket, Modules, Type, Attrs, Packet) -> 
-    #xmlattr{value=Who} = exmpp_xml:get_attribute_node_from_list(Attrs, from),    
-    lists:foreach(fun(Module) ->
-			  Module:presence(Pid, Type, Who, Attrs, Packet)
-		  end,
-		  Modules).
+process_presence(ClientPid, Attrs, Packet) ->
+    Type = get_attribute_value(Attrs, type, "available"),
+    Who = get_attribute_value(Attrs, from, ""),
+    Id = get_attribute_value(Attrs, id, ""),
+    ClientPid ! #received_packet{packet_type = presence,
+                                 type_attr = Type,
+                                 from = Who,
+                                 id = Id,
+                                 raw_packet = Packet}.
 
-process_message(Pid, _Socket, Modules, Type, Attrs, Msg) ->
-    #xmlattr{value=Who} = exmpp_xml:get_attribute_node_from_list(Attrs, from),
-    Body = exmpp_xml:get_cdata(exmpp_xml:get_element_by_name(Msg, body)),
-    Subject = exmpp_xml:get_cdata(exmpp_xml:get_element_by_name(Msg, subject)),
-    lists:foreach(fun(Module) ->
-                          Module:message(Pid, Type, Who, Subject,
-                                         Body, Attrs, Msg)
-		  end,
-		  Modules).
+process_message(ClientPid, Attrs, Packet) ->
+    Type = get_attribute_value(Attrs, type, "normal"),
+    Who = get_attribute_value(Attrs, from, ""),
+    Id = get_attribute_value(Attrs, id, ""),
+    ClientPid ! #received_packet{packet_type = message,
+                                 type_attr = Type,
+                                 from = Who,
+                                 id = Id,
+                                 raw_packet = Packet}.
 
 %% Add a packet ID is needed:
 %% Check that the attribute list has defined an ID.
@@ -562,7 +553,15 @@ process_message(Pid, _Socket, Modules, Type, Attrs, Msg) ->
 check_id(Attrs) ->
     case exmpp_xml:get_attribute_from_list(Attrs, id) of
 	"" -> 	
-	    Value = "session-"++integer_to_list(random:uniform(65536 * 65536)),
-	    exmpp_xml:set_attribute_in_list(Attrs, id, Value);
-	ID -> Attrs
+	    Id = "session-"++integer_to_list(random:uniform(65536 * 65536)),
+	    {exmpp_xml:set_attribute_in_list(Attrs, id, Id), Id};
+        Id -> {Attrs, Id}
     end.
+    
+%% Try getting a given atribute from a list of xmlattr records
+%% Return default value if attribute is not found
+get_attribute_value(Attrs, Attr, Default) ->
+    case exmpp_xml:get_attribute_node_from_list(Attrs, Attr) of
+        false -> Default;
+        #xmlattr{value=Value} -> Value
+    end. 
