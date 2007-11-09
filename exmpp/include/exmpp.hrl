@@ -106,7 +106,6 @@
 -define(NS_XMPP_STANZAS,   'urn:ietf:params:xml:ns:xmpp-stanzas').
 -define(NS_TLS,            'urn:ietf:params:xml:ns:xmpp-tls').
 -define(NS_SASL,           'urn:ietf:params:xml:ns:xmpp-sasl').
--define(NS_BIND,           'urn:ietf:params:xml:ns:xmpp-bind').
 -define(NS_COMPRESS,       'http://jabber.org/features/compress').
 -define(NS_PUBSUB,         'http://jabber.org/protocol/pubsub').
 -define(NS_PUBSUB_ERRORS,  'http://jabber.org/protocol/pubsub#errors').
