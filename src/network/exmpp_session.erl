@@ -444,6 +444,16 @@ logged_in(?presence,
 logged_in(?message, State = #state{connection = Module,
 				   connection_ref = ConnRef}) ->
     process_message(State#state.client_pid, Attrs, MessageElement),
+    {next_state, logged_in, State};
+%% Dispach IQs from server
+logged_in(?iq, State) ->
+    %% TODO: Alarm log, ignore IQ or send event to be controled by the client 
+    %io:format("IQ: ~p~n", [IQElement]),
+    {next_state, logged_in, State};
+%% Process unexpected packet
+logged_in(_Packet, State) ->
+    %% log it or do something better
+    %io:format("!!!ALERT!!! Unknown packet:~p~p~n", [_Packet, State]),
     {next_state, logged_in, State}.
 
 %% TODO:
