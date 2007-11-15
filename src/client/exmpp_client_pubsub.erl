@@ -1,9 +1,9 @@
-% $Id: exmpp_factory.erl 210 2007-03-06 13:18:40Z cromain $
+% $Id$
 
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
 -module(exmpp_client_pubsub).
--vsn('$Revision: 210 $').
+-vsn('$Revision$').
 
 -include("exmpp.hrl").
 
