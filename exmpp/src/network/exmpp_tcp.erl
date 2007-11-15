@@ -1,4 +1,4 @@
-% $Id: $
+% $Id$
 
 %% @author Mickael Remond <mickael.remond@process-one.net>
 
