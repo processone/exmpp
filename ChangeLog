@@ -1,3 +1,17 @@
+2008-01-16  Mickael Remond  <mremond@process-one.net>
+
+	* exmpp/configure.ac: Clean-up compilation process (Thanks to Will
+	Glozer)
+	* exmpp/include/exmpp.hrl: Likewise
+	* exmpp/src/Makefile.am: Likewise
+	* exmpp/ebin/Makefile.am: Likewise
+	* exmpp/ac-aux/depcomp: Likewise
+	* exmpp/ac-aux/missing: Likewise
+	* exmpp/ac-aux/config.guess: Likewise
+	* exmpp/ac-aux/config.sub: Likewise
+	* exmpp/ac-aux/ltmain.sh: Likewise
+	* exmpp/ac-aux/install-sh: Likewise	
+
 2007-07-02  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/Makefile.am, src/Makefile.am, src/Emakefile.in,
