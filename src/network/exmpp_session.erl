@@ -36,7 +36,7 @@
 %% XMPP Session API:
 -export([start/0, start_link/0, start_debug/0, stop/1]).
 -export([auth_basic/3, auth_basic_digest/3,
-	 connect_TCP/3, register_account/2, login/1,
+	 connect_SSL/3, connect_TCP/3, register_account/2, login/1,
 	 send_packet/2]).
 
 %% gen_fsm callbacks
@@ -49,7 +49,7 @@
 
 %% States
 -export([setup/3, wait_for_stream/2, wait_for_stream/3,
-	 stream_opened/3,
+	 stream_opened/2, stream_opened/3,
 	 wait_for_legacy_auth_method/2,
 	 wait_for_auth_result/2,
 	 wait_for_register_result/2,
@@ -127,6 +127,17 @@ when pid(Session),
 list(Server),
 integer(Port) ->
     case gen_fsm:sync_send_event(Session, {connect_tcp, Server, Port}) of
+	Error when tuple(Error) -> erlang:throw(Error);
+	StreamId -> StreamId
+    end.
+
+%% Initiate SSL XMPP server connection
+%% Returns StreamId (String)
+connect_SSL(Session, Server, Port) 
+when pid(Session),
+list(Server),
+integer(Port) ->
+    case gen_fsm:sync_send_event(Session, {connect_ssl, Server, Port}) of
 	Error when tuple(Error) -> erlang:throw(Error);
 	StreamId -> StreamId
     end.
@@ -223,27 +234,9 @@ code_change(_OldVsn, StateName, State, _Extra) ->
 setup({set_auth, Auth}, _From, State) when tuple(Auth) ->
     {reply, ok, setup, State#state{auth_method=Auth}};
 setup({connect_tcp, Host, Port}, From, State) ->
-    Domain = get_domain(State#state.auth_method),
-    Module = exmpp_tcp,
-    {ok, StreamRef} = start_parser(),
-    try Module:connect(StreamRef, {Host, Port}) of
-	ConnRef ->
-	    %% basic (legacy) authent: we do not use version 1.0 in stream:
-	    ok = Module:send(ConnRef,
-			     exmpp_client_stream:opening([{to, Domain}])),
-	    {next_state, wait_for_stream, State#state{connection = Module,
-						      connection_ref = ConnRef,
-						      stream_ref = StreamRef,
-						      from_pid = From}}
-    catch
-	throw:Error ->
-	    gen_fsm:reply(From, Error),
-	    exmpp_xmlstream:stop(StreamRef),
-	    %% We do not stop here, because the developer might want to 
-	    %% start a connection using another transport
-	    {next_state, setup, State#state{stream_ref = StreamRef,
-					    from_pid = From}}
-    end;
+    connect(exmpp_tcp, Host, Port, From, State);
+setup({connect_ssl, Host, Port}, From, State) ->
+    connect(exmpp_ssl, Host, Port, From, State);
 setup({presence, _Status, _Show}, _From, State) ->
     {reply, {error, not_connected}, setup, State};
 setup(UnknownMessage, _From, State) ->
@@ -265,7 +258,7 @@ setup(UnknownMessage, _From, State) ->
 	#xmlstreamelement{element=#xmlnselement{
           ns='http://etherx.jabber.org/streams',
           name=error,
-          children=[#xmlnselement{name=Reason}]}}).
+          children=[#xmlnselement{name=Reason} | _MoreReasons]}}).
 
 %% Special stream error: disconnected
 -define(streamdisconnected,
@@ -273,6 +266,12 @@ setup(UnknownMessage, _From, State) ->
           ns='http://etherx.jabber.org/streams',
           name=error,
           children=[#xmlcdata{cdata=  <<"Disconnected">> }]}}).
+
+%% Standard end of stream:
+-define(streamend,
+        #xmlstreamend{endelement=#xmlnsendelement{
+          ns='http://etherx.jabber.org/streams',
+          name=stream}}).
 
 %% Extract IQElement from IQ 
 -define(iq,
@@ -330,6 +329,9 @@ stream_opened({set_auth, Auth}, _From, State) when tuple(Auth) ->
 stream_opened({presence, _Status, _Show}, _From, State) ->
     {reply, {error, not_logged_in}, setup, State}.
 
+%% Handle end of stream
+stream_opened(?streamend, State) ->
+    {stop, normal, State}.
 
 %% Reason comes from streamerror macro
 wait_for_legacy_auth_method(?iq, State = #state{connection = Module,
@@ -463,6 +465,29 @@ logged_in(_Packet, State) ->
 %%--------------------------------------------------------------------
 %% Internal functions
 %%--------------------------------------------------------------------
+
+%% Connect to server
+connect(Module, Host, Port, From, State) ->
+    Domain = get_domain(State#state.auth_method),
+    {ok, StreamRef} = start_parser(),
+    try Module:connect(StreamRef, {Host, Port}) of
+	ConnRef ->
+	    %% basic (legacy) authent: we do not use version 1.0 in stream:
+	    ok = Module:send(ConnRef,
+			     exmpp_client_stream:opening([{to, Domain}])),
+	    {next_state, wait_for_stream, State#state{connection = Module,
+						      connection_ref = ConnRef,
+						      stream_ref = StreamRef,
+						      from_pid = From}}
+    catch
+	throw:Error ->
+	    gen_fsm:reply(From, Error),
+	    exmpp_xmlstream:stop(StreamRef),
+	    %% We do not stop here, because the developer might want to 
+	    %% start a connection using another transport
+	    {next_state, setup, State#state{stream_ref = StreamRef,
+					    from_pid = From}}
+    end.
 
 %% Authentication
 %% digest auth will fail if we do not have streamid

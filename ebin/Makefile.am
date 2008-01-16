@@ -16,6 +16,7 @@ BEAM_FILES = exmpp.app							\
 	     exmpp_xml.beam						\
 	     exmpp_xmlstream.beam					\
 	     exmpp_callbacks.beam					\
+	     exmpp_ssl.beam						\
 	     exmpp_tcp.beam						\
 	     exmpp_client_stream.beam 					\
 	     exmpp_client_tls.beam 					\

@@ -14,6 +14,7 @@
 		'@srcdir@/core/exmpp_error',
 	        '@srcdir@/network/exmpp_callbacks',
 	        '@srcdir@/network/exmpp_session',
+	        '@srcdir@/network/exmpp_ssl',
 	        '@srcdir@/network/exmpp_tcp',
 	        '@srcdir@/examples/echo_client',
 	        '@srcdir@/client/exmpp_client_stream',
