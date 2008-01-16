@@ -1,5 +1,12 @@
 2008-01-16  Mickael Remond  <mremond@process-one.net>
 
+	* src/network/exmpp_ssl.erl: SSL client connection support (Thanks
+	to Wil Glozer)
+	* src/Emakefile.in: Likewise
+	* src/Makefile.am: Likewise
+	* exmpp/src/network/exmpp_session.erl: Likewise
+	* exmpp/ebin/Makefile.am: Likewise
+	
 	* exmpp/configure.ac: Clean-up compilation process (Thanks to Will
 	Glozer)
 	* exmpp/include/exmpp.hrl: Likewise
