@@ -11,7 +11,7 @@ AC_CONFIG_AUX_DIR([ac-aux])
 
 configure_paramters="[$]@"
 
-AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+AM_INIT_AUTOMAKE([foreign])
 
 AC_CANONICAL_HOST
 
@@ -36,7 +36,7 @@ dnl ------------------------------------------------------------------
 dnl Compilateur/outils
 dnl ------------------------------------------------------------------
 
-cflags_save="$CFLAGS"
+cflags_save="$CFLAGS -Wall -Werror"
 AC_PROG_CC
 CFLAGS="$cflags_save"
 

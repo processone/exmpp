@@ -101,6 +101,7 @@
 -define(NS_JABBER_PRIVACY, 'jabber:iq:privacy').
 -define(NS_JABBER_REGISTER,'jabber:iq:register').
 -define(NS_JABBER_ROSTER,  'jabber:iq:roster').
+-define(NS_BIND,           'urn:ietf:params:xml:ns:xmpp-bind').
 -define(NS_JABBER_SESSION, 'urn:ietf:params:xml:ns:xmpp-session').
 -define(NS_XMPP_STREAMS,   'urn:ietf:params:xml:ns:xmpp-streams').
 -define(NS_XMPP_STANZAS,   'urn:ietf:params:xml:ns:xmpp-stanzas').
