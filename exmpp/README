@@ -1,0 +1,13 @@
+How to compile and install:
+
+You need autotool 1.60
+
+Type the following sequence of commands: 
+
+ aclocal
+ autoreconf
+ autoconf
+ automake
+ ./configure
+ make 
+ make install
