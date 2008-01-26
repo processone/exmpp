@@ -1,5 +1,5 @@
 #!/bin/sh
-# install - install a program, script, or datafile
+# install - install a program, script, or datafile 
 
 scriptversion=2006-10-14.15
 
