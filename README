@@ -1,4 +1,4 @@
-How to compile and install:
+1. How to compile and install:
 
 You need autotool 1.60
 
@@ -11,3 +11,10 @@ Type the following sequence of commands:
  ./configure
  make 
  make install
+
+
+2. Examples
+
+After exmpp installation, you can compile the examples in the src/examples directory with the command:
+
+erlc *.erl
