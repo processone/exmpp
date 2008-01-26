@@ -19,8 +19,8 @@
 
 -module(echo_client).
 
--include_lib("exmpp.hrl").
--include_lib("exmpp_client.hrl").
+-include_lib("exmpp/include/exmpp.hrl").
+-include_lib("exmpp/include/exmpp_client.hrl").
 
 -export([start/0, stop/1]).
 -export([init/0]).
