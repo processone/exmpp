@@ -4,12 +4,12 @@ dnl ------------------------------------------------------------------
 dnl Autoconf initialisation.
 dnl ------------------------------------------------------------------
 
-AC_INIT([exmpp], [0.7.0], [js.pedron@meetic-corp.com], [exmpp])
+AC_INIT([exmpp], [0.9.0], [js.pedron@meetic-corp.com], [exmpp])
 AC_CONFIG_SRCDIR([include/exmpp.hrl])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([ac-aux])
 
-configure_paramters="[$]@"
+configure_parameters="[$]@"
 
 AM_INIT_AUTOMAKE([foreign])
 
@@ -23,7 +23,7 @@ dnl Versionning
 dnl ------------------------------------------------------------------
 
 EXMPP_MAJOR=0
-EXMPP_MINOR=7
+EXMPP_MINOR=9
 EXMPP_MICRO=0
 EXMPP_VERSION="$EXMPP_MAJOR.$EXMPP_MINOR.$EXMPP_MICRO"
 
@@ -208,9 +208,7 @@ dnl leading to premature unload of the library.
 AC_MSG_CHECKING([for the need for erl_ddll workaround])
 
 if test "x${cross_compiling}" = "xno"; then
-	AX_COMPARE_VERSION(${ERLANG_LIB_VER_kernel}, [lt], [2.11],
-	    [default_with_broken_erl_ddll="yes"],
-	    [default_with_broken_erl_ddll="no"])
+	AX_COMPARE_VERSION([${ERLANG_LIB_VER_kernel}], [lt], [2.11], [default_with_broken_erl_ddll="yes"], [default_with_broken_erl_ddll="no"])
 else
 	default_with_broken_erl_ddll="yes"
 fi
