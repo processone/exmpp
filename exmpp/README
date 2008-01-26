@@ -6,8 +6,8 @@ Type the following sequence of commands:
 
  aclocal
  autoreconf
- autoconf
  automake
+ autoconf
  ./configure
  make 
  make install
