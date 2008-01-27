@@ -277,7 +277,7 @@ setup(UnknownMessage, _From, State) ->
 %% Extract IQElement from IQ 
 -define(iq,
 	#xmlstreamelement{
-	  element=#xmlnselement{name=iq}=IQElement}).
+	  element=#xmlnselement{name=iq, attrs=Attrs}=IQElement}).
 
 %% We cannot receive API call in this state
 wait_for_stream(Event, From, State) ->
@@ -450,8 +450,7 @@ logged_in(?message, State = #state{connection = Module,
     {next_state, logged_in, State};
 %% Dispach IQs from server
 logged_in(?iq, State) ->
-    %% TODO: Alarm log, ignore IQ or send event to be controled by the client 
-    %io:format("IQ: ~p~n", [IQElement]),
+    process_iq(State#state.client_pid, Attrs, IQElement),
     {next_state, logged_in, State};
 %% Process unexpected packet
 logged_in(_Packet, State) ->
@@ -576,6 +575,16 @@ process_message(ClientPid, Attrs, Packet) ->
     Who = get_attribute_value(Attrs, from, ""),
     Id = get_attribute_value(Attrs, id, ""),
     ClientPid ! #received_packet{packet_type = message,
+                                 type_attr = Type,
+                                 from = Who,
+                                 id = Id,
+                                 raw_packet = Packet}.
+
+process_iq(ClientPid, Attrs, Packet) ->
+    Type = get_attribute_value(Attrs, type, ""),
+    Who = get_attribute_value(Attrs, from, ""),
+    Id = get_attribute_value(Attrs, id, ""),
+    ClientPid ! #received_packet{packet_type = iq,
                                  type_attr = Type,
                                  from = Who,
                                  id = Id,
