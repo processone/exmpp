@@ -95,8 +95,7 @@ start_debug() ->
 
 %% Close session and disconnect
 stop(Session) ->
-    %% TODO
-    ok.
+    gen_fsm:send_all_state_event(Session, stop).
 
 %% Set authentication mode to basic (password)
 auth_basic(Session, JID, Password)
@@ -173,6 +172,8 @@ init([Pid]) ->
     %% TODO: Init random numbers generator ?
     {ok, setup, #state{client_pid=Pid}}.
 
+handle_event(stop, StateName, State) ->
+    {stop, normal, State};
 handle_event(_Event, StateName, State) ->
     {next_state, StateName, State}.
 handle_sync_event(_Event, _From, StateName, State) ->
