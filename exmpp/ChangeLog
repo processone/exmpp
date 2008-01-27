@@ -1,3 +1,8 @@
+2008-01-27  Mickael Remond  <mremond@process-one.net>
+
+	* src/network/exmpp_session.erl: Support session stop (Thanks to Will
+	Glozer).
+
 2008-01-16  Mickael Remond  <mremond@process-one.net>
 
 	* src/network/exmpp_ssl.erl: SSL client connection support (Thanks
