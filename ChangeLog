@@ -1,5 +1,8 @@
 2008-01-27  Mickael Remond  <mremond@process-one.net>
 
+	* src/network/exmpp_session.erl: Now forward IQ packet to client
+	session (Thanks to Will Glozer).
+
 	* src/network/exmpp_session.erl: Support session stop (Thanks to Will
 	Glozer).
 
