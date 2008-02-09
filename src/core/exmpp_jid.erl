@@ -15,34 +15,34 @@
 
 % Conversion.
 -export([
-  make_jid/3,
-  make_bare_jid/2,
-  jid_to_bare_jid/1,
-  bare_jid_to_jid/2
+	 make_jid/3,
+	 make_bare_jid/2,
+	 jid_to_bare_jid/1,
+	 bare_jid_to_jid/2
 ]).
 
 % Parsing.
 -export([
-  string_to_jid/1,
-  string_to_bare_jid/1
+	 string_to_jid/1,
+	 string_to_bare_jid/1
 ]).
 
 % Serialization.
 -export([
-  jid_to_string/1,
-  bare_jid_to_string/1
+	 jid_to_string/1,
+	 bare_jid_to_string/1
 ]).
 
 % Comparison.
 -export([
-  compare_jids/2,
-  compare_bare_jids/2,
-  have_same_domain/2
+	 compare_jids/2,
+	 compare_bare_jids/2,
+	 have_same_domain/2
 ]).
 
 % Checks.
 -export([
-  is_jid/1
+	 is_jid/1
 ]).
 
 -define(NODE_MAX_LENGTH,     1023).
