@@ -36,7 +36,9 @@
 %% XMPP Session API:
 -export([start/0, start_link/0, start_debug/0, stop/1]).
 -export([auth_basic/3, auth_basic_digest/3,
-	 connect_SSL/3, connect_TCP/3, register_account/2, login/1,
+	 connect_SSL/3, connect_SSL/4,
+	 connect_TCP/3, connect_TCP/4,
+	 register_account/2, login/1,
 	 send_packet/2]).
 
 %% gen_fsm callbacks
@@ -60,14 +62,15 @@
 -include("exmpp_client.hrl").
 
 -record(state, {
-  auth_method = undefined,
-  client_pid,
-  connection = exmpp_tcp,
-  connection_ref,
-  stream_ref,
-  stream_id = false, %% XMPP StreamID (Used for digest_auth)
-  from_pid           %% Use by gen_fsm to handle postponed replies
-               }).
+	  auth_method = undefined,
+	  domain,
+	  client_pid,
+	  connection = exmpp_tcp,
+	  connection_ref,
+	  stream_ref,
+	  stream_id = false, %% XMPP StreamID (Used for digest_auth)
+	  from_pid           %% Use by gen_fsm to handle postponed replies
+	 }).
 
 %%====================================================================
 %% API
@@ -99,8 +102,8 @@ stop(Session) ->
 
 %% Set authentication mode to basic (password)
 auth_basic(Session, JID, Password)
-when pid(Session),
-list(Password) ->
+  when pid(Session),
+       list(Password) ->
     case exmpp_jid:is_jid(JID) of
 	false -> erlang:error({incorrect_jid,JID});
 	true ->
@@ -110,8 +113,8 @@ list(Password) ->
 
 %% Set authentication mode to basic (digest)
 auth_basic_digest(Session, JID, Password)
-when pid(Session),
-list(Password) ->
+  when pid(Session),
+       list(Password) ->
     case exmpp_jid:is_jid(JID) of
 	false -> erlang:error({incorrect_jid,JID});
 	true ->
@@ -120,23 +123,53 @@ list(Password) ->
     end.
 
 %% Initiate standard TCP XMPP server connection
+%% If the domain is not passed we expect to find it in the authentication
+%% method. It should thus be set before.
 %% Returns StreamId (String)
 connect_TCP(Session, Server, Port) 
-when pid(Session),
-list(Server),
-integer(Port) ->
+  when pid(Session),
+       list(Server),
+       integer(Port) ->
     case gen_fsm:sync_send_event(Session, {connect_tcp, Server, Port}) of
+	Error when tuple(Error) -> erlang:throw(Error);
+	StreamId -> StreamId
+    end.
+
+%% Initiate standard TCP XMPP server connection
+%% Returns StreamId (String)
+connect_TCP(Session, Server, Port, Domain)
+  when pid(Session),
+       list(Server),
+       integer(Port),
+       list(Domain) ->
+    case gen_fsm:sync_send_event(Session,
+				 {connect_tcp, Server, Port, Domain}) of
+	Error when tuple(Error) -> erlang:throw(Error);
+	StreamId -> StreamId
+    end.
+
+%% Initiate SSL XMPP server connection
+%% If the domain is not passed we expect to find it in the authentication
+%% method. It should thus be set before.
+%% Returns StreamId (String)
+connect_SSL(Session, Server, Port) 
+  when pid(Session),
+       list(Server),
+       integer(Port) ->
+    case gen_fsm:sync_send_event(Session, {connect_ssl, Server, Port}) of
 	Error when tuple(Error) -> erlang:throw(Error);
 	StreamId -> StreamId
     end.
 
 %% Initiate SSL XMPP server connection
 %% Returns StreamId (String)
-connect_SSL(Session, Server, Port) 
-when pid(Session),
-list(Server),
-integer(Port) ->
-    case gen_fsm:sync_send_event(Session, {connect_ssl, Server, Port}) of
+connect_SSL(Session, Server, Port, Domain) 
+  when pid(Session),
+       list(Server),
+       integer(Port),
+       list(Domain) ->
+    case gen_fsm:sync_send_event(Session,
+				 {connect_ssl, Server, Port, Domain}) of
 	Error when tuple(Error) -> erlang:throw(Error);
 	StreamId -> StreamId
     end.
@@ -236,8 +269,12 @@ setup({set_auth, Auth}, _From, State) when tuple(Auth) ->
     {reply, ok, setup, State#state{auth_method=Auth}};
 setup({connect_tcp, Host, Port}, From, State) ->
     connect(exmpp_tcp, Host, Port, From, State);
+setup({connect_tcp, Host, Port, Domain}, From, State) ->
+    connect(exmpp_tcp, Host, Port, Domain, From, State);
 setup({connect_ssl, Host, Port}, From, State) ->
     connect(exmpp_ssl, Host, Port, From, State);
+setup({connect_ssl, Host, Port, Domain}, From, State) ->
+    connect(exmpp_ssl, Host, Port, Domain, From, State);
 setup({presence, _Status, _Show}, _From, State) ->
     {reply, {error, not_connected}, setup, State};
 setup(UnknownMessage, _From, State) ->
@@ -469,24 +506,29 @@ logged_in(_Packet, State) ->
 %% Connect to server
 connect(Module, Host, Port, From, State) ->
     Domain = get_domain(State#state.auth_method),
+    connect(Module, Host, Port, Domain, From, State).
+connect(Module, Host, Port, Domain, From, State) ->
     {ok, StreamRef} = start_parser(),
     try Module:connect(StreamRef, {Host, Port}) of
 	ConnRef ->
 	    %% basic (legacy) authent: we do not use version 1.0 in stream:
 	    ok = Module:send(ConnRef,
 			     exmpp_client_stream:opening([{to, Domain}])),
-	    {next_state, wait_for_stream, State#state{connection = Module,
-						      connection_ref = ConnRef,
-						      stream_ref = StreamRef,
-						      from_pid = From}}
+	    {next_state, wait_for_stream, State#state{
+					    domain = Domain,
+					    connection = Module,
+					    connection_ref = ConnRef,
+					    stream_ref = StreamRef,
+					    from_pid = From}}
     catch
 	throw:Error ->
 	    gen_fsm:reply(From, Error),
 	    exmpp_xmlstream:stop(StreamRef),
 	    %% We do not stop here, because the developer might want to 
 	    %% start a connection using another transport
-	    {next_state, setup, State#state{stream_ref = StreamRef,
-					    from_pid = From}}
+	    {next_state, setup, State#state{
+				  stream_ref = StreamRef,
+				  from_pid = From}}
     end.
 
 %% Authentication

@@ -1,3 +1,11 @@
+2008-02-09  Mickael Remond  <mremond@process-one.net>
+
+	* src/network/exmpp_session.erl: We can now open the stream before
+	defining authentication method. In this case, we need to pass an
+	extra domain parameter.
+	* src/core/exmpp_jid.erl: Fixed indentation.
+	* src/core/exmpp_stringprep.erl: Fixed indentation.
+
 2008-01-27  Mickael Remond  <mremond@process-one.net>
 
 	* src/network/exmpp_session.erl: Now forward IQ packet to client

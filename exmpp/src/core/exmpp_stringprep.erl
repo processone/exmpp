@@ -12,25 +12,25 @@
 -behaviour(gen_server).
 
 -export([
-  start/0,
-  start_link/0,
-  nodeprep/1,
-  nameprep/1,
-  resourceprep/1,
-  is_node/1,
-  is_name/1,
-  is_resource/1,
-  to_lower/1
+	 start/0,
+	 start_link/0,
+	 nodeprep/1,
+	 nameprep/1,
+	 resourceprep/1,
+	 is_node/1,
+	 is_name/1,
+	 is_resource/1,
+	 to_lower/1
 ]).
 
 % gen_server(3erl) callbacks.
 -export([
-  init/1,
-  handle_call/3,
-  handle_cast/2,
-  handle_info/2,
-  terminate/2,
-  code_change/3
+	 init/1,
+	 handle_call/3,
+	 handle_cast/2,
+	 handle_info/2,
+	 terminate/2,
+	 code_change/3
 ]).
 
 -record(state, {
