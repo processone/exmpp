@@ -170,31 +170,31 @@ start_parser() ->
 %% '''
 
 start_parser(Options) ->
-	case load_driver() of
-		{error, Reason} ->
-			{error, Reason};
-		Port ->
-			Parser = #xml_parser{port = Port},
-			Options2 = case lists:member(no_namespace, Options) of
-				true ->
-					Options;
-				false ->
-					case lists:member(namespace, Options) of
-						true ->
-							Options;
-						false ->
-							[no_namespace | Options]
-					end
+    case load_driver() of
+	{error, Reason} ->
+	    {error, Reason};
+	Port ->
+	    Parser = #xml_parser{port = Port},
+	    Options2 = case lists:member(no_namespace, Options) of
+			   true ->
+			       Options;
+			   false ->
+			       case lists:member(namespace, Options) of
+				   true ->
+				       Options;
+				   false ->
+				       [no_namespace | Options]
+			       end
 			end,
-			case handle_options(
-			    ?DEFAULT_PARSER_OPTIONS ++ Options2, Parser) of
+	    case handle_options(
+		   ?DEFAULT_PARSER_OPTIONS ++ Options2, Parser) of
 				{error, Reason} ->
-					unload_driver(),
-					{error, Reason};
-				New_Parser ->
-					{ok, New_Parser}
-			end
-	end.
+		    unload_driver(),
+		    {error, Reason};
+		New_Parser ->
+		    {ok, New_Parser}
+	    end
+    end.
 
 %% @spec (Parser) -> true
 %%     Parser = xmlparser()
@@ -1740,8 +1740,8 @@ encode_entities2(<<C:8, Rest/binary>>, New_S) ->
 		$& -> <<"&amp;">>;
 		$< -> <<"&lt;">>;
 		$> -> <<"&gt;">>;
-		$" -> <<"&quot;">>;
-		$' -> <<"&apos;">>;
+		$" -> <<"&quot;">>; %"
+		$' -> <<"&apos;">>; %'
 		_  -> C
 	end,
 	encode_entities2(Rest, [New_C | New_S]);
@@ -1753,43 +1753,40 @@ encode_entities2(<<>>, New_S) ->
 % --------------------------------------------------------------------
 
 load_driver() ->
-	case exmpp_internals:load_driver(?DRIVER_NAME) of
-		{error, Reason} ->
-			{error, Reason};
-		ok ->
-			case exmpp_internals:open_port(?DRIVER_NAME) of
-				{error, Reason} ->
-					exmpp_internals:unload_driver(
-					    ?DRIVER_NAME),
-					{error, Reason};
-				Port ->
-					Port
-			end
-	end.
+    try load_driver2() of
+	Port -> Port
+    catch
+	{port_error, Reason, Message} ->
+	    exmpp_internals:unload_driver(?DRIVER_NAME),
+	    throw({port_error, Reason, Message})
+    end.
+load_driver2() ->
+    exmpp_internals:load_driver(?DRIVER_NAME),
+    exmpp_internals:open_port(?DRIVER_NAME).
 
 unload_driver() ->
-	exmpp_internals:unload_driver(?DRIVER_NAME).
+    exmpp_internals:unload_driver(?DRIVER_NAME).
 
 handle_options([namespace | Rest], #xml_parser{port = P} = Parser) ->
-	Ret = port_control(P, ?EXPAT_SET_NSPARSER, term_to_binary(true)),
-	case binary_to_term(Ret) of
-		ok ->
-			handle_options(Rest, Parser);
-		Error ->
-			Error
-	end;
+    Ret = port_control(P, ?EXPAT_SET_NSPARSER, term_to_binary(true)),
+    case binary_to_term(Ret) of
+	ok ->
+	    handle_options(Rest, Parser);
+	Error ->
+	    Error
+    end;
 handle_options([no_namespace | Rest], #xml_parser{port = P} = Parser) ->
-	Ret = port_control(P, ?EXPAT_SET_NSPARSER, term_to_binary(false)),
-	case binary_to_term(Ret) of
-		ok ->
-			handle_options(Rest, Parser);
-		Error ->
-			Error
-	end;
+    Ret = port_control(P, ?EXPAT_SET_NSPARSER, term_to_binary(false)),
+    case binary_to_term(Ret) of
+	ok ->
+	    handle_options(Rest, Parser);
+	Error ->
+	    Error
+    end;
 
 handle_options([name_as_atom | Rest], #xml_parser{port = P} = Parser) ->
-	port_control(P, ?EXPAT_SET_NAMEASATOM, term_to_binary(true)),
-	handle_options(Rest, Parser);
+    port_control(P, ?EXPAT_SET_NAMEASATOM, term_to_binary(true)),
+    handle_options(Rest, Parser);
 handle_options([name_as_string | Rest], #xml_parser{port = P} = Parser) ->
 	port_control(P, ?EXPAT_SET_NAMEASATOM, term_to_binary(false)),
 	handle_options(Rest, Parser);

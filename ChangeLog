@@ -1,3 +1,15 @@
+2008-02-10  Mickael Remond  <mremond@process-one.net>
+
+	* src/core/exmpp_error.erl: Improved exceptions
+	* src/core/exmpp_internals.erl: Likewise
+	* src/core/exmpp_xml.erl: Likewise
+	* src/network/exmpp_session.erl: Likewise
+
+	* src/network/exmpp_session.erl: Fixed exmpp session start in
+	debug mode
+	
+	* src/core/exmpp_xml.erl: Beautify code
+	
 2008-02-09  Mickael Remond  <mremond@process-one.net>
 
 	* src/network/exmpp_session.erl: We can now open the stream before
