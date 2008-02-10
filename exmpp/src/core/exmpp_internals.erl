@@ -10,11 +10,11 @@
 -vsn('$Revision$').
 
 -export([
-  driver_dirs/0,
-  load_driver/1,
-  unload_driver/1,
-  open_port/1,
-  close_port/1
+	 driver_dirs/0,
+	 load_driver/1,
+	 unload_driver/1,
+	 open_port/1,
+	 close_port/1
 ]).
 
 % --------------------------------------------------------------------
@@ -78,8 +78,14 @@ unload_driver(Driver_Name) ->
 
 open_port(Driver_Name) ->
     case catch erlang:open_port({spawn, atom_to_list(Driver_Name)}, []) of
-        {'EXIT', _Port, Posix_Code} ->
-            {error, Posix_Code};
+        {'EXIT', {PosixCode, _Stack}} ->
+	    ErrorType = port_error,
+	    exmpp_error:throw(ErrorType,
+			      PosixCode,
+			      "Cannot open driver '~p': ~s",
+			      [Driver_Name, 
+			       exmpp_error:posix_message(ErrorType,
+							 PosixCode)]);
         Port ->
             Port
     end.

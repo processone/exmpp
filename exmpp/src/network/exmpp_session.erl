@@ -89,12 +89,18 @@ start() ->
     end.
 %% Start the session (used to get a reference):
 start_link() ->
-    gen_fsm:start_link(?MODULE, [self()], []).    
+    case gen_fsm:start_link(?MODULE, [self()], []) of
+	{ok, PID} -> PID;
+	{error, Reason} -> erlang:error({error, Reason})
+    end.
 
 %% Start the session in debug mode
 %% (trace events)
 start_debug() ->
-    gen_fsm:start(?MODULE, [], [{debug,[trace]}]).
+    case gen_fsm:start(?MODULE, [self()], [{debug,[trace]}]) of
+	{ok, PID} -> PID;
+	{error, Reason} -> erlang:error({error, Reason})
+    end.
 
 %% Close session and disconnect
 stop(Session) ->
@@ -508,29 +514,36 @@ connect(Module, Host, Port, From, State) ->
     Domain = get_domain(State#state.auth_method),
     connect(Module, Host, Port, Domain, From, State).
 connect(Module, Host, Port, Domain, From, State) ->
-    {ok, StreamRef} = start_parser(),
-    try Module:connect(StreamRef, {Host, Port}) of
-	ConnRef ->
-	    %% basic (legacy) authent: we do not use version 1.0 in stream:
-	    ok = Module:send(ConnRef,
-			     exmpp_client_stream:opening([{to, Domain}])),
-	    {next_state, wait_for_stream, State#state{
-					    domain = Domain,
-					    connection = Module,
-					    connection_ref = ConnRef,
+    try start_parser() of
+	{ok, StreamRef} ->
+	    try Module:connect(StreamRef, {Host, Port}) of
+		ConnRef ->
+		    %% basic (legacy) authent: we do not use version
+		    %% 1.0 in stream:
+		    ok = Module:send(ConnRef,
+				     exmpp_client_stream:opening(
+				       [{to, Domain}])),
+		    {next_state, wait_for_stream, State#state{
+						    domain = Domain,
+						    connection = Module,
+						    connection_ref = ConnRef,
+						    stream_ref = StreamRef,
+						    from_pid = From}}
+	    catch
+		Error ->
+		    exmpp_xmlstream:stop(StreamRef),
+		    %% We do not stop here, because the developer
+		    %% might want to start a connection using another
+		    %% transport
+		    {reply, Error, setup, State#state{
 					    stream_ref = StreamRef,
 					    from_pid = From}}
+	    end
     catch
-	throw:Error ->
-	    gen_fsm:reply(From, Error),
-	    exmpp_xmlstream:stop(StreamRef),
-	    %% We do not stop here, because the developer might want to 
-	    %% start a connection using another transport
-	    {next_state, setup, State#state{
-				  stream_ref = StreamRef,
-				  from_pid = From}}
+	Error ->
+	    {reply, Error, setup, State}
     end.
-
+    
 %% Authentication
 %% digest auth will fail if we do not have streamid
 do_auth(password, ConnRef, Module, Username, Password, Resource, _StreamId) ->
