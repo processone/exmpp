@@ -38,7 +38,8 @@
 -export([auth_basic/3, auth_basic_digest/3,
 	 connect_SSL/3, connect_SSL/4,
 	 connect_TCP/3, connect_TCP/4,
-	 register_account/2, login/1,
+	 register_account/2, register_account/3,
+	 login/1,
 	 send_packet/2]).
 
 %% gen_fsm callbacks
@@ -180,10 +181,21 @@ connect_SSL(Session, Server, Port, Domain)
 	StreamId -> StreamId
     end.
 
-%% Trying to add the session user with inband registration
+%% Try to add the session user with inband registration
+%% In this case, we use the jid data provided with the auth method
 %% Returns ok
 register_account(Session, Password) ->
     case gen_fsm:sync_send_event(Session, {register_account, Password}) of
+	ok -> ok;
+	Error when tuple(Error) -> erlang:throw(Error)
+    end.
+
+%% Try to add the session user with inband registration
+%% The domain is implicite and depends on the opened stream
+%% Returns ok
+register_account(Session, Username, Password) ->
+    case gen_fsm:sync_send_event(Session,
+				 {register_account, Username, Password}) of
 	ok -> ok;
 	Error when tuple(Error) -> erlang:throw(Error)
     end.
@@ -364,6 +376,13 @@ stream_opened({register_account, Password}, From,
 		exmpp_client_register:register_account([{username, Username},
                                                         {password, Password}])),
     {next_state, wait_for_register_result, State#state{from_pid=From}};
+stream_opened({register_account, Username, Password}, From,
+	      State=#state{connection = Module,
+			   connection_ref = ConnRef}) ->
+    Module:send(ConnRef,
+		exmpp_client_register:register_account([{username, Username},
+                                                        {password, Password}])),
+    {next_state, wait_for_register_result, State#state{from_pid=From}};
 
 %% We can define update login informations after we are connected to
 %% the XMPP server:
@@ -427,7 +446,10 @@ wait_for_register_result(?iq, State = #state{from_pid=From}) ->
             Reason = exmpp_error:get_reason(IQElement),
             gen_fsm:reply(From, {register_error, Reason}),
             {next_state, stream_opened, State#state{from_pid=undefined}}
-    end.    
+    end;
+wait_for_register_result(?streamerror, State) ->
+    {stop, {error, Reason}, State}.
+
 
 %% Used to match a presence packet in stream.
 -define(presence,

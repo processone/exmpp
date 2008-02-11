@@ -85,7 +85,7 @@ append_fields(Query, [{Field, Value}|Fields])
        list(Value) -> 
     FieldElement = exmpp_xml:set_cdata(
 		     #xmlnselement{ns = ?NS_JABBER_REGISTER, name = Field},
-		     Value),
+		     exmpp_xml:encode_entities(Value)),
     UpdatedQuery = exmpp_xml:append_child(Query, FieldElement),
     append_fields(UpdatedQuery, Fields).
 
