@@ -21,6 +21,9 @@
 %% by {@link xml}.
 %% </p>
 
+%% TODO: Check call to binary_to_list: We should keep as much as possible
+%%       in binary.
+
 -module(exmpp_xml).
 -vsn('$Revision$').
 

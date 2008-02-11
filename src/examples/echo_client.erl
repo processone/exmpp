@@ -44,7 +44,7 @@ init() ->
     _StreamId = exmpp_session:connect_TCP(MySession, "localhost", 5222),
     session(MySession, MyJID).
 
-%% We are connected. We now log in (and tyr registering if authentication fails)
+%% We are connected. We now log in (and try registering if authentication fails)
 session(MySession, MyJID) ->
     %% Login with defined JID / Authentication:
     try exmpp_session:login(MySession)
