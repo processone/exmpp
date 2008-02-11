@@ -386,16 +386,12 @@ stream_opened({register_account, Password}, From,
 			   connection_ref = ConnRef,
 			   auth_method=Auth}) ->
     Username = get_username(Auth),
-    Module:send(ConnRef,
-		exmpp_client_register:register_account([{username, Username},
-                                                        {password, Password}])),
+    register_account(ConnRef, Module, Username, Password),
     {next_state, wait_for_register_result, State#state{from_pid=From}};
 stream_opened({register_account, Username, Password}, From,
 	      State=#state{connection = Module,
 			   connection_ref = ConnRef}) ->
-    Module:send(ConnRef,
-		exmpp_client_register:register_account([{username, Username},
-                                                        {password, Password}])),
+    register_account(ConnRef, Module, Username, Password),
     {next_state, wait_for_register_result, State#state{from_pid=From}};
 
 %% We can define update login informations after we are connected to
@@ -683,6 +679,10 @@ get_attribute_value(Attrs, Attr, Default) ->
         #xmlattr{value=Value} -> Value
     end. 
 
+
+
+%% Internal operations
+%% send_packet: actually format and send the packet:
 send_packet(?iqattrs, Module, ConnRef) ->
     Type = exmpp_xml:get_attribute_from_list(Attrs, type),
     case Type of 
@@ -707,3 +707,10 @@ send_packet(?elementattrs, Module, ConnRef) ->
     {Attrs2, Id} = check_id(Attrs),
     Module:send(ConnRef, Element#xmlnselement{attrs=Attrs2}),
     Id.
+
+register_account(ConnRef, Module, Username, Password) ->
+    Module:send(ConnRef,
+		exmpp_client_register:register_account([{username, Username},
+							{password, Password}])).
+    
+    
