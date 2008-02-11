@@ -334,6 +334,20 @@ setup(UnknownMessage, _From, State) ->
 	#xmlstreamelement{
 	  element=#xmlnselement{name=iq, attrs=Attrs}=IQElement}).
 
+%% Used to match a presence packet in stream.
+-define(presence,
+	#xmlstreamelement{
+	  element=#xmlnselement{name=presence, attrs=Attrs}=PresenceElement}).
+%% Used to match a message packet in stream
+-define(message,
+	#xmlstreamelement{
+	  element=#xmlnselement{name=message, attrs=Attrs}=MessageElement}). 
+%% To match an XMLNSElement of type Iq:
+-define(iqattrs, #xmlnselement{name=iq, attrs=Attrs}=IQElement).
+%% To match either presence or message
+-define(elementattrs, #xmlnselement{attrs=Attrs}=Element).
+
+
 %% We cannot receive API call in this state
 wait_for_stream(Event, From, State) ->
     {reply, {error, busy_connecting_to_server}, wait_for_stream, State}.
@@ -390,8 +404,28 @@ stream_opened({register_account, Username, Password}, From,
 stream_opened({set_auth, Auth}, _From, State) when tuple(Auth) ->
     {reply, ok, stream_opened, State#state{auth_method=Auth}};
 stream_opened({presence, _Status, _Show}, _From, State) ->
-    {reply, {error, not_logged_in}, setup, State}.
+    {reply, {error, not_logged_in}, setup, State};
+%% We allow to send packet here to give control to the developer on all packet
+%% send to the server. The developer can implements his own login management
+%% code.
+%% If the packet is an iq set or get:
+%% We check that there is a valid id and return it to match the reply
+stream_opened({send_packet, Packet}, _From,
+	  State = #state{connection = Module,
+			 connection_ref = ConnRef}) ->
+    Id = send_packet(Packet, Module, ConnRef),
+    {reply, Id, stream_opened, State}.
 
+%% Process incoming 
+%% Dispatch incoming messages
+stream_opened(?message, State = #state{connection = Module,
+				   connection_ref = ConnRef}) ->
+    process_message(State#state.client_pid, Attrs, MessageElement),
+    {next_state, stream_opened, State};
+%% Dispach IQs from server
+stream_opened(?iq, State) ->
+    process_iq(State#state.client_pid, Attrs, IQElement),
+    {next_state, stream_opened, State};
 %% Handle end of stream
 stream_opened(?streamend, State) ->
     {stop, normal, State}.
@@ -450,53 +484,14 @@ wait_for_register_result(?iq, State = #state{from_pid=From}) ->
 wait_for_register_result(?streamerror, State) ->
     {stop, {error, Reason}, State}.
 
-
-%% Used to match a presence packet in stream.
--define(presence,
-	#xmlstreamelement{
-	  element=#xmlnselement{name=presence, attrs=Attrs}=PresenceElement}).
-%% Used to match a message packet in stream
--define(message,
-	#xmlstreamelement{
-	  element=#xmlnselement{name=message, attrs=Attrs}=MessageElement}). 
-%% To match an XMLNSElement of type Iq:
--define(iqattrs, #xmlnselement{name=iq, attrs=Attrs}=IQElement).
-%% To match either presence or message
--define(elementattrs, #xmlnselement{attrs=Attrs}=Element).
-
 %% ---
 %% Send packets
-%% TODO: 
 %% If the packet is an iq set or get:
-%% We check that there is a valid id and store it to match the reply
-logged_in({send_packet, ?iqattrs}, From,
+%% We check that there is a valid id and return it to match the reply
+logged_in({send_packet, Packet}, _From,
 	  State = #state{connection = Module,
 			 connection_ref = ConnRef}) ->
-    Type = exmpp_xml:get_attribute_from_list(Attrs, type),
-    Id = case Type of 
-             "error" ->
-                 {Attrs2, PacketId} = check_id(Attrs),
-                 Module:send(ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
-                 PacketId;
-             "result" -> 
-                 {Attrs2, PacketId} = check_id(Attrs),
-                 Module:send(ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
-                 PacketId;
-             "set" ->
-                 {Attrs2, PacketId} = check_id(Attrs),
-                 Module:send(ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
-                 PacketId;
-             "get" ->
-                 {Attrs2, PacketId} = check_id(Attrs),
-                 Module:send(ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
-                 PacketId
-         end,
-    {reply, Id, logged_in, State};	  
-logged_in({send_packet, ?elementattrs}, _From,
-	  State = #state{connection = Module,
-			 connection_ref = ConnRef}) ->
-    {Attrs2, Id} = check_id(Attrs),
-    Module:send(ConnRef, Element#xmlnselement{attrs=Attrs2}),
+    Id = send_packet(Packet, Module, ConnRef),
     {reply, Id, logged_in, State}.
 
 %% ---
@@ -687,3 +682,28 @@ get_attribute_value(Attrs, Attr, Default) ->
         false -> Default;
         #xmlattr{value=Value} -> Value
     end. 
+
+send_packet(?iqattrs, Module, ConnRef) ->
+    Type = exmpp_xml:get_attribute_from_list(Attrs, type),
+    case Type of 
+	"error" ->
+	    {Attrs2, PacketId} = check_id(Attrs),
+	    Module:send(ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
+	    PacketId;
+	"result" -> 
+	    {Attrs2, PacketId} = check_id(Attrs),
+	    Module:send(ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
+	    PacketId;
+	"set" ->
+	    {Attrs2, PacketId} = check_id(Attrs),
+	    Module:send(ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
+	    PacketId;
+	"get" ->
+	    {Attrs2, PacketId} = check_id(Attrs),
+	    Module:send(ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
+	    PacketId
+    end;
+send_packet(?elementattrs, Module, ConnRef) ->
+    {Attrs2, Id} = check_id(Attrs),
+    Module:send(ConnRef, Element#xmlnselement{attrs=Attrs2}),
+    Id.

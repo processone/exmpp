@@ -1,8 +1,13 @@
 2008-02-11  Mickael Remond  <mremond@process-one.net>
 
+	* src/network/exmpp_session.erl: API improvement: we can send and
+	receive packet right after connection. Developper can thus write
+	their own authentication.
+	* src/client/exmpp_client_register.erl: Added unregister packets
+	creation.
+
 	* src/core/exmpp_xml.erl: Improved API: We can now register a user
 	even if we have not set the authentication parameters
-	* src/client/exmpp_client_register.erl: Encode entities
 	* src/examples/echo_client.erl: Minor typo in comment
 
 2008-02-10  Mickael Remond  <mremond@process-one.net>
