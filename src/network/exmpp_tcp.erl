@@ -64,6 +64,7 @@ receiver_loop(Socket, StreamRef) ->
 	    receiver_loop(Socket, NewStreamRef);
 	{'EXIT', _} ->
 	    ok;
-	{error, _Reason} -> 
-	    ok
+	%% Reason is 'closed' if socket is closed on the other end:
+	{error, Reason} ->
+	    exit({exmpp_connection, Reason})
     end.

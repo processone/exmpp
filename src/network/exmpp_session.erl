@@ -29,6 +29,7 @@
 %% If this is an IQ, the next reply can be a blocking receive on an IQ result
 %% with the same refid.
 %% It could be a generic receive, getting packets in order.
+%% TODO: Add unregister account ?
 
 -module(exmpp_session).
 -behaviour(gen_fsm).
@@ -219,6 +220,7 @@ send_packet(Session, Packet) when pid(Session) ->
 %% gen_fsm callbacks
 %%====================================================================
 init([Pid]) ->
+    process_flag(trap_exit, true),
     exmpp_stringprep:start(),
     %% TODO: Init random numbers generator ?
     {ok, setup, #state{client_pid=Pid}}.
@@ -230,8 +232,12 @@ handle_event(_Event, StateName, State) ->
 handle_sync_event(_Event, _From, StateName, State) ->
     Reply = ok,
     {reply, Reply, StateName, State}.
+handle_info({'EXIT', Pid, Reason}, StateName, #state{client_pid=Pid}=State) ->
+    Pid ! {error, Reason, self()},
+    {stop, normal, State};
 handle_info(_Info, StateName, State) ->
     {next_state, StateName, State}.
+
 
 terminate(Reason, StateName, #state{connection_ref = undefined,
 				    stream_ref = undefined,
@@ -286,7 +292,13 @@ code_change(_OldVsn, StateName, State, _Extra) ->
 setup({set_auth, Auth}, _From, State) when tuple(Auth) ->
     {reply, ok, setup, State#state{auth_method=Auth}};
 setup({connect_tcp, Host, Port}, From, State) ->
-    connect(exmpp_tcp, Host, Port, From, State);
+    case State#state.auth_method of
+	undefined ->
+	    {reply, {connect_error,
+		     authentication_or_domain_undefined}, setup, State};
+	Other ->
+	    connect(exmpp_tcp, Host, Port, From, State)
+    end;
 setup({connect_tcp, Host, Port, Domain}, From, State) ->
     connect(exmpp_tcp, Host, Port, Domain, From, State);
 setup({connect_ssl, Host, Port}, From, State) ->
@@ -712,5 +724,3 @@ register_account(ConnRef, Module, Username, Password) ->
     Module:send(ConnRef,
 		exmpp_client_register:register_account([{username, Username},
 							{password, Password}])).
-    
-    
