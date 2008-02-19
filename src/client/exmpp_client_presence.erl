@@ -60,9 +60,9 @@ status_element(?P_AWAY) ->
     set_status_element_value(<<"away">>);
 status_element(?P_CHAT) ->
     set_status_element_value(<<"chat">>);
-status_element(?P_CHAT) ->
+status_element(?P_DND) ->
     set_status_element_value(<<"dnd">>);
-status_element(?P_CHAT) ->
+status_element(?P_XA) ->
     set_status_element_value(<<"xa">>);
 status_element(_) ->
     erlang:throw().
