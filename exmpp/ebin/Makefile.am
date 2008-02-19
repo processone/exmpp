@@ -5,12 +5,12 @@ beamdir =  $(ERLANG_INSTALL_LIB_DIR_exmpp)/ebin
 BEAM_FILES = exmpp.app							\
 	     exmpp.appup						\
 	     exmpp.beam							\
-	     exmpp_error.beam							\
+	     exmpp_error.beam						\
 	     exmpp_sup.beam						\
 	     exmpp_internals.beam					\
 	     exmpp_jid.beam						\
 	     exmpp_jlib.beam 						\
-	     exmpp_session.beam 						\
+	     exmpp_session.beam 					\
 	     exmpp_stream.beam 						\
 	     exmpp_stringprep.beam					\
 	     exmpp_xml.beam						\
@@ -28,6 +28,7 @@ BEAM_FILES = exmpp.app							\
 	     exmpp_client_presence.beam					\
 	     exmpp_client_pubsub.beam					\
 	     exmpp_client_register.beam					\
+	     exmpp_client_roster.beam					\
 	     exmpp_server_stream.beam					\
 	     exmpp_server_tls.beam					\
 	     exmpp_server_compression.beam				\
