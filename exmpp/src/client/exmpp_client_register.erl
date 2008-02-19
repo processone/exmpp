@@ -39,7 +39,6 @@ get_registration_fields() ->
 %% of registration fields.
 
 get_registration_fields(Id) ->
-    Id = register_id(),
     %% Make empty query
     Query = #xmlnselement{ns = ?NS_JABBER_REGISTER, name = 'query'},
     Iq = exmpp_xml:set_attributes(
