@@ -14,12 +14,12 @@
 
 -behavior(gen_server).
 
--export([connect/2, send/2, close/1]).
+-export([connect/3, send/2, close/2]).
 
 -export([init/1, code_change/3, terminate/2]).
 -export([handle_call/3, handle_cast/2, handle_info/2]).
 
--record(state, {socket, stream_ref}).
+-record(state, {socket, stream_ref, client_pid}).
 
 %% -- client interface --
 
@@ -27,15 +27,15 @@
 %% Returns:
 %% Ref | {error, Reason}
 %% Ref is a pid.
-connect(StreamRef, {Host, Port}) ->
-    case gen_server:start_link(?MODULE, [StreamRef, Host, Port], []) of
+connect(ClientPid, StreamRef, {Host, Port}) ->
+    case gen_server:start_link(?MODULE, [ClientPid, StreamRef, Host, Port], []) of
         {ok, Ref} ->
-            Ref;
+            {Ref, undefined};
         {error, Reason} ->
             erlang:throw({socket_error, Reason})
     end.
 
-close(Ref) ->
+close(Ref, _) ->
     gen_server:call(Ref, close).
 
 send(Ref, XMLPacket) ->
@@ -45,11 +45,12 @@ send(Ref, XMLPacket) ->
 
 %% -- gen_server implementation --
 
-init([StreamRef, Host, Port]) ->
-    Opts = [{packet,0}, binary, {active, true}, {reuseaddr, true}],
+init([ClientPid, StreamRef, Host, Port]) ->
+    Opts = [{packet,0}, binary, {active, once}, {reuseaddr, true}],
     case ssl:connect(Host, Port, Opts, 30000) of
         {ok, Socket} ->
-            {ok, #state{socket = Socket, stream_ref = StreamRef}};
+            {ok, #state{socket = Socket, stream_ref = StreamRef,
+			client_pid = ClientPid}};
         Error ->
             {stop, Error}
     end.
@@ -73,12 +74,15 @@ handle_cast(_Request, State) ->
 
 handle_info({ssl, Socket, Data}, #state{socket = Socket} = State) ->
     {ok, NewStreamRef} = exmpp_xmlstream:parse(State#state.stream_ref, Data),
+    inet:setopts(Socket, [{active, once}]),
     {noreply, State#state{stream_ref = NewStreamRef}};
 
 handle_info({ssl_error, Socket, Reason}, #state{socket = Socket} = State) ->
     {noreply, State};
 
-handle_info({ssl_closed, Socket}, #state{socket = Socket} = State) ->
+handle_info({ssl_closed, Socket},
+	    #state{socket = Socket, client_pid=ClientPid} = State) ->
+    gen_fsm:sync_send_all_state_event(ClientPid, tcp_closed),
     {noreply, State}.
 
 code_change(_OldVsn, State, _Extra) ->
