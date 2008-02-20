@@ -28,7 +28,7 @@ get_roster() ->
 %%     Roster_Iq = exmpp_xml:xmlnselement()
 %% @doc Make an `<iq>' to retrieve user roster.
 get_roster(Id) ->
-    Query = #xmlnselement{ns = ?NS_JABBER_ROSTER, name = 'query'},
+    Query = #xmlnselement{ns = ?NS_JABBER_ROSTER, name = 'query', children = []},
     Iq = exmpp_xml:set_attributes(
 	   #xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'},
 	   [{'type', "get"}, {'id', Id}]),
