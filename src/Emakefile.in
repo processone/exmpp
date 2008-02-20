@@ -26,6 +26,7 @@
 		'@srcdir@/client/exmpp_client_legacy_auth',
 		'@srcdir@/client/exmpp_client_pubsub',
 		'@srcdir@/client/exmpp_client_register',
+                '@srcdir@/client/exmpp_client_roster',
 		'@srcdir@/client/exmpp_client_presence',
 		'@srcdir@/server/exmpp_server_stream',
 		'@srcdir@/server/exmpp_server_tls',
