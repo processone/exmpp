@@ -71,6 +71,7 @@
 	  connection_ref,
 	  stream_ref,
 	  stream_id = false, %% XMPP StreamID (Used for digest_auth)
+	  receiver_ref,
 	  from_pid           %% Use by gen_fsm to handle postponed replies
 	 }).
 
@@ -106,7 +107,8 @@ start_debug() ->
 
 %% Close session and disconnect
 stop(Session) ->
-    gen_fsm:send_all_state_event(Session, stop).
+    catch gen_fsm:sync_send_all_state_event(Session, stop),
+    ok.
 
 %% Set authentication mode to basic (password)
 auth_basic(Session, JID, Password)
@@ -220,21 +222,23 @@ send_packet(Session, Packet) when pid(Session) ->
 %% gen_fsm callbacks
 %%====================================================================
 init([Pid]) ->
-    process_flag(trap_exit, true),
     exmpp_stringprep:start(),
     %% TODO: Init random numbers generator ?
     {ok, setup, #state{client_pid=Pid}}.
 
-handle_event(stop, StateName, State) ->
-    {stop, normal, State};
 handle_event(_Event, StateName, State) ->
     {next_state, StateName, State}.
+
+handle_sync_event(tcp_closed, From, StateName, State) ->
+    Reply = ok,
+    {stop, normal, Reply, State};
+handle_sync_event(stop, From, StateName, State) ->
+    Reply = ok,
+    {stop, normal, Reply, State};
 handle_sync_event(_Event, _From, StateName, State) ->
     Reply = ok,
     {reply, Reply, StateName, State}.
-handle_info({'EXIT', Pid, Reason}, StateName, #state{client_pid=Pid}=State) ->
-    Pid ! {error, Reason, self()},
-    {stop, normal, State};
+
 handle_info(_Info, StateName, State) ->
     {next_state, StateName, State}.
 
@@ -247,23 +251,24 @@ terminate(Reason, StateName, #state{connection_ref = undefined,
 terminate(Reason, StateName, #state{connection_ref = undefined,
 				    stream_ref = StreamRef,
 				    from_pid=From}) ->
-    reply(Reason, From),
     exmpp_xmlstream:stop(StreamRef),
+    reply(Reason, From),
     ok;
 terminate(Reason, StateName, #state{connection_ref = ConnRef,
 				    connection = Module,
 				    stream_ref = undefined,
 				    from_pid=From}) ->
-    reply(Reason, From),
     Module:close(ConnRef),
+    reply(Reason, From),
     ok;
 terminate(Reason, StateName, #state{connection_ref = ConnRef,
 				    connection = Module,
 				    stream_ref = StreamRef,
+				    receiver_ref = ReceiverRef,
 				    from_pid=From}) ->
-    reply(Reason, From),
-    Module:close(ConnRef),
     exmpp_xmlstream:stop(StreamRef),
+    Module:close(ConnRef, ReceiverRef),
+    reply(Reason, From),
     ok.
 
 %% Send gen_fsm reply if needed
@@ -538,11 +543,11 @@ logged_in(_Packet, State) ->
 connect(Module, Host, Port, From, State) ->
     Domain = get_domain(State#state.auth_method),
     connect(Module, Host, Port, Domain, From, State).
-connect(Module, Host, Port, Domain, From, State) ->
+connect(Module, Host, Port, Domain, From, #state{client_pid=Pid} = State) ->
     try start_parser() of
 	{ok, StreamRef} ->
-	    try Module:connect(StreamRef, {Host, Port}) of
-		ConnRef ->
+	    try Module:connect(Pid, StreamRef, {Host, Port}) of
+		{ConnRef, ReceiverRef} ->
 		    %% basic (legacy) authent: we do not use version
 		    %% 1.0 in stream:
 		    ok = Module:send(ConnRef,
@@ -553,6 +558,7 @@ connect(Module, Host, Port, Domain, From, State) ->
 						    connection = Module,
 						    connection_ref = ConnRef,
 						    stream_ref = StreamRef,
+						    receiver_ref = ReceiverRef,
 						    from_pid = From}}
 	    catch
 		Error ->
@@ -561,7 +567,7 @@ connect(Module, Host, Port, Domain, From, State) ->
 		    %% might want to start a connection using another
 		    %% transport
 		    {reply, Error, setup, State#state{
-					    stream_ref = StreamRef,
+					    stream_ref = undefined,
 					    from_pid = From}}
 	    end
     catch
@@ -689,9 +695,7 @@ get_attribute_value(Attrs, Attr, Default) ->
     case exmpp_xml:get_attribute_node_from_list(Attrs, Attr) of
         false -> Default;
         #xmlattr{value=Value} -> Value
-    end. 
-
-
+    end.
 
 %% Internal operations
 %% send_packet: actually format and send the packet:
@@ -700,27 +704,30 @@ send_packet(?iqattrs, Module, ConnRef) ->
     case Type of 
 	"error" ->
 	    {Attrs2, PacketId} = check_id(Attrs),
-	    Module:send(ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
+	    send_catch(Module, ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
 	    PacketId;
 	"result" -> 
 	    {Attrs2, PacketId} = check_id(Attrs),
-	    Module:send(ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
+	    send_catch(Module, ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
 	    PacketId;
 	"set" ->
 	    {Attrs2, PacketId} = check_id(Attrs),
-	    Module:send(ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
+	    send_catch(Module, ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
 	    PacketId;
 	"get" ->
 	    {Attrs2, PacketId} = check_id(Attrs),
-	    Module:send(ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
+	    send_catch(Module, ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
 	    PacketId
     end;
 send_packet(?elementattrs, Module, ConnRef) ->
     {Attrs2, Id} = check_id(Attrs),
-    Module:send(ConnRef, Element#xmlnselement{attrs=Attrs2}),
+    send_catch(Module, ConnRef, Element#xmlnselement{attrs=Attrs2}),
     Id.
 
 register_account(ConnRef, Module, Username, Password) ->
-    Module:send(ConnRef,
-		exmpp_client_register:register_account([{username, Username},
-							{password, Password}])).
+    send_catch(Module, ConnRef,
+	       exmpp_client_register:register_account([{username, Username},
+						       {password, Password}])).
+
+send_catch(Module, ConnRef, Packet) ->
+    Module:send(ConnRef, Packet).

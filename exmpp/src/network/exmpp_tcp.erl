@@ -16,30 +16,32 @@
 -module(exmpp_tcp).
 
 %% Behaviour exmpp_gen_transport ?
--export([connect/2, send/2, close/1]).
+-export([connect/3, send/2, close/2]).
 
 %% Internal export
--export([receiver/2]).
+-export([receiver/3]).
 
 %% Connect to XMPP server
 %% Returns:
 %% {ok, Ref} | {error, Reason}
 %% Ref is a socket
-connect(StreamRef, {Host, Port}) ->
+connect(ClientPid, StreamRef, {Host, Port}) ->
     case gen_tcp:connect(Host, Port, [{packet,0},
 				      binary,
-				      {active, false},
+				      {active, once},
 				      {reuseaddr, true}], 30000) of
 	{ok, Socket} ->
 	    %% TODO: Hide receiver failures in API
-	    _ReceiverPid = spawn_link(?MODULE, receiver, [Socket, StreamRef]),
-	    Socket;
+	    ReceiverPid = spawn_link(?MODULE, receiver,
+				     [ClientPid, Socket, StreamRef]),
+	    gen_tcp:controlling_process(Socket, ReceiverPid),
+	    {Socket, ReceiverPid};
 	{error, Reason} ->
 	    erlang:throw({socket_error, Reason})
     end.
 
-close(Socket) ->
-    %% TODO: Close receiver
+close(Socket, ReceiverPid) ->
+    ReceiverPid ! stop,
     gen_tcp:close(Socket).
 
 send(Socket, XMLPacket) ->
@@ -53,18 +55,17 @@ send(Socket, XMLPacket) ->
 %%--------------------------------------------------------------------
 %% Internal functions
 %%--------------------------------------------------------------------
-receiver(Socket, StreamRef) ->
-    process_flag(trap_exit, true),    
-    receiver_loop(Socket, StreamRef).
+receiver(ClientPid, Socket, StreamRef) ->
+    receiver_loop(ClientPid, Socket, StreamRef).
     
-receiver_loop(Socket, StreamRef) ->
-    case gen_tcp:recv(Socket, 0) of
-	{ok, Data} ->
-	    {ok, NewStreamRef} = exmpp_xmlstream:parse(StreamRef, Data),
-	    receiver_loop(Socket, NewStreamRef);
-	{'EXIT', _} ->
+receiver_loop(ClientPid, Socket, StreamRef) ->
+    receive
+	stop ->
 	    ok;
-	%% Reason is 'closed' if socket is closed on the other end:
-	{error, Reason} ->
-	    exit({exmpp_connection, Reason})
+	{tcp, Socket, Data} ->
+	    {ok, NewStreamRef} = exmpp_xmlstream:parse(StreamRef, Data),
+	    inet:setopts(Socket, [{active, once}]),
+	    receiver_loop(ClientPid, Socket, NewStreamRef);
+	{tcp_closed, Socket} ->
+	    gen_fsm:sync_send_all_state_event(ClientPid, tcp_closed)
     end.

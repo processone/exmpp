@@ -26,51 +26,51 @@
 %% types available, unavailable and invisible are handled in the
 %% status parameter
 
-%% @spec (StatusOrType, Show) -> PresenceStanza
-%%     StatusOrType = atom()
-%%     Show = string()
+%% @spec (ShowOrType, Status) -> PresenceStanza
+%%     ShowOrType = atom()
+%%     Status = string()
 %%     PresenceStanza = exmpp_xml:xmlnselement()
 %% @doc Make a `<presence>' packet.
-presence(StatusOrType, Show) ->
+presence(ShowOrType, Status) ->
     PresenceElement = exmpp_xml:set_attributes(
-		     #xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'presence'},
-		     []),
-    StatusElement = status_element(StatusOrType),
-    PresenceElt2 = exmpp_xml:append_child(PresenceElement, StatusElement),
-    ShowElement = exmpp_xml:set_cdata(
-		    #xmlnselement{ns = ?NS_JABBER_CLIENT, name = show},
-		    Show),
-    exmpp_xml:append_child(PresenceElement, ShowElement).
+			#xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'presence'},
+			[]),
+    ShowElement = show_element(ShowOrType),
+    PresenceElt2 = exmpp_xml:append_child(PresenceElement, ShowElement),
+    ShowElement2 = exmpp_xml:set_cdata(
+		     #xmlnselement{ns = ?NS_JABBER_CLIENT, name = status},
+		     Status),
+    exmpp_xml:append_child(PresenceElt2, ShowElement2).
 
 %% -------------------------------------------------------------------
 %% Helper functions to generate valid presence packets
 %% -------------------------------------------------------------------
 
-%% @spec (StatusOrType) -> StatusElement
-%%     StatusOrType = atom()
-%%     StatusElement = exmpp_xml:xmlnselement()
+%% @spec (ShowOrType) -> StatusElement
+%%     ShowOrType = atom()
+%%     ShowElement = exmpp_xml:xmlnselement()
 %% @doc Generate a valid presence stanza given the presence parameter
-status_element(?P_AVAILABLE) ->
+show_element(?P_AVAILABLE) ->
     ?NO_ELEMENT;
-status_element(?P_UNAVAILABLE) ->
+show_element(?P_UNAVAILABLE) ->
     ?NO_ELEMENT;
-status_element(?P_INVISIBLE) ->
+show_element(?P_INVISIBLE) ->
     ?NO_ELEMENT;
-status_element(?P_AWAY) ->
-    set_status_element_value(<<"away">>);
-status_element(?P_CHAT) ->
-    set_status_element_value(<<"chat">>);
-status_element(?P_DND) ->
-    set_status_element_value(<<"dnd">>);
-status_element(?P_XA) ->
-    set_status_element_value(<<"xa">>);
-status_element(_) ->
-    erlang:throw().
+show_element(?P_AWAY) ->
+    set_show_element_value(<<"away">>);
+show_element(?P_CHAT) ->
+    set_show_element_value(<<"chat">>);
+show_element(?P_DND) ->
+    set_show_element_value(<<"dnd">>);
+show_element(?P_XA) ->
+    set_show_element_value(<<"xa">>);
+show_element(_) ->
+    erlang:throw({presence_error, wrong_show_or_type}).
 
 %% @spec (Value) -> StatusElement
 %%     Value = binary()
 %%     StatusElement = exmpp_xml:xmlnselement()
-set_status_element_value(Value) ->
+set_show_element_value(Value) ->
     exmpp_xml:set_cdata(
-      #xmlnselement{ns = ?NS_JABBER_CLIENT, name = status},
+      #xmlnselement{ns = ?NS_JABBER_CLIENT, name = show},
       Value).
