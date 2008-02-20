@@ -704,30 +704,27 @@ send_packet(?iqattrs, Module, ConnRef) ->
     case Type of 
 	"error" ->
 	    {Attrs2, PacketId} = check_id(Attrs),
-	    send_catch(Module, ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
+	    Module:send(ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
 	    PacketId;
 	"result" -> 
 	    {Attrs2, PacketId} = check_id(Attrs),
-	    send_catch(Module, ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
+	    Module:send(ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
 	    PacketId;
 	"set" ->
 	    {Attrs2, PacketId} = check_id(Attrs),
-	    send_catch(Module, ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
+	    Module:send(ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
 	    PacketId;
 	"get" ->
 	    {Attrs2, PacketId} = check_id(Attrs),
-	    send_catch(Module, ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
+	    Module:send(ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
 	    PacketId
     end;
 send_packet(?elementattrs, Module, ConnRef) ->
     {Attrs2, Id} = check_id(Attrs),
-    send_catch(Module, ConnRef, Element#xmlnselement{attrs=Attrs2}),
+    Module:send(ConnRef, Element#xmlnselement{attrs=Attrs2}),
     Id.
 
 register_account(ConnRef, Module, Username, Password) ->
-    send_catch(Module, ConnRef,
-	       exmpp_client_register:register_account([{username, Username},
-						       {password, Password}])).
-
-send_catch(Module, ConnRef, Packet) ->
-    Module:send(ConnRef, Packet).
+    Module:send(ConnRef,
+		exmpp_client_register:register_account([{username, Username},
+							{password, Password}])).
