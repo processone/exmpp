@@ -870,12 +870,12 @@ prepend_children(#xmlelement{children = undefined} = XML_Element,
 
 prepend_children(#xmlnselement{children = Children} = XML_Element,
     New_Children) ->
-	Concat_Children = [New_Children | Children],
+	Concat_Children = New_Children ++ Children,
 	XML_Element#xmlnselement{children = Concat_Children};
 
 prepend_children(#xmlelement{children = Children} = XML_Element,
     New_Children) ->
-	Concat_Children = [New_Children | Children],
+	Concat_Children = New_Children ++ Children,
 	XML_Element#xmlelement{children = Concat_Children}.
 
 %% @spec (XML_Element, Child) -> New_XML_Element
