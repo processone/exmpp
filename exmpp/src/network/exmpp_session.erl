@@ -41,7 +41,8 @@
 	 connect_TCP/3, connect_TCP/4,
 	 register_account/2, register_account/3,
 	 login/1,
-	 send_packet/2]).
+	 send_packet/2,
+	 set_controlling_process/2]).
 
 %% gen_fsm callbacks
 -export([init/1,
@@ -218,6 +219,12 @@ send_packet(Session, Packet) when pid(Session) ->
         Id -> Id
     end.
 
+set_controlling_process(Session,Client) when pid(Session), pid(Client) ->
+	case gen_fsm:sync_send_all_state_event(Session, {set_controlling_process, Client}) of
+	Error when tuple(Error) -> erlang:throw(Error);
+        Id -> Id
+    end.
+    
 %%====================================================================
 %% gen_fsm callbacks
 %%====================================================================
@@ -235,6 +242,9 @@ handle_sync_event(tcp_closed, From, StateName, State) ->
 handle_sync_event(stop, From, StateName, State) ->
     Reply = ok,
     {stop, normal, Reply, State};
+handle_sync_event({set_controlling_process,Client}, From, StateName, State) ->
+    Reply = ok,
+    {reply,Reply,StateName,State#state{client_pid=Client}};
 handle_sync_event(_Event, _From, StateName, State) ->
     Reply = ok,
     {reply, Reply, StateName, State}.
