@@ -1065,11 +1065,11 @@ initialize_lookup_tables(struct expat_drv_data *ed)
 		return (-1);
 
 	ed->known_names = create_hashtable(16, hash_djb2, hash_equalkeys);
-	if (ed->known_ns == NULL)
+	if (ed->known_names == NULL)
 		return (-1);
 
 	ed->known_attrs = create_hashtable(16, hash_djb2, hash_equalkeys);
-	if (ed->known_ns == NULL)
+	if (ed->known_attrs == NULL)
 		return (-1);
 
 	/* Load XML known tokens. */
