@@ -19,7 +19,7 @@
 -export([init/1, code_change/3, terminate/2]).
 -export([handle_call/3, handle_cast/2, handle_info/2]).
 
--record(state, {socket, stream_ref, client_pid}).
+-record(state, {socket, stream_ref, client_pid,set_opts_module}).
 
 %% -- client interface --
 
@@ -46,11 +46,18 @@ send(Ref, XMLPacket) ->
 %% -- gen_server implementation --
 
 init([ClientPid, StreamRef, Host, Port]) ->
+	SetOptsModule = 
+			case check_new_ssl() of 
+			   true -> ssl;
+			   false -> inet
+			end,		
+			
     Opts = [{packet,0}, binary, {active, once}, {reuseaddr, true}],
     case ssl:connect(Host, Port, Opts, 30000) of
         {ok, Socket} ->
             {ok, #state{socket = Socket, stream_ref = StreamRef,
-			client_pid = ClientPid}};
+			client_pid = ClientPid,
+			set_opts_module=SetOptsModule}};
         Error ->
             {stop, Error}
     end.
@@ -74,7 +81,9 @@ handle_cast(_Request, State) ->
 
 handle_info({ssl, Socket, Data}, #state{socket = Socket} = State) ->
     {ok, NewStreamRef} = exmpp_xmlstream:parse(State#state.stream_ref, Data),
-    inet:setopts(Socket, [{active, once}]),
+    
+    Module=State#state.set_opts_module,
+    Module:setopts(Socket, [{active, once}]),
     {noreply, State#state{stream_ref = NewStreamRef}};
 
 handle_info({ssl_error, Socket, Reason}, #state{socket = Socket} = State) ->
@@ -91,3 +100,14 @@ code_change(_OldVsn, State, _Extra) ->
 terminate(_Reason, State) ->
     ok.
     
+
+%% In R12, inet:setopts/2 doesn't accept the new ssl sockets
+check_new_ssl() ->
+	case erlang:system_info(version) of
+        [$5,$.,Maj] when Maj < $6  ->
+            false;
+        [$5,$.,Maj, $.,_Min] when ( Maj < $6 ) ->
+            false;
+        _  ->
+            true
+    end.
