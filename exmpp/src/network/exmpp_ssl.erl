@@ -28,8 +28,13 @@
 %% Ref | {error, Reason}
 %% Ref is a pid.
 connect(ClientPid, StreamRef, {Host, Port}) ->
-    case gen_server:start_link(?MODULE, [ClientPid, StreamRef, Host, Port], []) of
+    case gen_server:start(?MODULE, [ClientPid, StreamRef, Host, Port], []) of
         {ok, Ref} ->
+        	true = link(Ref), 
+        	%if we use start_link instead of this, the clients processes get an 
+        	%exit signal on connection error, when they are expecting to get
+        	%a {socket_error,Reason} response. In this way, the API is 
+        	%compatible with exmpp_tcp
             {Ref, undefined};
         {error, Reason} ->
             erlang:throw({socket_error, Reason})
@@ -58,8 +63,8 @@ init([ClientPid, StreamRef, Host, Port]) ->
             {ok, #state{socket = Socket, stream_ref = StreamRef,
 			client_pid = ClientPid,
 			set_opts_module=SetOptsModule}};
-        Error ->
-            {stop, Error}
+        {error,Error} ->
+            {stop,Error}
     end.
     
 handle_call(close, From, State) ->
