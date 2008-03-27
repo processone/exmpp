@@ -68,6 +68,9 @@
 	get_element_by_name/2,
 	get_element_by_name/3,
 	get_element_by_ns/2,
+	get_elements_by_name/3,
+	get_elements_by_name/2,
+	get_child_elements/1,
 	prepend_child/2,
 	prepend_children/2,
 	append_child/2,
@@ -831,6 +834,64 @@ get_element_by_ns2([], _NS) ->
 
 get_element_by_ns2(undefined, _NS) ->
 	false.
+
+
+
+%% @spec (XML_Element, Ns,Name) -> [XML_Subelement]
+%%     XML_Element = xmlnselement() | xmlelement()
+%%     Name = string() | atom()
+%% 	   Ns = string() | atom() 	
+%%     XML_Subelement = xmlnselement() | xmlelement()
+%% @doc Search in the children of `XML_Element' for all the elements named `Name'
+%%      with `NS' namespace URI.
+%% This will only search among direct children.
+get_elements_by_name(#xmlnselement{children=Children},Ns,Name) ->
+	 lists:filter(filter_by_name(Ns,Name),Children);
+get_elements_by_name(#xmlelement{children=Children},Ns,Name) ->	
+	lists:filter(filter_by_name(Ns,Name),Children).
+
+%% @spec (XML_Element, Name) -> [XML_Subelement]
+%%     XML_Element = xmlnselement() | xmlelement()
+%%     Name = string() | atom()
+%%     XML_Subelement = xmlnselement() | xmlelement()
+%% @doc Search in the children of `XML_Element' for all the elements named `Name'
+%% This will only search among direct children.    
+get_elements_by_name(#xmlnselement{children=Children},Name) ->
+	 lists:filter(filter_by_name(Name),Children);
+get_elements_by_name(#xmlelement{children=Children},Name) ->	
+	lists:filter(filter_by_name(Name),Children).
+	
+	
+filter_by_name(FName) ->
+ 	fun	
+ 	 (#xmlelement{name=Name}) when Name == FName ->  true;
+ 	 (#xmlnselement{name=Name}) when Name == FName->  true;
+ 	 (_X) -> false
+ 	end.
+
+filter_by_name(FNs,FName) ->
+ 	fun	
+ 	 (#xmlnselement{name=Name,ns=Ns}) when Name == FName , Ns == FNs ->  true;
+ 	 (_X) -> false
+ 	end.
+
+%% @spec (XML_Element) -> [XML_Subelement]
+%%     XML_Element = xmlnselement() | xmlelement()
+%%     XML_Subelement = xmlnselement() | xmlelement()
+%% @doc Get all the element children of the given element, 
+%%      skiping non-element nodes likes cdata.
+get_child_elements(#xmlnselement{children=Children}) ->
+	 lists:filter(fun is_element/1,Children);
+	 
+get_child_elements(#xmlelement{children=Children}) ->
+	 lists:filter(fun is_element/1,Children).
+	 
+is_element(#xmlelement{}) -> true;
+is_element(#xmlnselement{}) -> true;
+is_element(_) -> false.
+
+
+
 
 %% @spec (XML_Element, Child) -> New_XML_Element
 %%     XML_Element = xmlnselement() | xmlelement()

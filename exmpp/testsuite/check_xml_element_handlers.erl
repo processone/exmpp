@@ -18,6 +18,8 @@ do_check() ->
 	test_append_children(),
 	test_prepend_children(),
 	test_set_children(),
+	test_get_elements_by_name(),
+	test_get_child_elements(),
 	ok.
 
 % --------------------------------------------------------------------
@@ -171,3 +173,52 @@ test_set_children() ->
 	testsuite:is(exmpp_xml:set_children(?ELEMENT2_NS, [?TARGET_NS]),
 	    ?ELEMENT2_NS),
 	ok.
+
+
+
+-define(CHILD_ELEMENT1, {xmlnselement,
+	?NS_XML, undefined, "child",
+	[],
+	[]}
+).
+-define(CHILD_ELEMENT2, {xmlnselement,
+	?NS_XML, undefined, "child",
+	[],
+	[]}
+).
+-define(CHILD_ELEMENT3, {xmlnselement,
+	?NS_XML, undefined, "child",
+	[],
+	[]}
+).
+-define(OTHER_CHILD_ELEMENT, {xmlnselement,
+	?NS_XML, undefined, "other",
+	[],
+	[]}
+).
+-define(CDATA, {xmlcdata,"some text"}).
+
+-define(ELEMENT5_NS, {xmlnselement,
+	?NS_XML, undefined, "element",
+	[],
+	[?CHILD_ELEMENT1,{},?CHILD_ELEMENT2,?CHILD_ELEMENT3,?OTHER_CHILD_ELEMENT]}
+).
+
+test_get_elements_by_name() ->
+	testsuite:is(exmpp_xml:get_elements_by_name(?ELEMENT5_NS,"child"),
+		[?CHILD_ELEMENT1,?CHILD_ELEMENT2,?CHILD_ELEMENT3]),
+	testsuite:is(exmpp_xml:get_elements_by_name(?ELEMENT5_NS,"other"),
+		[?OTHER_CHILD_ELEMENT]),
+	testsuite:is(exmpp_xml:get_elements_by_name(?ELEMENT5_NS,"non_existent"),
+		[]),
+	ok.
+		
+	
+
+test_get_child_elements() ->
+	testsuite:is(exmpp_xml:get_child_elements(?ELEMENT5_NS),
+		[?CHILD_ELEMENT1,?CHILD_ELEMENT2,?CHILD_ELEMENT3,?OTHER_CHILD_ELEMENT]),
+	testsuite:is(exmpp_xml:get_child_elements(?CHILD_ELEMENT3),
+		[]),
+	ok.
+
