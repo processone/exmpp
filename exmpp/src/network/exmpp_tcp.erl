@@ -28,7 +28,7 @@
 connect(ClientPid, StreamRef, {Host, Port}) ->
     case gen_tcp:connect(Host, Port, [{packet,0},
 				      binary,
-				      {active, once},
+				      {active, false}, 
 				      {reuseaddr, true}], 30000) of
 	{ok, Socket} ->
 	    %% TODO: Hide receiver failures in API
@@ -39,6 +39,13 @@ connect(ClientPid, StreamRef, {Host, Port}) ->
 	{error, Reason} ->
 	    erlang:throw({socket_error, Reason})
     end.
+% if we use active-once before spawning the receiver process,
+% we can receive some data in the original process rather than 
+% in the receiver process. So {active.once} is is set explicitly
+% in the receiver process. NOTE: in this case this wouldn't make 
+% a big difference, as the connecting client should send the
+% stream header before receiving anything
+
 
 close(Socket, ReceiverPid) ->
     ReceiverPid ! stop,
@@ -59,12 +66,12 @@ receiver(ClientPid, Socket, StreamRef) ->
     receiver_loop(ClientPid, Socket, StreamRef).
     
 receiver_loop(ClientPid, Socket, StreamRef) ->
+	inet:setopts(Socket, [{active, once}]),
     receive
 	stop ->
 	    ok;
 	{tcp, Socket, Data} ->
 	    {ok, NewStreamRef} = exmpp_xmlstream:parse(StreamRef, Data),
-	    inet:setopts(Socket, [{active, once}]),
 	    receiver_loop(ClientPid, Socket, NewStreamRef);
 	{tcp_closed, Socket} ->
 	    gen_fsm:sync_send_all_state_event(ClientPid, tcp_closed)
