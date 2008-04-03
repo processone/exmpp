@@ -10,17 +10,19 @@
 %% This is a example use of the exmpp framework.
 %% </p>
 %%
-%% <p>Usage:
-%%    {ok, session} = echo_client:start().
-%%    echo_client:stop(Session).
+%% <p>
+%% Usage:
+%% </p>
+%% <pre>{ok, session} = echo_client:start().
+%% echo_client:stop(Session).</pre>
 %%
 %% <p>This code is copyright Process-one (http://www.process-one.net/)</p>
 %% 
 
 -module(echo_client).
 
--include_lib("exmpp/include/exmpp.hrl").
--include_lib("exmpp/include/exmpp_client.hrl").
+-include_lib("exmpp.hrl").
+-include_lib("exmpp_client.hrl").
 
 -export([start/0, stop/1]).
 -export([init/0]).
@@ -45,7 +47,7 @@ init() ->
     session(MySession, MyJID).
 
 %% We are connected. We now log in (and try registering if authentication fails)
-session(MySession, MyJID) ->
+session(MySession, _MyJID) ->
     %% Login with defined JID / Authentication:
     try exmpp_session:login(MySession)
     catch

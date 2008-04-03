@@ -236,13 +236,13 @@ init([Pid]) ->
 handle_event(_Event, StateName, State) ->
     {next_state, StateName, State}.
 
-handle_sync_event(tcp_closed, From, StateName, State) ->
+handle_sync_event(tcp_closed, _From, _StateName, State) ->
     Reply = ok,
     {stop, normal, Reply, State};
-handle_sync_event(stop, From, StateName, State) ->
+handle_sync_event(stop, _From, _StateName, State) ->
     Reply = ok,
     {stop, normal, Reply, State};
-handle_sync_event({set_controlling_process,Client}, From, StateName, State) ->
+handle_sync_event({set_controlling_process,Client}, _From, StateName, State) ->
     Reply = ok,
     {reply,Reply,StateName,State#state{client_pid=Client}};
 handle_sync_event(_Event, _From, StateName, State) ->
@@ -253,25 +253,25 @@ handle_info(_Info, StateName, State) ->
     {next_state, StateName, State}.
 
 
-terminate(Reason, StateName, #state{connection_ref = undefined,
+terminate(Reason, _StateName, #state{connection_ref = undefined,
 				    stream_ref = undefined,
 				    from_pid=From}) ->
     reply(Reason, From),
     ok;
-terminate(Reason, StateName, #state{connection_ref = undefined,
+terminate(Reason, _StateName, #state{connection_ref = undefined,
 				    stream_ref = StreamRef,
 				    from_pid=From}) ->
     exmpp_xmlstream:stop(StreamRef),
     reply(Reason, From),
     ok;
-terminate(Reason, StateName, #state{connection_ref = ConnRef,
+terminate(Reason, _StateName, #state{connection_ref = ConnRef,
 				    connection = Module,
 				    stream_ref = undefined,
 				    from_pid=From}) ->
     Module:close(ConnRef),
     reply(Reason, From),
     ok;
-terminate(Reason, StateName, #state{connection_ref = ConnRef,
+terminate(Reason, _StateName, #state{connection_ref = ConnRef,
 				    connection = Module,
 				    stream_ref = StreamRef,
 				    receiver_ref = ReceiverRef,
@@ -311,7 +311,7 @@ setup({connect_tcp, Host, Port}, From, State) ->
 	undefined ->
 	    {reply, {connect_error,
 		     authentication_or_domain_undefined}, setup, State};
-	Other ->
+	_Other ->
 	    connect(exmpp_tcp, Host, Port, From, State)
     end;
 setup({connect_tcp, Host, Port, Domain}, From, State) ->
@@ -322,7 +322,7 @@ setup({connect_ssl, Host, Port, Domain}, From, State) ->
     connect(exmpp_ssl, Host, Port, Domain, From, State);
 setup({presence, _Status, _Show}, _From, State) ->
     {reply, {error, not_connected}, setup, State};
-setup(UnknownMessage, _From, State) ->
+setup(_UnknownMessage, _From, State) ->
     {reply, {error, unallowed_command}, setup, State}.
 
 %% ---------------------------
@@ -376,13 +376,13 @@ setup(UnknownMessage, _From, State) ->
 
 
 %% We cannot receive API call in this state
-wait_for_stream(Event, From, State) ->
+wait_for_stream(_Event, _From, State) ->
     {reply, {error, busy_connecting_to_server}, wait_for_stream, State}.
 %% TODO: Check that we receive a client stream. Need change in the
 %% parsing library.
-wait_for_stream(Start = ?stream, State = #state{connection = Module,
-						connection_ref = ConnRef,
-						auth_method = Auth,
+wait_for_stream(Start = ?stream, State = #state{connection = _Module,
+						connection_ref = _ConnRef,
+						auth_method = _Auth,
 						from_pid = From}) ->
     %% Get StreamID
     StreamId = exmpp_xml:get_attribute(Start#xmlstreamstart.element, id),
@@ -441,8 +441,8 @@ stream_opened({send_packet, Packet}, _From,
 
 %% Process incoming 
 %% Dispatch incoming messages
-stream_opened(?message, State = #state{connection = Module,
-				   connection_ref = ConnRef}) ->
+stream_opened(?message, State = #state{connection = _Module,
+				   connection_ref = _ConnRef}) ->
     process_message(State#state.client_pid, Attrs, MessageElement),
     {next_state, stream_opened, State};
 %% Dispach IQs from server
@@ -522,13 +522,13 @@ logged_in({send_packet, Packet}, _From,
 %% When logged in we dispatch the event we receive
 %% Dispatch incoming presence packets
 logged_in(?presence,
-	  State = #state{connection = Module,
-			 connection_ref = ConnRef}) ->
+	  State = #state{connection = _Module,
+			 connection_ref = _ConnRef}) ->
     process_presence(State#state.client_pid, Attrs, PresenceElement),
     {next_state, logged_in, State};
 %% Dispatch incoming messages
-logged_in(?message, State = #state{connection = Module,
-				   connection_ref = ConnRef}) ->
+logged_in(?message, State = #state{connection = _Module,
+				   connection_ref = _ConnRef}) ->
     process_message(State#state.client_pid, Attrs, MessageElement),
     {next_state, logged_in, State};
 %% Dispach IQs from server
@@ -599,7 +599,7 @@ when list(StreamId) ->
 							 Password,
 							 Resource));
 %% In this case StreamId can be false
-do_auth(digest, ConnRef, Module, Username, Password, Resource, StreamId) 
+do_auth(digest, _ConnRef, _Module, _Username, _Password, _Resource, StreamId) 
 when atom(StreamId) ->
     {auth_error, no_streamid_for_digest_auth}.
 

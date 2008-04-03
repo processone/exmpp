@@ -15,6 +15,13 @@
 	zero-length extension but the next argument as the backup extension.
 	Fix the distributed files list.
 
+	* src/network/exmpp_ssl.erl, src/network/exmpp_session.erl,
+	src/examples/echo_client.erl: Fix warning with unused variables. Three
+	warnings remain in exmpp_session but this requires more work.
+
+	* src/examples/echo_client.erl: Fix a malformed documentation. Fix
+	includes path.
+
 2008-02-11  Mickael Remond  <mremond@process-one.net>
 
 	* src/network/exmpp_session.erl: API improvement: we can send and
