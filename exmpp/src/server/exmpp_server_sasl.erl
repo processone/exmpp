@@ -60,7 +60,7 @@ challenge(Challenge) ->
       name = 'challenge',
       children = []
     },
-    exmpp_xml:set_cdata(El, http_base_64:encode(Challenge)).
+    exmpp_xml:set_cdata(El, exmpp_internals:encode_base64(Challenge)).
 
 failure() ->
     #xmlnselement{
@@ -82,11 +82,11 @@ next_step(#xmlnselement{ns = ?NS_SASL, name = 'auth'} = El) ->
     case string:strip(exmpp_xml:get_cdata(El)) of
         ""      -> {auth, Mechanism};
         "="     -> {auth, Mechanism, ""};
-        Encoded -> {auth, Mechanism, http_base_64:decode(Encoded)}
+        Encoded -> {auth, Mechanism, exmpp_internals:decode_base64(Encoded)}
     end;
 next_step(#xmlnselement{ns = ?NS_SASL, name = 'response'} = El) ->
     Encoded = exmpp_xml:get_cdata(El),
-    {response, http_base_64:decode(Encoded)};
+    {response, exmpp_internals:decode_base64(Encoded)};
 next_step(#xmlnselement{ns = ?NS_SASL, name = 'abort'}) ->
     abort;
 next_step(#xmlnselement{}) ->

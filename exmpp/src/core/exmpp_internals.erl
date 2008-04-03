@@ -10,11 +10,15 @@
 -vsn('$Revision$').
 
 -export([
-	 driver_dirs/0,
-	 load_driver/1,
-	 unload_driver/1,
-	 open_port/1,
-	 close_port/1
+  driver_dirs/0,
+  load_driver/1,
+  unload_driver/1,
+  open_port/1,
+  close_port/1
+]).
+-export([
+  encode_base64/1,
+  decode_base64/1
 ]).
 
 % --------------------------------------------------------------------
@@ -66,7 +70,7 @@ load_driver1(_DriverName, [], Reason) ->
     error_logger:info_msg([{error, Reason}]),
     {error, Reason}.
 
--ifdef(WITH_BROKEN_ERL_DDLL).
+-ifdef(ENABLE_ERL_DDLL_WORKAROUND).
 unload_driver(_Driver_Name) ->
     % At least until R11B-1, erl_ddll messes up its libraries reference
     % count, so we can't unload the driver.
@@ -92,3 +96,28 @@ open_port(Driver_Name) ->
 
 close_port(Port) ->
     erlang:port_close(Port).
+
+% --------------------------------------------------------------------
+% Utils.
+% --------------------------------------------------------------------
+
+-ifdef(ENABLE_HTTP_BASE_64).
+% Starting with inets 5.0, http_base_64 doesn't exist anymore.
+encode_base64(Data) ->
+    case catch http_base_64:encode(Data) of
+        {'EXIT', _} -> base64:encode(Data);
+        Base64      -> Base64
+    end.
+
+decode_base64(Data) ->
+    case catch http_base_64:decode(Data) of
+        {'EXIT', _} -> base64:decode(Data);
+        Base64      -> Base64
+    end.
+-else.
+encode_base64(Data) ->
+    base64:encode(Data).
+
+decode_base64(Data) ->
+    base64:decode(Data).
+-endif.

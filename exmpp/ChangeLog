@@ -34,6 +34,13 @@
 	'erl_ddll-workaround'. Add a new 'http_base_64' detection feature,
 	because this module was removed from Erlang starting with R12B-0.
 
+	* src/core/exmpp_internals.erl, src/server/exmpp_server_sasl.erl,
+	src/client/exmpp_client_sasl.erl: Starting with Erlang R12B-0, the
+	http_base_64 module was removed, replaced by base64 from stdlib
+	1.14.4. When ENABLE_HTTP_BASE_64 is defined, we try to use
+	http_base_64 and fallback to base64 is necessary. If it's not defined,
+	we use only base64.
+
 2008-02-11  Mickael Remond  <mremond@process-one.net>
 
 	* src/network/exmpp_session.erl: API improvement: we can send and
