@@ -41,6 +41,9 @@
 	http_base_64 and fallback to base64 is necessary. If it's not defined,
 	we use only base64.
 
+	* ac-aux: Remove this directory. It's created and filled by
+	autoreconf(1) and doesn't belong to the exmpp repository.
+
 2008-02-11  Mickael Remond  <mremond@process-one.net>
 
 	* src/network/exmpp_session.erl: API improvement: we can send and
