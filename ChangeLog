@@ -46,6 +46,9 @@
 
 	* ebin/exmpp.app.in: Update modules list.
 
+	* ebin/exmpp.appup.in: Remove upgrade/downgrade instructions because
+	they are outdated.
+
 2008-02-11  Mickael Remond  <mremond@process-one.net>
 
 	* src/network/exmpp_session.erl: API improvement: we can send and
