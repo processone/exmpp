@@ -91,7 +91,7 @@ handle_info({ssl, Socket, Data}, #state{socket = Socket} = State) ->
     Module:setopts(Socket, [{active, once}]),
     {noreply, State#state{stream_ref = NewStreamRef}};
 
-handle_info({ssl_error, Socket, Reason}, #state{socket = Socket} = State) ->
+handle_info({ssl_error, Socket, _Reason}, #state{socket = Socket} = State) ->
     {noreply, State};
 
 handle_info({ssl_closed, Socket},
@@ -102,7 +102,7 @@ handle_info({ssl_closed, Socket},
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
-terminate(_Reason, State) ->
+terminate(_Reason, _State) ->
     ok.
     
 
