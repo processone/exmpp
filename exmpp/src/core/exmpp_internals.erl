@@ -105,19 +105,19 @@ close_port(Port) ->
 % Starting with inets 5.0, http_base_64 doesn't exist anymore.
 encode_base64(Data) ->
     case catch http_base_64:encode(Data) of
-        {'EXIT', _} -> base64:encode(Data);
+        {'EXIT', _} -> base64:encode_to_string(Data);
         Base64      -> Base64
     end.
 
 decode_base64(Data) ->
     case catch http_base_64:decode(Data) of
-        {'EXIT', _} -> base64:decode(Data);
+        {'EXIT', _} -> base64:decode_to_string(Data);
         Base64      -> Base64
     end.
 -else.
 encode_base64(Data) ->
-    base64:encode(Data).
+    base64:encode_to_string(Data).
 
 decode_base64(Data) ->
-    base64:decode(Data).
+    base64:decode_to_string(Data).
 -endif.
