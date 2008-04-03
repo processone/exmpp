@@ -4,6 +4,8 @@
 	Erlang code snippet: if a module doesn't compile, the make process
 	will abort.
 
+	* src/Emakefile.in: Update modules list.
+
 2008-02-11  Mickael Remond  <mremond@process-one.net>
 
 	* src/network/exmpp_session.erl: API improvement: we can send and
