@@ -53,7 +53,7 @@ selected_mechanism(Mechanism, "") ->
     exmpp_xml:set_cdata(El, "=");
 selected_mechanism(Mechanism, Initial_Response) ->
     El = selected_mechanism(Mechanism),
-    exmpp_xml:set_cdata(El, http_base_64:encode(Initial_Response)).
+    exmpp_xml:set_cdata(El, exmpp_internals:encode_base64(Initial_Response)).
 
 response(Response) ->
     El = #xmlnselement{
@@ -61,7 +61,7 @@ response(Response) ->
       name = 'response',
       children = []
     },
-    exmpp_xml:set_cdata(El, http_base_64:encode(Response)).
+    exmpp_xml:set_cdata(El, exmpp_internals:encode_base64(Response)).
 
 abort() ->
     #xmlnselement{
@@ -72,7 +72,7 @@ abort() ->
 
 next_step(#xmlnselement{ns = ?NS_SASL, name = 'challenge'} = El) ->
     Encoded = exmpp_xml:get_cdata(El),
-    {challenge, http_base_64:decode(Encoded)};
+    {challenge, exmpp_internals:decode_base64(Encoded)};
 next_step(#xmlnselement{ns = ?NS_SASL, name = 'failure',
   children = [#xmlnselement{ns = ?NS_SASL, name = Reason}]}) ->
     {failure, Reason};
@@ -80,4 +80,4 @@ next_step(#xmlnselement{ns = ?NS_SASL, name = 'failure'}) ->
     {failure, undefined};
 next_step(#xmlnselement{ns = ?NS_SASL, name = 'success'} = El) ->
     Encoded = exmpp_xml:get_cdata(El),
-    {success, http_base_64:decode(Encoded)}.
+    {success, exmpp_internals:decode_base64(Encoded)}.
