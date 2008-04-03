@@ -22,6 +22,18 @@
 	* src/examples/echo_client.erl: Fix a malformed documentation. Fix
 	includes path.
 
+	* configure.ac: Remove the EXMPP_CONFIGURE_ARGS variable because it's
+	broken and unsued. Replace AC_PROG_CC with AC_PROG_CC_STDC and trust
+	autoconf(1) by not saving CFLAGS before. Remove -Wall and -Werror from
+	CFLAGS; they are both added later. Remove AC_HEADER_STDC and
+	AC_HEADER_MAJOR which are obsolete now. With --enable-debug, we don't
+	add -g because AC_PROG_CC_STDC already does it. Correctly use
+	--enable-* for features (documentation and workarounds), instead of
+	--with-*. Rewrite Erlang paths and applications detection to correctly
+	handle $ERL and $ERLC. Renamed the 'broken-erl_ddll' feature to
+	'erl_ddll-workaround'. Add a new 'http_base_64' detection feature,
+	because this module was removed from Erlang starting with R12B-0.
+
 2008-02-11  Mickael Remond  <mremond@process-one.net>
 
 	* src/network/exmpp_session.erl: API improvement: we can send and
