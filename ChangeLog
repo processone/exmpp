@@ -6,6 +6,10 @@
 
 	* src/Emakefile.in: Update modules list.
 
+	* ebin/Makefile.am: Update modules list. Install examples in a
+	separate directory (examples/ebin instead of ebin) to avoid namespace
+	pollution.
+
 2008-02-11  Mickael Remond  <mremond@process-one.net>
 
 	* src/network/exmpp_session.erl: API improvement: we can send and
