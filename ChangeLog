@@ -1,3 +1,9 @@
+2008-04-03  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/Makefile.am: Update modules list. Replace erl -make by a small
+	Erlang code snippet: if a module doesn't compile, the make process
+	will abort.
+
 2008-02-11  Mickael Remond  <mremond@process-one.net>
 
 	* src/network/exmpp_session.erl: API improvement: we can send and
