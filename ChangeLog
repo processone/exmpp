@@ -49,6 +49,9 @@
 	* ebin/exmpp.appup.in: Remove upgrade/downgrade instructions because
 	they are outdated.
 
+	* src/core/exmpp_internals.erl: Use base64:*code_to_string/1, because
+	http_base_64 was returning string too.
+
 2008-02-11  Mickael Remond  <mremond@process-one.net>
 
 	* src/network/exmpp_session.erl: API improvement: we can send and
