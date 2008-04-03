@@ -10,6 +10,11 @@
 	separate directory (examples/ebin instead of ebin) to avoid namespace
 	pollution.
 
+	* doc/Makefile.am: Add the examples to the dependencies. Fix the
+	sed(1) call; with BSD sed, the -i'' argument wasn't using a
+	zero-length extension but the next argument as the backup extension.
+	Fix the distributed files list.
+
 2008-02-11  Mickael Remond  <mremond@process-one.net>
 
 	* src/network/exmpp_session.erl: API improvement: we can send and
