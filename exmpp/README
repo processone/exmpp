@@ -1,13 +1,13 @@
 1. How to compile and install:
 
-You need autotool 1.60
+You need:
+    o  autoconf 2.60
+    o  automake 1.9 (tested with 1.9.6)
+    o  libtool 1.5 (tested with 1.5.24)
 
 Type the following sequence of commands: 
 
- aclocal
- autoreconf
- automake --add-missing
- autoconf
+ autoreconf -vif
  ./configure
  make 
  make install
