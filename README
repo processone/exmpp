@@ -6,7 +6,7 @@ Type the following sequence of commands:
 
  aclocal
  autoreconf
- automake
+ automake --add-missing
  autoconf
  ./configure
  make 
