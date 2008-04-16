@@ -2,6 +2,9 @@
 
 	* README: Fix autotools usage.
 
+	* testsuite/test.sh, testsuite/check_coverity.erl,
+	testsuite/Makefile.am: Build an index for code coverage reports.
+
 2008-04-03  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/Makefile.am: Update modules list. Replace erl -make by a small
@@ -41,7 +44,7 @@
 	* src/core/exmpp_internals.erl, src/server/exmpp_server_sasl.erl,
 	src/client/exmpp_client_sasl.erl: Starting with Erlang R12B-0, the
 	http_base_64 module was removed, replaced by base64 from stdlib
-	1.14.4. When ENABLE_HTTP_BASE_64 is defined, we try to use
+	1.14.4. When ENABLE_HTTP_BASE_64 if defined, we try to use
 	http_base_64 and fallback to base64 is necessary. If it's not defined,
 	we use only base64.
 
