@@ -1,6 +1,6 @@
 #!/bin/sh
 
-coverity_to_html () {
+coverage_to_html () {
 	module=$1
 
 	in=cover_${module}.out
@@ -15,7 +15,7 @@ coverity_to_html () {
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<title>${module}: testsuite coverity</title>
+<title>${module}: testsuite code coverage</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 <style type="text/css">
 body {
@@ -50,7 +50,7 @@ h1 {
 </style>
 </head>
 <body>
-<h1>${module}: testsuite coverity</h1>
+<h1>${module}: testsuite code coverage</h1>
 <p id="timestamp">Date: ${timestamp}</p>
 <pre>
 EOF
@@ -67,9 +67,80 @@ EOF
 
 	cat << EOF >> "$out"
 </pre>
+<p><a href="index.html">Back to modules list</a></p>
 </body>
 EOF
 
+	# Create/update index.
+	if [ ! -e index.html ]; then
+		cat << EOF > index.html
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<title>Testsuite code coverage</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<style type="text/css">
+body {
+	color: #000;
+	background-color: #fff;
+}
+h1 {
+	margin: 0px;
+}
+#subtitle {
+	margin-top: 0px;
+	margin-bottom: 3em;
+	color: #777;
+	font-style: italic;
+	border-bottom: solid 1px #000;
+}
+table {
+	border: 1px solid #777;
+	border-collapse: collapse;
+}
+td {
+	border: 1px solid #777;
+	padding: 4px;
+}
+.module {
+	width: 400px;
+}
+.percent {
+	text-align: right;
+}
+hr {
+	text-align: left;
+	margin: 0px auto 0px 0px;
+	border: none;
+	height: 8px;
+}
+</style>
+</head>
+<body>
+<h1>Testsuite code coverage</h1>
+<p id="subtitle">Modules list</p>
+<table cellspacing="0" cellpadding="0">
+<!-- MODULE -->
+</table>
+</body>
+EOF
+	fi
+
+	coverage=`cat cover_${module}.percent`
+	bar_length=$((${coverage%%.*} * 2))
+	if [ $bar_length -gt 190 ]; then
+		bar_color="#00a300"
+	elif [ $bar_length -gt 100 ]; then
+		bar_color="#df9601"
+	else
+		bar_color="#a32400"
+	fi
+
+	sed -i '' -e "s|<!-- MODULE -->|<tr><td class=\"module\"><a href=\"$out\">$module</a></td><td class=\"percent\">$coverage%</td><td class=\"bar\"><hr style=\"width: ${bar_length}px; background-color: $bar_color;\"/></td></tr>\\
+<!-- MODULE -->|" index.html
+
+	rm cover_${module}.percent
 	rm cover_${module}.out
 }
 
@@ -101,7 +172,7 @@ case $exit_code in
 		case $script in
 			check_coverity)
 				for module in $COVERED_MODULES; do
-					coverity_to_html $module
+					coverage_to_html $module
 				done
 				;;
 			*)
