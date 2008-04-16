@@ -5,6 +5,8 @@
 	* testsuite/test.sh, testsuite/check_coverity.erl,
 	testsuite/Makefile.am: Build an index for code coverage reports.
 
+	* doc/Makefile.am: Replace ISO-8859-1-encoded '©' by an HTML entity.
+
 2008-04-03  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/Makefile.am: Update modules list. Replace erl -make by a small
