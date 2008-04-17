@@ -25,14 +25,12 @@ BEAM_FILES = exmpp.app							\
 	     exmpp_client_roster.beam					\
 	     exmpp_client_sasl.beam					\
 	     exmpp_client_session.beam					\
-	     exmpp_client_stream.beam					\
 	     exmpp_client_tls.beam					\
 	     exmpp_server_binding.beam					\
 	     exmpp_server_compression.beam				\
 	     exmpp_server_legacy_auth.beam				\
 	     exmpp_server_sasl.beam					\
 	     exmpp_server_session.beam					\
-	     exmpp_server_stream.beam					\
 	     exmpp_server_tls.beam					\
 	     exmpp_callbacks.beam					\
 	     exmpp_session.beam						\

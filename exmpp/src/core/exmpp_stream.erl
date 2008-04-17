@@ -138,6 +138,11 @@
   serialize_version/1
 ]).
 
+% Features announcement.
+-export([
+  features/1
+]).
+
 % Error handling.
 -export([
   error/1,
@@ -464,6 +469,23 @@ serialize_version({0, 0}) ->
     "";
 serialize_version({Major, Minor}) ->
     lists:flatten(io_lib:format("~b.~b", [Major, Minor])).
+
+% --------------------------------------------------------------------
+% Features announcement.
+% --------------------------------------------------------------------
+
+%% @spec (Features) -> Features_Announcement
+%%     Features = [exmpp_xml:xmlnselement()]
+%%     Features_Announcement = exmpp_xml:xmlnselement()
+%% @doc Make the features annoucement element.
+
+features(Features) ->
+    #xmlnselement{
+      ns = ?NS_XMPP,
+      prefix = "stream",
+      name = 'features',
+      children = Features
+    }.
 
 % --------------------------------------------------------------------
 % Stream-level errors.

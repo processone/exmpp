@@ -57,6 +57,12 @@
 	* testsuite/testsuite.erl: Be verbose when Result and Ref doesn't
 	match. Style.
 
+	* src/core/exmpp_stream.erl, src/server/exmpp_server_stream.erl,
+	src/client/exmpp_client_stream.erl, src/Makefile.am, src/Emakefile.in,
+	ebin/Makefile.am, ebin/exmpp.app.in, doc/Makefile.am: Move the
+	exmpp_server_stream:features/1 to exmpp_stream and remove
+	exmpp_server_stream and exmpp_client_stream.
+
 2008-04-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* doc/Makefile.am: Wildcards are voluntarily not supported by
