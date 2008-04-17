@@ -26,9 +26,14 @@
 	testsuite/check_xml_converters.erl: Update testsuite for exmpp_xml.
 
 	* src/core/exmpp_jid.erl: Use exceptions for error handling. Add basic
-	documentation.
+	documentation. Style.
 
 	* testsuite/check_jid.erl: Update testsuite for exmpp_jid.
+
+	* src/core/exmpp_xmlstream.erl: Use exceptions for error handling.
+	Style.
+
+	* testsuite/check_xmlstream.erl: Update testsuite for exmpp_xmlstream.
 
 2008-04-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
