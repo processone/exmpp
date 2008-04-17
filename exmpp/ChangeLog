@@ -50,6 +50,10 @@
 	* src/core/exmpp.erl, src/core/exmpp_sup.erl: Add basic documentation.
 	Style.
 
+	* src/core/exmpp_iq.erl, src/Emakefile.in, src/Makefile.am,
+	ebin/Makefile.am, ebin/exmpp.app.in, doc/Makefile.am: Add exmpp_iq, a
+	new module to provide functions specific to IQs.
+
 2008-04-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* doc/Makefile.am: Wildcards are voluntarily not supported by
