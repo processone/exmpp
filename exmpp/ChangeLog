@@ -35,6 +35,14 @@
 
 	* testsuite/check_xmlstream.erl: Update testsuite for exmpp_xmlstream.
 
+	* src/core/exmpp_stream.erl: Now, everything at the stream-level is
+	handled here. exmpp_client_stream and exmpp_server_stream should be
+	deleted as soon as the functions to manipulate features have moved
+	here. API of existing functions has changed. Use exceptions for error
+	handling.
+
+	* testsuite/check_stream.erl: Update testsuite for exmpp_stream.
+
 2008-04-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* doc/Makefile.am: Wildcards are voluntarily not supported by
