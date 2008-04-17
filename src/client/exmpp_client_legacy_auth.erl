@@ -3,8 +3,8 @@
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
 %% @doc
-%% The module <strong>{@module}</strong> provides utilities to prepare
-%% Jabber Legacy authentication stanzas.
+%% The module <strong>{@module}</strong> implements the client side of
+%% legacy authentication found in Jabber, before XMPP 1.0.
 %%
 %% <p>
 %% A common use case is presented in <em>table 1</em>.
@@ -24,9 +24,8 @@
 %% <p>
 %% After serialization, this produces this XML message:
 %% </p>
-%% <pre>&lt;iq xmlns="jabber:client" type="get" to="jabber.example.com"
-%%   id="auth-1905181425"&gt;
-%%       &lt;query xmlns="jabber:iq:auth"/&gt;<br/>&lt;/iq&gt;</pre>
+%% <pre>&lt;iq type="get" to="jabber.example.com" id="auth-1905181425"&gt;
+%%   &lt;query xmlns="jabber:iq:auth"/&gt;<br/>&lt;/iq&gt;</pre>
 %% </td>
 %% <td></td>
 %% </tr>
@@ -93,6 +92,8 @@
 %% </td>
 %% </tr>
 %% </table>
+%%
+%% @reference <a href="http://www.xmpp.org/extensions/xep-0078.html">XEP-0078: Non-SASL Authentication</a>
 
 -module(exmpp_client_legacy_auth).
 -vsn('$Revision$').
@@ -114,161 +115,144 @@
 % Jabber Legacy authentication.
 % --------------------------------------------------------------------
 
-%% @spec (To) -> Auth_Iq
+%% @spec (To) -> Response_IQ
 %%     To = string()
-%%     Auth_Iq = exmpp_xml:xmlnselement()
+%%     Response_IQ = exmpp_xml:xmlnselement()
 %% @doc Make an `<iq>' for requesting legacy authentication.
 %%
-%% The stanza `id' is generated automatically.
+%% The stanza ID is generated automatically.
 
 request(To) ->
-    request(auth_id(), To).
+    request(To, auth_id()).
 
-%% @spec (Id, To) -> Auth_Iq
-%%     Id = string()
+%% @spec (To, ID) -> Response_IQ
 %%     To = string()
-%%     Auth_Iq = exmpp_xml:xmlnselement()
+%%     ID = string()
+%%     Response_IQ = exmpp_xml:xmlnselement()
 %% @doc Make an `<iq>' for requesting legacy authentication.
 
-request(Id, To) ->
-    % Make empty query.
-    Query = #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'query',
-      children = []},
-    % Make IQ.
-    Iq = exmpp_xml:set_attributes(
-      #xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
-        {'type', "get"},
-        {'to',   To},
-        {'id',   Id}
-      ]),
-    exmpp_xml:append_child(Iq, Query).
+request(To, ID) ->
+    Query = #xmlnselement{
+      ns = ?NS_JABBER_AUTH,
+      name = 'query',
+      children = []
+    },
+    IQ = exmpp_iq:get(?NS_JABBER_CLIENT, Query, ID),
+    exmpp_error:set_recipient(IQ, To).
 
-%% @spec (To, Username) -> Auth_Iq
+%% @spec (To, Username) -> Response_IQ
 %%     To = string()
 %%     Username = string()
+%%     Response_IQ = exmpp_xml:xmlnselement()
 %% @doc Make an `<iq>' for requesting legacy authentication.
 %%
-%% The stanza `id' is generated automatically.
+%% The stanza ID is generated automatically.
 
 request_with_user(To, Username) ->
-    request_with_user(auth_id(), To, Username).
+    request_with_user(To, Username, auth_id()).
 
-%% @spec (Id, To, Username) -> Auth_Iq
-%%     Id = string()
+%% @spec (To, Username, ID) -> Response_IQ
 %%     To = string()
 %%     Username = string()
-%%     Auth_Iq = exmpp_xml:xmlnselement()
+%%     ID = string()
+%%     Response_IQ = exmpp_xml:xmlnselement()
 %% @doc Make an `<iq>' for requesting legacy authentication.
 
-request_with_user(Id, To, Username_S) ->
-    % Make empty query.
-    Username = exmpp_xml:set_cdata(
+request_with_user(To, Username, ID) ->
+    Username_El = exmpp_xml:set_cdata(
       #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'username'},
-      Username_S),
-    Query = #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'query',
-      children = [Username]},
-    % Make IQ.
-    Iq = exmpp_xml:set_attributes(
-      #xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
-        {'type', "get"},
-        {'to',   To},
-        {'id',   Id}
-      ]),
-    exmpp_xml:append_child(Iq, Query).
+      Username),
+    Query = #xmlnselement{
+      ns = ?NS_JABBER_AUTH,
+      name = 'query',
+      children = [Username_El]
+    },
+    IQ = exmpp_iq:get(?NS_JABBER_CLIENT, Query, ID),
+    exmpp_error:set_recipient(IQ, To).
 
-%% @spec (Username, Password, Resource) -> Auth_Iq
+%% @spec (Username, Password, Resource) -> Response_IQ
 %%     Username = string()
 %%     Password = string() | nil()
 %%     Resource = string()
-%%     Auth_Iq = exmpp_xml:xmlnselement()
+%%     Response_IQ = exmpp_xml:xmlnselement()
 %% @doc Make an `<iq>' to send authentication informations.
 %%
-%% The stanza `id' is generated automatically.
+%% The stanza ID is generated automatically.
 
-password(Username_S, Password_S, Resource_S) ->
-    password(auth_id(),
-      Username_S, Password_S, Resource_S).
+password(Username, Password, Resource) ->
+    password(Username, Password, Resource, auth_id()).
 
-%% @spec (Id, Username, Password, Resource) -> Auth_Iq
-%%     Id = string()
+%% @spec (Username, Password, Resource, ID) -> Response_IQ
 %%     Username = string()
 %%     Password = string() | nil()
 %%     Resource = string()
-%%     Auth_Iq = exmpp_xml:xmlnselement()
+%%     ID = string()
+%%     Response_IQ = exmpp_xml:xmlnselement()
 %% @doc Make an `<iq>' to send authentication informations.
 %%
 %% `Password' is in clear plain text in the stanza.
 %%
 %% For an anonymous authentication, `Password' may be the empty string.
 
-password(Id, Username_S, Password_S, Resource_S) ->
-    % Fill fields.
-    Username = exmpp_xml:set_cdata(
+password(Username, Password, Resource, ID) ->
+    Username_El = exmpp_xml:set_cdata(
       #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'username'},
-      Username_S),
-    Password = exmpp_xml:set_cdata(
+      Username),
+    Password_El = exmpp_xml:set_cdata(
       #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'password'},
-      Password_S),
-    Resource = exmpp_xml:set_cdata(
+      Password),
+    Resource_El = exmpp_xml:set_cdata(
       #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'resource'},
-      Resource_S),
-    % Make query.
-    Query = exmpp_xml:set_children(
-      #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'query'},
-      [Username, Password, Resource]),
-    % Make IQ.
-    Iq = exmpp_xml:set_attributes(
-      #xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
-        {'type', "set"},
-        {'id', Id}
-      ]),
-    exmpp_xml:append_child(Iq, Query).
+      Resource),
+    Query = #xmlnselement{
+      ns = ?NS_JABBER_AUTH,
+      name = 'query',
+      children = [Username_El, Password_El, Resource_El]
+    },
+    exmpp_iq:set(?NS_JABBER_CLIENT, Query, ID).
 
-%% @spec (Username, Password, Resource) -> Auth_Iq
+%% @spec (Username, Password, Resource) -> Response_IQ
 %%     Username = string()
 %%     Password = string()
 %%     Resource = string()
-%%     Auth_Iq = exmpp_xml:xmlnselement()
+%%     Response_IQ = exmpp_xml:xmlnselement()
 %% @doc Make an `<iq>' to send authentication informations.
 %%
-%% The stanza `id' is generated automatically.
+%% The stanza ID is generated automatically.
 
-password_digest(Username_S, Password_S, Resource_S) ->
-    password_digest(auth_id(),
-      Username_S, Password_S, Resource_S).
+password_digest(Username, Password, Resource) ->
+    password_digest(Username, Password, Resource, auth_id()).
 
-%% @spec (Id, Username, Password, Resource) -> Auth_Iq
-%%     Id = string()
+%% @spec (Username, Password, Resource, ID) -> Response_IQ
 %%     Username = string()
 %%     Password = string()
 %%     Resource = string()
-%%     Auth_Iq = exmpp_xml:xmlnselement()
+%%     ID = string()
+%%     Response_IQ = exmpp_xml:xmlnselement()
 %% @doc Make an `<iq>' to send authentication informations.
 %%
-%% `Password' is encoded as specified in the JEP-078.
+%% `Password' is encoded as specified in XEP-0078.
 
-password_digest(Id, Username_S, Password_S, Resource_S) ->
-    % Fill fields.
-    Username = exmpp_xml:set_cdata(
+password_digest(Username, Password, Resource, ID) ->
+    Username_El = exmpp_xml:set_cdata(
       #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'username'},
-      Username_S),
-    Digest = exmpp_xml:set_cdata(
+      Username),
+    Digest_El = exmpp_xml:set_cdata(
       #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'digest'},
-      password_digest(Id, Password_S)),
-    Resource = exmpp_xml:set_cdata(
+      password_digest(ID, Password)),
+    Resource_El = exmpp_xml:set_cdata(
       #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'resource'},
-      Resource_S),
-    % Make query.
-    Query = exmpp_xml:set_children(
-      #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'query'},
-      [Username, Digest, Resource]),
-    % Make IQ.
-    Iq = exmpp_xml:set_attributes(
-      #xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
-        {'type', "set"},
-        {'id', Id}
-      ]),
-    exmpp_xml:append_child(Iq, Query).
+      Resource),
+    Query = #xmlnselement{
+      ns = ?NS_JABBER_AUTH,
+      name = 'query',
+      children = [Username_El, Digest_El, Resource_El]
+    },
+    exmpp_iq:set(?NS_JABBER_CLIENT, Query, ID).
+
+% --------------------------------------------------------------------
+% Internal functions.
+% --------------------------------------------------------------------
 
 %% @spec () -> Auth_ID
 %%     Auth_ID = string()
@@ -284,16 +268,12 @@ auth_id() ->
 %%     Id = string()
 %%     Passwd = string()
 %%     Digest = string()
-%% @doc Produce a password digest for legacy auth, according to JEP-078.
+%% @doc Produce a password digest for legacy auth, according to XEP-0078.
 
 password_digest(Id, Passwd) ->
     Token = Id ++ Passwd,
     crypto:start(),
     hex(binary_to_list(crypto:sha(Token))).
-
-% --------------------------------------------------------------------
-% Internal functions.
-% --------------------------------------------------------------------
 
 hex(L) when is_list(L) ->
     lists:flatten([hex(I) || I <- L]);
