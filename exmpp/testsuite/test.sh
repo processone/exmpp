@@ -137,8 +137,8 @@ EOF
 		bar_color="#a32400"
 	fi
 
-	sed -i '' -e "s|<!-- MODULE -->|<tr><td class=\"module\"><a href=\"$out\">$module</a></td><td class=\"percent\">$coverage%</td><td class=\"bar\"><hr style=\"width: ${bar_length}px; background-color: $bar_color;\"/></td></tr>\\
-<!-- MODULE -->|" index.html
+	sed -i.bak -e "s|<!-- MODULE -->|<tr><td class=\"module\"><a href=\"$out\">$module</a></td><td class=\"percent\">$coverage%</td><td class=\"bar\"><hr style=\"width: ${bar_length}px; background-color: $bar_color;\"/></td></tr>\\
+<!-- MODULE -->|" index.html && rm index.html.bak
 
 	rm cover_${module}.percent
 	rm cover_${module}.out

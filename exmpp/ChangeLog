@@ -6,6 +6,8 @@
 	fix this, we use an backup extension ("-i.bak") and remove the
 	backup.
 
+	* testsuite/test.sh: Fix sed(1) usage as above.
+
 2008-04-16  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* README: Fix autotools usage.
