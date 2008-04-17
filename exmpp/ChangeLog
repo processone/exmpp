@@ -47,6 +47,9 @@
 	here. This module will be renamed as exmpp_stanza soon. Add basic
 	documentation.
 
+	* src/core/exmpp.erl, src/core/exmpp_sup.erl: Add basic documentation.
+	Style.
+
 2008-04-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* doc/Makefile.am: Wildcards are voluntarily not supported by

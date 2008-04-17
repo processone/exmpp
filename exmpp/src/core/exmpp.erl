@@ -16,6 +16,7 @@
 
 -behaviour(application).
 
+% Initialization.
 -export([
   start/0,
   version/0
@@ -34,29 +35,34 @@
 
 %% @spec () -> ok
 %% @doc Start applications which exmpp depends on then start exmpp.
+
 start() ->
     application:start(exmpp).
 
 %% @spec () -> Version
 %%     Version = string()
 %% @doc Return the version of the application.
+
 version() ->
-	{ok, Version} = application:get_key(exmpp, vsn),
-	Version.
+    {ok, Version} = application:get_key(exmpp, vsn),
+    Version.
 
 % --------------------------------------------------------------------
 % application(3erl) callbacks.
 % --------------------------------------------------------------------
 
 %% @hidden
+
 start(_Start_Type, _Start_Args) ->
     exmpp_sup:start_link().
 
 %% @hidden
+
 stop(_State) ->
     ok.
 
 %% @hidden
+
 config_change(Changed, New, Removed) ->
     error_logger:info_msg("Config change:~n"
       "Changed: ~p~n"
