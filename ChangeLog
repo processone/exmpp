@@ -1,3 +1,8 @@
+2008-04-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* doc/Makefile.am: Wildcards are voluntarily not supported by
+	automake(1). To fix the build, we list explicitly every HTML files.
+
 2008-04-16  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* README: Fix autotools usage.
