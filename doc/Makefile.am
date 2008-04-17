@@ -32,7 +32,6 @@ HTML_FILES = index.html							\
 	     exmpp_client_roster.html					\
 	     exmpp_client_sasl.html					\
 	     exmpp_client_session.html					\
-	     exmpp_client_stream.html					\
 	     exmpp_client_tls.html					\
 	     exmpp_error.html						\
 	     exmpp_internals.html					\
@@ -44,7 +43,6 @@ HTML_FILES = index.html							\
 	     exmpp_server_legacy_auth.html				\
 	     exmpp_server_sasl.html					\
 	     exmpp_server_session.html					\
-	     exmpp_server_stream.html					\
 	     exmpp_server_tls.html					\
 	     exmpp_session.html						\
 	     exmpp_ssl.html						\
