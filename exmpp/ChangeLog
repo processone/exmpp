@@ -43,6 +43,10 @@
 
 	* testsuite/check_stream.erl: Update testsuite for exmpp_stream.
 
+	* src/core/exmpp_error.erl: Everything at the stanza-level is handled
+	here. This module will be renamed as exmpp_stanza soon. Add basic
+	documentation.
+
 2008-04-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* doc/Makefile.am: Wildcards are voluntarily not supported by
