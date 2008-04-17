@@ -34,7 +34,7 @@
 	ei_decode_version(buf, &index, &version);			\
 } while (0)
 
-#define MAKE_ATOM_OK(var)	do {					\
+#define	MAKE_ATOM_OK(var)	do {					\
 	var = driver_alloc(sizeof(ei_x_buff));				\
 	if (var == NULL)						\
 		return (-1);						\
@@ -58,6 +58,12 @@ enum {
 	EXPAT_SVN_REVISION
 };
 
+/* Structure to handle default namespace stack. */
+struct ns_entry {
+	char		*ns;
+	struct ns_entry	*parent;
+};
+
 /* Driver data (also, user data for expat). */
 struct expat_drv_data {
 	/* Internal state. */
@@ -67,6 +73,7 @@ struct expat_drv_data {
 	long			 cur_size;
 	ei_x_buff		*current_tree;
 	ei_x_buff		*complete_trees;
+	struct ns_entry		*default_ns_stack;
 
 	/* Lookup tables. */
 	struct hashtable	*prefixes;
@@ -86,26 +93,29 @@ struct expat_drv_data {
 };
 
 /* Expat handler prototypes */
-void	expat_drv_start_namespace(void *user_data,
-	    const char *prefix, const char *uri);
-void	expat_drv_end_namespace(void *user_data,
-	    const char *prefix);
-void	expat_drv_start_element(void *user_data,
-	    const char *name, const char **attrs);
-void	expat_drv_end_element(void *user_data,
-	    const char *name);
-void	expat_drv_character_data(void *user_data,
-	    const char *data, int len);
+static void		expat_drv_start_namespace(void *user_data,
+			    const char *prefix, const char *uri);
+static void		expat_drv_end_namespace(void *user_data,
+			    const char *prefix);
+static void		expat_drv_start_element(void *user_data,
+			    const char *name, const char **attrs);
+static void		expat_drv_end_element(void *user_data,
+			    const char *name);
+static void		expat_drv_character_data(void *user_data,
+			    const char *data, int len);
 
-int		create_parser(struct expat_drv_data *ed);
-int		destroy_parser(struct expat_drv_data *ed);
-int		current_tree_finished(struct expat_drv_data *ed);
-unsigned int	hash_djb2(void *key);
-int		hash_equalkeys(void *k1, void *k2);
-int		initialize_lookup_tables(struct expat_drv_data *ed);
-int		is_a_known_ns(struct expat_drv_data *ed, const char *ns);
-int		is_a_known_name(struct expat_drv_data *ed, const char *name);
-int		is_a_known_attr(struct expat_drv_data *ed, const char *attr);
+static int		create_parser(struct expat_drv_data *ed);
+static int		destroy_parser(struct expat_drv_data *ed);
+static int		current_tree_finished(struct expat_drv_data *ed);
+static unsigned int	hash_djb2(void *key);
+static int		hash_equalkeys(void *k1, void *k2);
+static int		initialize_lookup_tables(struct expat_drv_data *ed);
+static int		is_a_known_ns(struct expat_drv_data *ed,
+			    const char *ns);
+static int		is_a_known_name(struct expat_drv_data *ed,
+			    const char *name);
+static int		is_a_known_attr(struct expat_drv_data *ed,
+			    const char *attr);
 
 /* This constant is used as value in known_ns, known_names and known_attrs
  * hashtable. */
@@ -140,7 +150,7 @@ const int	KNOWN = 1;
 	(s) += 4;							\
 } while (0)
 
-int
+static int
 ei_encode_string_len_fixed(char *buf, int *index, const char *p, int len)
 {
 	int i;
@@ -180,17 +190,11 @@ ei_encode_string_len_fixed(char *buf, int *index, const char *p, int len)
 	return (0);
 }
 
-int
-ei_encode_string_fixed(char *buf, int *index, const char *p)
-{
-
-	return (ei_encode_string_len_fixed(buf, index, p, strlen(p)));
-}
-
 /* x_fix_buff is an internal function of libei_st.a. */
 extern int	x_fix_buff(ei_x_buff* x, int szneeded);
 
-int ei_x_encode_string_len_fixed(ei_x_buff *x, const char *s, int len)
+static int
+ei_x_encode_string_len_fixed(ei_x_buff *x, const char *s, int len)
 {
 	int i;
 
@@ -202,7 +206,7 @@ int ei_x_encode_string_len_fixed(ei_x_buff *x, const char *s, int len)
 	return (ei_encode_string_len_fixed(x->buff, &x->index, s, len));
 }
 
-int
+static int
 ei_x_encode_string_fixed(ei_x_buff *x, const char *s)
 {
 
@@ -236,19 +240,20 @@ expat_drv_start(ErlDrvPort port, char *command)
 	set_port_control_flags(port, PORT_CONTROL_FLAG_BINARY);
 
 	/* Allocate driver data structure. */
-	ed = driver_alloc(sizeof(struct expat_drv_data));
+	ed = driver_alloc(sizeof(*ed));
 	if (ed == NULL)
 		return (NULL);
 
 	/* Fill in the structure. */
-	ed->port           = port;
-	ed->parser         = NULL;
-	ed->depth          = 0;
-	ed->cur_size       = 0;
-	ed->current_tree   = NULL;
-	ed->complete_trees = NULL;
+	ed->port             = port;
+	ed->parser           = NULL;
+	ed->depth            = 0;
+	ed->cur_size         = 0;
+	ed->current_tree     = NULL;
+	ed->complete_trees   = NULL;
+	ed->default_ns_stack = NULL;
 
-	ed->prefixes       = NULL;
+	ed->prefixes         = NULL;
 
 	/* Without namespace support by default. */
 	ed->use_ns_parser = 0;
@@ -437,8 +442,7 @@ expat_drv_control(ErlDrvData drv_data, unsigned int command,
 			/* Store this information in the buffer. */
 			ei_x_encode_tuple_header(to_send, 2);
 			ei_x_encode_atom(to_send, TUPLE_DRV_ERROR);
-			ei_x_encode_atom(to_send,
-			    "no_parser_configured");
+			ei_x_encode_atom(to_send, "no_parser_configured");
 
 			break;
 		} else if (ed->max_size > -1 &&
@@ -452,8 +456,7 @@ expat_drv_control(ErlDrvData drv_data, unsigned int command,
 				/* Store this information in the buffer. */
 				ei_x_encode_tuple_header(to_send, 2);
 				ei_x_encode_atom(to_send, TUPLE_DRV_ERROR);
-				ei_x_encode_atom(to_send,
-				    "stanza_too_big");
+				ei_x_encode_atom(to_send, "stanza_too_big");
 			}
 
 			break;
@@ -569,11 +572,13 @@ expat_drv_control(ErlDrvData drv_data, unsigned int command,
  * Expat handlers.
  * ------------------------------------------------------------------- */
 
-void
+static void
 expat_drv_start_namespace(void *user_data,
     const char *prefix, const char *uri)
 {
 	struct expat_drv_data *ed;
+	struct ns_entry *entry;
+	size_t uri_len;
 
 	ed = (struct expat_drv_data *)user_data;
 
@@ -585,7 +590,21 @@ expat_drv_start_namespace(void *user_data,
 	if (ed->prefixes == NULL)
 		return;
 
-	if (prefix != NULL) {
+	if (prefix == NULL) {
+		/* Push this default namespace on the stack. */
+		entry = driver_alloc(sizeof(*entry));
+		if (entry == NULL)
+			return;
+
+		uri_len = strlen(uri);
+		entry->ns = driver_alloc(uri_len + 1);
+		if (entry->ns != NULL) {
+			memcpy(entry->ns, uri, uri_len);
+			entry->ns[uri_len] = '\0';
+		}
+		entry->parent = ed->default_ns_stack;
+		ed->default_ns_stack = entry;
+	} else {
 		/* Store the namespace and its prefix in the lookup table.
 		 * We make a copy of `uri' because hashtable_remove and
 		 * hashtable_destroy will free it. */
@@ -593,11 +612,12 @@ expat_drv_start_namespace(void *user_data,
 	}
 }
 
-void
+static void
 expat_drv_end_namespace(void *user_data,
     const char *prefix)
 {
 	struct expat_drv_data *ed;
+	struct ns_entry *entry;
 
 	ed = (struct expat_drv_data *)user_data;
 
@@ -605,11 +625,20 @@ expat_drv_end_namespace(void *user_data,
 	printf("---> namespace (end): prefix=%s\r\n", prefix);
 #endif
 
-	/* FIXME Should we remove terminated namespaces from the
-	 * lookup table? */
+	if (prefix == NULL) {
+		/* Pop namespace on top of the stack. */
+		entry = ed->default_ns_stack;
+		ed->default_ns_stack = entry->parent;
+
+		driver_free(entry->ns);
+		driver_free(entry);
+	} else {
+		/* FIXME Should we remove terminated namespaces from the
+		 * lookup table? */
+	}
 }
 
-void
+static void
 expat_drv_start_element(void *user_data,
     const char *name, const char **attrs)
 {
@@ -645,16 +674,20 @@ expat_drv_start_element(void *user_data,
 	}
 
 	/* With namespace support, the tuple will be of the form:
-	 *   {xmlnselement, URI, Node_Name, [Attrs], [Children]}
+	 *   {xmlnselement, URI, Prefix, Default_NS,
+	 *     Node_Name, [Attrs], [Children]}
 	 * Without namespace support, it will be:
 	 *   {xmlelement, Node_Name, [Attrs], [Children]} */
 	if (ed->use_ns_parser) {
-		ei_x_encode_tuple_header(tree, 6);
+		ei_x_encode_tuple_header(tree, 7);
 		ei_x_encode_atom(tree, TUPLE_XML_NS_ELEMENT);
 		ns_sep = strchr(name, NS_SEP);
 		if (ns_sep == NULL) {
 			/* Neither a namespace, nor a prefix. */
 			ei_x_encode_atom(tree, "undefined");
+			ei_x_encode_atom(tree, "undefined");
+
+			/* No default namespace. */
 			ei_x_encode_atom(tree, "undefined");
 
 			/* Encode the element name. */
@@ -687,6 +720,22 @@ expat_drv_start_element(void *user_data,
 
 			if (prefix != NULL) {
 				ei_x_encode_string_fixed(tree, prefix);
+			} else {
+				ei_x_encode_atom(tree, "undefined");
+			}
+
+			if (ed->default_ns_stack != NULL) {
+				/* Check if the namespace is known, to
+				 * decide if we encode it as an atom()
+				 * or a string(). */
+				if (is_a_known_ns(ed,
+				    ed->default_ns_stack->ns)) {
+					ei_x_encode_atom(tree,
+					    ed->default_ns_stack->ns);
+				} else {
+					ei_x_encode_string_fixed(tree,
+					    ed->default_ns_stack->ns);
+				}
 			} else {
 				ei_x_encode_atom(tree, "undefined");
 			}
@@ -827,7 +876,7 @@ expat_drv_start_element(void *user_data,
 	ed->depth++;
 }
 
-void
+static void
 expat_drv_end_element(void *user_data,
     const char *name)
 {
@@ -911,7 +960,8 @@ expat_drv_end_element(void *user_data,
 				    is_a_known_name(ed, ns_sep + 1)) {
 					ei_x_encode_atom(tree, ns_sep + 1);
 				} else {
-					ei_x_encode_string_fixed(tree, ns_sep + 1);
+					ei_x_encode_string_fixed(tree,
+					    ns_sep + 1);
 				}
 			}
 		} else {
@@ -937,7 +987,7 @@ expat_drv_end_element(void *user_data,
 	}
 }
 
-void
+static void
 expat_drv_character_data(void *user_data,
     const char *data, int len)
 {
@@ -962,7 +1012,7 @@ expat_drv_character_data(void *user_data,
  * Internal functions.
  * -------------------------------------------------------------------*/
 
-int
+static int
 create_parser(struct expat_drv_data *ed)
 {
 
@@ -994,7 +1044,8 @@ create_parser(struct expat_drv_data *ed)
 	return (0);
 }
 
-int destroy_parser(struct expat_drv_data *ed)
+static int
+destroy_parser(struct expat_drv_data *ed)
 {
 
 	if (ed->parser != NULL)
@@ -1005,7 +1056,7 @@ int destroy_parser(struct expat_drv_data *ed)
 	return (0);
 }
 
-int
+static int
 current_tree_finished(struct expat_drv_data *ed)
 {
 	int ret;
@@ -1032,7 +1083,7 @@ current_tree_finished(struct expat_drv_data *ed)
 	return (ret);
 }
 
-unsigned int
+static unsigned int
 hash_djb2(void *key)
 {
 	int c;
@@ -1047,14 +1098,14 @@ hash_djb2(void *key)
 	return (hash);
 }
 
-int
+static int
 hash_equalkeys(void *k1, void *k2)
 {
 
 	return (strcmp((char *)k1, (char *)k2) == 0);
 }
 
-int
+static int
 initialize_lookup_tables(struct expat_drv_data *ed)
 {
 	int i;
@@ -1097,16 +1148,7 @@ initialize_lookup_tables(struct expat_drv_data *ed)
 	return (0);
 }
 
-void
-destroy_lookup_tables(struct expat_drv_data *ed)
-{
-
-	hashtable_destroy(ed->known_ns, 0);
-	hashtable_destroy(ed->known_names, 0);
-	hashtable_destroy(ed->known_attrs, 0);
-}
-
-int
+static int
 is_a_known_ns(struct expat_drv_data *ed, const char *ns)
 {
 	int *is_known;
@@ -1118,7 +1160,7 @@ is_a_known_ns(struct expat_drv_data *ed, const char *ns)
 	return (is_known == NULL ? 0 : 1);
 }
 
-int
+static int
 is_a_known_name(struct expat_drv_data *ed, const char *name)
 {
 	int *is_known;
@@ -1130,7 +1172,7 @@ is_a_known_name(struct expat_drv_data *ed, const char *name)
 	return (is_known == NULL ? 0 : 1);
 }
 
-int
+static int
 is_a_known_attr(struct expat_drv_data *ed, const char *attr)
 {
 	int *is_known;

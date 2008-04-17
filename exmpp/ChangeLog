@@ -1,5 +1,13 @@
 2008-04-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
+	First round of commits for the Big Cleanup.
+
+	* include/exmpp.hrl, c_src/exmpp_expat_drv.c: Add a 'default_ns'
+	member to #xmlnselement; we keep the default namespace in it,
+	regardless of the namespace of the current element.
+
+2008-04-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
 	* doc/Makefile.am: Wildcards are voluntarily not supported by
 	automake(1). To fix the build, we list explicitly every HTML files.
 	The "-i ''" argument of BSD sed still doesn't behave like GNU sed. To
