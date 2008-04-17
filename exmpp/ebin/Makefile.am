@@ -8,6 +8,7 @@ BEAM_FILES = exmpp.app							\
 	     exmpp.beam							\
 	     exmpp_error.beam						\
 	     exmpp_internals.beam					\
+	     exmpp_iq.beam						\
 	     exmpp_jid.beam						\
 	     exmpp_jlib.beam						\
 	     exmpp_stream.beam						\

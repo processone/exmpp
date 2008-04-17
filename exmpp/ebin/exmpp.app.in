@@ -8,6 +8,7 @@
         exmpp,
         exmpp_errors,
         exmpp_internals,
+        exmpp_iq,
         exmpp_jid,
         exmpp_jlib,
         exmpp_stream,
