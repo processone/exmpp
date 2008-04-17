@@ -25,6 +25,11 @@
 	testsuite/check_xml_cdata_handlers.erl, testsuite/check_xml_path.erl,
 	testsuite/check_xml_converters.erl: Update testsuite for exmpp_xml.
 
+	* src/core/exmpp_jid.erl: Use exceptions for error handling. Add basic
+	documentation.
+
+	* testsuite/check_jid.erl: Update testsuite for exmpp_jid.
+
 2008-04-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* doc/Makefile.am: Wildcards are voluntarily not supported by
