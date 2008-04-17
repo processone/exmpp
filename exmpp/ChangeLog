@@ -2,6 +2,9 @@
 
 	* doc/Makefile.am: Wildcards are voluntarily not supported by
 	automake(1). To fix the build, we list explicitly every HTML files.
+	The "-i ''" argument of BSD sed still doesn't behave like GNU sed. To
+	fix this, we use an backup extension ("-i.bak") and remove the
+	backup.
 
 2008-04-16  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
