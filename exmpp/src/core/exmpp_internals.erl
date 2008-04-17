@@ -9,6 +9,7 @@
 -module(exmpp_internals).
 -vsn('$Revision$').
 
+% Port driver handling.
 -export([
   driver_dirs/0,
   load_driver/1,
@@ -16,6 +17,8 @@
   open_port/1,
   close_port/1
 ]).
+
+% Base64 helpers.
 -export([
   encode_base64/1,
   decode_base64/1
@@ -24,6 +27,10 @@
 % --------------------------------------------------------------------
 % Port driver loading/unloading.
 % --------------------------------------------------------------------
+
+%% @spec () -> Dirs | []
+%%     Dirs = [string()]
+%% @doc Return a list of directories to search port drivers in.
 
 driver_dirs() ->
     Mod_Path = case code:is_loaded(?MODULE) of
@@ -54,45 +61,62 @@ driver_dirs() ->
         Priv_Dir         -> Dirs0 ++ [filename:join(Priv_Dir, "lib")]
     end.
 
+%% @spec (Driver_Name) -> ok
+%%     Driver_Name = atom()
+%% @throws {port_driver, load, Reason, Driver_Name}
+%% @doc Load the port driver `Driver_Name'.
+
 load_driver(Driver_Name) ->
     Dirs = driver_dirs(),
     load_driver1(Driver_Name, Dirs, undefined).
 
+% This function will try to load `Driver_Name' from each `Dir' in the list.
 load_driver1(Driver_Name, [Dir | Rest], _Reason) ->
     case erl_ddll:load_driver(Dir, Driver_Name) of
         ok ->
             ok;
         {error, Reason} ->
+            % Next directory.
             load_driver1(Driver_Name, Rest, Reason)
     end;
+load_driver1(Driver_Name, [], Reason) ->
+    % We walk through each directories without being able to load the driver.
+    throw({port_driver, load, Reason, Driver_Name}).
 
-load_driver1(_DriverName, [], Reason) ->
-    error_logger:info_msg([{error, Reason}]),
-    {error, Reason}.
+%% @spec (Driver_Name) -> ok
+%%     Driver_Name = atom()
+%% @doc Unload the port driver `Driver_Name'.
 
 -ifdef(ENABLE_ERL_DDLL_WORKAROUND).
 unload_driver(_Driver_Name) ->
-    % At least until R11B-1, erl_ddll messes up its libraries reference
+    % At least until R11B-1, erl_ddll messes up its library references
     % count, so we can't unload the driver.
     ok.
 -else.
 unload_driver(Driver_Name) ->
-    erl_ddll:unload_driver(Driver_Name).
+    erl_ddll:unload_driver(Driver_Name),
+    ok.
 -endif.
 
+%% @spec (Driver_Name) -> Port
+%%     Driver_Name = atom()
+%%     Port = port()
+%% @throws {port_driver, open, {posix, Posix_Code}, Driver_Name}
+%% @doc Spawn a new port driver instance.
+
 open_port(Driver_Name) ->
-    case catch erlang:open_port({spawn, atom_to_list(Driver_Name)}, []) of
-        {'EXIT', {PosixCode, _Stack}} ->
-	    ErrorType = port_error,
-	    exmpp_error:throw(ErrorType,
-			      PosixCode,
-			      "Cannot open driver '~p': ~s",
-			      [Driver_Name, 
-			       exmpp_error:posix_message(ErrorType,
-							 PosixCode)]);
-        Port ->
-            Port
+    try
+        erlang:open_port({spawn, atom_to_list(Driver_Name)}, [])
+    catch
+        exit:{Posix_Code, _Stack} ->
+            throw({port_driver, open, {posix, Posix_Code}, Driver_Name})
     end.
+
+%% @spec (Port) -> true
+%%     Port = port()
+%% @doc Close a previously spawned port.
+%%
+%% `Port' was obtained with {@link open_port/1}.
 
 close_port(Port) ->
     erlang:port_close(Port).
@@ -101,6 +125,11 @@ close_port(Port) ->
 % Utils.
 % --------------------------------------------------------------------
 
+%% @spec (Data) -> Base64
+%%     Data = string()
+%%     Base64 = string()
+%% @doc Encode `Data' in Base64.
+
 -ifdef(ENABLE_HTTP_BASE_64).
 % Starting with inets 5.0, http_base_64 doesn't exist anymore.
 encode_base64(Data) ->
@@ -108,16 +137,24 @@ encode_base64(Data) ->
         {'EXIT', _} -> base64:encode_to_string(Data);
         Base64      -> Base64
     end.
-
-decode_base64(Data) ->
-    case catch http_base_64:decode(Data) of
-        {'EXIT', _} -> base64:decode_to_string(Data);
-        Base64      -> Base64
-    end.
 -else.
 encode_base64(Data) ->
     base64:encode_to_string(Data).
+-endif.
 
-decode_base64(Data) ->
-    base64:decode_to_string(Data).
+%% @spec (Base64) -> Data
+%%     Base64 = string()
+%%     Data = string()
+%% @doc Decode `Base64' to get `Data' back.
+
+-ifdef(ENABLE_HTTP_BASE_64).
+% Starting with inets 5.0, http_base_64 doesn't exist anymore.
+decode_base64(Base64) ->
+    case catch http_base_64:decode(Base64) of
+        {'EXIT', _} -> base64:decode_to_string(Base64);
+        Data        -> Data
+    end.
+-else.
+decode_base64(Base64) ->
+    base64:decode_to_string(Base64).
 -endif.
