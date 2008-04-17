@@ -1,5 +1,20 @@
 2008-04-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
+	Second round of commits for the Big Cleanup.
+
+	* src/server/exmpp_server_binding.erl,
+	src/client/exmpp_client_binding.erl,
+	src/server/exmpp_server_compression.erl,
+	src/client/exmpp_client_compression.erl,
+	src/server/exmpp_server_legacy_auth.erl,
+	src/client/exmpp_client_legacy_auth.erl: Update to use the new
+	modules/structures. Add basic documentation. Style.
+
+	* testsuite/check_legacy_auth.erl: Update testsuite for
+	exmpp_server_legacy_auth and exmpp_client_legacy_auth.
+
+2008-04-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
 	First round of commits for the Big Cleanup.
 
 	* include/exmpp.hrl, c_src/exmpp_expat_drv.c: Add a "default_ns"
