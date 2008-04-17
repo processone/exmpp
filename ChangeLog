@@ -2,7 +2,7 @@
 
 	First round of commits for the Big Cleanup.
 
-	* include/exmpp.hrl, c_src/exmpp_expat_drv.c: Add a 'default_ns'
+	* include/exmpp.hrl, c_src/exmpp_expat_drv.c: Add a "default_ns"
 	member to #xmlnselement; we keep the default namespace in it,
 	regardless of the namespace of the current element. Style.
 
@@ -11,6 +11,19 @@
 
 	* src/core/exmpp_internals.erl, src/core/exmpp_stringprep.erl: Use
 	exceptions for error handling. Add basic documentation.
+
+	* src/core/exmpp_xml.erl: Use exceptions for error handling. Use
+	exmpp_internals for port driver load/unload. Add function clauses for
+	accept "undefined" as an XML element. Change several functions to
+	return "undefined" instead of an empty string. Use the new
+	"default_ns" member during serialization. Update documentation.
+	Style.
+
+	* testsuite/check_xml_parser.erl,
+	testsuite/check_xml_attribute_handlers.erl,
+	testsuite/check_xml_element_handlers.erl,
+	testsuite/check_xml_cdata_handlers.erl, testsuite/check_xml_path.erl,
+	testsuite/check_xml_converters.erl: Update testsuite for exmpp_xml.
 
 2008-04-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
