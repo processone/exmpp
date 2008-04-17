@@ -10,32 +10,31 @@
 % --------------------------------------------------------------------
 
 ok(Result) ->
-	is(Result, ok).
+    is(Result, ok).
 
 is(Result, Ref) ->
-	case Result of
-		Ref ->
-			ok;
-		_   ->
-			%io:format(
-			%    "Doesn't match:~nReference: ~p~nResult: ~p~n",
-			%    [Ref, Result]),
-			fail({no_match, Ref, Result})
-	end.
+    case Result of
+        Ref ->
+            ok;
+        _   ->
+            io:format("Doesn't match:~nReference: ~p~nResult: ~p~n",
+              [Ref, Result]),
+            fail({no_match, Ref, Result})
+    end.
 
 % --------------------------------------------------------------------
 % Résultat.
 % --------------------------------------------------------------------
 
 pass() ->
-	io:format("PASS~n").
+    io:format("PASS~n").
 
 skip() ->
-	io:format("SKIP~n").
+    io:format("SKIP~n").
 
 fail() ->
-	fail('FAIL').
+    fail('FAIL').
 
 fail(Reason) ->
-	io:format("Aborting...~nReason: ~p~n", [Reason]),
-	erlang:error(Reason).
+    io:format("Aborting...~nReason: ~p~n", [Reason]),
+    erlang:error(Reason).
