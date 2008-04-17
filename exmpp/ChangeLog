@@ -9,8 +9,8 @@
 	* c_src/exmpp_stringprep_drv.c: Add a command to return the port
 	driver $Revision$. Style.
 
-	* src/core/exmpp_internals.erl: Use exceptions for error handling. Add
-	basic documentation.
+	* src/core/exmpp_internals.erl, src/core/exmpp_stringprep.erl: Use
+	exceptions for error handling. Add basic documentation.
 
 2008-04-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
