@@ -3,10 +3,8 @@
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
 %% @doc
-%% The module <strong>{@module}</strong> provides functions to handle JID.
-%%
-%% TODO: The JIDs internal structure should use binary instead of
-%% list.
+%% The module <strong>{@module}</strong> provides functions to handle
+%% JID.
 
 -module(exmpp_jid).
 -vsn('$Revision$').
@@ -15,34 +13,34 @@
 
 % Conversion.
 -export([
-	 make_jid/3,
-	 make_bare_jid/2,
-	 jid_to_bare_jid/1,
-	 bare_jid_to_jid/2
+  make_jid/3,
+  make_bare_jid/2,
+  jid_to_bare_jid/1,
+  bare_jid_to_jid/2
 ]).
 
 % Parsing.
 -export([
-	 string_to_jid/1,
-	 string_to_bare_jid/1
+  string_to_jid/1,
+  string_to_bare_jid/1
 ]).
 
 % Serialization.
 -export([
-	 jid_to_string/1,
-	 bare_jid_to_string/1
+  jid_to_string/1,
+  bare_jid_to_string/1
 ]).
 
 % Comparison.
 -export([
-	 compare_jids/2,
-	 compare_bare_jids/2,
-	 have_same_domain/2
+  compare_jids/2,
+  compare_bare_jids/2,
+  compare_domains/2
 ]).
 
 % Checks.
 -export([
-	 is_jid/1
+  is_jid/1
 ]).
 
 -define(NODE_MAX_LENGTH,     1023).
@@ -55,13 +53,23 @@
 % JID creation & conversion.
 % --------------------------------------------------------------------
 
-make_bare_jid(_Node, Domain)
+%% @spec (Node, Domain) -> Bare_Jid
+%%     Node = string()
+%%     Domain = string()
+%%     Bare_Jid = jid()
+%% @throws {jid, make, domain_too_long, {Node, Domain, undefined}} |
+%%         {jid, make, invalid_domain,  {Node, Domain, undefined}} |
+%%         {jid, make, node_too_long,   {Node, Domain, undefined}} |
+%%         {jid, make, invalid_node,    {Node, Domain, undefined}}
+%% @doc Create a bare JID.
+
+make_bare_jid(Node, Domain)
   when length(Domain) > ?DOMAIN_MAX_LENGTH ->
-    {error, domain_too_long};
+    throw({jid, make, domain_too_long, {Node, Domain, undefined}});
 make_bare_jid(undefined, Domain) ->
     case exmpp_stringprep:nameprep(Domain) of
         error ->
-            {error, bad_domain};
+            throw({jid, make, invalid_domain, {undefined, Domain, undefined}});
         LDomain ->
             #jid{
               node = undefined,
@@ -72,17 +80,18 @@ make_bare_jid(undefined, Domain) ->
               lresource = undefined
             }
     end;
-make_bare_jid(Node, _Domain)
+make_bare_jid(Node, Domain)
   when length(Node) > ?NODE_MAX_LENGTH ->
-    {error, node_too_long};
+    throw({jid, make, node_too_long, {Node, Domain, undefined}});
 make_bare_jid(Node, Domain) ->
     case exmpp_stringprep:nodeprep(Node) of
         error ->
-            {error, bad_node};
+            throw({jid, make, invalid_node, {Node, Domain, undefined}});
         LNode ->
             case exmpp_stringprep:nameprep(Domain) of
                 error ->
-                    {error, bad_domain};
+                    throw({jid, make, invalid_domain,
+                        {Node, Domain, undefined}});
                 LDomain ->
                     #jid{
                       node = Node,
@@ -95,21 +104,26 @@ make_bare_jid(Node, Domain) ->
             end
     end.
 
+%% @spec (Node, Domain, Resource) -> Jid
+%%     Node = string()
+%%     Domain = string()
+%%     Resource = string()
+%%     Jid = jid()
+%% @doc Create a full JID.
+
 make_jid(Node, Domain, undefined) ->
     make_bare_jid(Node, Domain);
 make_jid(Node, Domain, random) ->
     Resource = generate_resource(),
     make_jid(Node, Domain, Resource);
-make_jid(_Node, _Domain, Resource)
-  when length(Resource) > ?RESOURCE_MAX_LENGTH ->
-    {error, resource_too_long};
 make_jid(Node, Domain, Resource) ->
-    case make_bare_jid(Node, Domain) of
-        {error, Reason} ->
-            {error, Reason};
-        Jid ->
-            bare_jid_to_jid(Jid, Resource)
-    end.
+    Jid = make_bare_jid(Node, Domain),
+    bare_jid_to_jid(Jid, Resource).
+
+%% @spec (Jid) -> Bare_Jid
+%%     Jid = jid()
+%%     Bare_Jid = jid()
+%% @doc Convert a full JID to its bare version.
 
 jid_to_bare_jid(Jid) ->
     Jid#jid{
@@ -117,15 +131,25 @@ jid_to_bare_jid(Jid) ->
       lresource = undefined
     }.
 
+%% @spec (Bare_Jid, Resource) -> Jid
+%%     Bare_Jid = jid()
+%%     Resource = string()
+%%     Jid = jid()
+%% @throws {jid, convert, resource_too_long, {Node, Domain, Resource}} |
+%%         {jid, convert, invalid_resource,  {Node, Domain, Resource}}
+%% @doc Convert a bare JID to its full version.
+
 bare_jid_to_jid(Jid, undefined) ->
     Jid;
-bare_jid_to_jid(_Jid, Resource)
+bare_jid_to_jid(Jid, Resource)
   when length(Resource) > ?RESOURCE_MAX_LENGTH ->
-    {error, resource_too_long};
+    throw({jid, convert, resource_too_long,
+        {Jid#jid.node, Jid#jid.domain, Resource}});
 bare_jid_to_jid(Jid, Resource) ->
     case exmpp_stringprep:resourceprep(Resource) of
         error ->
-            {error, bad_resource};
+            throw({jid, convert, invalid_resource,
+                {Jid#jid.node, Jid#jid.domain, Resource}});
         LResource ->
             Jid#jid{
               resource = Resource,
@@ -137,17 +161,41 @@ bare_jid_to_jid(Jid, Resource) ->
 % JID parsing.
 % --------------------------------------------------------------------
 
+%% @spec (String) -> Jid
+%%     String = string()
+%%     Jid = jid()
+%% @throws {jid, parse, jid_too_long, {String, undefined, undefined}} |
+%%         {jid, parse, Reason,       {String, undefined, undefined}}
+%% @doc Parse a string and create a full JID.
+
 string_to_jid(String)
   when length(String) > ?JID_MAX_LENGTH ->
-    {error, jid_too_long};
+    throw({jid, parse, jid_too_long, {String, undefined, undefined}});
 string_to_jid(String) ->
-    parse_jid(full, String, "").
+    case parse_jid(full, String, "") of
+        {error, Reason} ->
+            throw({jid, parse, Reason, {String, undefined, undefined}});
+        Jid ->
+            Jid
+    end.
+
+%% @spec (String) -> Bare_Jid
+%%     String = string()
+%%     Bare_Jid = jid()
+%% @throws {jid, parse, jid_too_long, {String, undefined, undefined}} |
+%%         {jid, parse, Reason,       {String, undefined, undefined}}
+%% @doc Parse a string and create a bare JID.
 
 string_to_bare_jid(String)
   when length(String) > ?BARE_JID_MAX_LENGTH ->
-    {error, jid_too_long};
+    throw({jid, parse, jid_too_long, {String, undefined, undefined}});
 string_to_bare_jid(String) ->
-    parse_jid(bare, String, "").
+    case parse_jid(bare, String, "") of
+        {error, Reason} ->
+            throw({jid, parse, Reason, {String, undefined, undefined}});
+        Bare_Jid ->
+            Bare_Jid
+    end.
 
 parse_jid(_Type, [$@ | _Rest], "") ->
     % Invalid JID of the form "@Domain".
@@ -212,6 +260,11 @@ parse_jid(full, [], Node, Domain) ->
 % JID serialization.
 % --------------------------------------------------------------------
 
+%% @spec (Jid) -> String
+%%     Jid = jid()
+%%     String = string()
+%% @doc Stringify a full JID.
+
 jid_to_string(#jid{node = Node, domain = Domain, resource = Resource}) ->
     jid_to_string(Node, Domain, Resource).
 
@@ -221,6 +274,11 @@ jid_to_string(Node, Domain, Resource) ->
         undefined -> S1;
         _         -> S1 ++ "/" ++ Resource
     end.
+
+%% @spec (Bare_Jid) -> String
+%%     Bare_Jid = jid()
+%%     String = string()
+%% @doc Stringify a bare JID.
 
 bare_jid_to_string(#jid{node = Node, domain = Domain}) ->
     bare_jid_to_string(Node, Domain).
@@ -236,12 +294,22 @@ bare_jid_to_string(Node, Domain) ->
 % JID comparison.
 % --------------------------------------------------------------------
 
+%% @spec (Jid1, Jid2) -> bool()
+%%     Jid1 = jid()
+%%     Jid2 = jid()
+%% @doc Compare full JIDs.
+
 compare_jids(
   #jid{lnode = LNode, ldomain = LDomain, lresource = LResource},
   #jid{lnode = LNode, ldomain = LDomain, lresource = LResource}) ->
     true;
 compare_jids(_Jid1, _Jid2) ->
     false.
+
+%% @spec (Bare_Jid1, Bare_Jid2) -> bool()
+%%     Bare_Jid1 = jid()
+%%     Bare_Jid2 = jid()
+%% @doc Compare bare JIDs.
 
 compare_bare_jids(
   #jid{lnode = LNode, ldomain = LDomain},
@@ -250,16 +318,25 @@ compare_bare_jids(
 compare_bare_jids(_Jid1, _Jid2) ->
     false.
 
-have_same_domain(
+%% @spec (Jid1, Jid2) -> bool()
+%%     Jid1 = jid()
+%%     Jid2 = jid()
+%% @doc Compare JID's domain.
+
+compare_domains(
   #jid{ldomain = LDomain},
   #jid{ldomain = LDomain}) ->
     true;
-have_same_domain(_Jid1, _Jid2) ->
+compare_domains(_Jid1, _Jid2) ->
     false.
 
 % --------------------------------------------------------------------
 % JID checks.
 % --------------------------------------------------------------------
+
+%% @spec (Jid) -> bool()
+%%     Jid = jid()
+%% @doc Tell if the argument is a JID.
 
 is_jid(JID) when record(JID, jid) ->
     true;
@@ -270,11 +347,22 @@ is_jid(_) ->
 % Helper functions
 % --------------------------------------------------------------------
 
-%% We do not use random generator to avoid having to decided when and 
-%% how to seed the Erlang random number generator.
+% We do not use random generator to avoid having to decide when and 
+% how to seed the Erlang random number generator.
 generate_resource() ->
-    {A,B,C} = erlang:now(),
+    {A, B, C} = erlang:now(),
     lists:flatten(["exmpp#",
-		   integer_to_list(A),
-		   integer_to_list(B),
-		   integer_to_list(C)]).
+      integer_to_list(A),
+      integer_to_list(B),
+      integer_to_list(C)]
+    ).
+
+% --------------------------------------------------------------------
+% Documentation / type definitions.
+% --------------------------------------------------------------------
+
+%% @type jid() = {jid, Node, Domain, Resource}
+%%     Node = string()
+%%     Domain = string()
+%%     Resource = string().
+%% Represents JID.
