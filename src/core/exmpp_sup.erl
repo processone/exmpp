@@ -4,12 +4,24 @@
 
 %% @doc
 %% The module <strong>{@module}</strong> is the master supervisor.
+%%
+%% <p>
+%% It will start the following services:
+%% </p>
+%% <ol>
+%%   <li>{@link exmpp_stringprep}</li>
+%% </ol>
+%%
+%% <p>
+%% It's not intended to be used directly.
+%% </p>
 
 -module(exmpp_sup).
 -vsn('$Revision$').
 
 -behaviour(supervisor).
 
+% Initialization.
 -export([
   start/0,
   start_link/0
@@ -26,8 +38,20 @@
 % Public API.
 % --------------------------------------------------------------------
 
+%% @spec () -> Result
+%%     Result = term()
+%% @doc Start the supervisor.
+%%
+%% @see supervisor:start/3.
+
 start() ->
     supervisor:start({local, ?SUPERVISOR}, ?MODULE, []).
+
+%% @spec () -> Result
+%%     Result = term()
+%% @doc Start the supervisor and link to it.
+%%
+%% @see supervisor:start_link/3.
 
 start_link() ->
     supervisor:start_link({local, ?SUPERVISOR}, ?MODULE, []).
@@ -35,6 +59,8 @@ start_link() ->
 % --------------------------------------------------------------------
 % supervisor(3erl) callbacks.
 % --------------------------------------------------------------------
+
+%% @hidden
 
 init(_Args) ->
     % Stringprep.
