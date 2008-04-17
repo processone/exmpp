@@ -27,9 +27,9 @@
 -export([parse_element/1, parse_element/2]).
 
 -record(xml_stream, {
-	callback,
-	parser,
-	opened = 0
+  callback,
+  parser,
+  opened = 0
 }).
 
 % --------------------------------------------------------------------
@@ -57,10 +57,10 @@
 %% @see exmpp_xml:xmlparseroption().
 
 start(Parser_Options) when is_list(Parser_Options) ->
-	start(no_callback, Parser_Options);
+    start(no_callback, Parser_Options);
 
 start(Callback) ->
-	start(Callback, []).
+    start(Callback, []).
 
 %% @spec (Callback, Parser_Options) -> {ok, Stream} | {error, Reason}
 %%     Callback = callback()
@@ -75,20 +75,16 @@ start(Callback) ->
 %% @see exmpp_xml:start_parser/1.
 
 start(Callback, Parser_Options) ->
-	Parser_Options2 = [{root_depth, 1}, endelement | Parser_Options],
-	case exmpp_xml:start_parser(Parser_Options2) of
-		{ok, Parser} ->
-			Callback2 = case Callback of
-				Pid when is_pid(Pid) -> {process, Pid};
-				_                    -> Callback
-			end,
-			{ok, #xml_stream{
-			    callback = Callback2,
-			    parser = Parser
-			}};
-		{error, Reason} ->
-			{error, Reason}
-	end.
+    Parser_Options2 = [{root_depth, 1}, endelement | Parser_Options],
+    Parser = exmpp_xml:start_parser(Parser_Options2),
+    Callback2 = case Callback of
+        Pid when is_pid(Pid) -> {process, Pid};
+        _                    -> Callback
+    end,
+    #xml_stream{
+      callback = Callback2,
+      parser = Parser
+    }.
 
 %% @spec (Stream) -> ok | {error, Reason}
 %%     Stream = xmlstream()
@@ -102,7 +98,7 @@ start(Callback, Parser_Options) ->
 %% @see start/1.
 
 stop(#xml_stream{parser = Parser} = _Stream) ->
-	exmpp_xml:stop_parser(Parser).
+    exmpp_xml:stop_parser(Parser).
 
 %% @spec (Stream, Data) -> {ok, New_Stream} | {ok, New_Stream, Events} | {error, Reason}
 %%     Stream = xmlstream()
@@ -118,116 +114,105 @@ stop(#xml_stream{parser = Parser} = _Stream) ->
 %% Potential events are described by the {@link xmlstreamevent()} type.
 
 parse(#xml_stream{parser = Parser} = Stream, Data) ->
-	case exmpp_xml:parse(Parser, Data) of
-		{ok, continue} ->
-			send_events(Stream, []);
-		{ok, XML_Elements} ->
-			case process_elements(Stream, XML_Elements) of
-				{ok, New_Stream, Events} ->
-					send_events(New_Stream, Events);
-				{error, Reason} ->
-					{error, Reason}
-			end;
-		{xmlerror, Reason} ->
-			send_events(Stream, [{xmlstreamerror, Reason}]);
-		{error, Reason} ->
-			{error, Reason}
-	end.
+    try exmpp_xml:parse(Parser, Data) of
+        continue ->
+            send_events(Stream, []);
+        XML_Elements ->
+            {ok, New_Stream, Events} = process_elements(Stream, XML_Elements),
+            send_events(New_Stream, Events)
+    catch
+        throw:{xml_parser, parsing, malformed_xml, Reason} ->
+            send_events(Stream, [{xmlstreamerror, Reason}]);
+        throw:Exception ->
+            throw(Exception)
+    end.
 
 process_elements(Stream, XML_Elements) ->
-	case process_elements2(Stream, XML_Elements, []) of
-		{ok, New_Stream, Events} ->
-			{ok, New_Stream, lists:reverse(Events)};
-		{error, Reason} ->
-			{error, Reason}
-	end.
+    process_elements2(Stream, XML_Elements, []).
 
 process_elements2(Stream, [XML_Element | Rest], Events) ->
-	case XML_Element of
-		% With namespace support.
-		#xmlnselement{}
-		    when Stream#xml_stream.opened == 0 ->
-			% Stream is freshly opened.
-			New_Stream = Stream#xml_stream{opened = 1},
-			New_Events = [#xmlstreamstart{element = XML_Element} |
-			    Events],
-			process_elements2(New_Stream, Rest, New_Events);
-		#xmlnselement{} ->
-			% An "depth 1" element and its children.
-			New_Events = [#xmlstreamelement{element = XML_Element} |
-			    Events],
-			process_elements2(Stream, Rest, New_Events);
-		#xmlnsendelement{} ->
-			% Stream is closed.
-			New_Stream = Stream#xml_stream{opened = 0},
-			New_Events = [#xmlstreamend{endelement = XML_Element} |
-			    Events],
-			process_elements2(New_Stream, Rest, New_Events);
+    case XML_Element of
+        % With namespace support.
+        #xmlnselement{} when Stream#xml_stream.opened == 0 ->
+            % Stream is freshly opened.
+            New_Stream = Stream#xml_stream{opened = 1},
+            New_Events = [#xmlstreamstart{element = XML_Element} |
+              Events],
+            process_elements2(New_Stream, Rest, New_Events);
+        #xmlnselement{} ->
+            % An "depth 1" element and its children.
+            New_Events = [#xmlstreamelement{element = XML_Element} |
+              Events],
+            process_elements2(Stream, Rest, New_Events);
+        #xmlnsendelement{} ->
+            % Stream is closed.
+            New_Stream = Stream#xml_stream{opened = 0},
+            New_Events = [#xmlstreamend{endelement = XML_Element} |
+              Events],
+            process_elements2(New_Stream, Rest, New_Events);
 
-		% Without namespace support.
-		#xmlelement{}
-		    when Stream#xml_stream.opened == 0 ->
-			% Stream is freshly opened.
-			New_Stream = Stream#xml_stream{opened = 1},
-			New_Events = [#xmlstreamstart{element = XML_Element} |
-			    Events],
-			process_elements2(New_Stream, Rest, New_Events);
-		#xmlelement{} ->
-			% An "depth 1" element and its children.
-			New_Events = [#xmlstreamelement{element = XML_Element} |
-			    Events],
-			process_elements2(Stream, Rest, New_Events);
-		#xmlendelement{} ->
-			% Stream is closed.
-			New_Stream = Stream#xml_stream{opened = 0},
-			New_Events = [#xmlstreamend{endelement = XML_Element} |
-			    Events],
-			process_elements2(New_Stream, Rest, New_Events)
+        % Without namespace support.
+        #xmlelement{} when Stream#xml_stream.opened == 0 ->
+            % Stream is freshly opened.
+            New_Stream = Stream#xml_stream{opened = 1},
+            New_Events = [#xmlstreamstart{element = XML_Element} |
+              Events],
+            process_elements2(New_Stream, Rest, New_Events);
+        #xmlelement{} ->
+            % An "depth 1" element and its children.
+            New_Events = [#xmlstreamelement{element = XML_Element} |
+              Events],
+            process_elements2(Stream, Rest, New_Events);
+        #xmlendelement{} ->
+            % Stream is closed.
+            New_Stream = Stream#xml_stream{opened = 0},
+            New_Events = [#xmlstreamend{endelement = XML_Element} |
+              Events],
+            process_elements2(New_Stream, Rest, New_Events)
 
-		% Unknown tuple.
-		%_ ->
-		%	error_logger:info_msg(
-		%	    "~s:process_elements/2: Unknown element: ~p~n",
-		%	    [?MODULE, XML_Element]),
-		%	process_elements(Stream, Rest)
-	end;
+        % Unknown tuple.
+        %_ ->
+        %    error_logger:info_msg(
+        %      "~s:process_elements/2: Unknown element: ~p~n",
+        %      [?MODULE, XML_Element]),
+        %    process_elements(Stream, Rest)
+    end;
 process_elements2(Stream, [], Events) ->
-	{ok, Stream, Events}.
+    {ok, Stream, lists:reverse(Events)}.
 
 send_events(#xml_stream{callback = {gen_fsm, Pid}} = Stream,
-    [Event | Rest]) ->
-	case catch gen_fsm:send_event(Pid, Event) of
-		{'EXIT', Reason} ->
-			{error, {'EXIT', Reason}};
-		ok ->
-			send_events(Stream, Rest)
-	end;
+  [Event | Rest]) ->
+    case catch gen_fsm:send_event(Pid, Event) of
+        {'EXIT', Reason} ->
+            {error, {'EXIT', Reason}};
+        ok ->
+            send_events(Stream, Rest)
+    end;
 send_events(#xml_stream{callback = {process, Pid}} = Stream,
-    [Event | Rest]) ->
-	case catch Pid ! Event of
-		{'EXIT', Reason} ->
-			{error, {'EXIT', Reason}};
-		_ ->
-			send_events(Stream, Rest)
-	end;
+  [Event | Rest]) ->
+    case catch Pid ! Event of
+        {'EXIT', Reason} ->
+            {error, {'EXIT', Reason}};
+        _ ->
+            send_events(Stream, Rest)
+    end;
 send_events(#xml_stream{callback = {apply, {M, F, Extra}}} = Stream,
-    [Event | Rest]) ->
-	case catch M:F(Event, Extra) of
-		{error, Reason} ->
-			{error, Reason};
-		{'EXIT', Reason} ->
-			{error, {'EXIT', Reason}};
-		_ ->
-			send_events(Stream, Rest)
-	end;
+  [Event | Rest]) ->
+    case catch M:F(Event, Extra) of
+        {error, Reason} ->
+            {error, Reason};
+        {'EXIT', Reason} ->
+            {error, {'EXIT', Reason}};
+        _ ->
+            send_events(Stream, Rest)
+    end;
 send_events(#xml_stream{callback = no_callback} = Stream, Events) ->
-	{ok, Stream, Events};
+    {ok, Stream, Events};
 send_events(Stream, [Event | Rest]) ->
-	error_logger:info_msg("~s:send_event/2: Event: ~p~n",
-	    [?MODULE, Event]),
-	send_events(Stream, Rest);
+    error_logger:info_msg("~s:send_event/2: Event: ~p~n", [?MODULE, Event]),
+    send_events(Stream, Rest);
 send_events(Stream, []) ->
-	{ok, Stream}.
+    {ok, Stream}.
 
 % --------------------------------------------------------------------
 % Document parsing.
@@ -244,7 +229,7 @@ send_events(Stream, []) ->
 %% @see exmpp_xml:parse_document/1.
 
 parse_element(Data) ->
-	parse_element(Data, []).
+    parse_element(Data, []).
 
 %% @spec (Data, Parser_Options) -> XML_Element | {error, Reason}
 %%     Data = string() | binary()
@@ -258,18 +243,18 @@ parse_element(Data) ->
 %% @see exmpp_xml:parse_document/2.
 
 parse_element(Data, Parser_Options) ->
-	case exmpp_xml:parse_document(Data, Parser_Options) of
-		{ok, done} ->
-			{error, parse_error};
-		{ok, []} ->
-			{error, parse_error};
-		{ok, [XML_Element | _]} ->
-			XML_Element;
-		{xmlerror, Reason} ->
-			{error, Reason};
-		{error, Reason} ->
-			{error, Reason}
-	end.
+    case exmpp_xml:parse_document(Data, Parser_Options) of
+        {ok, done} ->
+            {error, parse_error};
+        {ok, []} ->
+            {error, parse_error};
+        {ok, [XML_Element | _]} ->
+            XML_Element;
+        {xmlerror, Reason} ->
+            {error, Reason};
+        {error, Reason} ->
+            {error, Reason}
+    end.
 
 % --------------------------------------------------------------------
 % Documentation / type definitions.
