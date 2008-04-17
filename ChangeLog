@@ -4,7 +4,10 @@
 
 	* include/exmpp.hrl, c_src/exmpp_expat_drv.c: Add a 'default_ns'
 	member to #xmlnselement; we keep the default namespace in it,
-	regardless of the namespace of the current element.
+	regardless of the namespace of the current element. Style.
+
+	* c_src/exmpp_stringprep_drv.c: Add a command to return the port
+	driver $Revision$. Style.
 
 2008-04-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
