@@ -63,12 +63,6 @@
   get_text/1
 ]).
 
-% Tools.
--export([
-  stanza_id/0,
-  stanza_id/1
-]).
-
 % --------------------------------------------------------------------
 % Stanza common components.
 % --------------------------------------------------------------------
@@ -194,7 +188,7 @@ get_id_from_attrs(Attrs) ->
 
 set_id(#xmlnselement{attrs = Attrs, name = Name} = Stanza, ID)
   when ID == undefined; ID == "" ->
-    New_Attrs = set_id_in_attrs(Attrs, stanza_id(Name)),
+    New_Attrs = set_id_in_attrs(Attrs, exmpp_internals:random_id(Name)),
     Stanza#xmlnselement{attrs = New_Attrs};
 set_id(#xmlnselement{attrs = Attrs} = Stanza, ID) ->
     New_Attrs = set_id_in_attrs(Attrs, ID),
@@ -207,7 +201,7 @@ set_id(#xmlnselement{attrs = Attrs} = Stanza, ID) ->
 %% @doc Set the id.
 
 set_id_in_attrs(Attrs, ID) when ID == undefined; ID == "" ->
-    set_id_in_attrs(Attrs, stanza_id());
+    set_id_in_attrs(Attrs, exmpp_internals:random_id("stanza"));
 set_id_in_attrs(Attrs, ID) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'id', ID).
 
@@ -602,31 +596,3 @@ get_text_in_error(Error) ->
         undefined -> undefined;
         Text      -> exmpp_xml:get_cdata(Text)
     end.
-
-% --------------------------------------------------------------------
-% Tools.
-% --------------------------------------------------------------------
-
-%% @spec () -> ID
-%%     ID = string()
-%% @doc Generate a random stanza ID.
-%%
-%% Use the `stanza' prefix.
-%%
-%% @see stanza_id/1.
-
-stanza_id() ->
-    stanza_id("stanza").
-
-%% @spec (Prefix) -> ID
-%%     Prefix = string()
-%%     ID = string()
-%% @doc Generate a random stanza ID.
-%%
-%% This function uses {@link random:uniform/1}. It's up to the caller to
-%% seed the generator.
-%%
-%% The ID is not guaranted to be unique.
-
-stanza_id(Prefix) ->
-    Prefix ++ "-" ++ integer_to_list(random:uniform(65536 * 65536)).

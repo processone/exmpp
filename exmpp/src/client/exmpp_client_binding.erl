@@ -78,7 +78,8 @@ bind(Resource) ->
       children = Children
     },
     Attrs1 = exmpp_stanza:set_type_in_attrs([], "set"),
-    Attrs2 = exmpp_stanza:set_id_in_attrs(Attrs1, bind_id()),
+    Attrs2 = exmpp_stanza:set_id_in_attrs(Attrs1,
+      exmpp_internals:random_id("bind")),
     #xmlnselement{
       ns = ?NS_JABBER_CLIENT,
       name = 'iq',
@@ -112,17 +113,3 @@ bounded_jid(#xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'} = Iq) ->
             Condition = exmpp_stanza:get_condition(Iq),
             throw({resource_binding, bounded_jid, bind_error, Condition})
     end.
-
-% --------------------------------------------------------------------
-% Internal functions.
-% --------------------------------------------------------------------
-
-%% @spec () -> Bind_ID
-%%     Bind_ID = string()
-%% @doc Generate a random resource binding iq ID.
-%%
-%% This function uses {@link random:uniform/1}. It's up to the caller to
-%% seed the generator.
-
-bind_id() ->
-    "bind-" ++ integer_to_list(random:uniform(65536 * 65536)).
