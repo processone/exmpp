@@ -9,7 +9,6 @@
 		'@srcdir@/core/exmpp_xmlstream',
 		'@srcdir@/core/exmpp_stringprep',
 		'@srcdir@/core/exmpp_jid',
-		'@srcdir@/core/exmpp_jlib',
 		'@srcdir@/core/exmpp_stanza',
 		'@srcdir@/core/exmpp_stream',
 		'@srcdir@/core/exmpp_iq',
