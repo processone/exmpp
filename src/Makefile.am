@@ -8,8 +8,8 @@ EXTRA_DIST = core/exmpp.erl						\
 	     core/exmpp_stringprep.erl					\
 	     core/exmpp_jid.erl						\
 	     core/exmpp_jlib.erl					\
+	     core/exmpp_stanza.erl					\
 	     core/exmpp_stream.erl					\
-	     core/exmpp_error.erl					\
 	     core/exmpp_iq.erl						\
 	     network/exmpp_callbacks.erl				\
 	     network/exmpp_session.erl					\

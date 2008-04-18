@@ -53,7 +53,7 @@ feature() ->
 %% doesn't ask for any.
 
 wished_resource(#xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'} = Iq) ->
-    case exmpp_error:get_type(Iq) of
+    case exmpp_stanza:get_type(Iq) of
         "set" ->
             case exmpp_xml:get_element_by_name(Iq, ?NS_BIND, 'bind') of
                 #xmlnselement{} = Bind ->
@@ -93,7 +93,7 @@ bind(Iq, Jid) ->
       children = Children
     },
     Iq1 = exmpp_xml:set_children(Iq, [Bind]),
-    exmpp_error:set_type(Iq1, "result").
+    exmpp_stanza:set_type(Iq1, "result").
 
 %% @spec (Iq, Condition) -> Error_Iq
 %%     Iq = exmpp_xml:xmlnselement()
@@ -102,4 +102,4 @@ bind(Iq, Jid) ->
 %% @doc Prepare an error reply to `Iq'.
 
 error(Iq, Condition) ->
-    exmpp_error:reply_with_error(Iq, Condition).
+    exmpp_stanza:reply_with_error(Iq, Condition).

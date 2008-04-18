@@ -49,8 +49,8 @@ get(NS, Request) ->
 %% @doc Prepare an `<iq/>' to transport the given `get' request.
 
 get(NS, Request, ID) ->
-    Attrs1 = exmpp_error:set_type_in_attrs([], "get"),
-    Attrs2 = exmpp_error:set_id_in_attrs(Attrs1, ID),
+    Attrs1 = exmpp_stanza:set_type_in_attrs([], "get"),
+    Attrs2 = exmpp_stanza:set_id_in_attrs(Attrs1, ID),
     #xmlnselement{
       ns = NS,
       name = 'iq',
@@ -75,8 +75,8 @@ set(NS, Request) ->
 %% @doc Prepare an `<iq/>' to transport the given `set' request.
 
 set(NS, Request, ID) ->
-    Attrs1 = exmpp_error:set_type_in_attrs([], "set"),
-    Attrs2 = exmpp_error:set_id_in_attrs(Attrs1, ID),
+    Attrs1 = exmpp_stanza:set_type_in_attrs([], "set"),
+    Attrs2 = exmpp_stanza:set_id_in_attrs(Attrs1, ID),
     #xmlnselement{
       ns = NS,
       name = 'iq',
@@ -90,9 +90,9 @@ set(NS, Request, ID) ->
 %% @doc Prepare an `<iq/>' to answer to the given request.
 
 result(Request_IQ) ->
-    Attrs1 = exmpp_error:set_type_in_attrs([], "result"),
-    Attrs2 = exmpp_error:set_id_in_attrs(Attrs1,
-      exmpp_error:get_id(Request_IQ)),
+    Attrs1 = exmpp_stanza:set_type_in_attrs([], "result"),
+    Attrs2 = exmpp_stanza:set_id_in_attrs(Attrs1,
+      exmpp_stanza:get_id(Request_IQ)),
     #xmlnselement{
       ns = Request_IQ#xmlnselement.ns,
       name = 'iq',
@@ -116,8 +116,8 @@ result(Request_IQ, Result) ->
 %% @doc Prepare an `<iq/>' to notify an error.
 
 error(IQ, Error) ->
-    Attrs1 = exmpp_error:set_id([], exmpp_error:get_id(IQ)),
-    exmpp_error:stanza_error(IQ#xmlnselement{attrs = Attrs1}, Error).
+    Attrs1 = exmpp_stanza:set_id([], exmpp_stanza:get_id(IQ)),
+    exmpp_stanza:stanza_error(IQ#xmlnselement{attrs = Attrs1}, Error).
 
 %% @spec (Request_IQ, Error) -> Response_IQ
 %%     Request_IQ = exmpp_xml:xmlnselement()
@@ -128,8 +128,8 @@ error(IQ, Error) ->
 %% Child elements from `Request_IQ' are not kept.
 
 error_without_original(IQ, Error) ->
-    Attrs1 = exmpp_error:set_id_in_attrs([], exmpp_error:get_id(IQ)),
-    exmpp_error:stanza_error_without_original(IQ#xmlnselement{attrs = Attrs1},
+    Attrs1 = exmpp_stanza:set_id_in_attrs([], exmpp_stanza:get_id(IQ)),
+    exmpp_stanza:stanza_error_without_original(IQ#xmlnselement{attrs = Attrs1},
       Error).
 
 % --------------------------------------------------------------------
@@ -142,7 +142,7 @@ error_without_original(IQ, Error) ->
 %% @doc Return the type of the given `<iq/>'.
 
 get_type(IQ) ->
-    case exmpp_error:get_type(IQ) of
+    case exmpp_stanza:get_type(IQ) of
         "get"    -> 'get';
         "set"    -> 'set';
         "result" -> 'result';
