@@ -20,6 +20,8 @@
 
 % Base64 helpers.
 -export([
+  random_id/0,
+  random_id/1,
   encode_base64/1,
   decode_base64/1
 ]).
@@ -124,6 +126,30 @@ close_port(Port) ->
 % --------------------------------------------------------------------
 % Utils.
 % --------------------------------------------------------------------
+
+%% @spec () -> ID
+%%     ID = string()
+%% @doc Generate a random ID.
+%%
+%% Use the `exmpp' prefix.
+%%
+%% @see random_id/1.
+
+random_id() ->
+    random_id("exmpp").
+
+%% @spec (Prefix) -> ID
+%%     Prefix = string()
+%%     ID = string()
+%% @doc Generate a random stanza ID.
+%%
+%% This function uses {@link random:uniform/1}. It's up to the caller to
+%% seed the generator.
+%%
+%% The ID is not guaranted to be unique.
+
+random_id(Prefix) ->
+    Prefix ++ "-" ++ integer_to_list(random:uniform(65536 * 65536)).
 
 %% @spec (Data) -> Base64
 %%     Data = string()
