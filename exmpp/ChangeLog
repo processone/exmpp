@@ -1,3 +1,14 @@
+2008-04-18  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_error.erl, src/core/exmpp_stanza.erl,
+	src/core/exmpp_iq.erl, src/core/exmpp_stream.erl,
+	src/server/exmpp_server_binding.erl,
+	src/server/exmpp_server_legacy_auth.erl,
+	src/client/exmpp_client_binding.erl,
+	src/client/exmpp_client_legacy_auth.erl, src/Makefile.am,
+	src/Emakefile.in, ebin/Makefile.am, ebin/exmpp.app.in,
+	doc/Makefile.am: Rename exmpp_error to exmpp_stanza.
+
 2008-04-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Second round of commits for the Big Cleanup.

@@ -138,7 +138,7 @@ request(To, ID) ->
       children = []
     },
     IQ = exmpp_iq:get(?NS_JABBER_CLIENT, Query, ID),
-    exmpp_error:set_recipient(IQ, To).
+    exmpp_stanza:set_recipient(IQ, To).
 
 %% @spec (To, Username) -> Response_IQ
 %%     To = string()
@@ -168,7 +168,7 @@ request_with_user(To, Username, ID) ->
       children = [Username_El]
     },
     IQ = exmpp_iq:get(?NS_JABBER_CLIENT, Query, ID),
-    exmpp_error:set_recipient(IQ, To).
+    exmpp_stanza:set_recipient(IQ, To).
 
 %% @spec (Username, Password, Resource) -> Response_IQ
 %%     Username = string()

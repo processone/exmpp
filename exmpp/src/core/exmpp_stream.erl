@@ -265,7 +265,7 @@ opening_reply(From, Default_NS, Version, ID, Lang) ->
 %% If `ID' is `undefined', one will be generated automatically.
 
 opening_reply(#xmlnselement{attrs = Attrs} = Opening, ID) ->
-    Attrs1 = exmpp_error:reply_from_attrs(Attrs),
+    Attrs1 = exmpp_stanza:reply_from_attrs(Attrs),
     Attrs2 = set_id_in_attrs(Attrs1, ID),
     Opening#xmlnselement{attrs = Attrs2}.
 

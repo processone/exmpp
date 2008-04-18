@@ -6,11 +6,11 @@
     {id, "$Id$"},
     {modules, [
         exmpp,
-        exmpp_errors,
         exmpp_internals,
         exmpp_iq,
         exmpp_jid,
         exmpp_jlib,
+        exmpp_stanzas,
         exmpp_stream,
         exmpp_stringprep,
         exmpp_sup,

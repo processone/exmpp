@@ -77,8 +77,8 @@ bind(Resource) ->
       name = 'bind',
       children = Children
     },
-    Attrs1 = exmpp_error:set_type_in_attrs([], "set"),
-    Attrs2 = exmpp_error:set_id_in_attrs(Attrs1, bind_id()),
+    Attrs1 = exmpp_stanza:set_type_in_attrs([], "set"),
+    Attrs2 = exmpp_stanza:set_id_in_attrs(Attrs1, bind_id()),
     #xmlnselement{
       ns = ?NS_JABBER_CLIENT,
       name = 'iq',
@@ -109,7 +109,7 @@ bounded_jid(#xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'} = Iq) ->
                     throw({resource_binding, bounded_jid, no_jid, Iq})
             end;
         "error" ->
-            Condition = exmpp_error:get_condition(Iq),
+            Condition = exmpp_stanza:get_condition(Iq),
             throw({resource_binding, bounded_jid, bind_error, Condition})
     end.
 

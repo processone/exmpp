@@ -68,6 +68,6 @@ failure(Request_IQ, Condition) ->
         'not-acceptable' -> "406"
     end,
     Error = exmpp_xml:set_attribute(
-      exmpp_error:error(Request_IQ#xmlnselement.ns, Condition),
+      exmpp_stanza:error(Request_IQ#xmlnselement.ns, Condition),
       'code', Code),
     exmpp_iq:error_without_original(Request_IQ, Error).

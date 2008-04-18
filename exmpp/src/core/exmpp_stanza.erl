@@ -8,7 +8,7 @@
 %% The module <strong>{@module}</strong> provides helper to manipulate
 %% standard stanza.
 
--module(exmpp_error).
+-module(exmpp_stanza).
 -vsn('$Revision$').
 
 -include("exmpp.hrl").
