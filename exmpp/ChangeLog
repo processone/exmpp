@@ -13,6 +13,8 @@
 	ebin/Makefile.am, ebin/exmpp.app.in, doc/Makefile.am: Remove
 	exmpp_jlib.
 
+	* src/core/exmpp_internals.erl: Add functions to generale a random ID.
+
 2008-04-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Second round of commits for the Big Cleanup.
