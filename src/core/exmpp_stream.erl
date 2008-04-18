@@ -405,7 +405,7 @@ set_id(#xmlnselement{attrs = Attrs} = Opening, ID) ->
     Opening#xmlnselement{attrs = New_Attrs}.
 
 set_id_in_attrs(Attrs, ID) when ID == undefined; ID == "" ->
-    set_id_in_attrs(Attrs, stream_id());
+    set_id_in_attrs(Attrs, exmpp_internals:random_id("stream"));
 set_id_in_attrs(Attrs, ID) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'id', ID).
 
@@ -600,19 +600,3 @@ get_text(#xmlnselement{ns = ?NS_XMPP, name = 'error'} = El) ->
         undefined -> undefined;
         Text      -> exmpp_xml:get_cdata(Text)
     end.
-
-% --------------------------------------------------------------------
-% Internal functions.
-% --------------------------------------------------------------------
-
-%% @spec () -> ID
-%%     ID = string()
-%% @doc Generate a random stream ID.
-%%
-%% This function uses {@link random:uniform/1}. It's up to the caller to
-%% seed the generator.
-%%
-%% The ID is not guaranted to be unique.
-
-stream_id() ->
-    "stream-" ++ integer_to_list(random:uniform(65536 * 65536)).

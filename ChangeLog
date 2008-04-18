@@ -15,6 +15,10 @@
 
 	* src/core/exmpp_internals.erl: Add functions to generale a random ID.
 
+	* src/core/exmpp_stream.erl, src/core/exmpp_stanza.erl,
+	src/client/exmpp_client_binding.erl: Use exmpp_internals for random
+	ID.
+
 2008-04-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Second round of commits for the Big Cleanup.
