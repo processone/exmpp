@@ -25,7 +25,9 @@
 
 % IQ standard attributes.
 -export([
-  get_type/1
+  get_type/1,
+  get_request/1,
+  get_result/1
 ]).
 
 % --------------------------------------------------------------------
@@ -148,4 +150,54 @@ get_type(IQ) ->
         "result" -> 'result';
         "error"  -> 'error';
         _        -> undefined
+    end.
+
+%% @spec (IQ) -> Request | undefined
+%%     IQ = exmpp_xml:xmlnselement()
+%%     Request = exmpp_xml:xmlnselement()
+%% @throws {iq, get_request, unexpected_iq, IQ} |
+%%         {iq, get_result, invalid_iq, IQ}
+%% @doc Return the request contained in a `get' or `set' IQ, or returned
+%% by an `error' IQ (if present).
+
+get_request(IQ) ->
+    case get_type(IQ) of
+        undefined ->
+            throw({iq, get_result, invalid_iq, IQ});
+        Type when Type == 'get' orelse Type == 'set' ->
+            [Request | _] = IQ#xmlnselement.children,
+            Request;
+        'result' ->
+            throw({iq, get_request, unexpected_iq, IQ});
+        'error' ->
+            NS = IQ#xmlnselement.ns,
+            [Request | _] = IQ#xmlnselement.children,
+            case Request of
+                #xmlnselement{ns = NS, name = 'error'} ->
+                    undefined;
+                _ ->
+                    Request
+            end
+    end.
+
+%% @spec (IQ) -> Result | undefined
+%%     IQ = exmpp_xml:xmlnselement()
+%%     Result = exmpp_xml:xmlnselement()
+%% @throws {iq, get_request, unexpected_iq, IQ} |
+%%         {iq, get_result, invalid_iq, IQ}
+%% @doc Return the result contained in a `result' IQ.
+
+get_result(IQ) ->
+    case get_type(IQ) of
+        undefined ->
+            throw({iq, get_result, invalid_iq, IQ});
+        'result' ->
+            case IQ#xmlnselement.children of
+                [] ->
+                    undefined;
+                [Result | _] ->
+                    Result
+            end;
+        _ ->
+            throw({iq, get_result, unexpected_iq, IQ})
     end.

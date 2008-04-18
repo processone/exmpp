@@ -19,6 +19,9 @@
 	src/client/exmpp_client_binding.erl: Use exmpp_internals for random
 	ID.
 
+	* src/core/exmpp_iq.erl: Add functions to access request and result
+	contained in an IQ.
+
 2008-04-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Second round of commits for the Big Cleanup.
