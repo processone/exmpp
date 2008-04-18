@@ -9,7 +9,6 @@
         exmpp_internals,
         exmpp_iq,
         exmpp_jid,
-        exmpp_jlib,
         exmpp_stanzas,
         exmpp_stream,
         exmpp_stringprep,

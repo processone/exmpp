@@ -7,7 +7,6 @@ EXTRA_DIST = core/exmpp.erl						\
 	     core/exmpp_xmlstream.erl					\
 	     core/exmpp_stringprep.erl					\
 	     core/exmpp_jid.erl						\
-	     core/exmpp_jlib.erl					\
 	     core/exmpp_stanza.erl					\
 	     core/exmpp_stream.erl					\
 	     core/exmpp_iq.erl						\
