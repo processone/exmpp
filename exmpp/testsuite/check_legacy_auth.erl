@@ -14,6 +14,7 @@ check() ->
 do_check() ->
     test_legacy_auth_request(),
     test_legacy_auth_fields(),
+    test_legacy_auth_get_fields(),
     test_legacy_auth_password(),
     test_legacy_auth_success(),
     test_legacy_auth_failure(),
@@ -35,6 +36,40 @@ do_check() ->
 ).
 
 -define(FIELDS1,
+  {xmlnselement, ?NS_JABBER_CLIENT, undefined, undefined, 'iq', [
+      {xmlattr, undefined, undefined, 'type', "result"},
+      {xmlattr, undefined, undefined, 'id', "foobar"}
+    ], [
+      {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined, 'query',
+        [], [
+          {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined,
+            'username', [], []},
+          {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined,
+            'password', [], []},
+          {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined,
+            'resource', [], []}
+        ]}
+    ]}
+).
+
+-define(FIELDS2,
+  {xmlnselement, ?NS_JABBER_CLIENT, undefined, undefined, 'iq', [
+      {xmlattr, undefined, undefined, 'type', "result"},
+      {xmlattr, undefined, undefined, 'id', "foobar"}
+    ], [
+      {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined, 'query',
+        [], [
+          {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined,
+            'username', [], []},
+          {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined,
+            'digest', [], []},
+          {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined,
+            'resource', [], []}
+        ]}
+    ]}
+).
+
+-define(FIELDS3,
   {xmlnselement, ?NS_JABBER_CLIENT, undefined, undefined, 'iq', [
       {xmlattr, undefined, undefined, 'type', "result"},
       {xmlattr, undefined, undefined, 'id', "foobar"}
@@ -148,17 +183,46 @@ test_legacy_auth_request() ->
     ok.
 
 test_legacy_auth_fields() ->
-    testsuite:is(exmpp_server_legacy_auth:fields(?REQUEST1),
+    testsuite:is(exmpp_server_legacy_auth:fields(?REQUEST1, plain),
       ?FIELDS1),
+    testsuite:is(exmpp_server_legacy_auth:fields(?REQUEST1, digest),
+      ?FIELDS2),
+    testsuite:is(exmpp_server_legacy_auth:fields(?REQUEST1, both),
+      ?FIELDS3),
+    testsuite:is(exmpp_server_legacy_auth:fields(?REQUEST1),
+      ?FIELDS3),
+    ok.
+
+test_legacy_auth_get_fields() ->
+    testsuite:is(exmpp_client_legacy_auth:get_fields(?FIELDS1),
+      [username, password, resource]),
+    testsuite:is(exmpp_client_legacy_auth:get_fields(?FIELDS2),
+      [username, digest, resource]),
+    testsuite:is(exmpp_client_legacy_auth:get_fields(?FIELDS3),
+      [username, password, digest, resource]),
     ok.
 
 test_legacy_auth_password() ->
-    testsuite:is(exmpp_client_legacy_auth:password(
+    testsuite:is(exmpp_client_legacy_auth:password_plain(
         "User", "Password", "Resource", "foobar"),
       ?PASSWORD1),
     testsuite:is(exmpp_client_legacy_auth:password_digest(
         "User", "Password", "Resource", "foobar"),
       ?PASSWORD2),
+    testsuite:is(exmpp_client_legacy_auth:password(
+        ?FIELDS1, "User", "Password", "Resource", "foobar"),
+      ?PASSWORD1),
+    testsuite:is(exmpp_client_legacy_auth:password(
+        ?FIELDS2, "User", "Password", "Resource", "foobar"),
+      ?PASSWORD2),
+    testsuite:is(exmpp_client_legacy_auth:password(
+        ?FIELDS3, "User", "Password", "Resource", "foobar"),
+      ?PASSWORD2),
+    testsuite:is(exmpp_server_legacy_auth:get_credentials(?PASSWORD1),
+      {"User", {plain, "Password"}, "Resource"}),
+    Digest = exmpp_client_legacy_auth:digest("foobar", "Password"),
+    testsuite:is(exmpp_server_legacy_auth:get_credentials(?PASSWORD2),
+      {"User", {digest, Digest}, "Resource"}),
     ok.
 
 test_legacy_auth_success() ->
@@ -166,6 +230,8 @@ test_legacy_auth_success() ->
       ?SUCCESS1),
     testsuite:is(exmpp_server_legacy_auth:success(?PASSWORD2),
       ?SUCCESS1),
+    testsuite:is(exmpp_client_legacy_auth:is_success(?SUCCESS1),
+      true),
     ok.
 
 test_legacy_auth_failure() ->
@@ -175,4 +241,6 @@ test_legacy_auth_failure() ->
       ?FAILURE2),
     testsuite:is(exmpp_server_legacy_auth:failure(?PASSWORD1, 'not-acceptable'),
       ?FAILURE3),
+    testsuite:is(exmpp_client_legacy_auth:is_success(?FAILURE1),
+      false),
     ok.
