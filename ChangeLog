@@ -22,6 +22,16 @@
 	* src/core/exmpp_iq.erl: Add functions to access request and result
 	contained in an IQ.
 
+	* src/server/exmpp_server_legacy_auth.erl,
+	src/client/exmpp_client_legacy_auth.erl: Modify and add functions to
+	better handle legacy authentication. It's now possible to tell which
+	fields to propose from the server side and get credentials from the
+	stanza sent by the client. From the client side, the password stanza
+	is built based on the fields supported by the server.
+
+	* testsuite/check_legacy_auth.erl: Update testsuite for
+	exmpp_server_legacy_auth and exmpp_client_legacy_auth.
+
 2008-04-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Second round of commits for the Big Cleanup.
