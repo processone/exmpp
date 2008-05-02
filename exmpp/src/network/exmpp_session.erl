@@ -485,7 +485,7 @@ wait_for_auth_result(?iq, State = #state{from_pid=From}) ->
             gen_fsm:reply(From, ok),	     
             {next_state, logged_in, State#state{from_pid=undefined}};
         "error" ->
-            Reason = exmpp_error:get_reason(IQElement),
+            Reason = exmpp_stanza:get_condition(IQElement),
             gen_fsm:reply(From, {auth_error, Reason}),
             {next_state, stream_opened, State#state{from_pid=undefined}}
     end.
@@ -555,14 +555,13 @@ connect(Module, Host, Port, From, State) ->
     connect(Module, Host, Port, Domain, From, State).
 connect(Module, Host, Port, Domain, From, #state{client_pid=Pid} = State) ->
     try start_parser() of
-	{ok, StreamRef} ->
+	 StreamRef ->
 	    try Module:connect(Pid, StreamRef, {Host, Port}) of
 		{ConnRef, ReceiverRef} ->
 		    %% basic (legacy) authent: we do not use version
 		    %% 1.0 in stream:
 		    ok = Module:send(ConnRef,
-				     exmpp_client_stream:opening(
-				       [{to, Domain}])),
+				     exmpp_stream:opening(Domain,?NS_JABBER_CLIENT,{0,0})),
 		    {next_state, wait_for_stream, State#state{
 						    domain = Domain,
 						    connection = Module,
@@ -594,10 +593,10 @@ do_auth(password, ConnRef, Module, Username, Password, Resource, _StreamId) ->
 do_auth(digest, ConnRef, Module, Username, Password, Resource, StreamId) 
 when list(StreamId) ->
     Module:send(ConnRef,
-		exmpp_client_legacy_auth:password_digest(StreamId,
-							 Username,
+		exmpp_client_legacy_auth:password_digest(Username,
 							 Password,
-							 Resource));
+							 Resource,
+                             StreamId));
 %% In this case StreamId can be false
 do_auth(digest, _ConnRef, _Module, _Username, _Password, _Resource, StreamId) 
 when atom(StreamId) ->
