@@ -1,3 +1,18 @@
+2008-05-07  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/server/exmpp_server_compression.erl: Use 'receiving entity'
+	instead of 'server'. Replace references to exmpp_server_stream with
+	exmpp_stream.
+
+	* src/client/exmpp_client_compression.erl: Use 'initiating entity'
+	instead of 'client'.
+
+	* src/server/exmpp_server_compression.erl,
+	src/client/exmpp_client_compression.erl: Fix exceptions documention.
+
+	* src/client/exmpp_client_compression.erl: Avoid list concatenation
+	when it's possible.
+
 2008-04-18  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_error.erl, src/core/exmpp_stanza.erl,
