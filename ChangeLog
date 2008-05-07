@@ -7,6 +7,7 @@
 	src/server/exmpp_server_compression.erl,
 	src/server/exmpp_server_legacy_auth.erl,
 	src/server/exmpp_server_sasl.erl,
+	src/server/exmpp_server_session.erl,
 	src/server/exmpp_server_tls.erl: Use 'receiving entity' instead of
 	'server'. Replace references to exmpp_server_stream with
 	exmpp_stream.
@@ -14,7 +15,8 @@
 	* src/server/exmpp_client_binding.erl,
 	src/client/exmpp_client_compression.erl,
 	src/client/exmpp_client_legacy_auth.erl,
-	src/server/exmpp_client_sasl.erl
+	src/server/exmpp_client_sasl.erl,
+	src/server/exmpp_client_session.erl,
 	src/server/exmpp_client_tls.erl: Use 'initiating entity' instead of
 	'client'.
 
@@ -32,19 +34,29 @@
 	new IS_IQ macro.
 
 	* src/server/exmpp_server_sasl.erl, src/server/exmpp_client_sasl.erl,
-	src/server/exmpp_server_tls.erl, src/client/exmpp_client_tls.erl: Use
-	exceptions for error handling. Add basic documentation.
+	src/server/exmpp_server_session.erl,
+	src/server/exmpp_client_session.erl, src/server/exmpp_server_tls.erl,
+	src/client/exmpp_client_tls.erl: Use exceptions for error handling.
+	Add basic documentation.
 
 	* src/server/exmpp_server_sasl.erl (failure): Rewrite error creation.
 	(next_step): Change {auth, Mech} by {auth, Mech, none} so that the
 	'auth' tuple has always the same size.
 
 	* src/server/exmpp_server_binding.erl,
-	src/client/exmpp_client_binding.erl: Use exmpp_iq instead of
+	src/client/exmpp_client_binding.erl,
+	src/server/exmpp_server_session.erl,
+	src/client/exmpp_client_session.erl: Use exmpp_iq instead of
 	exmpp_xml.
 
 	* src/client/exmpp_client_binding.erl (announced_support): Fix a bug
 	where true was returned when the support was not announced.
+
+	* src/server/exmpp_server_session.erl: Add a function to report an
+	error.
+
+	* src/client/exmpp_client_session.erl: Add a function to check if the
+	feature was announced. Use exmpp_internals:random_id/1 for IDs.
 
 2008-04-18  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
