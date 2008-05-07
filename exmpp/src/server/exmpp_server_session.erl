@@ -2,24 +2,40 @@
 
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
+%% @doc
+%% The module <strong>{@module}</strong> implements the receiving entity
+%% side of the Session Establishment.
+
 -module(exmpp_server_session).
 -vsn('$Revision$').
 
 -include("exmpp.hrl").
 
+% Feature announcement.
 -export([
-  feature/0,
+  feature/0
+]).
+
+% Session establishment.
+-export([
   want_establishment/1,
-  establish/1
+  establish/1,
+  error/2
 ]).
 
 % --------------------------------------------------------------------
 % Feature announcement.
 % --------------------------------------------------------------------
 
+%% @spec () -> Feature
+%%     Feature = exmpp_xml:xmlnselement()
+%% @doc Make a feature annoucement child.
+%%
+%% The result should then be passed to {@link exmpp_stream:features/1}.
+
 feature() ->
     #xmlnselement{
-      ns = ?NS_JABBER_SESSION,
+      ns = ?NS_SESSION,
       name = 'session',
       children = []
     }.
@@ -28,22 +44,41 @@ feature() ->
 % Session establishment.
 % --------------------------------------------------------------------
 
-want_establishment(#xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'} = Iq) ->
-    case exmpp_xml:get_attribute(Iq, 'type') of
-        "set" ->
-            case exmpp_xml:get_element_by_name(Iq,
-              ?NS_JABBER_SESSION, 'session') of
-                #xmlnselement{} ->
+%% @spec (IQ) -> bool()
+%%     IQ = exmpp_xml:xmlnselement()
+%% @throws {session, want_establishment, invalid_session, IQ}
+%% @doc Tell if the initiating entity wants to establish a session.
+
+want_establishment(IQ) when ?IS_IQ(IQ) ->
+    case exmpp_iq:get_type(IQ) of
+        'set' ->
+            case exmpp_iq:get_request(IQ) of
+                #xmlnselement{ns = ?NS_SESSION, name = 'session'} ->
                     ok;
                 _ ->
-                    {error, unexpected_stanza}
+                    throw({session, want_establishment, invalid_session, IQ})
             end;
         _ ->
-            {error, unexpected_stanza}
+            throw({session, want_establishment, invalid_session, IQ})
     end;
-want_establishment(#xmlnselement{}) ->
-    {error, unexpected_stanza}.
+want_establishment(Stanza) ->
+    throw({session, want_establishment, invalid_session, Stanza}).
 
-establish(Iq) ->
-    Iq1 = exmpp_xml:set_children(Iq, []),
-    exmpp_xml:set_attribute(Iq1, 'type', "result").
+%% @spec (IQ) -> Result_IQ
+%%     IQ = exmpp_xml:xmlnselement()
+%%     Result_IQ = exmpp_xml:xmlnselement()
+%% @doc Prepare a result IQ to inform the initiating entity that the
+%% session is created.
+
+establish(IQ) when ?IS_IQ(IQ) ->
+    exmpp_iq:result(IQ).
+
+%% @spec (IQ, Condition) -> Error_IQ
+%%     IQ = exmpp_xml:xmlnselement()
+%%     Condition = atom()
+%%     Error_IQ = exmpp_xml:xmlnselement()
+%% @doc Prepare an error reply to `IQ'.
+
+error(IQ, Condition) when ?IS_IQ(IQ) ->
+    Error = exmpp_stanza:error(IQ#xmlnselement.ns, Condition),
+    exmpp_iq:error(IQ, Error).

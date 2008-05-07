@@ -2,60 +2,73 @@
 
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
+%% @doc
+%% The module <strong>{@module}</strong> implements the initiating
+%% entity side of the Session Establishment.
+
 -module(exmpp_client_session).
 -vsn('$Revision$').
 
 -include("exmpp.hrl").
 
+% Feature announcement.
+-export([
+  announced_support/1
+]).
+
+% Session establishment.
 -export([
   establish/0,
-  is_established/1
+  check_establishment/1
 ]).
+
+% --------------------------------------------------------------------
+% Feature announcement.
+% --------------------------------------------------------------------
+
+%% @spec (Features_Announcement) -> bool()
+%%     Features_Announcement = exmpp_xml:xmlnselement()
+%% @throws {session, announced_support, invalid_feature, Feature}
+%% @doc Tell if the Session Establishment feature is supported.
+
+announced_support(#xmlnselement{ns = ?NS_XMPP, name = 'features'} = El) ->
+    case exmpp_xml:get_element_by_name(El, ?NS_SESSION, 'session') of
+        undefined -> false;
+        Child     -> announced_support2(Child)
+    end.    
+    
+announced_support2(#xmlnselement{children = []}) ->
+    true;
+announced_support2(Feature) ->
+    throw({session, announced_support, invalid_feature, Feature}).
 
 % --------------------------------------------------------------------
 % Session establishment.
 % --------------------------------------------------------------------
 
+%% @spec () -> Session
+%%     Session = exmpp_xml:xmlnselement()
+%% @doc Make a `<session/>' element to create a session.
+
 establish() ->
     Session = #xmlnselement{
-      ns = ?NS_JABBER_SESSION,
+      ns = ?NS_SESSION,
       name = 'session',
       children = []
     },
-    Iq = #xmlnselement{
-      ns = ?NS_JABBER_CLIENT,
-      name = 'iq',
-      children = [Session]
-    },
-    exmpp_xml:set_attributes(Iq, [
-      {'type', "set"},
-      {'id', session_id()}
-    ]).
+    exmpp_iq:set(?NS_JABBER_CLIENT, Session,
+      exmpp_internals:random_id("session")).
 
-is_established(#xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'} = Iq) ->
-    case exmpp_xml:get_attribute(Iq, 'type') of
-        "result" ->
+%% @spec (IQ) -> ok
+%%     IQ = exmpp_xml:xmlnselement()
+%% @throws {session, check_establishment, establishment_failed, Condition}
+%% @doc Check that the session was created successfully.
+
+check_establishment(IQ) when ?IS_IQ(IQ) ->
+    case exmpp_iq:get_type(IQ) of
+        'result' ->
             ok;
-        "error" ->
-            case exmpp_xml:get_element_by_name(Iq, 'error') of
-                #xmlnselement{children =
-                  [#xmlnselement{ns = ?NS_XMPP_STANZAS, name = Reason}]} ->
-                    {error, Reason};
-                _ ->
-                    {error, undefined}
-            end
+        'error' ->
+            throw({session, check_establishment,
+              establishment_failed, exmpp_stanza:get_condition(IQ)})
     end.
-
-% --------------------------------------------------------------------
-% Internal functions.
-% --------------------------------------------------------------------
-
-%% @spec () -> Bind_ID
-%%     Session_ID = string()
-%% @doc Generate a random session establishment iq ID.
-%%
-%% This function uses {@link random:uniform/1}. It's up to the caller to
-%% seed the generator.
-
-session_id() ->
-    "session-" ++ integer_to_list(random:uniform(65536 * 65536)).
