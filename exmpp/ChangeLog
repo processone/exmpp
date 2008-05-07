@@ -1,10 +1,12 @@
 2008-05-07  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
-	* src/server/exmpp_server_compression.erl: Use 'receiving entity'
+	* src/server/exmpp_server_compression.erl,
+	src/server/exmpp_server_legacy_auth.erl: Use 'receiving entity'
 	instead of 'server'. Replace references to exmpp_server_stream with
 	exmpp_stream.
 
-	* src/client/exmpp_client_compression.erl: Use 'initiating entity'
+	* src/client/exmpp_client_compression.erl,
+	src/client/exmpp_client_legacy_auth.erl: Use 'initiating entity'
 	instead of 'client'.
 
 	* src/server/exmpp_server_compression.erl,
@@ -12,6 +14,10 @@
 
 	* src/client/exmpp_client_compression.erl: Avoid list concatenation
 	when it's possible.
+
+	* src/server/exmpp_server_legacy_auth.erl,
+	src/client/exmpp_client_legacy_auth.erl: Update documentation. Use the
+	new IS_IQ macro.
 
 2008-04-18  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
