@@ -3,8 +3,8 @@
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
 %% @doc
-%% The module <strong>{@module}</strong> implements the server side of
-%% Resource Binding.
+%% The module <strong>{@module}</strong> implements the receiving entity
+%% side of Resource Binding.
 
 -module(exmpp_server_binding).
 -vsn('$Revision$').
@@ -31,8 +31,7 @@
 %%     Feature = exmpp_xml:xmlnselement()
 %% @doc Make a feature announcement child.
 %%
-%% The result should then be passed to {@link
-%% exmpp_server_stream:features/1}.
+%% The result should then be passed to {@link exmpp_stream:features/1}.
 
 feature() ->
     #xmlnselement{
@@ -45,19 +44,20 @@ feature() ->
 % Resource binding.
 % --------------------------------------------------------------------
 
-%% @spec (Iq) -> Resource | undefined
-%%     Iq = exmpp_xml:xmlnselement()
-%%     REsource = string()
-%% @throws {resource_binding, wished_resource, invalid_bind, Iq}
+%% @spec (IQ) -> Resource | undefined
+%%     IQ = exmpp_xml:xmlnselement()
+%%     Resource = string()
+%% @throws {resource_binding, wished_resource, invalid_bind, IQ}
 %% @doc Return the resource the client wants or `undefined' if he
 %% doesn't ask for any.
 
-wished_resource(#xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'} = Iq) ->
-    case exmpp_stanza:get_type(Iq) of
-        "set" ->
-            case exmpp_xml:get_element_by_name(Iq, ?NS_BIND, 'bind') of
-                #xmlnselement{} = Bind ->
-                    case exmpp_xml:get_element_by_name(Bind, 'resource') of
+wished_resource(IQ) when ?IS_IQ(IQ) ->
+    case exmpp_iq:get_type(IQ) of
+        'set' ->
+            case exmpp_iq:get_request(IQ) of
+                #xmlnselement{ns = ?NS_BIND, name = 'bind'} = Bind ->
+                    case exmpp_xml:get_element_by_name(Bind,
+                      ?NS_BIND, 'resource') of
                         #xmlnselement{} = Resource ->
                             exmpp_xml:get_cdata(Resource);
                         _ ->
@@ -65,21 +65,21 @@ wished_resource(#xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'} = Iq) ->
                     end;
                 _ ->
                     throw({resource_binding, wished_resource,
-                        invalid_bind, Iq})
+                        invalid_bind, IQ})
             end;
         _ ->
-            throw({resource_binding, wished_resource, invalid_bind, Iq})
+            throw({resource_binding, wished_resource, invalid_bind, IQ})
     end;
 wished_resource(Stanza) ->
     throw({resource_binding, wished_resource, invalid_bind, Stanza}).
 
-%% @spec (Iq, Jid) -> Reply
-%%     Iq = exmpp_xml:xmlnselement()
+%% @spec (IQ, Jid) -> Reply
+%%     IQ = exmpp_xml:xmlnselement()
 %%     Jid = exmpp_jid:jid()
 %%     Reply = exmpp_xml:xmlnselement()
-%% @doc Prepare a reply to `Iq' to inform the client of its final JID.
+%% @doc Prepare a reply to `IQ' to inform the client of its final JID.
 
-bind(Iq, Jid) ->
+bind(IQ, Jid) when ?IS_IQ(IQ) ->
     Jid_S = exmpp_jid:jid_to_string(Jid),
     El = #xmlnselement{
       ns = ?NS_BIND,
@@ -92,14 +92,14 @@ bind(Iq, Jid) ->
       name = 'bind',
       children = Children
     },
-    Iq1 = exmpp_xml:set_children(Iq, [Bind]),
-    exmpp_stanza:set_type(Iq1, "result").
+    exmpp_iq:result(IQ, Bind).
 
-%% @spec (Iq, Condition) -> Error_Iq
-%%     Iq = exmpp_xml:xmlnselement()
+%% @spec (IQ, Condition) -> Error_IQ
+%%     IQ = exmpp_xml:xmlnselement()
 %%     Condition = atom()
-%%     Error_Iq = exmpp_xml:xmlnselement()
-%% @doc Prepare an error reply to `Iq'.
+%%     Error_IQ = exmpp_xml:xmlnselement()
+%% @doc Prepare an error reply to `IQ'.
 
-error(Iq, Condition) ->
-    exmpp_stanza:reply_with_error(Iq, Condition).
+error(IQ, Condition) when ?IS_IQ(IQ) ->
+    Error = exmpp_stanza:error(IQ#xmlnselement.ns, Condition),
+    exmpp_iq:error(IQ, Error).
