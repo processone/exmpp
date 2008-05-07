@@ -3,8 +3,8 @@
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
 %% @doc
-%% The module <strong>{@module}</strong> implements the server side of
-%% Stream Compression (XEP-0138).
+%% The module <strong>{@module}</strong> implements the receiving entity
+%% side of Stream Compression (XEP-0138).
 %%
 %% @reference <a href="http://www.xmpp.org/extensions/xep-0138.html">XEP-0138: Stream Compression</a>
 %% @reference <a href="http://www.xmpp.org/extensions/xep-0229.html">XEP-0229: Stream Compression with LZW</a>
@@ -33,7 +33,7 @@
 %%     Methods = [string()]
 %%     Feature = exmpp_xml:xmlnselement()
 %% @throws {stream_compression, feature_announcement, invalid_methods_list,
-%%           Methods} |
+%%           []} |
 %%         {stream_compression, feature_announcement, invalid_method, Method}
 %% @doc Make a feature annoucement child.
 %%
@@ -45,8 +45,7 @@
 %% <li>`"lzw"'</li>
 %% </ul>
 %%
-%% The result should then be passed to {@link
-%% exmpp_server_stream:features/1}.
+%% The result should then be passed to {@link exmpp_stream:features/1}.
 
 feature(Methods) ->
     #xmlnselement{

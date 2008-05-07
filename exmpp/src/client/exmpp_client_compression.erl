@@ -3,8 +3,8 @@
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
 %% @doc
-%% The module <strong>{@module}</strong> implements the client side of
-%% Stream Compression (XEP-0138).
+%% The module <strong>{@module}</strong> implements the initiating
+%% entity side of Stream Compression (XEP-0138).
 %%
 %% @reference <a href="http://www.xmpp.org/extensions/xep-0138.html">XEP-0138: Stream Compression</a>
 %% @reference <a href="http://www.xmpp.org/extensions/xep-0229.html">XEP-0229: Stream Compression with LZW</a>
@@ -32,7 +32,7 @@
 %%     Features_Announcement = exmpp_xml:xmlnselement()
 %%     Methods = [string()]
 %% @throws {stream_compression, announced_methods, invalid_feature, Feature} |
-%%         {stream_compression, announced_methods, invalid_method, Method}
+%%         {stream_compression, announced_methods, invalid_method, El}
 %% @doc Return the list of supported compression methods.
 
 announced_methods(#xmlnselement{ns = ?NS_XMPP, name = 'features'} = El) ->
@@ -52,12 +52,12 @@ announced_methods3(
         "" ->
             throw({stream_compression, announced_methods, invalid_method, El});
         Method ->
-            announced_methods3(Rest, Result ++ [Method])
+            announced_methods3(Rest, [Method | Result])
     end;
 announced_methods3([El | _Rest], _Result) ->
     throw({stream_compression, announced_methods, invalid_method, El});
 announced_methods3([], Result) ->
-    Result.
+    lists:reverse(Result).
 
 % --------------------------------------------------------------------
 % Compression negotiation.
