@@ -3,14 +3,15 @@
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
 %% @doc
-%% The module <strong>{@module}</strong> implements the client side of
-%% legacy authentication found in Jabber, before XMPP 1.0.
+%% The module <strong>{@module}</strong> implements the initiating
+%% entity side of legacy authentication found in Jabber, before XMPP
+%% 1.0.
 %%
 %% <p>
 %% A common use case is presented in <em>table 1</em>.
 %% </p>
 %% <table class="illustration">
-%% <caption>Table 1: stream opening and closing</caption>
+%% <caption>Table 1: successful legacy authentication</caption>
 %% <tr>
 %% <th>Client-side</th>
 %% <th>Server-side</th>
@@ -35,7 +36,7 @@
 %% <p>
 %% The server answer with the available fields:
 %% </p>
-%% <pre>Request_Id = exmpp_xml:get_attribute(Request, 'id'),<br/>Fields = exmpp_server_legacy_auth:fields(Request_Id).</pre>
+%% <pre>Fields = exmpp_server_legacy_auth:fields(Request).</pre>
 %% <p>
 %% After serialization, this produces this XML message:
 %% </p>
@@ -46,24 +47,21 @@
 %%               &lt;digest/&gt;
 %%               &lt;resource/&gt;
 %%       &lt;/query&gt;<br/>&lt;/iq&gt;</pre>
-%% <p>
-%% At this time, this function doesn't offer the possibility to choose
-%% which field to include (one may not want to propose `<password/>' for
-%% instance). And because {@link exmpp_xml} doesn't provide a function
-%% to remove element yet, the only way to achieve this is to walk
-%% through the children and remove it by hand.
-%% </p>
 %% </td>
 %% </tr>
 %% <tr>
 %% <td>
 %% <p>
-%% The client can send its credentials; he choose `<digest/>':
+%% The client can send its credentials:
 %% </p>
-%% <pre>Password = exmpp_client_legacy_auth:password_digest(
+%% <pre>Password = exmpp_client_legacy_auth:password(
+%%   Fields,
 %%   "johndoe",
 %%   "foobar!",
 %%   "home"<br/>).</pre>
+%% <p>
+%% The best method is chosen automatically (here, `<digest/>').
+%% </p>
 %% <p>
 %% After serialization, this produces this XML message:
 %% </p>
@@ -84,7 +82,7 @@
 %% <p>
 %% If the password is correct, the server notify the client:
 %% </p>
-%% <pre>Password_Id = exmpp_xml:get_attribute(Password, 'id'),<br/>Success = exmpp_server_legacy_auth:success(Password_Id).</pre>
+%% <pre>Success = exmpp_server_legacy_auth:success(Password).</pre>
 %% <p>
 %% After serialization, this produces this XML message:
 %% </p>
@@ -304,7 +302,7 @@ password_digest(Username, Password, Resource, ID) ->
 %%         {legacy_auth, get_fields, invalid_field, Field}
 %% @doc Return the list of fields supported by the server.
 
-get_fields(Fields_IQ) ->
+get_fields(Fields_IQ) when ?IS_IQ(Fields_IQ) ->
     case exmpp_iq:get_result(Fields_IQ) of
         undefined ->
             throw({legacy_auth, get_fields, invalid_iq, Fields_IQ});
@@ -328,7 +326,7 @@ get_fields2([], Fields) ->
 %%     Auth = digest | password
 %% @doc Return the prefered authentication method.
 
-get_prefered_auth(IQ) ->
+get_prefered_auth(IQ) when ?IS_IQ(IQ) ->
     case lists:member('digest', get_fields(IQ)) of
         true -> digest;
         _    -> plain
@@ -338,7 +336,7 @@ get_prefered_auth(IQ) ->
 %%     IQ = exmpp_xml:xmlnselement()
 %% @doc Tell if the authentication succeeded.
 
-is_success(IQ) ->
+is_success(IQ) when ?IS_IQ(IQ) ->
     case exmpp_iq:get_type(IQ) of
         'result' -> true;
         'error'  -> false;

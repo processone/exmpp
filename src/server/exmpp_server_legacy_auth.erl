@@ -3,8 +3,8 @@
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
 %% @doc
-%% The module <strong>{@module}</strong> implements the server side of
-%% legacy authentication found in Jabber, before XMPP 1.0.
+%% The module <strong>{@module}</strong> implements the receiving entity
+%% side of legacy authentication found in Jabber, before XMPP 1.0.
 %%
 %% @see exmpp_client_legacy_auth.
 %%
@@ -48,7 +48,7 @@ fields(Request_IQ) ->
 %%     Fields_IQ = exmpp_xml:xmlnselement()
 %% @doc Make an `<iq>' for advertising fields.
 
-fields(Request_IQ, Auth) ->
+fields(Request_IQ, Auth) when ?IS_IQ(Request_IQ) ->
     Username_El = #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'username',
       children = []},
     Password_El = #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'password',
@@ -74,7 +74,7 @@ fields(Request_IQ, Auth) ->
 %%     Success_IQ = exmpp_xml:xmlnselement()
 %% @doc Make an `<iq>' to notify a successfull authentication.
 
-success(Password_IQ) ->
+success(Password_IQ) when ?IS_IQ(Password_IQ) ->
     exmpp_iq:result(Password_IQ).
 
 %% @spec (Password_IQ, Condition) -> Failure_IQ
@@ -83,7 +83,7 @@ success(Password_IQ) ->
 %%     Failure_IQ = exmpp_xml:xmlnselement()
 %% @doc Make an `<iq>' to notify a successfull authentication.
 
-failure(Password_IQ, Condition) ->
+failure(Password_IQ, Condition) when ?IS_IQ(Password_IQ) ->
     Code = case Condition of
         'not-authorized' -> "401";
         'conflict'       -> "409";
@@ -98,7 +98,7 @@ failure(Password_IQ, Condition) ->
 % Accessing informations.
 % --------------------------------------------------------------------
 
-get_credentials(Password_IQ) ->
+get_credentials(Password_IQ) when ?IS_IQ(Password_IQ) ->
     Request = exmpp_iq:get_request(Password_IQ),
     case Request of
         #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'query', children = Children}
