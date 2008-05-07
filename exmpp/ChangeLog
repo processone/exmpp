@@ -1,5 +1,8 @@
 2008-05-07  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
+	* include/exmpp.hrl: Add a macro to test IQ in guard expressions.
+	Rename NS_JABBER_SESSION as NS_SESSION.
+
 	* src/server/exmpp_server_compression.erl,
 	src/server/exmpp_server_legacy_auth.erl: Use 'receiving entity'
 	instead of 'server'. Replace references to exmpp_server_stream with
