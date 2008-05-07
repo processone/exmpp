@@ -3,8 +3,8 @@
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
 %% @doc
-%% The module <strong>{@module}</strong> implements the client side of
-%% Resource Binding.
+%% The module <strong>{@module}</strong> implements the initiating
+%% entity side of Resource Binding.
 
 -module(exmpp_client_binding).
 -vsn('$Revision$').
@@ -34,7 +34,7 @@
 
 announced_support(#xmlnselement{ns = ?NS_XMPP, name = 'features'} = El) ->
     case exmpp_xml:get_element_by_name(El, ?NS_BIND, 'bind') of
-        undefined -> true;
+        undefined -> false;
         Child     -> announced_support2(Child)
     end.
 
@@ -77,39 +77,35 @@ bind(Resource) ->
       name = 'bind',
       children = Children
     },
-    Attrs1 = exmpp_stanza:set_type_in_attrs([], "set"),
-    Attrs2 = exmpp_stanza:set_id_in_attrs(Attrs1,
-      exmpp_internals:random_id("bind")),
-    #xmlnselement{
-      ns = ?NS_JABBER_CLIENT,
-      name = 'iq',
-      attrs = Attrs2,
-      children = [Bind]
-    }.
+    exmpp_iq:set(?NS_JABBER_CLIENT, Bind, exmpp_internals:random_id("bind")).
 
 %% @spec (Bind) -> Jid
 %%     Bind = exmpp_xml:xmlnselement()
 %%     Jid = string()
-%% @throws {resource_binding, bounded_jid, no_jid, Iq} |
+%% @throws {resource_binding, bounded_jid, invalid_bind, Stanza} |
+%%         {resource_binding, bounded_jid, no_jid, IQ} |
 %%         {resource_binding, bounded_jid, bind_error, Condition}
 %% @doc Extract the JID given by the server.
 
-bounded_jid(#xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'} = Iq) ->
-    case exmpp_xml:get_attribute(Iq, 'type') of
-        "result" ->
-            case exmpp_xml:get_element_by_name(Iq, ?NS_BIND, 'bind') of
-                #xmlnselement{} = Bind_El ->
-                    case exmpp_xml:get_element_by_name(Bind_El, 'jid') of
+bounded_jid(IQ) when ?IS_IQ(IQ) ->
+    case exmpp_iq:get_type(IQ) of
+        'result' ->
+            case exmpp_iq:get_result(IQ) of
+                #xmlnselement{ns = ?NS_BIND, name = 'bind'} = Bind ->
+                    case exmpp_xml:get_element_by_name(Bind,
+                      ?NS_BIND, 'jid') of
                         #xmlnselement{} = Jid_El ->
                             Jid_S = exmpp_xml:get_cdata(Jid_El),
                             exmpp_jid:string_to_jid(Jid_S);
                         _ ->
-                            throw({resource_binding, bounded_jid, no_jid, Iq})
+                            throw({resource_binding, bounded_jid, no_jid, IQ})
                     end;
                 _ ->
-                    throw({resource_binding, bounded_jid, no_jid, Iq})
+                    throw({resource_binding, bounded_jid, no_jid, IQ})
             end;
-        "error" ->
-            Condition = exmpp_stanza:get_condition(Iq),
+        'error' ->
+            Condition = exmpp_stanza:get_condition(IQ),
             throw({resource_binding, bounded_jid, bind_error, Condition})
-    end.
+    end;
+bounded_jid(Stanza) ->
+    throw({resource_binding, bounded_jid, invalid_bind, Stanza}).
