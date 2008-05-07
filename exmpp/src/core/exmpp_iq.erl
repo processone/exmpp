@@ -25,6 +25,7 @@
 
 % IQ standard attributes.
 -export([
+  is_iq/1,
   get_type/1,
   get_request/1,
   get_result/1
@@ -137,6 +138,15 @@ error_without_original(IQ, Error) ->
 % --------------------------------------------------------------------
 % IQ standard attributes.
 % --------------------------------------------------------------------
+
+%% @spec (El) -> bool
+%%     El = exmpp_xml:xmlnselement()
+%% @doc Tell if `El' is an IQ.
+%%
+%% You should probably use the `IS_IQ(IQ)' guard expression.
+
+is_iq(IQ) when ?IS_IQ(IQ) -> true;
+is_iq(_El)                -> false.
 
 %% @spec (IQ) -> Type
 %%     IQ = exmpp_xml:xmlnselement()
