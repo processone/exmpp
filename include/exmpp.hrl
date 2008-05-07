@@ -70,6 +70,16 @@
 }).
 
 % --------------------------------------------------------------------
+% Macros for common tests.
+% --------------------------------------------------------------------
+
+% Guard expression to test an IQ.
+-define(IS_IQ(IQ),
+  IQ#xmlnselement.name == 'iq', IQ#xmlnselement.ns == ?NS_JABBER_CLIENT;
+  IQ#xmlnselement.name == 'iq', IQ#xmlnselement.ns == ?NS_JABBER_SERVER
+).
+
+% --------------------------------------------------------------------
 % Records to represent XMPP/Jabber specific structures.
 % --------------------------------------------------------------------
 
@@ -103,7 +113,7 @@
 -define(NS_JABBER_REGISTER, 'jabber:iq:register').
 -define(NS_JABBER_ROSTER,   'jabber:iq:roster').
 -define(NS_BIND,            'urn:ietf:params:xml:ns:xmpp-bind').
--define(NS_JABBER_SESSION,  'urn:ietf:params:xml:ns:xmpp-session').
+-define(NS_SESSION,         'urn:ietf:params:xml:ns:xmpp-session').
 -define(NS_XMPP_STREAMS,    'urn:ietf:params:xml:ns:xmpp-streams').
 -define(NS_XMPP_STANZAS,    'urn:ietf:params:xml:ns:xmpp-stanzas').
 -define(NS_TLS,             'urn:ietf:params:xml:ns:xmpp-tls').
