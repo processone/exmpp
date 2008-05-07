@@ -4,13 +4,15 @@
 	Rename NS_JABBER_SESSION as NS_SESSION.
 
 	* src/server/exmpp_server_compression.erl,
-	src/server/exmpp_server_legacy_auth.erl: Use 'receiving entity'
-	instead of 'server'. Replace references to exmpp_server_stream with
+	src/server/exmpp_server_legacy_auth.erl,
+	src/server/exmpp_server_tls.erl: Use 'receiving entity' instead of
+	'server'. Replace references to exmpp_server_stream with
 	exmpp_stream.
 
 	* src/client/exmpp_client_compression.erl,
-	src/client/exmpp_client_legacy_auth.erl: Use 'initiating entity'
-	instead of 'client'.
+	src/client/exmpp_client_legacy_auth.erl,
+	src/server/exmpp_client_tls.erl: Use 'initiating entity' instead of
+	'client'.
 
 	* src/server/exmpp_server_compression.erl,
 	src/client/exmpp_client_compression.erl: Fix exceptions documention.
@@ -21,6 +23,9 @@
 	* src/server/exmpp_server_legacy_auth.erl,
 	src/client/exmpp_client_legacy_auth.erl: Update documentation. Use the
 	new IS_IQ macro.
+
+	* src/server/exmpp_server_tls.erl, src/client/exmpp_client_tls.erl:
+	Use exceptions for error handling. Add basic documentation.
 
 2008-04-18  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
