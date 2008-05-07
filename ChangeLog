@@ -58,6 +58,9 @@
 	* src/client/exmpp_client_session.erl: Add a function to check if the
 	feature was announced. Use exmpp_internals:random_id/1 for IDs.
 
+	* src/core/exmpp_iq.erl: Add a function iq_iq/1, mostly to demonstrate
+	the new IS_IQ macro.
+
 2008-04-18  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_error.erl, src/core/exmpp_stanza.erl,
