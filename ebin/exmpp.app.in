@@ -1,0 +1,54 @@
+% $Id$
+
+{application, exmpp, [
+    {description, "XMPP/Jabber protocol oriented XML library"},
+    {vsn, "@VERSION@"},
+    {id, "$Id$"},
+    {modules, [
+        exmpp,
+        exmpp_internals,
+        exmpp_iq,
+        exmpp_jid,
+        exmpp_stanzas,
+        exmpp_stream,
+        exmpp_stringprep,
+        exmpp_sup,
+        exmpp_xml,
+        exmpp_xmlstream,
+        exmpp_client_binding,
+        exmpp_client_compression,
+        exmpp_client_legacy_auth,
+        exmpp_client_presence,
+        exmpp_client_pubsub,
+        exmpp_client_register,
+        exmpp_client_roster,
+        exmpp_client_sasl,
+        exmpp_client_session,
+        exmpp_client_tls,
+        exmpp_server_binding,
+        exmpp_server_compression,
+        exmpp_server_legacy_auth,
+        exmpp_server_sasl,
+        exmpp_server_session,
+        exmpp_server_tls,
+        exmpp_callbacks,
+        exmpp_session,
+        exmpp_ssl,
+        exmpp_tcp@COMPAT_MODULES_START@
+        @COMPAT_MODULES@ejabberd_zlib,
+        @COMPAT_MODULES@iconv,
+        @COMPAT_MODULES@jlib,
+        @COMPAT_MODULES@sha,
+        @COMPAT_MODULES@stringprep,
+        @COMPAT_MODULES@tls,
+        @COMPAT_MODULES@xml
+    ]},
+    {registered, []},
+    {applications, [
+        kernel,
+        stdlib
+    ]},
+    {mod, {exmpp, []}}
+]}.
+
+% vim:ft=erlang:ts=8:

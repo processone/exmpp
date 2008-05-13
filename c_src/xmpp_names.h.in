@@ -1,0 +1,192 @@
+# $Id$
+# vim:ft=conf
+
+# In the `http://etherx.jabber.org/streams' namespace
+stream
+features
+error
+
+# In the `jabber:client' and `jabber:server' namespace
+message
+presence
+iq
+subject
+body
+thread
+error
+show
+status
+priority
+
+# In the `jabber:server:dialback' namespace
+result
+verify
+
+# In the `urn:ietf:params:xml:ns:xmpp-tls' namespace
+starttls
+required
+proceed
+failure
+
+# In the `urn:ietf:params:xml:ns:xmpp-sasl' namespace
+mechanisms
+mechanism
+auth
+challenge
+response
+abort
+success
+aborted
+incorrect-encoding
+invalid-authzid
+invalid-mechanism
+mechanism-too-weak
+not-authorized
+temporary-auth-failure
+
+# In the `urn:ietf:params:xml:ns:xmpp-bind' namespace
+bind
+resource
+jid
+
+# In the `urn:ietf:params:xml:ns:xmpp-session' namespace
+session
+
+# In the `urn:ietf:params:xml:ns:xmpp-streams' namespace
+text
+bad-format
+bad-namespace-prefix
+conflict
+connection-timeout
+host-gone
+host-unknown
+improper-addressing
+internal-server-error
+invalid-from
+invalid-id
+invalid-namespace
+invalid-xml
+not-authorized
+policy-violation
+remote-connection-failed
+resource-constraint
+restricted-xml
+see-other-host
+system-shutdown
+undefined-condition
+unsupported-encoding
+unsupported-stanza-type
+unsupported-version
+xml-not-well-formed
+
+# In the `urn:ietf:params:xml:ns:xmpp-stanzas' namespace
+text
+bad-request
+conflict
+feature-not-implemented
+forbidden
+gone
+internal-server-error
+item-not-found
+jid-malformed
+not-acceptable
+not-allowed
+payment-required
+recipient-unavailable
+redirect
+registration-required
+remote-server-not-found
+remote-server-timeout
+resource-constraint
+service-unavailable
+subscription-required
+undefined-condition
+unexpected-request
+
+# In the `jabber:iq:privacy' namespace
+query
+active
+default
+list
+item
+iq
+message
+presence-in
+presence-out
+
+# In the `jabber:iq:roster' namespace
+query
+item
+group
+
+# In the `jabber:iq:auth' namespace
+query
+username
+password
+digest
+resource
+auth
+
+# In the `http://jabber.org/protocol/pubsub' namespace
+affiliation
+affiliations
+configure
+create
+item
+items
+options
+publish
+pubsub
+required
+retract
+subscribe
+subscribe-options
+subscription
+subscriptions
+unsubscribe
+
+# In the `http://jabber.org/protocol/pubsub#errors' namespace
+closed-node
+configuration-required
+invalid-jid
+invalid-options
+invalid-payload
+invalid-subid
+item-forbidden
+item-required
+jid-required
+max-nodes-exceeded
+nodeid-required
+not-in-roster-group
+not-subscribed
+payload-too-big
+payload-required
+pending-subscription
+presence-subscription-required
+subid-required
+unsupported
+unsupported-access-model
+
+# In the `http://jabber.org/protocol/pubsub#event' namespace
+collection
+configuration
+delete
+event
+item
+items
+node
+node
+purge
+retract
+subscription
+
+# In the `http://jabber.org/protocol/pubsub#owner' namespace
+affiliation
+affiliations
+configure
+default
+delete
+pubsub
+purge
+subscription
+subscriptions

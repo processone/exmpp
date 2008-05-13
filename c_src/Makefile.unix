@@ -1,0 +1,125 @@
+# $Id$
+
+# Programs
+AWK  ?= awk
+CUT  ?= cut
+ERL  ?= erl
+GREP ?= grep
+RM   ?= rm -f
+
+# Erlang paths.
+ERLANG_ROOT_DIR ?= $(shell $(ERL) -noshell -eval 'io:format(code:root_dir())' -run erlang halt)
+ERLANG_LIB_DIR_erl_interface ?= $(shell $(ERL) -noshell -eval 'io:format(code:lib_dir(erl_interface))' -run erlang halt)
+
+# Compile/link flags.
+EI_CPPFLAGS ?= -I$(ERLANG_ROOT_DIR)/usr/include \
+	      -I$(ERLANG_LIB_DIR_erl_interface)/include
+EI_LDFLAGS ?= -L$(ERLANG_LIB_DIR_erl_interface)/lib
+EI_LIBS ?= -lei_st
+
+EXPAT_CPPFLAGS ?= -I/usr/include
+EXPAT_LDFLAGS ?= -L/usr/lib
+EXPAT_LIBS ?= -lexpat
+
+ZLIB_CPPFLAGS ?= -I/usr/include
+ZLIB_LDFLAGS ?= -L/usr/lib
+ZLIB_LIBS ?= -lz
+
+ICONV_CPPFLAGS ?= -I/usr/include
+ICONV_LDFLAGS ?= -L/usr/lib
+ICONV_LIBS ?= -liconv
+
+OPENSSL_CPPFLAGS ?= -I/usr/include
+OPENSSL_LDFLAGS ?= -L/usr/lib
+OPENSSL_LIBS ?= -lssl -lcrypto
+
+ifeq ($(shell uname), Darwin)
+DYNAMIC_LIB_CFLAGS = -fPIC -bundle -flat_namespace -undefined suppress
+else
+DYNAMIC_LIB_CFLAGS = -Wall -fpic -shared
+endif
+
+DRIVERS =  exmpp_expat_drv.so exmpp_stringprep_drv.so ejabberd_zlib_drv.so iconv_erl.so tls_drv.so
+
+all: $(DRIVERS)
+
+clean:
+	$(RM) $(DRIVERS)
+	$(RM) $(BUILT_SOURCES)
+	$(RM) config.h
+
+.PHONY: clean
+
+# --------------------------------------------------------------------
+# Supported port drivers.
+# --------------------------------------------------------------------
+
+# Generated headers.
+BUILT_SOURCES = xmpp_ns.h xmpp_names.h xmpp_attrs.h
+
+xmpp_ns.h: xmpp_ns.h.awk xmpp_ns.h.in
+	$(AWK) -f xmpp_ns.h.awk xmpp_ns.h.in > $@
+
+xmpp_names.h: xmpp_names.h.awk xmpp_names.h.in
+	$(AWK) -f xmpp_names.h.awk xmpp_names.h.in > $@
+
+xmpp_attrs.h: xmpp_attrs.h.awk xmpp_attrs.h.in
+	$(AWK) -f xmpp_attrs.h.awk xmpp_attrs.h.in > $@
+
+# Expat port driver
+exmpp_expat_drv_la_CPPFLAGS = -Icontrib \
+                              $(EI_CPPFLAGS) -DEI_ENCODE_STRING_BUG \
+                              $(EXPAT_CPPFLAGS)
+exmpp_expat_drv_la_LDFLAGS = $(EI_LDFLAGS) $(EI_LIBS) \
+                             $(EXPAT_LDFLAGS) $(EXPAT_LIBS)
+exmpp_expat_drv_la_SOURCES = contrib/hashtable.c \
+                             exmpp_expat_drv.c
+
+exmpp_expat_drv.so: $(BUILT_SOURCES) $(exmpp_expat_drv_la_SOURCES)
+	$(CC) $(exmpp_expat_drv_la_CPPFLAGS) $(CPPFLAGS) $(DYNAMIC_LIB_CFLAGS) $(CFLAGS) $(exmpp_expat_drv_la_LDFLAGS) $(LDFLAGS) $(exmpp_expat_drv_la_SOURCES) -o $@
+
+# Stringprep
+exmpp_stringprep_drv_la_CPPFLAGS = $(EI_CPPFLAGS)
+exmpp_stringprep_drv_la_LDFLAGS = $(EI_LDFLAGS) $(EI_LIBS)
+exmpp_stringprep_drv_la_SOURCES = exmpp_stringprep_drv.c
+
+exmpp_stringprep_drv.so: $(exmpp_stringprep_drv_la_SOURCES)
+	$(CC) $(exmpp_stringprep_drv_la_CPPFLAGS) $(CPPFLAGS) $(DYNAMIC_LIB_CFLAGS) $(CFLAGS) $(exmpp_stringprep_drv_la_LDFLAGS) $(LDFLAGS) $(exmpp_stringprep_drv_la_SOURCES) -o $@
+
+# --------------------------------------------------------------------
+# Port drivers which are not ported yet.
+# --------------------------------------------------------------------
+
+# config.h.
+config.h:
+	echo '#define ICONV_CONST' > $@
+
+# ejabberd_zlib port driver
+ejabberd_zlib_drv_la_CPPFLAGS = $(EI_CPPFLAGS) \
+				$(ZLIB_CPPFLAGS)
+ejabberd_zlib_drv_la_LDFLAGS = $(EI_LDFLAGS) $(EI_LIBS) \
+			       $(ZLIB_LDFLAGS) $(ZLIB_LIBS)
+ejabberd_zlib_drv_la_SOURCES = ejabberd_zlib_drv.c
+
+ejabberd_zlib_drv.so: $(ejabberd_zlib_drv_la_SOURCES)
+	$(CC) $(ejabberd_zlib_drv_la_CPPFLAGS) $(CPPFLAGS) $(DYNAMIC_LIB_CFLAGS) $(CFLAGS) $(ejabberd_zlib_drv_la_LDFLAGS) $(LDFLAGS) $(ejabberd_zlib_drv_la_SOURCES) -o $@
+
+# iconv port driver
+iconv_erl_la_CPPFLAGS = $(EI_CPPFLAGS) \
+			$(ICONV_CPPFLAGS)
+iconv_erl_la_LDFLAGS = $(EI_LDFLAGS) $(EI_LIBS) \
+		       $(ICONV_LDFLAGS) $(ICONV_LIBS)
+iconv_erl_la_SOURCES = iconv_erl.c
+
+iconv_erl.so: config.h $(iconv_erl_la_SOURCES)
+	$(CC) $(iconv_erl_la_CPPFLAGS) $(CPPFLAGS) $(DYNAMIC_LIB_CFLAGS) $(CFLAGS) $(iconv_erl_la_LDFLAGS) $(LDFLAGS) $(iconv_erl_la_SOURCES) -o $@
+
+# TLS port driver
+tls_drv_la_CPPFLAGS = $(EI_CPPFLAGS) \
+		      $(OPENSSL_CPPFLAGS)
+tls_drv_la_LDFLAGS = $(EI_LDFLAGS) $(EI_LIBS) \
+		     $(OPENSSL_LDFLAGS) $(OPENSSL_LIBS)
+tls_drv_la_SOURCES = tls_drv.c
+
+tls_drv.so: $(tls_drv_la_SOURCES)
+	$(CC) $(tls_drv_la_CPPFLAGS) $(CPPFLAGS) $(DYNAMIC_LIB_CFLAGS) $(CFLAGS) $(tls_drv_la_LDFLAGS) $(LDFLAGS) $(tls_drv_la_SOURCES) -o $@

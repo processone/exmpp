@@ -1,0 +1,26 @@
+% $Id$
+
+{
+	[
+		'@srcdir@/testsuite',
+		'@srcdir@/check_xml_parser',
+		'@srcdir@/check_xml_attribute_handlers',
+		'@srcdir@/check_xml_element_handlers',
+		'@srcdir@/check_xml_cdata_handlers',
+		'@srcdir@/check_xml_path',
+		'@srcdir@/check_xml_converters',
+		'@srcdir@/check_xmlstream',
+		'@srcdir@/check_jid',
+		'@srcdir@/check_stream',
+		'@srcdir@/check_legacy_auth',
+		'@srcdir@/check_coverity'
+	],
+	[
+		export_all,
+		@EMKOPTS@,
+		{i, "@top_srcdir@/include"},
+		{i, "@top_builddir@/include"}
+	]
+}.
+
+% vim:ft=erlang:ts=8:noet:

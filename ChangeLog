@@ -1,0 +1,1143 @@
+2008-05-07  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* include/exmpp.hrl: Add a macro to test IQ in guard expressions.
+	Rename NS_JABBER_SESSION as NS_SESSION.
+
+	* src/server/exmpp_server_binding.erl,
+	src/server/exmpp_server_compression.erl,
+	src/server/exmpp_server_legacy_auth.erl,
+	src/server/exmpp_server_sasl.erl,
+	src/server/exmpp_server_session.erl,
+	src/server/exmpp_server_tls.erl: Use 'receiving entity' instead of
+	'server'. Replace references to exmpp_server_stream with
+	exmpp_stream.
+
+	* src/server/exmpp_client_binding.erl,
+	src/client/exmpp_client_compression.erl,
+	src/client/exmpp_client_legacy_auth.erl,
+	src/server/exmpp_client_sasl.erl,
+	src/server/exmpp_client_session.erl,
+	src/server/exmpp_client_tls.erl: Use 'initiating entity' instead of
+	'client'.
+
+	* src/client/exmpp_client_binding.erl,
+	src/server/exmpp_server_compression.erl,
+	src/client/exmpp_client_compression.erl: Fix exceptions documention.
+
+	* src/client/exmpp_client_compression.erl,
+	src/server/exmpp_server_sasl.erl: Avoid list concatenation when it's
+	possible.
+
+	* src/server/exmpp_server_binding.erl,
+	src/server/exmpp_server_legacy_auth.erl,
+	src/client/exmpp_client_legacy_auth.erl: Update documentation. Use the
+	new IS_IQ macro.
+
+	* src/server/exmpp_server_sasl.erl, src/server/exmpp_client_sasl.erl,
+	src/server/exmpp_server_session.erl,
+	src/server/exmpp_client_session.erl, src/server/exmpp_server_tls.erl,
+	src/client/exmpp_client_tls.erl: Use exceptions for error handling.
+	Add basic documentation.
+
+	* src/server/exmpp_server_sasl.erl (failure): Rewrite error creation.
+	(next_step): Change {auth, Mech} by {auth, Mech, none} so that the
+	'auth' tuple has always the same size.
+
+	* src/server/exmpp_server_binding.erl,
+	src/client/exmpp_client_binding.erl,
+	src/server/exmpp_server_session.erl,
+	src/client/exmpp_client_session.erl: Use exmpp_iq instead of
+	exmpp_xml.
+
+	* src/client/exmpp_client_binding.erl (announced_support): Fix a bug
+	where true was returned when the support was not announced.
+
+	* src/server/exmpp_server_session.erl: Add a function to report an
+	error.
+
+	* src/client/exmpp_client_session.erl: Add a function to check if the
+	feature was announced. Use exmpp_internals:random_id/1 for IDs.
+
+	* src/core/exmpp_iq.erl: Add a function iq_iq/1, mostly to demonstrate
+	the new IS_IQ macro.
+
+2008-04-18  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_error.erl, src/core/exmpp_stanza.erl,
+	src/core/exmpp_iq.erl, src/core/exmpp_stream.erl,
+	src/server/exmpp_server_binding.erl,
+	src/server/exmpp_server_legacy_auth.erl,
+	src/client/exmpp_client_binding.erl,
+	src/client/exmpp_client_legacy_auth.erl, src/Makefile.am,
+	src/Emakefile.in, ebin/Makefile.am, ebin/exmpp.app.in,
+	doc/Makefile.am: Rename exmpp_error to exmpp_stanza.
+
+	* src/core/exmpp_jlib.erl, src/Makefile.am, src/Emakefile.in,
+	ebin/Makefile.am, ebin/exmpp.app.in, doc/Makefile.am: Remove
+	exmpp_jlib.
+
+	* src/core/exmpp_internals.erl: Add functions to generale a random ID.
+
+	* src/core/exmpp_stream.erl, src/core/exmpp_stanza.erl,
+	src/client/exmpp_client_binding.erl: Use exmpp_internals for random
+	ID.
+
+	* src/core/exmpp_iq.erl: Add functions to access request and result
+	contained in an IQ.
+
+	* src/server/exmpp_server_legacy_auth.erl,
+	src/client/exmpp_client_legacy_auth.erl: Modify and add functions to
+	better handle legacy authentication. It's now possible to tell which
+	fields to propose from the server side and get credentials from the
+	stanza sent by the client. From the client side, the password stanza
+	is built based on the fields supported by the server.
+
+	* testsuite/check_legacy_auth.erl: Update testsuite for
+	exmpp_server_legacy_auth and exmpp_client_legacy_auth.
+
+2008-04-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	Second round of commits for the Big Cleanup.
+
+	* src/server/exmpp_server_binding.erl,
+	src/client/exmpp_client_binding.erl,
+	src/server/exmpp_server_compression.erl,
+	src/client/exmpp_client_compression.erl,
+	src/server/exmpp_server_legacy_auth.erl,
+	src/client/exmpp_client_legacy_auth.erl: Update to use the new
+	modules/structures. Add basic documentation. Style.
+
+	* testsuite/check_legacy_auth.erl: Update testsuite for
+	exmpp_server_legacy_auth and exmpp_client_legacy_auth.
+
+2008-04-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	First round of commits for the Big Cleanup.
+
+	* include/exmpp.hrl, c_src/exmpp_expat_drv.c: Add a "default_ns"
+	member to #xmlnselement; we keep the default namespace in it,
+	regardless of the namespace of the current element. Style.
+
+	* c_src/exmpp_stringprep_drv.c: Add a command to return the port
+	driver $Revision$. Style.
+
+	* src/core/exmpp_internals.erl, src/core/exmpp_stringprep.erl: Use
+	exceptions for error handling. Add basic documentation.
+
+	* src/core/exmpp_xml.erl: Use exceptions for error handling. Use
+	exmpp_internals for port driver load/unload. Add function clauses for
+	accept "undefined" as an XML element. Change several functions to
+	return "undefined" instead of an empty string. Use the new
+	"default_ns" member during serialization. Update documentation.
+	Style.
+
+	* testsuite/check_xml_parser.erl,
+	testsuite/check_xml_attribute_handlers.erl,
+	testsuite/check_xml_element_handlers.erl,
+	testsuite/check_xml_cdata_handlers.erl, testsuite/check_xml_path.erl,
+	testsuite/check_xml_converters.erl: Update testsuite for exmpp_xml.
+
+	* src/core/exmpp_jid.erl: Use exceptions for error handling. Add basic
+	documentation. Style.
+
+	* testsuite/check_jid.erl: Update testsuite for exmpp_jid.
+
+	* src/core/exmpp_xmlstream.erl: Use exceptions for error handling.
+	Style.
+
+	* testsuite/check_xmlstream.erl: Update testsuite for exmpp_xmlstream.
+
+	* src/core/exmpp_stream.erl: Now, everything at the stream-level is
+	handled here. exmpp_client_stream and exmpp_server_stream should be
+	deleted as soon as the functions to manipulate features have moved
+	here. API of existing functions has changed. Use exceptions for error
+	handling.
+
+	* testsuite/check_stream.erl: Update testsuite for exmpp_stream.
+
+	* src/core/exmpp_error.erl: Everything at the stanza-level is handled
+	here. This module will be renamed as exmpp_stanza soon. Add basic
+	documentation.
+
+	* src/core/exmpp.erl, src/core/exmpp_sup.erl: Add basic documentation.
+	Style.
+
+	* src/core/exmpp_iq.erl, src/Emakefile.in, src/Makefile.am,
+	ebin/Makefile.am, ebin/exmpp.app.in, doc/Makefile.am: Add exmpp_iq, a
+	new module to provide functions specific to IQs.
+
+	* testsuite/testsuite.erl: Be verbose when Result and Ref doesn't
+	match. Style.
+
+	* src/core/exmpp_stream.erl, src/server/exmpp_server_stream.erl,
+	src/client/exmpp_client_stream.erl, src/Makefile.am, src/Emakefile.in,
+	ebin/Makefile.am, ebin/exmpp.app.in, doc/Makefile.am: Move the
+	exmpp_server_stream:features/1 to exmpp_stream and remove
+	exmpp_server_stream and exmpp_client_stream.
+
+2008-04-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* doc/Makefile.am: Wildcards are voluntarily not supported by
+	automake(1). To fix the build, we list explicitly every HTML files.
+	The "-i ''" argument of BSD sed still doesn't behave like GNU sed. To
+	fix this, we use an backup extension ("-i.bak") and remove the
+	backup.
+
+	* testsuite/test.sh: Fix sed(1) usage as above.
+
+2008-04-16  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* README: Fix autotools usage.
+
+	* testsuite/test.sh, testsuite/check_coverity.erl,
+	testsuite/Makefile.am: Build an index for code coverage reports.
+
+	* doc/Makefile.am: Replace ISO-8859-1-encoded '©' by an HTML entity.
+
+2008-04-03  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/Makefile.am: Update modules list. Replace erl -make by a small
+	Erlang code snippet: if a module doesn't compile, the make process
+	will abort.
+
+	* src/Emakefile.in: Update modules list.
+
+	* ebin/Makefile.am: Update modules list. Install examples in a
+	separate directory (examples/ebin instead of ebin) to avoid namespace
+	pollution.
+
+	* doc/Makefile.am: Add the examples to the dependencies. Fix the
+	sed(1) call; with BSD sed, the -i'' argument wasn't using a
+	zero-length extension but the next argument as the backup extension.
+	Fix the distributed files list.
+
+	* src/network/exmpp_ssl.erl, src/network/exmpp_session.erl,
+	src/examples/echo_client.erl: Fix warning with unused variables. Three
+	warnings remain in exmpp_session but this requires more work.
+
+	* src/examples/echo_client.erl: Fix a malformed documentation. Fix
+	includes path.
+
+	* configure.ac: Remove the EXMPP_CONFIGURE_ARGS variable because it's
+	broken and unsued. Replace AC_PROG_CC with AC_PROG_CC_STDC and trust
+	autoconf(1) by not saving CFLAGS before. Remove -Wall and -Werror from
+	CFLAGS; they are both added later. Remove AC_HEADER_STDC and
+	AC_HEADER_MAJOR which are obsolete now. With --enable-debug, we don't
+	add -g because AC_PROG_CC_STDC already does it. Correctly use
+	--enable-* for features (documentation and workarounds), instead of
+	--with-*. Rewrite Erlang paths and applications detection to correctly
+	handle $ERL and $ERLC. Renamed the 'broken-erl_ddll' feature to
+	'erl_ddll-workaround'. Add a new 'http_base_64' detection feature,
+	because this module was removed from Erlang starting with R12B-0.
+
+	* src/core/exmpp_internals.erl, src/server/exmpp_server_sasl.erl,
+	src/client/exmpp_client_sasl.erl: Starting with Erlang R12B-0, the
+	http_base_64 module was removed, replaced by base64 from stdlib
+	1.14.4. When ENABLE_HTTP_BASE_64 if defined, we try to use
+	http_base_64 and fallback to base64 is necessary. If it's not defined,
+	we use only base64.
+
+	* ac-aux: Remove this directory. It's created and filled by
+	autoreconf(1) and doesn't belong to the exmpp repository.
+
+	* ebin/exmpp.app.in: Update modules list.
+
+	* ebin/exmpp.appup.in: Remove upgrade/downgrade instructions because
+	they are outdated.
+
+	* src/core/exmpp_internals.erl: Use base64:*code_to_string/1, because
+	http_base_64 was returning string too.
+
+2008-02-11  Mickael Remond  <mremond@process-one.net>
+
+	* src/network/exmpp_session.erl: API improvement: we can send and
+	receive packet right after connection. Developper can thus write
+	their own authentication.
+	* src/client/exmpp_client_register.erl: Added unregister packets
+	creation.
+
+	* src/core/exmpp_xml.erl: Improved API: We can now register a user
+	even if we have not set the authentication parameters
+	* src/examples/echo_client.erl: Minor typo in comment
+
+2008-02-10  Mickael Remond  <mremond@process-one.net>
+
+	* src/core/exmpp_error.erl: Improved exceptions
+	* src/core/exmpp_internals.erl: Likewise
+	* src/core/exmpp_xml.erl: Likewise
+	* src/network/exmpp_session.erl: Likewise
+
+	* src/network/exmpp_session.erl: Fixed exmpp session start in
+	debug mode
+	
+	* src/core/exmpp_xml.erl: Beautify code
+	
+2008-02-09  Mickael Remond  <mremond@process-one.net>
+
+	* src/network/exmpp_session.erl: We can now open the stream before
+	defining authentication method. In this case, we need to pass an
+	extra domain parameter.
+	* src/core/exmpp_jid.erl: Fixed indentation.
+	* src/core/exmpp_stringprep.erl: Fixed indentation.
+
+2008-01-27  Mickael Remond  <mremond@process-one.net>
+
+	* src/network/exmpp_session.erl: Now forward IQ packet to client
+	session (Thanks to Will Glozer).
+
+	* src/network/exmpp_session.erl: Support session stop (Thanks to Will
+	Glozer).
+
+2008-01-16  Mickael Remond  <mremond@process-one.net>
+
+	* src/network/exmpp_ssl.erl: SSL client connection support (Thanks
+	to Wil Glozer)
+	* src/Emakefile.in: Likewise
+	* src/Makefile.am: Likewise
+	* exmpp/src/network/exmpp_session.erl: Likewise
+	* exmpp/ebin/Makefile.am: Likewise
+	
+	* exmpp/configure.ac: Clean-up compilation process (Thanks to Will
+	Glozer)
+	* exmpp/include/exmpp.hrl: Likewise
+	* exmpp/src/Makefile.am: Likewise
+	* exmpp/ebin/Makefile.am: Likewise
+	* exmpp/ac-aux/depcomp: Likewise
+	* exmpp/ac-aux/missing: Likewise
+	* exmpp/ac-aux/config.guess: Likewise
+	* exmpp/ac-aux/config.sub: Likewise
+	* exmpp/ac-aux/ltmain.sh: Likewise
+	* exmpp/ac-aux/install-sh: Likewise	
+
+2007-07-02  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* include/Makefile.am, src/Makefile.am, src/Emakefile.in,
+	ebin/Makefile.am: Updated Makefiles to include the new modules.
+
+	* ebin/exmpp.app.in: The modules list wasn't up-to-date; it's now
+	fixed.
+
+2007-07-01  Christophe Romain  <christophe.romain@process-one.net>
+
+	* include/xmpp.hrl, src/network/exmpp_callbacks.erl,
+	src/network/exmpp_tcp.erl: Add network modules for direct client use.
+
+2007-07-01  Mickael Remond  <mremond@process-one.net>
+
+	* src/core/exmpp_jid.erl: Make jid can generate random resource when
+	asked. A new is_jid function has been added.
+
+2007-06-26  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	Branch 0.7.
+
+2007-06-20  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* c_src/Makefile.am: Moved some targets around to reorder them more
+	logically.
+
+	* Makefile.unix, c_src/Makefile.unix, src/Makefile.unix,
+	ebin/Makefile.unix: Added Makefiles to provide an alternate build
+	procedure. It's intended for Unix plateforms where the autotools are
+	not as common as under Linux/*BSD. Note that this method doesn't have
+	any option to disable the compatibility layer or to build the
+	documentation yet. They require GNU make(1).
+
+2007-06-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/server/exmpp_server_sasl.erl (next_step),
+	src/server/exmpp_server_session.erl (want_establishment),
+	src/server/exmpp_server_binding.erl (wished_resource): Return an error
+	if the given stanza is unexpected. If the argument isn't an
+	#xmlnselement{}, it still raises a function clause EXIT.
+
+	* src/server/exmpp_server_binding.erl (error): Add the
+	`not-authorized' case.
+
+	* src/core/exmpp_stream.erl, src/server/exmpp_server_stream.erl,
+	src/client/exmpp_client_stream.erl: Add helpers to access common
+	attributes.
+
+	* src/core/exmpp_xml.erl: Add functions to prepend one or more
+	children to a given element's children.
+
+	* m4/ax_compare_version.m4: New M4 macro to compare version numbers in
+	a configure script.
+
+	* configure.ac: Updated the required autoconf version to 2.60 (for
+	official Erlang support). Removed directives which were never used
+	and already commented out. Check Erlang kernel's version to
+	automatically enable or disable erl_ddll workaround. Check for sed(1).
+
+	* doc/Makefile.am: Documentation is now rebuilt only if one of the
+	source files is updated. Add `erlang.png' to the CLEANFILES. Add the
+	correct encoding to every HTML documents with sed(1).
+
+2007-05-15  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/server/exmpp_server_compression.erl (methods_list2),
+	src/server/exmpp_server_sasl.erl (mechanisms_list2): Verify if the
+	given argument is an authentic string.
+
+	* src/core/exmpp_sup.erl: Do not use supervisor:start/3 because it
+	never existed. Spotted by Dialyzer.
+
+2007-05-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_xml.erl: Unlink port before stopping it. This
+	prevents an 'EXIT' message sent to the port owner.
+
+	* doc/overview.edoc: Nano update of the application overview.
+
+2007-04-20  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* doc/Makefile.am: Fixed documentation build: the new sources layout
+	broke it. Also add `make install' support.
+
+2007-04-18  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* include/exmpp.hrl: Added resource binding namespace.
+
+	* src/client/exmpp_client_binding.erl,
+	src/server/exmpp_server_binding.erl: New modules to deal with Resource
+	Binding.
+
+	* src/client/exmpp_client_session.erl,
+	src/server/exmpp_server_session.erl: New modules to deal with Session
+	Establishment.
+
+	* src/client/exmpp_client_tls.erl: Renamed a variable to be consistent
+	with other modules.
+
+	* src/Makefile.am, src/Emakefile.in, ebin/Makefile.am: Connected new
+	modules to the build.
+
+2007-04-12  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_stream.erl, src/client/exmpp_client_stream.erl,
+	src/server/exmpp_server_stream.erl: Removed `stream_' prefix from all
+	functions.
+
+	* src/server/exmpp_server_stream.erl (features): New function to build
+	a features announcement stanza.
+
+	* testsuite/check_stream.erl, testsuite/check_legacy_auth.erl:
+	Corrected a comment.
+
+	* testsuite/check_stream.erl: Updated to use new function names in
+	`exmpp_stream'.
+
+	* src/client/exmpp_client_tls.erl, src/server/exmpp_server_tls.erl:
+	New modules to deal with TLS negotiation.
+
+	* src/client/exmpp_client_compression.erl,
+	src/server/exmpp_server_compression.erl: New modules to deal with
+	stream compression negotiation.
+
+	* src/client/exmpp_client_sasl.erl, src/server/exmpp_server_sasl.erl:
+	New modules to deal with SASL transport.
+
+	* src/Makefile.am, src/Emakefile.in, ebin/Makefile.am: Connected all
+	new modules to the build. Disconnected `exmpp_factory' for future
+	removal.
+
+	* src/core/exmpp_factory.erl: Removed because all code was moved to
+	dedicated modules.
+
+2007-04-11  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_factory.erl, src/core/exmpp_stream.erl,
+	src/client/exmpp_client_stream.erl,
+	src/server/exmpp_server_stream.erl, src/Makefile.am, src/Emakefile.in,
+	ebin/Makefile.am, testsuite/check_factory_stream.erl,
+	testsuite/Makefile.am: Moved stream handling code to dedicated
+	modules.
+
+	* testsuite/check_factory_stream.erl, testsuite/check_stream.erl,
+	testsuite/Makefile.am, testsuite/Emakefile.in: Renamed test for
+	`exmpp_stream'.
+
+	* src/core/exmpp_factory.erl, src/client/exmpp_client_legacy_auth.erl,
+	src/server/exmpp_server_legacy_auth.erl, src/Makefile.am,
+	src/Emakefile.in, ebin/Makefile.am,
+	testsuite/check_factory_legacy_auth.erl: Moved legacy authentication
+	handling to dedicated modules.
+
+	* testsuite/check_factory_legacy_auth.erl,
+	testsuite/check_legacy_auth.erl, testsuite/Makefile.am,
+	testsuite/Emakefile.in: Renamed test for `exmpp_client_legacy_auth'
+	and `exmpp_server_legacy_auth'.
+
+2007-03-07  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/comp: Renamed `src/comp' to `src/compat'.
+
+	* src/exmpp_factory.erl: Move to `src/core'; some code still needs to
+	be moved in appropriate modules in `src/server' or `src/client'.
+
+	* src/Makefile.am, src/Emakefile.in, ebin/Makefile.am,
+	ebin/exmpp.app.in, testsuite/check_coverity.erl: Updates to take into
+	account new `src' layout.
+
+2007-03-06  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/exmpp_xml.erl: Restore DRIVER_NAME value. Style.
+	(get_cdata): Changed return value of the new function clause to the
+	`false', like related functions.
+
+2007-03-06  Christophe Romain  <christophe.romain@process-one.net>
+
+	* src/exmpp_factory.erl: Add functions to delete a pubsub node.
+
+	* src/*.erl: Reorganize source files in separate subdirectories.
+
+2007-03-05  Mickaël Rémond  <mickael.remond@process-one.net>
+
+	* src/exmpp_xml.erl (get_cdata): Handle a false value. This clause
+	make it possible to write code like:
+	exmpp_xml:get_cdata(exmpp_xml:get_element_by_name(XML_El, body))
+
+2007-03-04  Mickaël Rémond  <mickael.remond@process-one.net>
+
+	* src/exmpp_xml.erl: Added get_element_by_ns/2. This function is
+	useful to extract XMPP error codes (to make sure you are getting the
+	correct tag).
+
+2007-03-02  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* configure.ac: Remove checks for `kernel' and `stdlib' Erlang
+	applications. They're not used at build time.
+
+	* testsuite/test.sh: Fixed IFS variable because the TESTS variable
+	contains Tab characters.
+
+	* c_src/expat_drv.c, c_src/exmpp_expat_drv.c, c_src/Makefile.am,
+	src/exmpp_xml.erl: Renamed Expat port driver to have the `exmpp_'
+	prefix.
+
+2007-03-01  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/exmpp_internals.erl (driver_dirs): Revised port drivers search
+	path. This allows us to remove priv/lib/Makefile hack needed to run
+	the package testsuite.
+
+	* src/exmpp_xml.erl: Use exmpp_internals to load/unload its port
+	driver.
+
+	* configure.ac, Makefile.am: Disconnect priv directory from the build,
+	prior to its removal.
+
+	* priv/: Removed directory, because it's not needed anymore by the
+	testsuite.
+
+	* testsuite/Makefile.am: Do not run `check_xml_parser' and
+	`check_xmlstream' tests if Expat support isn't present.
+
+2007-02-28  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/exmpp_internals.erl, src/exmpp_xml.erl: To avoid conflicts
+	between an installed exmpp and a fresh build during testsuite runs,
+	port drivers are first checked in working subdirectories. However,
+	this is not done in modules from the compat layer (ejabberd_zlib,
+	iconv and tls).
+
+	* m4/zlib.m4: New M4 to check Zlib presence.
+
+	* m4/openssl.m4: New M4 to check OpenSSL presence.
+
+	* m4/expat.m4: Renamed AM_EXPAT to EXMPP_EXPAT to avoid Automake AM
+	namespace pollution.
+
+	* m4/iconv.m4, m4/lib-link.m4, m4/lib-prefix.m4, m4/lib-ld.m4: Rewrote
+	iconv.m4 because the one from gettext seems broken with
+	cross-compilation and win32 environment.
+
+	* configure.ac: Add support for cross-compilation and win32 platform.
+	Updated checks for Expat and libiconv. Added checks for OpenSSL.
+
+	* c_src/Makefile.am: Added more AM_CONDITIONNAL's to enable/disable
+	port drivers one by one. Fixed `tls_drv' dependencies. Added support
+	for win32.
+
+2007-02-21  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/exmpp_jid.erl: Add support for JID comparison.
+
+	* testsuite/check_jid.erl: Add JID comparison testsuite.
+
+	* include/exmpp.hrl, src/exmpp_jid.erl, src/jlib.erl,
+	testsuite/check_jid.erl: Fields of the #jid record were renamed to use
+	the names found in RFC 3920. THIS CHANGE BREAKS API (not ABI).
+
+	* ebin/Makefile.am: Because of a misuse of Automake conditionnals, the
+	`beam_DATA' variable was not correct and the compat modules were never
+	installed nor cleaned.
+
+2007-02-20  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/exmpp_stringprep.erl: Catch up with original `stringprep' level
+	of feature: a function to lowercase strings was added. Add functions
+	if an identifier is a valid node, name or resource.
+
+	* src/stringprep.erl: `stringprep' is now a simple frontend to
+	`exmpp_stringprep'.
+
+	* src/exmpp_jid.erl: Identifiers length are now checked.
+
+	* testsuite/check_jid.erl: Complete testsuite with length checks.
+
+	* src/exmpp_jlib.erl: Drop JID handling functions.
+
+	* src/jlib.erl: Use `exmpp_jid' and `exmpp_stringprep' to treat JIDs.
+
+	* configure.ac: Fixed a bug with --enable-debug option handling.
+	Disable documentation by default, because `xmerl' is broken in Erlang
+	R11B-3.
+
+	* c_src/iconv_erl.c: Fixed a warning with iconv(3): on some platforms,
+	`inbuf' is qualified by `const'. The configure script will check the
+	prototype for us.
+
+2007-02-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/exmpp_jid.erl: Reworked JID parsing to handle more error cases.
+	Now, the resource for a bare JID is set to `undefined', not the empty
+	string.
+
+	* testsuite/check_jid.erl: The testsuite for the current state of
+	`exmpp_jid' is complete.
+
+2007-02-15  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/exmpp_stringprep.erl: New frontend for the exmpp_stringprep_drv
+	port driver.
+
+	* src/exmpp_internals.erl: New module which provide low-level
+	functions for port drivers handling.
+
+	* src/exmpp_sup.erl: Supervisor who is responsible for
+	exmpp_stringprep startup.
+
+	* src/exmpp.erl, ebin/exmpp.app.in: This module uses the `application'
+	behaviour now. It starts `exmpp_sup'.
+
+	* src/exmpp_jid.erl: New module which provides functions to manipulate
+	JIDs.
+
+	* src/Emakefile.in, src/Makefile.am, ebin/Makefile.am: Link each new
+	modules to the build.
+
+	* testsuite/check_jid.erl, testsuite/Emakefile.in,
+	testsuite/Makefile.am: Add a first testsuite for `exmpp_jid'.
+
+2007-02-06  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* c_src/uni_data.c, c_src/uni_norm.c, c_src/stringprep_uni_data.h,
+	c_src/stringprep_uni_norm.h: Renamed as real headers.
+
+	* c_src/stringprep_drv.c: Internal name of the driver changed to
+	`exmpp_stringprep_erl'.
+
+	* c_src/exmpp_stringprep_drv.c, c_src/exmpp_stringprep_drv.c,
+	c_src/Makefile.am, src/stringprep.erl, priv/lib/Makefile.am: Prefixed
+	`stringprep_drv' with `exmpp_' to avoid conflicts with ejabberd's own
+	stringprep_drv. This permits exmpp to coexist with ejabberd.
+
+2007-01-09  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* configure.ac: Next branch will be 0.7.
+
+2007-01-09  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* configure.ac: Fixed the name of a variable.
+
+2007-01-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* configure.ac: Head is now the future 0.6 branch. Dropped
+	`EXMPP_BUILD_ID'. Debug is disabled by default when
+	`EXMPP_RELEASE_DATE' is set and enabled otherwise. Comments translated
+	in english.
+
+	* include/exmpp.hrl: Add `jabber:iq:privacy', `jabber:iq:roster' and
+	`urn:ietf:params:xml:ns:xmpp-session' namespaces.
+
+	* doc/Makefile.am: Clean stylesheet.css if it was copied at compile
+	time.
+
+	* src/exmpp_factory.erl: Add functions to make common pubsub stanzas.
+
+	* src/exmpp_jlib.erl: Add functions to convert #jid{} to string and
+	the other way around. Style.
+
+	* testsuite/test.sh: Fixed portability issues with sed(1) and head(1).
+
+	* c_src/xmpp_ns.h.in, c_src/xmpp_attrs.h.in, c_src/xmpp_names.h.in:
+	Added pubsub-related namespaces, element names and attribute names.
+
+	* c_src/Makefile.am: Fixed CPPFLAGS for expat_drv (EXPAT_CPPFLAS was
+	missing).
+
+2006-10-30  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* priv/lib/Makefile.am: Copies of stringprep_drv.so,
+	tls_drv.so and iconv_erl.so are useless, because they're not tested by
+	the current testsuite.
+
+	* include/exmpp.hrl: Corrections in comments.
+
+	* src/exmpp_jlib.erl, src/jlib.erl, src/Emakefile.ini,
+	src/Makefile.am: As we did with `exmpp_xml' and `xml', we split
+	`exmpp_jlib' in `exmpp_jlib' and `jlib' to separate the old code with
+	the new one. Because this module didn't received a lot of
+	modifications and testing, we took this opportunity to import the last
+	version of `jlib' from today's ejabberd repository.
+
+	* src/exmpp_xml.erl, configure.ac: Add a compile-time flag to enable a
+	workaround for `erl_ddll' reference count bug.
+
+	* configure.ac, c_src/Makefile.am, ebin/Makefile.am: Add a flag to
+	disable the compatibility modules.
+
+	* ebin/exmpp.app.in, ebin/exmpp.appup.in: Application file and upgrade
+	file update.
+
+	* configure.ac, src/Emakefile.in, ebin/exmpp.app.in: If compatibility
+	modules are disabled, don't build/list them.
+
+2006-10-12  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/exmpp_xml.erl (start_parser): Unload driver if an error occurs
+	with options handling.
+	(stop_parser): Don't catch exceptions with port_close/1; the caller is
+	responsible for catching them if he wants.
+
+2006-10-05  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* configure.ac: Préparation de la release 0.5.3.
+
+	* ebin/exmpp.appup.in: Instructions de mise à jour depuis la version
+	0.5.2.
+
+	* src/exmpp_xml.erl (stop_parser): Avant de décharger la librairie, on
+	vérifie que port_close a fonctionné (en `catch'ant l'exception). Ça
+	évite de trop décrémenter le comptage de référence sur la librairie.
+
+2006-09-28  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* configure.ac: Préparation de la release 0.5.2.
+
+	* c_src/expat_drv.c (current_tree_finished): Correction d'un autre
+	leak du même type que celui du 2006-09-25.
+
+	* ebin/exmpp.app.in: Utilisation de @VERSION@ au lieu de
+	@PACKAGE_VERSION@ pour rester cohérent.
+
+	* ebin/exmpp.appup.in: Utilisation de @VERSION@ au lieu d'une version
+	en dur. Mise à jour pour prendre en compte une upgrade/downgrade entre
+	la version 0.5.2 et la version 0.5.1.
+
+2006-09-26  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/exmpp_xml.erl (reload_driver): Suppression de la fonction, on ne
+	peut pas s'en servir en l'état.
+	(stop_parser): Après le port_close/1, on décharge la librairie.
+
+	* src/exmpp_factory.erl (legacy_auth_request_with_user): Nouvelle
+	fonction pour préciser le nom d'utilisateur dans la requête
+	d'authentification. Correction de l'exportation de la fonction.
+
+2006-09-25  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* configure.ac: Préparation de la release 0.5.1.
+
+	* c_src/expat_drv.c: Ajout d'une commande pour retourner la revision
+	du fichier.
+	(expat_drv_control): Correction d'un memory leak.
+
+	* src/exmpp_xml.erl: Ajout d'une fonction pour récupérer la revision
+	du port driver `expat_drv'.
+
+	* configure.ac, ebin/exmpp.appup, ebin/Makefile.am: Ajout du fichier
+	de mise à jour.
+
+2006-09-11  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	Release 0.5.0.
+
+	* configure.ac: Mise à jour de la version.
+
+2006-09-11  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* m4/expat.m4: Corrections de bug dans les flags passés au compilateur
+	si l'utilisateur précise --with-expat=DIR.
+
+2006-09-07  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* ebin/charon.app.in: On ajoute $Id$ pour l'id de l'application.
+
+2006-09-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	Release 0.4.7.
+
+	* src/exmpp_factory.erl: Correction de la documentation.
+
+	* src/exmpp_xml.erl (load_driver): Correction d'un bug avec le
+	chargement de la librairie. En fait, il faut charger la librairie
+	autant de fois que open_port est appelé car erl_ddll maintient un
+	comptage de référence. C'est pour cette raison qu'avec les version
+	précédentes de `exmpp_xml', tous les parsers instanciés étaient
+	détruits avec le premier appel à `stop_parser'.
+
+	* c_src/expat_drv.c (expat_drv_stop): Le `return' final est
+	complètement inutile.
+	(expat_drv_control): En cas de commande inconnue, on retourne `{error,
+	badarg}' au lieu de `badarg'.
+
+2006-08-31  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	Release 0.4.6.
+
+	* include/exmpp.hrl: Ajout du namespace utilisé pour les erreurs au
+	niveau stream.
+
+	* src/exmpp_factory.erl (stream_error): Nouvelle fonction pour générer
+	les erreurs au niveau stream.
+
+2006-08-29  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	Release 0.4.5.
+
+	* configure.ac: Ajout de flags de compilation Erlang pour avoir un
+	maximum de warnings.
+
+	* src/xml.erl: Correction de la documenation pour que les fonctions
+	obsolètes pointent vers `exmpp_xml'.
+	(get_cdata, remove_cdata): Rajout de deux fonctions qui avaient été
+	supprimées avec la séparation `exmpp_xml'/`xml'.
+
+	* src/exmpp_xml.erl: Correction de la documentation.
+	(replace_child): Nouvelle fonction pour remplacer le fils d'un élément
+	XML.
+	(xmlnselement_to_xmlelement, xmlnsattributes_to_xmlattributes2):
+	Correction de plusieurs warnings.
+
+	* ebin/exmpp.app.in: Mise à jour de la liste des modules ; il manquait
+	`xml'.
+
+2006-08-16  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	Release 0.4.4.
+
+	* include/exmpp.hrl, src/exmpp_xml.erl (document_fragment_to_list):
+	Support rudimentaire des Processing Instructions pour permettre à
+	l'appelant de générer `<?xml version='1.0' ?>' par exemple.
+
+	* include/exmpp.hrl: Ajout des namespaces pour les demandes de
+	compression, de TLS et de SASL.
+
+	* src/exmpp_factory.erl: Ajout de fonctions pour générer des stanzas
+	de négociations de TLS et de la compression.
+
+	* src/exmpp_xml.erl (xmlelement_to_xmlnselement,
+	xmlelement_to_xmlnselement_and_ns_tables): Ajout de fonctions pour
+	convertir les anciens tuples vers les nouveaux formats.
+	(xmlnselement_to_xmlelement): Correction d'un bug où le cas d'un
+	namespace sous forme de chaîne de caractères (au lieu d'atome) n'était
+	pas géré.
+
+	* src/exmpp.erl, src/iconv.erl, src/ejabberd_zlib.erl, src/tls.erl,
+	src/exmpp_xml.erl, src/stringprep.erl: On supprime la fonction
+	exmpp:app/0 qui n'a pas de sens et on utilise le nom `exmpp' en dur.
+	Ça permet l'utilisation d'exmpp dans une application, c'est magique.
+
+	* ebin/Makefile.am: Le fichier d'application `exmpp.app' n'était pas
+	installé, c'est corrigé.
+
+	* ebin/exmpp.app.in: Correction d'une erreur de syntaxe. Ajout des
+	modules manquants à la liste.
+
+2006-08-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	Release 0.4.3.
+
+	* src/ejabberd_zlib.erl, c_src/ejabberd_zlib_drv.c, configure.ac,
+	src/Makefile.am, c_src/Makefile.am, ebin/Makefile.am: Import du module
+	ejabberd_zlib d'ejabberd.
+
+	* configure.ac: La gestion de relase empruntait encore le nom de
+	libcalimero.
+
+	* src/exmpp_xmlstream.erl: Corrections de la documentation.
+
+	* testsuite/check_coverity.erl: On n'inclut pas exmpp.hrl.
+
+	* testsuite/Makefile.am: style(9).
+
+2006-07-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	Release 0.4.2.
+
+	* src/exmpp_xmlstream.erl: Correction de la documentation qui faisait
+	encore référence à l'option `rootdepth' du parser XML (au lieu de
+	`root_depth').
+	(parse, process_elements, process_elements2, send_events): On gère un
+	nouveau callback `none' qui indique que l'appeleur de parse/2 veut
+	récupérer le résultat directement (au lieu de l'envoyer à un autre
+	process/une autre fonction). La documentation est mise à jour en
+	conséquence.
+
+	* src/exmpp_xml.erl: New parser option `no_root_depth' to force the
+	parser to make an xmlnselement() for each tag.
+	(parser_document_fragment): New function to parse an incomplete
+	document; this takes advantage of the new `no_root_depth' option.
+
+	* testsuite/check_xmlstream.erl: Updated to test the `no_callback'
+	callback.
+
+	* testsuite/Makefile.am: Added check_xmlstrea.erl to the EXTRA_DIST
+	list.
+
+	* c_src/expat_drv.c: Updated to handle the new `no_root_depth' parser
+	option.
+
+2006-07-13  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	Release 0.4.1.
+
+	* src/exmpp_factory.erl: Wrote user guide.
+
+	* src/exmpp_jlib.erl (exchange_attrs_from_and_to_in_list,
+	rename_attr_to_to_from_in_list): Fixed a bug where those functions
+	were still calling `exmpp_xml:set_attribute_from_list' which has been
+	renamed since.
+
+	* testsuite/test/sh: Small change on coverity reports stylesheet.
+
+	* doc/stylesheet.css: Changed completly the documentation graphical
+	aspect.
+
+2006-07-12  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* include/exmpp.hrl: For #xmlstreamstart and #xmlstreamend record,
+	members are now #xmlnselement, #xmlelement, #xmlnsendelement or
+	#xmlendelement.
+
+	* configure.ac: Completly remove compatibility layer options.
+
+	* src/exmpp_xml.erl, src/xml.erl: Moved pathcomponentold()
+	documentation stub to `xml'.
+
+	* src/exmpp_xmlstream.erl: Updated #xmlstreamstart and #xmlstreamend
+	usage (members have changed).
+	(send_event/2): Callbacks of type `process' or `gen_fsm' won't return
+	an error code, remove this support.
+
+	* c_src/expat_drv.c (expat_drv_end_element): Support for prefix and
+	name as atom was never implemented for end elements; it's now done.
+
+	* testsuite/check_coverity.erl: Completly remove compatibility layer
+	options.
+	(print_coverage): Generate a plain text output, not an HTML one. Also,
+	use real newline characters in display, because testsuite/test.sh was
+	fixed.
+
+	* testsuite/Emakefile.in, testsuite/Makefile.am,
+	testsuite/check_xmlstream.erl: Added a new test for
+	`exmpp_xmlstream'.
+
+	* testsuite/test.sh: Fixed command execution to not strip newline
+	characters. Special treatment for `check_coverity' output was thus
+	removed. Added a small function to convert plain text files produced
+	by `check_coverity' in HTML files.
+
+	* testsuite/check_xml_parser.erl: Fixed a testcase, now that
+	c_src/expat_drv.c handles end element correctly.
+
+	* testsuite/testsuite.erl: Print error report with Erlang to have
+	output wrapped correctly.
+
+2006-07-11  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/exmpp_xml.erl, src/xml.erl, src/Makefile.am, src/Emakefile.in,
+	ebin/Makefile.am: Moved compatibility layer from `exmpp_xml' to
+	`xml'.
+
+	* src/xml.erl (crypt/1): Updated to reflect the original behaviour
+	with binaries (it returns a list).
+
+	* src/exmpp_xml.erl (encode_entities/1): Small optimization with
+	binaries (removed a binary_to_list/1).
+
+	* testsuite/check_xml_converters.erl: Added tests for
+	encode_enities/1 and clear_endelement_tuples/1.
+
+2006-07-10  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	Release 0.4.0.
+
+	* include/exmpp.hrl: Renamed `NS_XMPP_STANZA' to `NS_XMPP_STANZAS'.
+
+	* src/exmpp_factory.erl: Typos.
+	(legacy_auth_request/2, legacy_auth_password/4,
+	legacy_auth_password_digest/4): New functions to allow the caller to
+	provide its own id.
+	(legacy_auth_password, legacy_auth_password_digest): Added the
+	`type' attribute.
+	(legacy_auth_success): Set the element's children to the empty string.
+	Fixed the namespace.
+	(legacy_auth_failure): Fixed the namespace.
+
+	* src/exmpp_xml.erl: Use the ?NS_XML macro (defined in
+	include/exmpp.hrl) instead of a hard-coded URL.
+
+	* c_src/xmpp_names.h.in: Added the `jabber:iq:auth' namespace
+	elements.
+
+	* testsuite/check_factory_stream.erl: New testsuite for the module
+	exmpp_factory, only for the <stream> handling part.
+
+	* testsuite/check_factory_legacy_auth: New testsuite for the module
+	exmpp_factory, only for the legacy auth part.
+
+	* testsuite/check_xml_*.erl: Use the ?NS_XML macro (defined in
+	include/exmpp.hrl) instead of a hard-coded URL.
+
+	* doc/Makefile.am: Added files to CLEANFILES variable.
+
+2006-07-10  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* include/exmpp.hrl: By default, element's children are now
+	`undefined', not an empty list anymore.
+
+	* src/exmpp_xmlstream.erl: style(9).
+
+	* src/exmpp_jlib.erl: New helpers to handle common attribute
+	operations. Almost every existing functions will be deprecated by new
+	functions like those.
+
+	* src/exmpp_xml.erl: Fixed some function names. Added functions
+	`set_attributes/2', `append_children/2' and `set_children/2' to do
+	massive modifications in one call. Added functions
+	`has_attribute_in_list/2,3' and `has_attribute/2,3' to tests the
+	existence of an attribute. Added `normalize_cdata_in_list/1' and
+	`normalize_cdata/1' to clean character data. Added
+	`set_cdata_in_list/2' and `set_cdata/2' to change character data.
+	Updated documentation about the use of `undefined' for element's
+	children. Fixed a few other syntax issues with the documentation.
+	(parse_document): Simplified function clauses to avoid code
+	duplication.
+	(xmlnsattributes_to_xmlattributes2): Fixed a bug when an attribute
+	namespace is `undefined'.
+	(document_fragment_to_list): If element's children are `undefined', do
+	not close the tag.
+
+	* c_src/Makefile.am: Fixed EXTRA_DIST for contrib/.
+
+	* c_src/xmpp_ns.h.in: New namespace: `jabber:iq:auth'.
+
+	* c_src/expat_drc.c: By default, element's children are now
+	`undefined', not an empty list anymore.
+
+	* ebin/Makefile.am, src/Makefile.am, src/Emakefile.in,
+	src/exmpp_factory.erl: New module; it provides a toolbox to build
+	common stanzas.
+
+	* testsuite/Makefile.am: Coverity check for `exmpp_factory'.
+
+	* testsuite/check_xml_attribute_handlers.erl,
+	testsuite/check_xml_element_handlers.erl,
+	testsuite/check_xml_converters.erl, testsuite/check_xml_parser.erl,
+	testsuite/check_xml_cdata_handlers.erl: Updated with new function
+	names and new test cases.
+
+	* configure.ac, Makefile.am, doc/Makefile.am: Build documentation.
+
+	* configure.ac, src/exmpp_xml.erl: Don't use the WITH_DEPRECATED_API
+	preprocessor flag to avoid headaches with edoc.
+
+2006-07-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/exmpp_xml.erl, c_src/expat_drv.c: Before namespaces, element
+	names and attributes names are encoded as atom(), they're now checked
+	against a list of known values. If they're not recognized, they're
+	encoded as string(). Those checks can be disabled at runtime.
+
+	* src/exmpp_xml.erl (parse_document/1, parse_document/2): New
+	functions to parse a document at once.
+
+	* src/exmpp_xmlstream.erl (parse_element/1, parse_element/2): These
+	functions now use exmpp_xml:parse_document().
+
+	* c_src/xmpp_{ns,names,attrs}.h.in: New files that contains a list
+	of known namespaces, element names and attributes names, respectively.
+
+	* c_src/xmpp_{ns,names,attrs}.h.awk: Awk script to convert the lists
+	to C headers.
+
+2006-07-03  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/exmpp_xml.erl (start_parser/1, handle_options/2): Error sent
+	back by the port driver were ignored, it's now corrected.
+
+	* c_src/contrib/hashtable.h, c_src/contrib/hashtable_private.h,
+	c_src/hashtable.c: Imported an hashtable implementation which is used
+	by the Expat port driver.
+
+	* c_src/Makefile.am: Add hashtable sources to the Expat port driver.
+
+	* c_src/expat_drv.c: Namespace prefixes are now stored in an hash
+	table and set correctly in xmlnselement tuples.
+	(expat_drv_control): Fixed a bug where the return value of
+	create_parser() was not checked correctly.
+
+	* testsuite/check_xml_parser.erl: Updated to handle namespace prefix
+	support in the port driver. Also simplified each test cases.
+
+2006-06-29  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* configure.ac: Fixed a bug with $EMKOPTS handling.
+	Removed two debugging messages. Fixed a typo with `debug_info'.
+
+	* src/exmpp_xml.erl: The function get_path_s/2 wasn't exported; also
+	it now handles old path component format.
+	(remove_attribute_from_list): Rewritten this completly broken
+	function.
+	(xmlnselement_to_xmlelement): Now handle properly default and prefixed
+	namespaces for elements and attributes.
+	(xmlnselement_to_xmlelement): Support for name as atom() was not
+	present in the old format, so convert them as string. Fixed a bug when
+	an element doesn't have any namespace.
+	(xmlnsattributes_to_xmlattributes2): Support for name as atom() was
+	not present in the old format, so convert them as string.
+
+	* src/iconv.erl, src/stringprep.erl: Fixed Erlang warnings.
+
+	* testsuite/: More complete testsuite, with coverage checking.
+
+	* testsuite/check_xml_converters.erl: Renamed from
+	check_xml_serializer.erl to add other tests than just
+	serialization.
+
+	* ebin/Makefile.am, testsuite/Makefile.am: Every built files were not
+	cleaned properly; fixed.
+
+2006-06-28  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	The whole project uses the Autotools now.
+
+	* include/exmpp.hrl: Add a prefix member to xmlnselement record. Add
+	an xmlattr record to handle attribute (with namespace support).
+
+	* src/exmpp_xml.erl: New API (more consistent) with better namespace
+	support (even for attributes). There's a compatibility layer for the
+	old API, which can be enabled by defining WITH_DEPRECATED_API at
+	compile time.
+
+	* c_src/expat_drv.c: Imporve namespace support, especially for
+	attributes. Add an option to put element and attribute name as
+	atom().
+
+	* c_src/tls_drv.c (tls_drv_control): Fixed a warning about different
+	types in an affectation.
+
+	* testsuite/: Add a testsuite.
