@@ -39,7 +39,7 @@ else
 DYNAMIC_LIB_CFLAGS = -Wall -fpic -shared
 endif
 
-DRIVERS =  exmpp_expat.so exmpp_stringprep_drv.so ejabberd_zlib_drv.so iconv_erl.so tls_drv.so
+DRIVERS =  exmpp_expat.so exmpp_stringprep.so ejabberd_zlib_drv.so iconv_erl.so tls_drv.so
 
 all: $(DRIVERS)
 
@@ -71,20 +71,20 @@ exmpp_expat_la_CPPFLAGS = -Icontrib \
 			  $(EI_CPPFLAGS) -DEI_ENCODE_STRING_BUG \
 			  $(EXPAT_CPPFLAGS)
 exmpp_expat_la_LDFLAGS = $(EI_LDFLAGS) $(EI_LIBS) \
-                             $(EXPAT_LDFLAGS) $(EXPAT_LIBS)
+			 $(EXPAT_LDFLAGS) $(EXPAT_LIBS)
 exmpp_expat_la_SOURCES = contrib/hashtable.c \
-                             exmpp_expat.c
+			 exmpp_expat.c
 
 exmpp_expat.so: $(BUILT_SOURCES) $(exmpp_expat_la_SOURCES)
 	$(CC) $(exmpp_expat_la_CPPFLAGS) $(CPPFLAGS) $(DYNAMIC_LIB_CFLAGS) $(CFLAGS) $(exmpp_expat_la_LDFLAGS) $(LDFLAGS) $(exmpp_expat_la_SOURCES) -o $@
 
 # Stringprep
-exmpp_stringprep_drv_la_CPPFLAGS = $(EI_CPPFLAGS)
-exmpp_stringprep_drv_la_LDFLAGS = $(EI_LDFLAGS) $(EI_LIBS)
-exmpp_stringprep_drv_la_SOURCES = exmpp_stringprep_drv.c
+exmpp_stringprep_la_CPPFLAGS = $(EI_CPPFLAGS)
+exmpp_stringprep_la_LDFLAGS = $(EI_LDFLAGS) $(EI_LIBS)
+exmpp_stringprep_la_SOURCES = exmpp_stringprep.c
 
-exmpp_stringprep_drv.so: $(exmpp_stringprep_drv_la_SOURCES)
-	$(CC) $(exmpp_stringprep_drv_la_CPPFLAGS) $(CPPFLAGS) $(DYNAMIC_LIB_CFLAGS) $(CFLAGS) $(exmpp_stringprep_drv_la_LDFLAGS) $(LDFLAGS) $(exmpp_stringprep_drv_la_SOURCES) -o $@
+exmpp_stringprep.so: $(exmpp_stringprep_la_SOURCES)
+	$(CC) $(exmpp_stringprep_la_CPPFLAGS) $(CPPFLAGS) $(DYNAMIC_LIB_CFLAGS) $(CFLAGS) $(exmpp_stringprep_la_LDFLAGS) $(LDFLAGS) $(exmpp_stringprep_la_SOURCES) -o $@
 
 # --------------------------------------------------------------------
 # Port drivers which are not ported yet.

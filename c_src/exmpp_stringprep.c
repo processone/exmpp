@@ -8,7 +8,7 @@
 #include "stringprep_uni_data.h"
 #include "stringprep_uni_norm.h"
 
-#define	DRIVER_NAME	exmpp_stringprep_drv
+#define	DRIVER_NAME	exmpp_stringprep
 #define	_S(s)		#s
 #define	S(s)		_S(s)
 
@@ -32,7 +32,7 @@ enum {
 };
 
 /* Driver data. */
-struct stringprep_drv_data {
+struct exmpp_stringprep_data {
 	ErlDrvPort port;
 };
 
@@ -106,9 +106,9 @@ static int	compose(int ch1, int ch2);
  * -------------------------------------------------------------------*/
 
 static ErlDrvData
-stringprep_drv_start(ErlDrvPort port, char *command)
+exmpp_stringprep_start(ErlDrvPort port, char *command)
 {
-	struct stringprep_drv_data* ed;
+	struct exmpp_stringprep_data* ed;
 
 	/* Allocate driver data structure. */
 	ed = driver_alloc(sizeof(*ed));
@@ -122,14 +122,14 @@ stringprep_drv_start(ErlDrvPort port, char *command)
 }
 
 static void
-stringprep_drv_stop(ErlDrvData drv_data)
+exmpp_stringprep_stop(ErlDrvData drv_data)
 {
 
 	driver_free(drv_data);
 }
 
 static int
-stringprep_drv_control(ErlDrvData drv_data, unsigned int command,
+exmpp_stringprep_control(ErlDrvData drv_data, unsigned int command,
     char *buf, int len, char **rbuf, int rlen)
 {
 	int i, j, pos;
@@ -404,18 +404,18 @@ compose(int ch1, int ch2)
  * ------------------------------------------------------------------- */
 
 static ErlDrvEntry stringprep_driver_entry = {
-	NULL,			/* init */
-	stringprep_drv_start,	/* start */
-	stringprep_drv_stop,	/* stop */
-	NULL,			/* output */
-	NULL,			/* ready_input */
-	NULL,			/* ready_output */
-	S(DRIVER_NAME),		/* driver name */
-	NULL,			/* finish */
-	NULL,			/* handle */
-	stringprep_drv_control,	/* control */
-	NULL,			/* timeout */
-	NULL			/* outputv */
+	NULL,				/* init */
+	exmpp_stringprep_start,		/* start */
+	exmpp_stringprep_stop,		/* stop */
+	NULL,				/* output */
+	NULL,				/* ready_input */
+	NULL,				/* ready_output */
+	S(DRIVER_NAME),			/* driver name */
+	NULL,				/* finish */
+	NULL,				/* handle */
+	exmpp_stringprep_control,	/* control */
+	NULL,				/* timeout */
+	NULL				/* outputv */
 };
 
 DRIVER_INIT(DRIVER_NAME)

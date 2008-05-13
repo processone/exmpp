@@ -3,6 +3,10 @@
 	* c_src/exmpp_expat.c, c_src/Makefile.am, c_src/Makefile.unix,
 	src/core/exmpp_xml.erl: Rename 'exmpp_expat_drv' to 'exmpp_expat'.
 
+	* c_src/exmpp_stringprep.c, c_src/Makefile.am, c_src/Makefile.unix,
+	src/core/exmpp_stringprep.erl: Rename 'exmpp_stringprep_drv' to
+	'exmpp_stringprep'.
+
 2008-05-07  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl: Add a macro to test IQ in guard expressions.

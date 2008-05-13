@@ -52,7 +52,7 @@
 }).
 
 -define(SERVER, ?MODULE).
--define(DRIVER_NAME, exmpp_stringprep_drv).
+-define(DRIVER_NAME, exmpp_stringprep).
 -define(PORT_REGISTERED_NAME, exmpp_stringprep_port).
 
 -define(COMMAND_LOWERCASE,    0).

@@ -1,6 +1,6 @@
 # $Id$
 
-lib_LTLIBRARIES = exmpp_stringprep_drv.la
+lib_LTLIBRARIES = exmpp_stringprep.la
 
 if WITH_EXPAT
 lib_LTLIBRARIES += exmpp_expat.la
@@ -70,10 +70,10 @@ exmpp_expat_la_SOURCES = contrib/hashtable.c				\
 			 exmpp_expat.c
 
 # Stringprep
-exmpp_stringprep_drv_la_CPPFLAGS = $(EI_CPPFLAGS)
-exmpp_stringprep_drv_la_LDFLAGS = -module -avoid-version		\
-				  $(EI_LDFLAGS) $(EI_LIBS)
-exmpp_stringprep_drv_la_SOURCES = exmpp_stringprep_drv.c
+exmpp_stringprep_la_CPPFLAGS = $(EI_CPPFLAGS)
+exmpp_stringprep_la_LDFLAGS = -module -avoid-version			\
+			      $(EI_LDFLAGS) $(EI_LIBS)
+exmpp_stringprep_la_SOURCES = exmpp_stringprep.c
 
 # --------------------------------------------------------------------
 # Port drivers which are not ported yet.
