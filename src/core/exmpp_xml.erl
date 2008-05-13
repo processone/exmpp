@@ -111,7 +111,7 @@
   port
 }).
 
--define(DRIVER_NAME, exmpp_expat_drv).
+-define(DRIVER_NAME, exmpp_expat).
 
 -define(EXPAT_SET_NSPARSER,     1).
 -define(EXPAT_SET_NAMEASATOM,   2).

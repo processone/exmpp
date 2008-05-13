@@ -12,7 +12,7 @@
 #include "xmpp_names.h"
 #include "xmpp_attrs.h"
 
-#define	DRIVER_NAME	exmpp_expat_drv
+#define	DRIVER_NAME	exmpp_expat
 #define	_S(s)		#s
 #define	S(s)		_S(s)
 
@@ -65,7 +65,7 @@ struct ns_entry {
 };
 
 /* Driver data (also, user data for expat). */
-struct expat_drv_data {
+struct exmpp_expat_data {
 	/* Internal state. */
 	ErlDrvPort		 port;
 	XML_Parser		 parser;
@@ -93,28 +93,28 @@ struct expat_drv_data {
 };
 
 /* Expat handler prototypes */
-static void		expat_drv_start_namespace(void *user_data,
+static void		expat_cb_start_namespace(void *user_data,
 			    const char *prefix, const char *uri);
-static void		expat_drv_end_namespace(void *user_data,
+static void		expat_cb_end_namespace(void *user_data,
 			    const char *prefix);
-static void		expat_drv_start_element(void *user_data,
+static void		expat_cb_start_element(void *user_data,
 			    const char *name, const char **attrs);
-static void		expat_drv_end_element(void *user_data,
+static void		expat_cb_end_element(void *user_data,
 			    const char *name);
-static void		expat_drv_character_data(void *user_data,
+static void		expat_cb_character_data(void *user_data,
 			    const char *data, int len);
 
-static int		create_parser(struct expat_drv_data *ed);
-static int		destroy_parser(struct expat_drv_data *ed);
-static int		current_tree_finished(struct expat_drv_data *ed);
+static int		create_parser(struct exmpp_expat_data *ed);
+static int		destroy_parser(struct exmpp_expat_data *ed);
+static int		current_tree_finished(struct exmpp_expat_data *ed);
 static unsigned int	hash_djb2(void *key);
 static int		hash_equalkeys(void *k1, void *k2);
-static int		initialize_lookup_tables(struct expat_drv_data *ed);
-static int		is_a_known_ns(struct expat_drv_data *ed,
+static int		initialize_lookup_tables(struct exmpp_expat_data *ed);
+static int		is_a_known_ns(struct exmpp_expat_data *ed,
 			    const char *ns);
-static int		is_a_known_name(struct expat_drv_data *ed,
+static int		is_a_known_name(struct exmpp_expat_data *ed,
 			    const char *name);
-static int		is_a_known_attr(struct expat_drv_data *ed,
+static int		is_a_known_attr(struct exmpp_expat_data *ed,
 			    const char *attr);
 
 /* This constant is used as value in known_ns, known_names and known_attrs
@@ -232,9 +232,9 @@ ei_x_encode_string_fixed(ei_x_buff *x, const char *s)
  * -------------------------------------------------------------------*/
 
 static ErlDrvData
-expat_drv_start(ErlDrvPort port, char *command)
+exmpp_expat_start(ErlDrvPort port, char *command)
 {
-	struct expat_drv_data *ed;
+	struct exmpp_expat_data *ed;
 
 	/* Set binary mode. */
 	set_port_control_flags(port, PORT_CONTROL_FLAG_BINARY);
@@ -285,11 +285,11 @@ expat_drv_start(ErlDrvPort port, char *command)
 }
 
 static void
-expat_drv_stop(ErlDrvData drv_data)
+exmpp_expat_stop(ErlDrvData drv_data)
 {
-	struct expat_drv_data *ed;
+	struct exmpp_expat_data *ed;
 
-	ed = (struct expat_drv_data *)drv_data;
+	ed = (struct exmpp_expat_data *)drv_data;
 
 	/* Destroy lookup tables, the Expat parser and the driver data
 	 * structure. */
@@ -316,17 +316,17 @@ expat_drv_stop(ErlDrvData drv_data)
 }
 
 static int
-expat_drv_control(ErlDrvData drv_data, unsigned int command,
+exmpp_expat_control(ErlDrvData drv_data, unsigned int command,
     char *buf, int len, char **rbuf, int rlen)
 {
 	size_t size;
 	char *errmsg;
 	int ret, errcode, index, version;
-	struct expat_drv_data *ed;
+	struct exmpp_expat_data *ed;
 	ErlDrvBinary *b;
 	ei_x_buff *to_send;
 
-	ed = (struct expat_drv_data *)drv_data;
+	ed = (struct exmpp_expat_data *)drv_data;
 
 	ret = -1;
 	*rbuf = NULL;
@@ -573,14 +573,14 @@ expat_drv_control(ErlDrvData drv_data, unsigned int command,
  * ------------------------------------------------------------------- */
 
 static void
-expat_drv_start_namespace(void *user_data,
+expat_cb_start_namespace(void *user_data,
     const char *prefix, const char *uri)
 {
-	struct expat_drv_data *ed;
+	struct exmpp_expat_data *ed;
 	struct ns_entry *entry;
 	size_t uri_len;
 
-	ed = (struct expat_drv_data *)user_data;
+	ed = (struct exmpp_expat_data *)user_data;
 
 #if defined(DRV_DEBUG)
 	printf("===> namespace (start): prefix=%s, uri=%s\r\n",
@@ -613,13 +613,13 @@ expat_drv_start_namespace(void *user_data,
 }
 
 static void
-expat_drv_end_namespace(void *user_data,
+expat_cb_end_namespace(void *user_data,
     const char *prefix)
 {
-	struct expat_drv_data *ed;
+	struct exmpp_expat_data *ed;
 	struct ns_entry *entry;
 
-	ed = (struct expat_drv_data *)user_data;
+	ed = (struct exmpp_expat_data *)user_data;
 
 #if defined(DRV_DEBUG)
 	printf("---> namespace (end): prefix=%s\r\n", prefix);
@@ -639,15 +639,15 @@ expat_drv_end_namespace(void *user_data,
 }
 
 static void
-expat_drv_start_element(void *user_data,
+expat_cb_start_element(void *user_data,
     const char *name, const char **attrs)
 {
 	int i;
 	char *ns_sep, *prefix;
 	ei_x_buff *tree;
-	struct expat_drv_data *ed;
+	struct exmpp_expat_data *ed;
 
-	ed = (struct expat_drv_data *)user_data;
+	ed = (struct exmpp_expat_data *)user_data;
 
 #if defined(DRV_DEBUG)
 	printf("===> [depth=%02lu] element (start): name=%s\r\n",
@@ -877,14 +877,14 @@ expat_drv_start_element(void *user_data,
 }
 
 static void
-expat_drv_end_element(void *user_data,
+expat_cb_end_element(void *user_data,
     const char *name)
 {
 	char *ns_sep, *prefix;
 	ei_x_buff *tree;
-	struct expat_drv_data *ed;
+	struct exmpp_expat_data *ed;
 
-	ed = (struct expat_drv_data *)user_data;
+	ed = (struct exmpp_expat_data *)user_data;
 
 	if (ed->depth > 0)
 		ed->depth--;
@@ -988,12 +988,12 @@ expat_drv_end_element(void *user_data,
 }
 
 static void
-expat_drv_character_data(void *user_data,
+expat_cb_character_data(void *user_data,
     const char *data, int len)
 {
-	struct expat_drv_data *ed;
+	struct exmpp_expat_data *ed;
 
-	ed = (struct expat_drv_data *)user_data;
+	ed = (struct exmpp_expat_data *)user_data;
 
 #if defined(DRV_DEBUG)
 	printf("     character data: data=%.*s\r\n", len, data);
@@ -1013,7 +1013,7 @@ expat_drv_character_data(void *user_data,
  * -------------------------------------------------------------------*/
 
 static int
-create_parser(struct expat_drv_data *ed)
+create_parser(struct exmpp_expat_data *ed)
 {
 
 	if (ed->use_ns_parser) {
@@ -1030,22 +1030,22 @@ create_parser(struct expat_drv_data *ed)
 
 	/* Configure the Expat parser. */
 	XML_SetElementHandler(ed->parser,
-	    expat_drv_start_element,
-	    expat_drv_end_element);
+	    expat_cb_start_element,
+	    expat_cb_end_element);
 	XML_SetCharacterDataHandler(ed->parser,
-	    expat_drv_character_data);
+	    expat_cb_character_data);
 
 	if (ed->use_ns_parser) {
 		XML_SetNamespaceDeclHandler(ed->parser,
-		    expat_drv_start_namespace,
-		    expat_drv_end_namespace);
+		    expat_cb_start_namespace,
+		    expat_cb_end_namespace);
 	}
 
 	return (0);
 }
 
 static int
-destroy_parser(struct expat_drv_data *ed)
+destroy_parser(struct exmpp_expat_data *ed)
 {
 
 	if (ed->parser != NULL)
@@ -1057,7 +1057,7 @@ destroy_parser(struct expat_drv_data *ed)
 }
 
 static int
-current_tree_finished(struct expat_drv_data *ed)
+current_tree_finished(struct exmpp_expat_data *ed)
 {
 	int ret;
 
@@ -1106,7 +1106,7 @@ hash_equalkeys(void *k1, void *k2)
 }
 
 static int
-initialize_lookup_tables(struct expat_drv_data *ed)
+initialize_lookup_tables(struct exmpp_expat_data *ed)
 {
 	int i;
 
@@ -1149,7 +1149,7 @@ initialize_lookup_tables(struct expat_drv_data *ed)
 }
 
 static int
-is_a_known_ns(struct expat_drv_data *ed, const char *ns)
+is_a_known_ns(struct exmpp_expat_data *ed, const char *ns)
 {
 	int *is_known;
 
@@ -1161,7 +1161,7 @@ is_a_known_ns(struct expat_drv_data *ed, const char *ns)
 }
 
 static int
-is_a_known_name(struct expat_drv_data *ed, const char *name)
+is_a_known_name(struct exmpp_expat_data *ed, const char *name)
 {
 	int *is_known;
 
@@ -1173,7 +1173,7 @@ is_a_known_name(struct expat_drv_data *ed, const char *name)
 }
 
 static int
-is_a_known_attr(struct expat_drv_data *ed, const char *attr)
+is_a_known_attr(struct exmpp_expat_data *ed, const char *attr)
 {
 	int *is_known;
 
@@ -1190,15 +1190,15 @@ is_a_known_attr(struct expat_drv_data *ed, const char *attr)
 
 static ErlDrvEntry expat_driver_entry = {
 	NULL,			/* init */
-	expat_drv_start,	/* start */
-	expat_drv_stop,		/* stop */
+	exmpp_expat_start,	/* start */
+	exmpp_expat_stop,	/* stop */
 	NULL,			/* output */
 	NULL,			/* ready_input */
 	NULL,			/* ready_output */
 	S(DRIVER_NAME),		/* driver name */
 	NULL,			/* finish */
 	NULL,			/* handle */
-	expat_drv_control,	/* control */
+	exmpp_expat_control,	/* control */
 	NULL,			/* timeout */
 	NULL			/* outputv */
 };

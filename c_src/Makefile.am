@@ -3,7 +3,7 @@
 lib_LTLIBRARIES = exmpp_stringprep_drv.la
 
 if WITH_EXPAT
-lib_LTLIBRARIES += exmpp_expat_drv.la
+lib_LTLIBRARIES += exmpp_expat.la
 endif
 
 if BUILD_COMPAT
@@ -60,14 +60,14 @@ xmpp_names.h: $(srcdir)/xmpp_names.h.awk $(srcdir)/xmpp_names.h.in
 xmpp_attrs.h: $(srcdir)/xmpp_attrs.h.awk $(srcdir)/xmpp_attrs.h.in
 	$(AWK) -f $(srcdir)/xmpp_attrs.h.awk $(srcdir)/xmpp_attrs.h.in > $@
 
-exmpp_expat_drv_la_CPPFLAGS = -I$(srcdir)/contrib			\
-			      $(EI_CPPFLAGS) -DEI_ENCODE_STRING_BUG	\
-			      $(EXPAT_CPPFLAGS)
-exmpp_expat_drv_la_LDFLAGS = -module -avoid-version			\
-			     $(EI_LDFLAGS) $(EI_LIBS)			\
-			     $(EXPAT_LDFLAGS) $(EXPAT_LIBS)
-exmpp_expat_drv_la_SOURCES = contrib/hashtable.c			\
-			     exmpp_expat_drv.c
+exmpp_expat_la_CPPFLAGS = -I$(srcdir)/contrib				\
+			  $(EI_CPPFLAGS) -DEI_ENCODE_STRING_BUG		\
+			  $(EXPAT_CPPFLAGS)
+exmpp_expat_la_LDFLAGS = -module -avoid-version				\
+			 $(EI_LDFLAGS) $(EI_LIBS)			\
+			 $(EXPAT_LDFLAGS) $(EXPAT_LIBS)
+exmpp_expat_la_SOURCES = contrib/hashtable.c				\
+			 exmpp_expat.c
 
 # Stringprep
 exmpp_stringprep_drv_la_CPPFLAGS = $(EI_CPPFLAGS)
