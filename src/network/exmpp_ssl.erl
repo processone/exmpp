@@ -12,99 +12,78 @@
 
 -module(exmpp_ssl).
 
--behavior(gen_server).
 
 -export([connect/3, send/2, close/2]).
 
--export([init/1, code_change/3, terminate/2]).
--export([handle_call/3, handle_cast/2, handle_info/2]).
-
--record(state, {socket, stream_ref, client_pid,set_opts_module}).
 
 %% -- client interface --
 
+
+%% Internal export
+-export([receiver/4]).
+
 %% Connect to XMPP server
 %% Returns:
-%% Ref | {error, Reason}
-%% Ref is a pid.
+%% {ok, Ref} | {error, Reason}
+%% Ref is a socket
 connect(ClientPid, StreamRef, {Host, Port}) ->
-    case gen_server:start(?MODULE, [ClientPid, StreamRef, Host, Port], []) of
-        {ok, Ref} ->
-        	true = link(Ref), 
-        	%if we use start_link instead of this, the clients processes get an 
-        	%exit signal on connection error, when they are expecting to get
-        	%a {socket_error,Reason} response. In this way, the API is 
-        	%compatible with exmpp_tcp
-            {Ref, undefined};
-        {error, Reason} ->
-            erlang:throw({socket_error, Reason})
+    DefaultOptions = [{packet,0}, binary, {active, once}],
+	{SetOptsModule,Opts} = 
+			case check_new_ssl() of 
+			   true ->  {inet,[{reuseaddr,true}|DefaultOptions]};
+			   false -> {ssl,DefaultOptions}
+			end,		
+    case ssl:connect(Host, Port, Opts, 30000) of
+	{ok, Socket} ->
+	    %% TODO: Hide receiver failures in API
+	    ReceiverPid = spawn_link(?MODULE, receiver,
+				     [ClientPid, Socket,SetOptsModule, StreamRef]),
+	    ssl:controlling_process(Socket, ReceiverPid),
+	    {Socket, ReceiverPid};
+	{error, Reason} ->
+	    erlang:throw({socket_error, Reason})
     end.
+% if we use active-once before spawning the receiver process,
+% we can receive some data in the original process rather than 
+% in the receiver process. So {active.once} is is set explicitly
+% in the receiver process. NOTE: in this case this wouldn't make 
+% a big difference, as the connecting client should send the
+% stream header before receiving anything
 
-close(Ref, _) ->
-    gen_server:call(Ref, close).
 
-send(Ref, XMLPacket) ->
+close(Socket, ReceiverPid) ->
+    ReceiverPid ! stop,
+    ssl:close(Socket).
+
+send(Socket, XMLPacket) ->
     %% TODO: document_to_binary to reduce memory consumption
     String = exmpp_xml:document_to_list(XMLPacket),
-    gen_server:call(Ref, {send, String}).
-
-%% -- gen_server implementation --
-
-init([ClientPid, StreamRef, Host, Port]) ->
-	SetOptsModule = 
-			case check_new_ssl() of 
-			   true -> ssl;
-			   false -> inet
-			end,		
-			
-    Opts = [{packet,0}, binary, {active, once}, {reuseaddr, true}],
-    case ssl:connect(Host, Port, Opts, 30000) of
-        {ok, Socket} ->
-            {ok, #state{socket = Socket, stream_ref = StreamRef,
-			client_pid = ClientPid,
-			set_opts_module=SetOptsModule}};
-        {error,Error} ->
-            {stop,Error}
-    end.
-    
-handle_call(close, From, State) ->
-    Result = ssl:close(State#state.socket),
-    gen_server:reply(From, Result),
-    {stop, normal, State};
-
-handle_call({send, Data}, From, State) ->
-    case ssl:send(State#state.socket, Data) of
-        ok ->
-            {reply, ok, State};
-        Error ->
-            gen_server:reply(From, {error, send_failed}),
-            {stop, Error, State}
+    case ssl:send(Socket, String) of
+	ok -> ok;
+	_Other -> {error, send_failed}
     end.
 
-handle_cast(_Request, State) ->
-    {noreply, State}.
-
-handle_info({ssl, Socket, Data}, #state{socket = Socket} = State) ->
-    {ok, NewStreamRef} = exmpp_xmlstream:parse(State#state.stream_ref, Data),
+%%--------------------------------------------------------------------
+%% Internal functions
+%%--------------------------------------------------------------------
+receiver(ClientPid, Socket,SetOptsModule, StreamRef) ->
+    receiver_loop(ClientPid, Socket,SetOptsModule, StreamRef).
     
-    Module=State#state.set_opts_module,
-    Module:setopts(Socket, [{active, once}]),
-    {noreply, State#state{stream_ref = NewStreamRef}};
+receiver_loop(ClientPid, Socket,SetOptsModule, StreamRef) ->
+	SetOptsModule:setopts(Socket, [{active, once}]),
+    receive
+	stop ->
+	    ok;
+	{ssl, Socket, Data} ->
+	    {ok, NewStreamRef} = exmpp_xmlstream:parse(StreamRef, Data),
+	    receiver_loop(ClientPid, Socket,SetOptsModule, NewStreamRef);
+	{ssl_closed, Socket} ->
+	    gen_fsm:sync_send_all_state_event(ClientPid, tcp_closed);
+    {ssl_error,Socket,Reason} ->
+        error_logger:warning_msg([ssl_error,{ssl_socket,Socket},Reason]),
+	    gen_fsm:sync_send_all_state_event(ClientPid, tcp_closed)
+    end.
 
-handle_info({ssl_error, Socket, _Reason}, #state{socket = Socket} = State) ->
-    {noreply, State};
-
-handle_info({ssl_closed, Socket},
-	    #state{socket = Socket, client_pid=ClientPid} = State) ->
-    gen_fsm:sync_send_all_state_event(ClientPid, tcp_closed),
-    {noreply, State}.
-
-code_change(_OldVsn, State, _Extra) ->
-    {ok, State}.
-
-terminate(_Reason, _State) ->
-    ok.
-    
 
 %% In R12, inet:setopts/2 doesn't accept the new ssl sockets
 check_new_ssl() ->
