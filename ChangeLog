@@ -17,7 +17,7 @@
 	driver now returns the reason string provided by OpenSSL. Until a real
 	verify_callback is made, any certificate is accepted.
 
-	* src/core/exmpp_tls.erl: Add basic documentation.
+	* src/core/exmpp_tls.erl: Add basic documentation. Fix $Id$ tag.
 
 	* src/core/exmpp_sup.erl: Start exmpp_tls.
 

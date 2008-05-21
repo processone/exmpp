@@ -1,4 +1,4 @@
-% $Idi$
+% $Id$
 
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
@@ -759,6 +759,7 @@ code_change(Old_Vsn, State, Extra) ->
 
 terminate(_Reason, _State) ->
     ok.
+
 % --------------------------------------------------------------------
 % Documentation / type definitions.
 % --------------------------------------------------------------------
