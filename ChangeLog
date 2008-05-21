@@ -18,6 +18,7 @@
 	verify_callback is made, any certificate is accepted.
 
 	* src/core/exmpp_tls.erl: Add basic documentation. Fix $Id$ tag.
+	(recv/3): Add real timeout support.
 
 	* src/core/exmpp_sup.erl: Start exmpp_tls.
 

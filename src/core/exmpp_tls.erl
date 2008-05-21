@@ -44,6 +44,12 @@
   port_revision/1
 ]).
 
+% Communication with the underlying module/socket.
+-export([
+  underlying_send/2,
+  underlying_recv/2
+]).
+
 % gen_server(3erl) callbacks.
 -export([
   init/1,
@@ -492,11 +498,20 @@ recv2(#tls_socket{socket = Socket_Desc, port = Port} = Socket_Data,
         case engine_get_decrypted_input(Port, Length) of
             want_read ->
                 % Ok, we need more data.
-                case underlying_recv(Socket_Desc, Timeout) of
+                {Recv, New_Timeout} = case Timeout of
+                    infinity ->
+                        {underlying_recv(Socket_Desc, Timeout), Timeout};
+                    _ ->
+                        {Elapsed, Ret} = timer:tc(?MODULE, underlying_recv,
+                          [Socket_Desc, Timeout]),
+                        {Ret, Timeout - Elapsed div 1000}
+                end,
+                case Recv of
                     {ok, Packet} ->
                         engine_set_encrypted_input(Port, Packet),
                         % Try to decipher it.
-                        recv2(Socket_Data, Length, Timeout, Previous_Data);
+                        recv2(Socket_Data, Length, New_Timeout,
+                          Previous_Data);
                     {error, Reason} ->
                         {error, Reason}
                 end;
@@ -665,8 +680,12 @@ engine_shutdown(Port) ->
 % Communication with the underlying module/socket.
 % --------------------------------------------------------------------
 
+%% @hidden
+
 underlying_recv({Mod, Socket}, Timeout) ->
     Mod:recv(Socket, 0, Timeout).
+
+%% @hidden
 
 underlying_send({Mod, Socket}, Packet) ->
     Mod:send(Socket, Packet).
