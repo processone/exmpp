@@ -1,5 +1,12 @@
 2008-05-21  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
+	Import of the new TLS port driver.
+
+	* configure.ac: Always check for OpenSSL, not only when the compat
+	layer is enabled.
+
+2008-05-21  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
 	* doc/Makefile.am: Fixed distributed files list.
 
 	* c_src/exmpp_expat.c, c_src/exmpp_stringprep.c: style(9).

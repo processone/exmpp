@@ -295,8 +295,7 @@ dnl ------------------------------------------------------------------
 
 case $host_os in
 	*mingw*)
-		# Pour compiler une DLL Win32, libtool a besoin
-		# de -no-undefined.
+		dnl To compile a Win32 DLL, libtool requires -no-undefined.
 		ERL_DRIVER_LDFLAGS="${ERL_DRIVER_LDFLAGS% } -no-undefined"
 
 		canonical_host="win32"
@@ -309,28 +308,30 @@ dnl ------------------------------------------------------------------
 dnl Dependencies.
 dnl ------------------------------------------------------------------
 
-dnl Expat port driver
+dnl Expat port driver.
 EXMPP_EXPAT(build_with_expat="yes", build_with_expat="no")
 AM_CONDITIONAL(WITH_EXPAT, test "x${build_with_expat}" = "xyes")
 
+dnl OpenSSL TLS port driver.
+EXMPP_OPENSSL(build_with_openssl="yes", build_with_openssl="no")
+AM_CONDITIONAL(WITH_OPENSSL, test "x${build_with_openssl}" = "xyes")
+if test "x${build_with_openssl}" = "xyes"; then
+	append_to_EMKOPTS "{d, 'HAVE_OPENSSL'}"
+fi
+
 build_with_zlib="no"
 build_with_iconv="no"
-build_with_openssl="no"
 
 if test "x${enable_compat}" = "xyes"; then
-	dnl Zlib
+	dnl Zlib port driver.
 	EXMPP_ZLIB(build_with_zlib="yes", build_with_zlib="no")
 
-	dnl iconv port driver
+	dnl iconv port driver.
 	EXMPP_ICONV(build_with_iconv="yes", build_with_iconv="no")
-
-	dnl OpenSSL
-	EXMPP_OPENSSL(build_with_openssl="yes", build_with_openssl="no")
 fi
 
 AM_CONDITIONAL(WITH_ZLIB, test "x${build_with_zlib}" = "xyes")
 AM_CONDITIONAL(WITH_ICONV, test "x${build_with_iconv}" = "xyes")
-AM_CONDITIONAL(WITH_OPENSSL, test "x${build_with_openssl}" = "xyes")
 
 dnl ------------------------------------------------------------------
 dnl Finale substitutions.
