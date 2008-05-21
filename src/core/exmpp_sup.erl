@@ -10,6 +10,7 @@
 %% </p>
 %% <ol>
 %%   <li>{@link exmpp_stringprep}</li>
+%%   <li>{@link exmpp_tls}</li>
 %% </ol>
 %%
 %% <p>
@@ -71,8 +72,17 @@ init(_Args) ->
       worker,
       [exmpp_stringprep]
     },
+    % TLS.
+    TLS = {tls,
+      {exmpp_tls, start_link, []},
+      transient,
+      2000,
+      worker,
+      [exmpp_tls]
+    },
     {ok, {
       {one_for_one, 10, 1}, [
-        Stringprep
+        Stringprep,
+        TLS
       ]
     }}.
