@@ -2,6 +2,8 @@
 
 	* doc/Makefile.am: Fixed distributed files list.
 
+	* c_src/exmpp_expat.c, c_src/exmpp_stringprep.c: style(9).
+
 2008-05-20  Pablo Polvorin <pablo.polvorin@process-one.net>
 
 	* src/network/exmpp_ssl.erl: Fix compatibility bug with old OTP

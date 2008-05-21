@@ -103,7 +103,7 @@ static int	compose(int ch1, int ch2);
 
 /* -------------------------------------------------------------------
  * Erlang port driver callbacks.
- * -------------------------------------------------------------------*/
+ * ------------------------------------------------------------------- */
 
 static ErlDrvData
 exmpp_stringprep_start(ErlDrvPort port, char *command)
@@ -330,7 +330,7 @@ exmpp_stringprep_control(ErlDrvData drv_data, unsigned int command,
 
 /* -------------------------------------------------------------------
  * Internal functions.
- * -------------------------------------------------------------------*/
+ * ------------------------------------------------------------------- */
 
 /* "canonical_ordering" and "compose" functions are based on nfkc.c from
  * Gnome library. */
