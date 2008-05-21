@@ -66,7 +66,7 @@
   auth_methods = []
 }).
 
--record(socket_data, {
+-record(tls_socket, {
   socket,
   packet_mode = binary,
   port
@@ -215,8 +215,42 @@ get_engine_driver(Engine_Name) ->
 % Handshake.
 % --------------------------------------------------------------------
 
+%% @spec (Socket_Desc, Identity, Peer_Verification, Options) -> TLS_Socket
+%%     Socket_Desc = {Mod, Socket}
+%%     Mod = atom()
+%%     Socket = term()
+%%     Identity = {Auth_Method, Certificate, Private_Key} | undefined
+%%     Auth_Method = atom()
+%%     Certificate = string()
+%%     Private_Key = string()
+%%     Peer_Verification = boolean() | Peer_Name
+%%     Peer_Name = string()
+%%     Options = [Option]
+%%     Option = {engine, Engine} | {mode, Mode} | {trusted_certs, Auth_Method, Certs} | peer_cert_required | accept_expired_cert | accept_revoked_cert | accept_non_trusted_cert | accept_corrupted_cert
+%%     Engine = atom()
+%%     Mode = binary | list
+%%     TLS_Socket = tls_socket()
+%% @doc Start TLS handshake as a client.
+
 connect(Socket_Desc, Identity, Peer_Verification, Options) ->
     handshake(client, Socket_Desc, Identity, Peer_Verification, Options).
+
+%% @spec (Socket_Desc, Identity, Peer_Verification, Options) -> TLS_Socket
+%%     Socket_Desc = {Mod, Socket}
+%%     Mod = atom()
+%%     Socket = term()
+%%     Identity = {Auth_Method, Certificate, Private_Key}
+%%     Auth_Method = atom()
+%%     Certificate = string()
+%%     Private_Key = string()
+%%     Peer_Verification = boolean() | Peer_Name
+%%     Peer_Name = string()
+%%     Options = [Option]
+%%     Option = {engine, Engine} | {mode, Mode} | {trusted_certs, Auth_Method, Certs} | peer_cert_required | accept_expired_cert | accept_revoked_cert | accept_non_trusted_cert | accept_corrupted_cert
+%%     Engine = atom()
+%%     Mode = binary | list
+%%     TLS_Socket = tls_socket()
+%% @doc Start TLS handshake as a server.
 
 accept(Socket_Desc, Identity, Peer_Verification, Options) ->
     handshake(server, Socket_Desc, Identity, Peer_Verification, Options).
@@ -286,7 +320,7 @@ handshake2(client = Mode, Socket_Desc, Port, Recv_Timeout) ->
             end;
         ok ->
             % Handshake done.
-            #socket_data{socket = Socket_Desc, port = Port}
+            #tls_socket{socket = Socket_Desc, port = Port}
     end;
 handshake2(server = Mode, Socket_Desc, Port, Recv_Timeout) ->
     % Wait for a packet from the client.
@@ -310,7 +344,7 @@ handshake2(server = Mode, Socket_Desc, Port, Recv_Timeout) ->
                     case underlying_send(Socket_Desc, New_Packet) of
                         ok ->
                             % Handshake done.
-                            #socket_data{socket = Socket_Desc, port = Port};
+                            #tls_socket{socket = Socket_Desc, port = Port};
                         {error, Reason} ->
                             throw({tls, handshake, underlying_send, Reason})
                     end
@@ -409,7 +443,13 @@ check_peer_verification(Peer_Verif, _Mode) ->
 % Common socket API.
 % --------------------------------------------------------------------
 
-send(#socket_data{socket = Socket_Desc, port = Port}, Packet) ->
+%% @spec (TLS_Socket, Packet) -> ok | {error, Reason}
+%%     TLS_Socket = tls_socket()
+%%     Packet = binary() | list()
+%%     Reason = term()
+%% @doc Send `Packet' over TLS-protected connection.
+
+send(#tls_socket{socket = Socket_Desc, port = Port}, Packet) ->
     try
         engine_set_decrypted_output(Port, Packet),
         Encrypted = engine_get_encrypted_output(Port),
@@ -419,19 +459,34 @@ send(#socket_data{socket = Socket_Desc, port = Port}, Packet) ->
             {error, Exception}
     end.
 
+%% @spec (TLS_Socket, Length) -> {ok, Packet} | {error, Reason}
+%%     TLS_Socket = tls_socket()
+%%     Length = integer()
+%%     Packet = binary() | list()
+%%     Reason = term()
+%% @doc Receive data over TLS session.
+
 recv(Socket_Data, Length) ->
     recv(Socket_Data, Length, infinity).
+
+%% @spec (TLS_Socket, Length, Timeout) -> {ok, Packet} | {error, Reason}
+%%     TLS_Socket = tls_socket()
+%%     Length = integer()
+%%     Timeout = integer()
+%%     Packet = binary() | list()
+%%     Reason = term()
+%% @doc Receive data over TLS session.
 
 recv(Socket_Data, Length, Timeout) ->
     recv2(Socket_Data, Length, Timeout, <<>>).
 
-recv2(#socket_data{packet_mode = Mode}, Length, _Timeout, Previous_Data)
+recv2(#tls_socket{packet_mode = Mode}, Length, _Timeout, Previous_Data)
   when size(Previous_Data) > 0, Length =< 0 ->
       case Mode of
           binary -> {ok, Previous_Data};
           list   -> {ok, binary_to_list(Previous_Data)}
       end;
-recv2(#socket_data{socket = Socket_Desc, port = Port} = Socket_Data,
+recv2(#tls_socket{socket = Socket_Desc, port = Port} = Socket_Data,
   Length, Timeout, Previous_Data) ->
     try
         case engine_get_decrypted_input(Port, Length) of
@@ -462,10 +517,21 @@ recv2(#socket_data{socket = Socket_Desc, port = Port} = Socket_Data,
             {error, Exception}
     end.
 
-controlling_process(#socket_data{socket = {Mod, Socket}}, Pid) ->
+%% @spec (TLS_Socket, Pid) -> ok | {error, Reason}
+%%     TLS_Socket = tls_socket()
+%%     Pid = pid()
+%%     Reason = term()
+%% @doc Change the controlling socket of the underlying socket.
+
+controlling_process(#tls_socket{socket = {Mod, Socket}}, Pid) ->
     Mod:controlling_process(Socket, Pid).
 
-close(#socket_data{socket = {Mod, Socket} = Socket_Data,
+%% @spec (TLS_Socket) -> ok | {error, Reason}
+%%     TLS_Socket = tls_socket()
+%%     Reason = term()
+%% @doc Shutdown the TLS session and close the underlying socket.
+
+close(#tls_socket{socket = {Mod, Socket} = Socket_Data,
   port = Port}) ->
     % First, shutdown the TLS session.
     engine_shutdown(Port),
@@ -480,7 +546,7 @@ close(#socket_data{socket = {Mod, Socket} = Socket_Data,
 
 %% @hidden
 
-port_revision(#socket_data{port = Port}) ->
+port_revision(#tls_socket{port = Port}) ->
     engine_svn_revision(Port).
 
 % --------------------------------------------------------------------
@@ -693,3 +759,9 @@ code_change(Old_Vsn, State, Extra) ->
 
 terminate(_Reason, _State) ->
     ok.
+% --------------------------------------------------------------------
+% Documentation / type definitions.
+% --------------------------------------------------------------------
+
+%% @type tls_socket().
+%% TLS socket obtained with {@link connect/4} or {@link accept/4}.
