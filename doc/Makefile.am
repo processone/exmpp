@@ -1,8 +1,8 @@
 # $Id$
 
-if BUILD_DOCUMENTATION
-
 EXTRA_DIST = overview.edoc stylesheet.css
+
+if BUILD_DOCUMENTATION
 
 stylesheet.css:
 	(test "$(srcdir)" != "." &&\
@@ -49,6 +49,7 @@ HTML_FILES = index.html							\
 	     exmpp_stringprep.html					\
 	     exmpp_sup.html						\
 	     exmpp_tcp.html						\
+	     exmpp_tls.html						\
 	     exmpp_xml.html						\
 	     exmpp_xmlstream.html					\
 	     echo_client.html						\

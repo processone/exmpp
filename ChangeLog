@@ -1,9 +1,14 @@
+2008-05-21  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* doc/Makefile.am: Fixed distributed files list.
+
 2008-05-20  Pablo Polvorin <pablo.polvorin@process-one.net>
+
 	* src/network/exmpp_ssl.erl: Fix compatibility bug with old OTP
 	versions that doesn't allow the reuseaddr option in ssl sockets.
 
 	* src/network/exmpp_ssl.erl: Refactor the code, using exmpp_tcp.erl as
-	a model. 
+	a model.
 
 2008-05-13  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
