@@ -13,6 +13,7 @@
 -export([
   driver_dirs/0,
   load_driver/1,
+  load_driver/2,
   unload_driver/1,
   open_port/1,
   close_port/1
@@ -70,6 +71,17 @@ driver_dirs() ->
 
 load_driver(Driver_Name) ->
     Dirs = driver_dirs(),
+    load_driver(Driver_Name, Dirs).
+
+%% @spec (Driver_Name, Dirs) -> ok
+%%     Driver_Name = atom()
+%%     Dirs = [string()]
+%% @throws {port_driver, load, Reason, Driver_Name}
+%% @doc Load the port driver `Driver_Name'.
+%%
+%% The driver is search in `Dirs'.
+
+load_driver(Driver_Name, Dirs) ->
     load_driver1(Driver_Name, Dirs, undefined).
 
 % This function will try to load `Driver_Name' from each `Dir' in the list.
