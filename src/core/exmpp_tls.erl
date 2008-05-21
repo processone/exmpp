@@ -34,11 +34,14 @@
   accept/4
 ]).
 
-% Data handling.
+% Common socket API.
 -export([
   send/2,
   recv/2,
-  recv/3
+  recv/3,
+  controlling_process/2,
+  close/1,
+  port_revision/1
 ]).
 
 % gen_server(3erl) callbacks.
@@ -65,6 +68,7 @@
 
 -record(socket_data, {
   socket,
+  packet_mode = binary,
   port
 }).
 
@@ -82,7 +86,8 @@
 -define(COMMAND_GET_DECRYPTED_INPUT,   9).
 -define(COMMAND_SET_DECRYPTED_OUTPUT, 10).
 -define(COMMAND_GET_ENCRYPTED_OUTPUT, 11).
--define(COMMAND_SVN_REVISION,         12).
+-define(COMMAND_SHUTDOWN,             12).
+-define(COMMAND_SVN_REVISION,         13).
 
 % --------------------------------------------------------------------
 % Initialization.
@@ -268,7 +273,7 @@ handshake2(client = Mode, Socket_Desc, Port, Recv_Timeout) ->
             case underlying_send(Socket_Desc, New_Packet) of
                 ok ->
                     % Wait for a packet from the client.
-                    case underlying_recv(Socket_Desc, 0, Recv_Timeout) of
+                    case underlying_recv(Socket_Desc, Recv_Timeout) of
                         {ok, Packet} ->
                             engine_set_encrypted_input(Port, Packet),
                             % Recurse!
@@ -280,18 +285,12 @@ handshake2(client = Mode, Socket_Desc, Port, Recv_Timeout) ->
                     throw({tls, handshake, underlying_send, Reason})
             end;
         ok ->
-            case underlying_recv(Socket_Desc, 0, Recv_Timeout) of
-                {ok, Packet} ->
-                    engine_set_encrypted_input(Port, Packet),
-                    % Handshake done.
-                    #socket_data{socket = Socket_Desc, port = Port};
-                {error, Reason} ->
-                    throw({tls, handshake, underlying_recv, Reason})
-            end
+            % Handshake done.
+            #socket_data{socket = Socket_Desc, port = Port}
     end;
 handshake2(server = Mode, Socket_Desc, Port, Recv_Timeout) ->
     % Wait for a packet from the client.
-    case underlying_recv(Socket_Desc, 0, Recv_Timeout) of
+    case underlying_recv(Socket_Desc, Recv_Timeout) of
         {ok, Packet} ->
             engine_set_encrypted_input(Port, Packet),
             % Try to handshake.
@@ -407,7 +406,7 @@ check_peer_verification(Peer_Verif, _Mode) ->
     end.
 
 % --------------------------------------------------------------------
-% Data handling.
+% Common socket API.
 % --------------------------------------------------------------------
 
 send(#socket_data{socket = Socket_Desc, port = Port}, Packet) ->
@@ -426,16 +425,19 @@ recv(Socket_Data, Length) ->
 recv(Socket_Data, Length, Timeout) ->
     recv2(Socket_Data, Length, Timeout, <<>>).
 
-recv2(_Socket_Data, Length, _Timeout, Previous_Data)
+recv2(#socket_data{packet_mode = Mode}, Length, _Timeout, Previous_Data)
   when size(Previous_Data) > 0, Length =< 0 ->
-    {ok, Previous_Data};
+      case Mode of
+          binary -> {ok, Previous_Data};
+          list   -> {ok, binary_to_list(Previous_Data)}
+      end;
 recv2(#socket_data{socket = Socket_Desc, port = Port} = Socket_Data,
   Length, Timeout, Previous_Data) ->
     try
         case engine_get_decrypted_input(Port, Length) of
             want_read ->
                 % Ok, we need more data.
-                case underlying_recv(Socket_Desc, 0, Timeout) of
+                case underlying_recv(Socket_Desc, Timeout) of
                     {ok, Packet} ->
                         engine_set_encrypted_input(Port, Packet),
                         % Try to decipher it.
@@ -460,8 +462,29 @@ recv2(#socket_data{socket = Socket_Desc, port = Port} = Socket_Data,
             {error, Exception}
     end.
 
+controlling_process(#socket_data{socket = {Mod, Socket}}, Pid) ->
+    Mod:controlling_process(Socket, Pid).
+
+close(#socket_data{socket = {Mod, Socket} = Socket_Data,
+  port = Port}) ->
+    % First, shutdown the TLS session.
+    engine_shutdown(Port),
+    Notify = engine_get_encrypted_output(Port),
+    case underlying_send(Socket_Data, Notify) of
+        ok ->
+            % Close the underlying socket.
+            Mod:close(Socket);
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+%% @hidden
+
+port_revision(#socket_data{port = Port}) ->
+    engine_svn_revision(Port).
+
 % --------------------------------------------------------------------
-% Internal functions.
+% Engine function wrappers.
 % --------------------------------------------------------------------
 
 control(Port, Command, Data) ->
@@ -484,6 +507,8 @@ engine_set_mode(Port, Mode) ->
             ok
     end.
 
+engine_set_identity(_Port, undefined) ->
+    ok;
 engine_set_identity(Port, Identity) ->
     case control(Port, ?COMMAND_SET_IDENTITY, term_to_binary(Identity)) of
         {error, Reason} ->
@@ -503,7 +528,7 @@ engine_set_peer_verification(Port, Peer_Verif) ->
 engine_prepare_handshake(Port) ->
     case control(Port, ?COMMAND_PREPARE_HANDSHAKE, <<>>) of
         {error, Reason} ->
-            throw({tls, handshake, do_handshake, Reason});
+            throw({tls, handshake, prepare_handshake, Reason});
         _ ->
             ok
     end.
@@ -518,6 +543,8 @@ engine_handshake(Port) ->
             Result
     end.
 
+engine_set_encrypted_input(Port, Data) when is_list(Data) ->
+    engine_set_encrypted_input(Port, list_to_binary(Data));
 engine_set_encrypted_input(Port, Data) ->
     case control(Port, ?COMMAND_SET_ENCRYPTED_INPUT, Data) of
         {error, Reason} ->
@@ -534,6 +561,8 @@ engine_get_decrypted_input(Port, Length) ->
             Result
     end.
 
+engine_set_decrypted_output(Port, Data) when is_list(Data) ->
+    engine_set_decrypted_output(Port, list_to_binary(Data));
 engine_set_decrypted_output(Port, Data) ->
     case control(Port, ?COMMAND_SET_DECRYPTED_OUTPUT, Data) of
         {error, Reason} ->
@@ -550,19 +579,31 @@ engine_get_encrypted_output(Port) ->
             Result
     end.
 
-%engine_revision(Port) ->
-%    case control(Port, ?COMMAND_SVN_REVISION, <<>>) of
-%        {error, Reason} ->
-%            throw({tls, handshake, svn_revision, Reason});
-%        Revision ->
-%            binary_to_term(Revision)
-%    end.
+engine_svn_revision(Port) ->
+    case control(Port, ?COMMAND_SVN_REVISION, <<>>) of
+        {error, Reason} ->
+            throw({tls, handshake, svn_revision, Reason});
+        Revision ->
+            binary_to_term(Revision)
+    end.
 
-underlying_recv({Socket_Mod, Socket_Data}, Length, Timeout) ->
-    Socket_Mod:recv(Socket_Data, Length, Timeout).
+engine_shutdown(Port) ->
+    case control(Port, ?COMMAND_SHUTDOWN, <<>>) of
+        {error, Reason} ->
+            throw({tls, shutdown, shutdown_failed, Reason});
+        Result ->
+            Result
+    end.
 
-underlying_send({Socket_Mod, Socket_Data}, Packet) ->
-    Socket_Mod:send(Socket_Data, Packet).
+% --------------------------------------------------------------------
+% Communication with the underlying module/socket.
+% --------------------------------------------------------------------
+
+underlying_recv({Mod, Socket}, Timeout) ->
+    Mod:recv(Socket, 0, Timeout).
+
+underlying_send({Mod, Socket}, Packet) ->
+    Mod:send(Socket, Packet).
 
 % --------------------------------------------------------------------
 % gen_server(3erl) callbacks.

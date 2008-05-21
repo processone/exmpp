@@ -9,6 +9,14 @@
 	src/Emakefile.in, c_src/Makefile.am, ebin/Makefile.am,
 	ebin/exmpp.app.in: Add exmpp_tls and its associated port driver.
 
+	* src/core/exmpp_tls.erl, c_src/exmpp_tls_openssl.c: Add
+	controlling_process/2 and close/1 functions. Allow the underlying
+	socket to return data as lists. Allow the caller to send data as list;
+	the receive part is done but the option isn't available yet. Fix
+	handshake for the client side. When the handshake fails, the port
+	driver now returns the reason string provided by OpenSSL. Until a real
+	verify_callback is made, any certificate is accepted.
+
 2008-05-21  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* doc/Makefile.am: Fixed distributed files list.

@@ -4,6 +4,7 @@
 #include <erl_driver.h>
 #include <ei.h>
 #include <openssl/ssl.h>
+#include <openssl/err.h>
 
 #define	DRIVER_NAME	exmpp_tls_openssl
 #define	_S(s)		#s
@@ -24,6 +25,7 @@ enum {
 	COMMAND_GET_DECRYPTED_INPUT,
 	COMMAND_SET_DECRYPTED_OUTPUT,
 	COMMAND_GET_ENCRYPTED_OUTPUT,
+	COMMAND_SHUTDOWN,
 	COMMAND_SVN_REVISION
 };
 
@@ -58,8 +60,6 @@ struct exmpp_tls_openssl_data {
 static int	init_library(struct exmpp_tls_openssl_data *edd,
 		    ei_x_buff **to_send, size_t *size, ErlDrvBinary **b);
 static int	verify_callback(int preverify_ok, X509_STORE_CTX *x509_ctx);
-static void	msg_callback(int write_p, int version, int content_type,
-		    const void *buf, size_t len, SSL *ssl, void *arg);
 
 #define	SKIP_VERSION(buf, index, version)	do {			\
 	index = 0;							\
@@ -238,8 +238,13 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 				break;
 			default:
 				/* An error occured. */
+				ret = ERR_get_error();
+
 				NEW_SEND_BUF(to_send);
-				ei_x_encode_atom(to_send, "handshake_failed");
+				ei_x_encode_tuple_header(to_send, 2);
+				ei_x_encode_long(to_send, ret);
+				ei_x_encode_string(to_send,
+				    ERR_error_string(ret, NULL));
 
 				COPY_AND_FREE_BUF(to_send, size, b);
 			}
@@ -347,6 +352,10 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 		b = driver_realloc_binary(b, size);
 
 		break;
+	case COMMAND_SHUTDOWN:
+		SSL_shutdown(edd->ssl);
+
+		break;
 	case COMMAND_SVN_REVISION:
 		/* Store the revision in the buffer. */
 		NEW_SEND_BUF(to_send);
@@ -399,28 +408,33 @@ init_library(struct exmpp_tls_openssl_data *edd,
 	}
 
 	/* Set our certificate. */
-	ret = SSL_CTX_use_certificate_chain_file(edd->ctx, edd->certificate);
-	if (ret != 1) {
-		NEW_SEND_BUF(*to_send);
-		ei_x_encode_atom(*to_send,
-		    "load_cert_failed");
+	if (edd->certificate != NULL) {
+		ret = SSL_CTX_use_certificate_chain_file(edd->ctx,
+		    edd->certificate);
+		if (ret != 1) {
+			NEW_SEND_BUF(*to_send);
+			ei_x_encode_atom(*to_send,
+			    "load_cert_failed");
 
-		COPY_AND_FREE_BUF(*to_send, *size, *b);
+			COPY_AND_FREE_BUF(*to_send, *size, *b);
 
-		goto err;
+			goto err;
+		}
 	}
 
 	/* Set the private key. */
-	ret = SSL_CTX_use_PrivateKey_file(edd->ctx, edd->private_key,
-	    SSL_FILETYPE_PEM);
-	if (ret != 1) {
-		NEW_SEND_BUF(*to_send);
-		ei_x_encode_atom(*to_send,
-		    "load_pk_failed");
+	if (edd->private_key != NULL) {
+		ret = SSL_CTX_use_PrivateKey_file(edd->ctx,
+		    edd->private_key, SSL_FILETYPE_PEM);
+		if (ret != 1) {
+			NEW_SEND_BUF(*to_send);
+			ei_x_encode_atom(*to_send,
+			    "load_pk_failed");
 
-		COPY_AND_FREE_BUF(*to_send, *size, *b);
+			COPY_AND_FREE_BUF(*to_send, *size, *b);
 
-		goto err;
+			goto err;
+		}
 	}
 
 	/* Prepare OpenSSL for verification. */
@@ -429,9 +443,6 @@ init_library(struct exmpp_tls_openssl_data *edd,
 	verify |= edd->peer_cert_required ?
 	    SSL_VERIFY_FAIL_IF_NO_PEER_CERT : 0;
 	SSL_CTX_set_verify(edd->ctx, verify, verify_callback);
-
-	/* Set debugging callback. */
-	SSL_CTX_set_msg_callback(edd->ctx, msg_callback);
 
 	/* Create an SSL connection handle. */
 	edd->ssl = SSL_new(edd->ctx);
@@ -475,15 +486,10 @@ static int
 verify_callback(int preverify_ok, X509_STORE_CTX *x509_ctx)
 {
 
-	return (preverify_ok);
-}
+	/* TODO: Implements a real verification. For now, any certificate
+	 * is accepted. */
 
-static void
-msg_callback(int write_p, int version, int content_type,
-    const void *buf, size_t len, SSL *ssl, void *arg)
-{
-
-	printf("%5d bytes %s\r\n", len, write_p == 1 ? "sent" : "received");
+	return (1);
 }
 
 /* -------------------------------------------------------------------
