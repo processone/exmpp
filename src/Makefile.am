@@ -10,6 +10,7 @@ EXTRA_DIST = core/exmpp.erl						\
 	     core/exmpp_stanza.erl					\
 	     core/exmpp_stream.erl					\
 	     core/exmpp_iq.erl						\
+	     core/exmpp_tls.erl						\
 	     network/exmpp_callbacks.erl				\
 	     network/exmpp_session.erl					\
 	     network/exmpp_ssl.erl					\

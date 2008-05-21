@@ -6,6 +6,10 @@ if WITH_EXPAT
 lib_LTLIBRARIES += exmpp_expat.la
 endif
 
+if WITH_OPENSSL
+lib_LTLIBRARIES += exmpp_tls_openssl.la
+endif
+
 if BUILD_COMPAT
 
 if WITH_ZLIB
@@ -31,8 +35,6 @@ EXTRA_DIST = contrib/hashtable.h contrib/hashtable_private.h		\
 BUILT_SOURCES = xmpp_ns.h xmpp_names.h xmpp_attrs.h
 
 CLEANFILES = xmpp_ns.h xmpp_names.h xmpp_attrs.h
-
-AM_LDFLAGS = $(ERL_DRIVER_LDFLAGS)
 
 EI_CPPFLAGS = -I$(ERLANG_ROOT_DIR)/usr/include				\
 	      -I$(ERLANG_LIB_DIR_erl_interface)/include
@@ -64,6 +66,7 @@ exmpp_expat_la_CPPFLAGS = -I$(srcdir)/contrib				\
 			  $(EI_CPPFLAGS) -DEI_ENCODE_STRING_BUG		\
 			  $(EXPAT_CPPFLAGS)
 exmpp_expat_la_LDFLAGS = -module -avoid-version				\
+			 $(ERL_DRIVER_LDFLAGS)				\
 			 $(EI_LDFLAGS) $(EI_LIBS)			\
 			 $(EXPAT_LDFLAGS) $(EXPAT_LIBS)
 exmpp_expat_la_SOURCES = contrib/hashtable.c				\
@@ -72,8 +75,18 @@ exmpp_expat_la_SOURCES = contrib/hashtable.c				\
 # Stringprep
 exmpp_stringprep_la_CPPFLAGS = $(EI_CPPFLAGS)
 exmpp_stringprep_la_LDFLAGS = -module -avoid-version			\
+			      $(ERL_DRIVER_LDFLAGS)			\
 			      $(EI_LDFLAGS) $(EI_LIBS)
 exmpp_stringprep_la_SOURCES = exmpp_stringprep.c
+
+# TLS port driver (OpenSSL)
+exmpp_tls_openssl_la_CPPFLAGS = $(EI_CPPFLAGS)				\
+				$(OPENSSL_CPPFLAGS)
+exmpp_tls_openssl_la_LDFLAGS = -module -avoid-version			\
+			       $(ERL_DRIVER_LDFLAGS)			\
+			       $(EI_LDFLAGS) $(EI_LIBS)			\
+			       $(OPENSSL_LDFLAGS) $(OPENSSL_LIBS)
+exmpp_tls_openssl_la_SOURCES = exmpp_tls_openssl.c
 
 # --------------------------------------------------------------------
 # Port drivers which are not ported yet.
@@ -83,6 +96,7 @@ exmpp_stringprep_la_SOURCES = exmpp_stringprep.c
 ejabberd_zlib_drv_la_CPPFLAGS = $(EI_CPPFLAGS)				\
 				$(ZLIB_CPPFLAGS)
 ejabberd_zlib_drv_la_LDFLAGS = -module -avoid-version			\
+			       $(ERL_DRIVER_LDFLAGS)			\
 			       $(EI_LDFLAGS) $(EI_LIBS)			\
 			       $(ZLIB_LDFLAGS) $(ZLIB_LIBS)
 ejabberd_zlib_drv_la_SOURCES = ejabberd_zlib_drv.c
@@ -91,6 +105,7 @@ ejabberd_zlib_drv_la_SOURCES = ejabberd_zlib_drv.c
 iconv_erl_la_CPPFLAGS = $(EI_CPPFLAGS)					\
 			$(ICONV_CPPFLAGS)
 iconv_erl_la_LDFLAGS = -module -avoid-version				\
+		       $(ERL_DRIVER_LDFLAGS)				\
 		       $(EI_LDFLAGS) $(EI_LIBS)				\
 		       $(ICONV_LDFLAGS) $(ICONV_LIBS)
 iconv_erl_la_SOURCES = iconv_erl.c
@@ -99,6 +114,7 @@ iconv_erl_la_SOURCES = iconv_erl.c
 tls_drv_la_CPPFLAGS = $(EI_CPPFLAGS)					\
 		      $(OPENSSL_CPPFLAGS)
 tls_drv_la_LDFLAGS = -module -avoid-version				\
+		     $(ERL_DRIVER_LDFLAGS)				\
 		     $(EI_LDFLAGS) $(EI_LIBS)				\
 		     $(OPENSSL_LDFLAGS) $(OPENSSL_LIBS)
 tls_drv_la_SOURCES = tls_drv.c

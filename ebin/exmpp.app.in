@@ -13,6 +13,7 @@
         exmpp_stream,
         exmpp_stringprep,
         exmpp_sup,
+        exmpp_tls,
         exmpp_xml,
         exmpp_xmlstream,
         exmpp_client_binding,

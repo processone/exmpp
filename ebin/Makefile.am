@@ -13,6 +13,7 @@ BEAM_FILES = exmpp.app							\
 	     exmpp_stream.beam						\
 	     exmpp_stringprep.beam					\
 	     exmpp_sup.beam						\
+	     exmpp_tls.beam						\
 	     exmpp_xml.beam						\
 	     exmpp_xmlstream.beam					\
 	     exmpp_client_binding.beam					\

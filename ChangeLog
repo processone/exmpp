@@ -5,6 +5,10 @@
 	* configure.ac: Always check for OpenSSL, not only when the compat
 	layer is enabled.
 
+	* src/core/exmpp_tls.erl, c_src/exmpp_tls_openssl.c, src/Makefile.am,
+	src/Emakefile.in, c_src/Makefile.am, ebin/Makefile.am,
+	ebin/exmpp.app.in: Add exmpp_tls and its associated port driver.
+
 2008-05-21  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* doc/Makefile.am: Fixed distributed files list.
