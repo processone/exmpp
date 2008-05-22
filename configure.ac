@@ -319,18 +319,20 @@ if test "x${build_with_openssl}" = "xyes"; then
 	append_to_EMKOPTS "{d, 'HAVE_OPENSSL'}"
 fi
 
-build_with_zlib="no"
+dnl Zlib compression port driver.
+EXMPP_ZLIB(build_with_zlib="yes", build_with_zlib="no")
+AM_CONDITIONAL(WITH_ZLIB, test "x${build_with_zlib}" = "xyes")
+if test "x${build_with_zlib}" = "xyes"; then
+	append_to_EMKOPTS "{d, 'HAVE_ZLIB'}"
+fi
+
 build_with_iconv="no"
 
 if test "x${enable_compat}" = "xyes"; then
-	dnl Zlib port driver.
-	EXMPP_ZLIB(build_with_zlib="yes", build_with_zlib="no")
-
 	dnl iconv port driver.
 	EXMPP_ICONV(build_with_iconv="yes", build_with_iconv="no")
 fi
 
-AM_CONDITIONAL(WITH_ZLIB, test "x${build_with_zlib}" = "xyes")
 AM_CONDITIONAL(WITH_ICONV, test "x${build_with_iconv}" = "xyes")
 
 dnl ------------------------------------------------------------------
@@ -394,6 +396,14 @@ echo
 echo "    Compiler:           ${CC} ${CFLAGS}"
 echo "    Debug/warnings:     ${enable_debug}/${enable_warnings}"
 echo "    Compat modules:     ${enable_compat}"
+echo "    Documentation:      ${enable_documentation}"
 echo
 echo "    ERL:                ${ERL}"
 echo "    Install directory:  ${exp_ERLANG_INSTALL_LIB_DIR_exmpp}"
+echo
+echo "    TLS engines:"
+echo "      . OpenSSL:        ${build_with_openssl}"
+echo
+echo "    Compression engines:"
+echo "      . Zlib:           ${build_with_zlib}"
+echo
