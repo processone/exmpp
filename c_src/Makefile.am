@@ -10,6 +10,10 @@ if WITH_OPENSSL
 lib_LTLIBRARIES += exmpp_tls_openssl.la
 endif
 
+if WITH_ZLIB
+lib_LTLIBRARIES += exmpp_compress_zlib.la
+endif
+
 if BUILD_COMPAT
 
 if WITH_ZLIB
@@ -52,7 +56,7 @@ libdir = $(ERLANG_INSTALL_LIB_DIR_exmpp)/priv/lib
 # Supported port drivers.
 # --------------------------------------------------------------------
 
-# Expat port driver
+# Expat port driver.
 xmpp_ns.h: $(srcdir)/xmpp_ns.h.awk $(srcdir)/xmpp_ns.h.in
 	$(AWK) -f $(srcdir)/xmpp_ns.h.awk $(srcdir)/xmpp_ns.h.in > $@
 
@@ -72,14 +76,14 @@ exmpp_expat_la_LDFLAGS = -module -avoid-version				\
 exmpp_expat_la_SOURCES = contrib/hashtable.c				\
 			 exmpp_expat.c
 
-# Stringprep
+# Stringprep port driver.
 exmpp_stringprep_la_CPPFLAGS = $(EI_CPPFLAGS)
 exmpp_stringprep_la_LDFLAGS = -module -avoid-version			\
 			      $(ERL_DRIVER_LDFLAGS)			\
 			      $(EI_LDFLAGS) $(EI_LIBS)
 exmpp_stringprep_la_SOURCES = exmpp_stringprep.c
 
-# TLS port driver (OpenSSL)
+# OpenSSL TLS port driver.
 exmpp_tls_openssl_la_CPPFLAGS = $(EI_CPPFLAGS)				\
 				$(OPENSSL_CPPFLAGS)
 exmpp_tls_openssl_la_LDFLAGS = -module -avoid-version			\
@@ -87,6 +91,15 @@ exmpp_tls_openssl_la_LDFLAGS = -module -avoid-version			\
 			       $(EI_LDFLAGS) $(EI_LIBS)			\
 			       $(OPENSSL_LDFLAGS) $(OPENSSL_LIBS)
 exmpp_tls_openssl_la_SOURCES = exmpp_tls_openssl.c
+
+# Zlib compression port driver.
+exmpp_compress_zlib_la_CPPFLAGS = $(EI_CPPFLAGS)			\
+				  $(OPENSSL_CPPFLAGS)
+exmpp_compress_zlib_la_LDFLAGS = -module -avoid-version			\
+				 $(ERL_DRIVER_LDFLAGS)			\
+				 $(EI_LDFLAGS) $(EI_LIBS)		\
+				 $(OPENSSL_LDFLAGS) $(OPENSSL_LIBS)
+exmpp_compress_zlib_la_SOURCES = exmpp_compress_zlib.c
 
 # --------------------------------------------------------------------
 # Port drivers which are not ported yet.

@@ -13,6 +13,7 @@
 		'@srcdir@/core/exmpp_stream',
 		'@srcdir@/core/exmpp_iq',
 		'@srcdir@/core/exmpp_tls',
+		'@srcdir@/core/exmpp_compress',
 		'@srcdir@/network/exmpp_callbacks',
 		'@srcdir@/network/exmpp_session',
 		'@srcdir@/network/exmpp_ssl',

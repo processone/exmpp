@@ -6,6 +6,7 @@ examplesdir = $(ERLANG_INSTALL_LIB_DIR_exmpp)/examples/ebin
 BEAM_FILES = exmpp.app							\
 	     exmpp.appup						\
 	     exmpp.beam							\
+	     exmpp_compress.beam					\
 	     exmpp_internals.beam					\
 	     exmpp_iq.beam						\
 	     exmpp_jid.beam						\

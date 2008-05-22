@@ -6,6 +6,7 @@
     {id, "$Id$"},
     {modules, [
         exmpp,
+        exmpp_compress,
         exmpp_internals,
         exmpp_iq,
         exmpp_jid,

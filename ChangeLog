@@ -6,6 +6,11 @@
 	is enabled. Print a summary of supported engines for both TLS and
 	compression.
 
+	* src/core/exmpp_compress.erl, c_src/exmpp_compress_zlib.c,
+	src/Makefile.am, src/Emakefile.in, c_src/Makefile.am,
+	ebin/Makefile.am, ebin/exmpp.app.in, doc/Makefile.am: Add
+	exmpp_compress and its associated port driver.
+
 	* src/core/exmpp_tls.erl: Fixed some issues with documentation.
 
 2008-05-21  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
