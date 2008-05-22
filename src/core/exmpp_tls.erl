@@ -137,7 +137,7 @@ register_builtin_engines() ->
 %% @spec (Name, Driver, Auth_Methods) -> ok
 %%     Name = atom()
 %%     Driver = atom()
-%%     Auth_Mehods = [atom() | {atom(), Priority}]
+%%     Auth_Mehods = [{atom(), Priority}]
 %%     Priority = integer()
 %% @doc Add a new TLS engine.
 
@@ -148,7 +148,7 @@ register_engine(Name, Driver, Auth_Methods) ->
 %%     Name = atom()
 %%     Driver_Path = string()
 %%     Driver = atom()
-%%     Auth_Mehods = [atom() | {atom(), Priority}]
+%%     Auth_Mehods = [{atom(), Priority}]
 %%     Priority = integer()
 %% @doc Add a new TLS engine.
 
@@ -453,7 +453,7 @@ check_peer_verification(Peer_Verif, _Mode) ->
 %%     TLS_Socket = tls_socket()
 %%     Packet = binary() | list()
 %%     Reason = term()
-%% @doc Send `Packet' over TLS-protected connection.
+%% @doc Send `Packet' over a TLS-protected connection.
 
 send(#tls_socket{socket = Socket_Desc, port = Port}, Packet) ->
     try
@@ -470,7 +470,7 @@ send(#tls_socket{socket = Socket_Desc, port = Port}, Packet) ->
 %%     Length = integer()
 %%     Packet = binary() | list()
 %%     Reason = term()
-%% @doc Receive data over TLS session.
+%% @doc Receive data over a TLS-protected connection.
 
 recv(Socket_Data, Length) ->
     recv(Socket_Data, Length, infinity).
@@ -481,7 +481,7 @@ recv(Socket_Data, Length) ->
 %%     Timeout = integer()
 %%     Packet = binary() | list()
 %%     Reason = term()
-%% @doc Receive data over TLS session.
+%% @doc Receive data over a TLS-protected connection.
 
 recv(Socket_Data, Length, Timeout) ->
     recv2(Socket_Data, Length, Timeout, <<>>).
