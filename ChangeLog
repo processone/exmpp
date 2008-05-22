@@ -19,6 +19,9 @@
 	* c_src/exmpp_compress_zlib.c: Free Z streams when the driver is
 	stopped.
 
+	* src/core/exmpp_sup.erl: Remove start/0 because supervisor:start/3
+	never existed. Start exmpp_compress.
+
 2008-05-21  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Import of the new TLS layer.

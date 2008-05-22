@@ -24,7 +24,6 @@
 
 % Initialization.
 -export([
-  start/0,
   start_link/0
 ]).
 
@@ -38,15 +37,6 @@
 % --------------------------------------------------------------------
 % Public API.
 % --------------------------------------------------------------------
-
-%% @spec () -> Result
-%%     Result = term()
-%% @doc Start the supervisor.
-%%
-%% @see supervisor:start/3.
-
-start() ->
-    supervisor:start({local, ?SUPERVISOR}, ?MODULE, []).
 
 %% @spec () -> Result
 %%     Result = term()
@@ -80,9 +70,18 @@ init(_Args) ->
       worker,
       [exmpp_tls]
     },
+    % Compress.
+    Compress = {compress,
+      {exmpp_compress, start_link, []},
+      transient,
+      2000,
+      worker,
+      [exmpp_compress]
+    },
     {ok, {
       {one_for_one, 10, 1}, [
         Stringprep,
-        TLS
+        TLS,
+        Compress
       ]
     }}.
