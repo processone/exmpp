@@ -16,6 +16,9 @@
 	* src/core/exmpp_tls.erl, src/core/exmpp_compress.erl: Fix start/0 and
 	start_link/0 return values.
 
+	* c_src/exmpp_compress_zlib.c: Free Z streams when the driver is
+	stopped.
+
 2008-05-21  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Import of the new TLS layer.

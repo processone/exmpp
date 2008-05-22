@@ -88,6 +88,9 @@ exmpp_compress_zlib_stop(ErlDrvData drv_data)
 
 	edd = (struct exmpp_compress_zlib_data *)drv_data;
 
+	inflateEnd(&edd->inf_z);
+	deflateEnd(&edd->def_z);
+
 	driver_free(edd);
 }
 
