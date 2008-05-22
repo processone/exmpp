@@ -13,6 +13,9 @@
 
 	* src/core/exmpp_tls.erl: Fixed some issues with documentation.
 
+	* src/core/exmpp_tls.erl, src/core/exmpp_compress.erl: Fix start/0 and
+	start_link/0 return values.
+
 2008-05-21  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Import of the new TLS layer.

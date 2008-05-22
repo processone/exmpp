@@ -95,14 +95,16 @@
 %% @hidden
 
 start() ->
-    gen_server:start({local, ?SERVER}, ?MODULE, [], []),
-    register_builtin_engines().
+    Ret = gen_server:start({local, ?SERVER}, ?MODULE, [], []),
+    register_builtin_engines(),
+    Ret.
 
 %% @hidden
 
 start_link() ->
-    gen_server:start_link({local, ?SERVER}, ?MODULE, [], []),
-    register_builtin_engines().
+    Ret = gen_server:start_link({local, ?SERVER}, ?MODULE, [], []),
+    register_builtin_engines(),
+    Ret.
 
 -ifdef(HAVE_ZLIB).
 -define(REGISTER_ZLIB,
