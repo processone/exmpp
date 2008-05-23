@@ -12,6 +12,15 @@
 	* c_src/exmpp_tls.h, c_src/exmpp_tls.c, c_src/Makefile.am: Move common
 	TLS constants and functions to a separate C file.
 
+	* c_src/exmpp_tls_openssl.c: Add support for options. Fix a bug with
+	the COMMAND_SET_PEER_VERIF command where expected_id was always set to
+	the empty string when the caller specified a boolean instead. Add
+	preliminary support for certificate verification (WORK IN PROGRESS).
+	For now, it understands the basic verification made by OpenSSL and
+	check the expected_id against subjectAltName.dNSName (not exactly as
+	specified in RFC 2818 though). It still lacks the check against the
+	XMPP-specific subjectAltName extension and the commonName.
+
 2008-05-22  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Import of the new compression layer.
