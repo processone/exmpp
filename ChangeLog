@@ -9,6 +9,9 @@
 	* src/core/exmpp_tls.erl: Now interpret options and run the
 	corresponding port driver commands.
 
+	* c_src/exmpp_tls.h, c_src/exmpp_tls.c, c_src/Makefile.am: Move common
+	TLS constants and functions to a separate C file.
+
 2008-05-22  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Import of the new compression layer.

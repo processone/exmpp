@@ -90,7 +90,8 @@ exmpp_tls_openssl_la_LDFLAGS = -module -avoid-version			\
 			       $(ERL_DRIVER_LDFLAGS)			\
 			       $(EI_LDFLAGS) $(EI_LIBS)			\
 			       $(OPENSSL_LDFLAGS) $(OPENSSL_LIBS)
-exmpp_tls_openssl_la_SOURCES = exmpp_tls_openssl.c
+exmpp_tls_openssl_la_SOURCES = exmpp_tls.h exmpp_tls.c			\
+			       exmpp_tls_openssl.c
 
 # Zlib compression port driver.
 exmpp_compress_zlib_la_CPPFLAGS = $(EI_CPPFLAGS)			\
