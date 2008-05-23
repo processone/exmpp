@@ -253,12 +253,13 @@ compress(Socket_Desc, Options) ->
         end,
 
         % Packet mode.
-        Mode = get_packet_mode_from_options(Options),
+        Packet_Mode = get_packet_mode_from_options(Options),
 
         % Enable compression.
         engine_prepare_compress(Port),
         engine_prepare_uncompress(Port),
-        #compress_socket{socket = Socket_Desc, packet_mode = Mode, port = Port}
+        #compress_socket{socket = Socket_Desc, packet_mode = Packet_Mode,
+          port = Port}
     catch
         Exception2 ->
             exmpp_internals:close_port(Port),
@@ -304,7 +305,7 @@ get_compress_level_from_options(Options) ->
     end.
 
 get_packet_mode_from_options(Options) ->
-    case lists:keysearch(packet_mode, 1, Options) of
+    case lists:keysearch(mode, 1, Options) of
         {value, {_, binary}} -> binary;
         {value, {_, list}}   -> list;
         _                    -> binary
@@ -351,13 +352,13 @@ recv(Socket_Data, Length) ->
 %%
 %% `Length' is currently ignored.
 
-recv(#compress_socket{socket = Socket_Desc, packet_mode = Mode, port = Port},
-  _Length, Timeout) ->
+recv(#compress_socket{socket = Socket_Desc, packet_mode = Packet_Mode,
+  port = Port}, _Length, Timeout) ->
     try
         case underlying_recv(Socket_Desc, Timeout) of
             {ok, Packet} ->
                 Uncompressed = engine_uncompress(Port, Packet),
-                case Mode of
+                case Packet_Mode of
                     binary -> {ok, Uncompressed};
                     list   -> {ok, binary_to_list(Uncompressed)}
                 end;

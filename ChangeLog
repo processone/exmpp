@@ -3,6 +3,9 @@
 	* configure.ac: Reorganize the final summary and add bold titles to
 	make the output more readable.
 
+	* src/core/exmpp_compress.erl: Rename the 'mode' option to
+	'packet_mode'.
+
 2008-05-22  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Import of the new compression layer.
