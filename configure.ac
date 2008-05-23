@@ -17,6 +17,62 @@ AC_PREREQ([2.60])
 AC_REVISION([$Revision$])
 
 dnl ------------------------------------------------------------------
+dnl Prepare fancy console output, taken from GNU shtools.
+dnl ------------------------------------------------------------------
+
+term_bold=''
+term_norm=''
+
+case $TERM in
+xterm|xterm*|vt220|vt220*)
+	dnl For the most important terminal types we directly know the
+	dnl sequences.
+	term_bold=`awk 'BEGIN { printf("%c%c%c%c", 27, 91, 49, 109); }' </dev/null 2>/dev/null`
+	term_norm=`awk 'BEGIN { printf("%c%c%c", 27, 91, 109); }' </dev/null 2>/dev/null`
+	;;
+vt100|vt100*|cygwin)
+	term_bold=`awk 'BEGIN { printf("%c%c%c%c%c%c", 27, 91, 49, 109, 0, 0); }' </dev/null 2>/dev/null`
+	term_norm=`awk 'BEGIN { printf("%c%c%c%c%c", 27, 91, 109, 0, 0); }' </dev/null 2>/dev/null`
+	;;
+* )
+	dnl For all others, we try to use a possibly existing `tput' or
+	dnl `tcout' utility.
+	paths=`echo $PATH | sed -e 's/:/ /g'`
+	for tool in tput tcout; do
+		for dir in $paths; do
+			if test -r "$dir/$tool" ; then
+				for seq in bold md smso; do
+					bold="`$dir/$tool $seq 2>/dev/null`"
+					if test ".$bold" != . ; then
+						term_bold="$bold"
+						break
+					fi
+				done
+				if test ".$term_bold" != . ; then
+					for seq in sgr0 me rmso init reset; do
+						norm="`$dir/$tool $seq 2>/dev/null`"
+						if test ".$norm" != . ; then
+							term_norm="$norm"
+							break
+						fi
+					done
+				fi
+				break
+			fi
+		done
+		if test ".$term_bold" != . && test ".$term_norm" != . ; then
+			break;
+		fi
+	done
+	;;
+esac
+
+bold () {
+        text=`echo $seo "$1" | sed -e "s/%B/${term_bold}/g" -e "s/%b/${term_norm}/g" 2>/dev/null`
+        echo $seo "$text"
+}
+
+dnl ------------------------------------------------------------------
 dnl Versionning
 dnl ------------------------------------------------------------------
 
@@ -141,6 +197,9 @@ AM_CONDITIONAL(BUILD_DOCUMENTATION, test "x${enable_documentation}" = "xyes")
 dnl ------------------------------------------------------------------
 dnl Erlang environment.
 dnl ------------------------------------------------------------------
+
+echo
+bold "%BErlang environment%b"
 
 dnl erl(1) is used to compile Erlang modules (regardless of the host).
 AC_ERLANG_PATH_ERL
@@ -308,9 +367,15 @@ dnl ------------------------------------------------------------------
 dnl Dependencies.
 dnl ------------------------------------------------------------------
 
+echo
+bold "%BGeneric dependencies%b"
+
 dnl Expat port driver.
 EXMPP_EXPAT(build_with_expat="yes", build_with_expat="no")
 AM_CONDITIONAL(WITH_EXPAT, test "x${build_with_expat}" = "xyes")
+
+echo
+bold "%BTLS engines dependencies%b"
 
 dnl OpenSSL TLS port driver.
 EXMPP_OPENSSL(build_with_openssl="yes", build_with_openssl="no")
@@ -318,6 +383,9 @@ AM_CONDITIONAL(WITH_OPENSSL, test "x${build_with_openssl}" = "xyes")
 if test "x${build_with_openssl}" = "xyes"; then
 	append_to_EMKOPTS "{d, 'HAVE_OPENSSL'}"
 fi
+
+echo
+bold "%BCompression engines dependencies%b"
 
 dnl Zlib compression port driver.
 EXMPP_ZLIB(build_with_zlib="yes", build_with_zlib="no")
@@ -367,6 +435,7 @@ dnl ------------------------------------------------------------------
 dnl Autoconf output.
 dnl ------------------------------------------------------------------
 
+echo
 AM_CONFIG_HEADER([config.h])
 AC_CONFIG_FILES([
 	c_src/Makefile
@@ -388,18 +457,18 @@ dnl Configuration report
 dnl --------------------------------------------------
 
 echo
-echo " == exmpp ${EXMPP_VERSION} =="
+bold " %B== exmpp ${EXMPP_VERSION} ==%b"
 echo
 echo "Configuration:"
 echo "    Prefix:             ${prefix}"
+echo "    Application dir.:   ${exp_ERLANG_INSTALL_LIB_DIR_exmpp}"
 echo
-echo "    Compiler:           ${CC} ${CFLAGS}"
+echo "    C compiler:         ${CC} ${CFLAGS}"
+echo "    Erlang emulator:    ${ERL}"
+echo
 echo "    Debug/warnings:     ${enable_debug}/${enable_warnings}"
 echo "    Compat modules:     ${enable_compat}"
 echo "    Documentation:      ${enable_documentation}"
-echo
-echo "    ERL:                ${ERL}"
-echo "    Install directory:  ${exp_ERLANG_INSTALL_LIB_DIR_exmpp}"
 echo
 echo "    TLS engines:"
 echo "      . OpenSSL:        ${build_with_openssl}"
