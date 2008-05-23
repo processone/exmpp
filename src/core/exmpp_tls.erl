@@ -294,11 +294,29 @@ handshake(Mode, Socket_Desc, Identity, Peer_Verification, Options,
         % Enable (or not) peer's certificate verification.
         engine_set_peer_verification(Port, Peer_Verification),
 
-        % XXX Set options.
+        % Packet mode.
+        Packet_Mode = get_packet_mode_from_options(Options),
+
+        % Set trusted certificates.
+        engine_set_trusted_certs(Port,
+          get_trusted_certs_from_options(Options)),
+
+        % Set flags.
+        engine_set_options(Port, peer_cert_required,
+          is_flag_set(Options, peer_cert_required)),
+        engine_set_options(Port, accept_expired_cert,
+          is_flag_set(Options, accept_expired_cert)),
+        engine_set_options(Port, accept_non_trusted_cert,
+          is_flag_set(Options, accept_non_trusted_cert)),
+        engine_set_options(Port, accept_revoked_cert,
+          is_flag_set(Options, accept_revoked_cert)),
+        engine_set_options(Port, accept_corrupted_cert,
+          is_flag_set(Options, accept_corrupted_cert)),
 
         % Handshake!
         engine_prepare_handshake(Port),
-        handshake2(Mode, Socket_Desc, Port, Recv_Timeout)
+        TLS_Socket = handshake2(Mode, Socket_Desc, Port, Recv_Timeout),
+        TLS_Socket#tls_socket{packet_mode = Packet_Mode}
     catch
         Exception2 ->
             exmpp_internals:close_port(Port),
@@ -447,6 +465,23 @@ check_peer_verification(Peer_Verif, _Mode) ->
             throw({tls, handshake, invalid_peer_verification, Peer_Verif})
     end.
 
+
+get_packet_mode_from_options(Options) ->
+    case lists:keysearch(mode, 1, Options) of
+        {value, {_, binary}} -> binary;
+        {value, {_, list}}   -> list;
+        _                    -> binary
+    end.
+
+get_trusted_certs_from_options(Options) ->
+    case lists:keysearch(trusted_certs, 1, Options) of
+        {value, {_, AM, Certs}} -> {AM, Certs};
+        _                       -> undefined
+    end.
+
+is_flag_set(Options, Flag) ->
+    lists:member(Flag, Options).
+
 % --------------------------------------------------------------------
 % Common socket API.
 % --------------------------------------------------------------------
@@ -488,9 +523,9 @@ recv(Socket_Data, Length) ->
 recv(Socket_Data, Length, Timeout) ->
     recv2(Socket_Data, Length, Timeout, <<>>).
 
-recv2(#tls_socket{packet_mode = Mode}, Length, _Timeout, Previous_Data)
+recv2(#tls_socket{packet_mode = Packet_Mode}, Length, _Timeout, Previous_Data)
   when size(Previous_Data) > 0, Length =< 0 ->
-      case Mode of
+      case Packet_Mode of
           binary -> {ok, Previous_Data};
           list   -> {ok, binary_to_list(Previous_Data)}
       end;
@@ -604,6 +639,26 @@ engine_set_peer_verification(Port, Peer_Verif) ->
     case control(Port, ?COMMAND_SET_PEER_VERIF, term_to_binary(Peer_Verif)) of
         {error, Reason} ->
             throw({tls, handshake, set_peer_verification, Reason});
+        _ ->
+            ok
+    end.
+
+engine_set_trusted_certs(_Port, undefined) ->
+    ok;
+engine_set_trusted_certs(Port, Trusted_Certs) ->
+    case control(Port, ?COMMAND_SET_TRUSTED_CERTS,
+      term_to_binary(Trusted_Certs)) of
+        {error, Reason} ->
+            throw({tls, handshake, set_trusted_certs, Reason});
+        _ ->
+            ok
+    end.
+
+engine_set_options(Port, Option, Flag) ->
+    case control(Port, ?COMMAND_SET_OPTIONS,
+      term_to_binary({Option, Flag})) of
+        {error, Reason} ->
+            throw({tls, handshake, set_options, {Option, Reason}});
         _ ->
             ok
     end.
