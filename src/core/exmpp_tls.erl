@@ -39,6 +39,9 @@
   send/2,
   recv/2,
   recv/3,
+  setopts/2,
+  peername/1,
+  sockname/1,
   controlling_process/2,
   close/1,
   port_revision/1
@@ -566,29 +569,60 @@ recv2(#tls_socket{socket = Socket_Desc, port = Port} = Socket_Data,
             {error, Exception}
     end.
 
+%% @spec (Compress_Socket, Options) -> ok | {error, posix()}
+%%     Socket_Desc = {Mod, Socket}
+%%     Mod = atom()
+%%     Socket = term()
+%%     Options = list()
+%% @doc Sets one or more options for a socket.
+
+setopts(#tls_socket{socket = Socket_Desc}, Options) ->
+    exmpp_internals:gen_setopts(Socket_Desc, Options).
+
+%% @spec (Compress_Socket) -> {ok, {Address, Port}} | {error, posix()}
+%%     Socket_Desc = {Mod, Socket}
+%%     Mod = atom()
+%%     Socket = term()
+%%     Address = ip_address()
+%%     Port = integer()
+%% @doc Returns the address and port for the other end of a connection.
+
+peername(#tls_socket{socket = Socket_Desc}) ->
+    exmpp_internals:gen_peername(Socket_Desc).
+
+%% @spec (Compress_Socket) -> {ok, {Address, Port}} | {error, posix()}
+%%     Socket_Desc = {Mod, Socket}
+%%     Mod = atom()
+%%     Socket = term()
+%%     Address = ip_address()
+%%     Port = integer()
+%% @doc Returns the local address and port number for a socket.
+
+sockname(#tls_socket{socket = Socket_Desc}) ->
+    exmpp_internals:gen_sockname(Socket_Desc).
+
 %% @spec (TLS_Socket, Pid) -> ok | {error, Reason}
 %%     TLS_Socket = tls_socket()
 %%     Pid = pid()
 %%     Reason = term()
 %% @doc Change the controlling socket of the underlying socket.
 
-controlling_process(#tls_socket{socket = {Mod, Socket}}, Pid) ->
-    Mod:controlling_process(Socket, Pid).
+controlling_process(#tls_socket{socket = Socket_Desc}, Pid) ->
+    exmpp_internals:gen_controlling_process(Socket_Desc, Pid).
 
 %% @spec (TLS_Socket) -> ok | {error, Reason}
 %%     TLS_Socket = tls_socket()
 %%     Reason = term()
 %% @doc Shutdown the TLS session and close the underlying socket.
 
-close(#tls_socket{socket = {Mod, Socket} = Socket_Data,
-  port = Port}) ->
+close(#tls_socket{socket = Socket_Desc, port = Port}) ->
     % First, shutdown the TLS session.
     engine_shutdown(Port),
     Notify = engine_get_encrypted_output(Port),
-    case exmpp_internals:gen_send(Socket_Data, Notify) of
+    case exmpp_internals:gen_send(Socket_Desc, Notify) of
         ok ->
             % Close the underlying socket.
-            Mod:close(Socket);
+            exmpp_internals:gen_close(Socket_Desc);
         {error, Reason} ->
             {error, Reason}
     end.

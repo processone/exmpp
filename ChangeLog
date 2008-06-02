@@ -14,6 +14,13 @@
 	compat layer as they belong to ejabberd specificaly. Also the
 	configure script doesn't check for iconv(3) anymore.
 
+	* src/core/exmpp_compress.erl: Rename compress/2 to
+	enable_compression/2. Add function disable_compression/1.
+
+	* src/core/exmpp_internals.erl, src/core/exmpp_tls.erl,
+	src/core/exmpp_compress.erl: Add functions setopts/2, peername/1 and
+	sockname/1.
+
 2008-05-23  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* configure.ac: Reorganize the final summary and add bold titles to

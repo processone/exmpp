@@ -22,7 +22,12 @@
 % Generic socket handling.
 -export([
   gen_recv/2,
-  gen_send/2
+  gen_send/2,
+  gen_setopts/2,
+  gen_peername/1,
+  gen_sockname/1,
+  gen_controlling_process/1,
+  gen_close/1
 ]).
 
 % Base64 helpers.
@@ -156,7 +161,7 @@ close_port(Port) ->
 %%     Timeout = integer()
 %%     Packet = [char()] | binary()
 %%     Reason = closed | posix()
-%% @doc Wrapper to abstract the recv function of multiple communication
+%% @doc Wrapper to abstract the `recv' function of multiple communication
 %% modules.
 
 gen_recv({gen_tcp, Socket}, Timeout) ->
@@ -170,11 +175,73 @@ gen_recv({Mod, Socket}, Timeout) ->
 %%     Socket = term()
 %%     Packet = [char()] | binary()
 %%     Reason = closed | posix()
-%% @doc Wrapper to abstract the send function of multiple communication
+%% @doc Wrapper to abstract the `send' function of multiple communication
 %% modules.
 
 gen_send({Mod, Socket}, Packet) ->
     Mod:send(Socket, Packet).
+
+%% @spec (Socket_Desc, Options) -> ok | {error, posix()}
+%%     Socket_Desc = {Mod, Socket}
+%%     Mod = atom()
+%%     Socket = term()
+%%     Options = list()
+%% @doc Wrapper to abstract the `setopts' function of multiple communication
+%% modules.
+
+gen_setopts({gen_tcp, Socket}, Options) ->
+    inet:setopts(Socket, Options);
+gen_setopts({Mod, Socket}, Options) ->
+    Mod:setopts(Socket).
+
+%% @spec (Socket_Desc) -> {ok, {Address, Port}} | {error, posix()}
+%%     Socket_Desc = {Mod, Socket}
+%%     Mod = atom()
+%%     Socket = term()
+%%     Address = ip_address()
+%%     Port = integer()
+%% @doc Wrapper to abstract the `peername' function of multiple communication
+%% modules.
+
+gen_peername({gen_tcp, Socket}) ->
+    inet:peername(Socket);
+gen_peername({Mod, Socket}) ->
+    Mod:peername(Socket).
+
+%% @spec (Socket_Desc) -> {ok, {Address, Port}} | {error, posix()}
+%%     Socket_Desc = {Mod, Socket}
+%%     Mod = atom()
+%%     Socket = term()
+%%     Address = ip_address()
+%%     Port = integer()
+%% @doc Wrapper to abstract the `sockname' function of multiple communication
+%% modules.
+
+gen_sockname({gen_tcp, Socket}) ->
+    inet:sockname(Socket);
+gen_sockname({Mod, Socket}) ->
+    Mod:sockname(Socket).
+
+%% @spec (Socket_Desc) -> ok | {error, Reason}
+%%     Socket_Desc = {Mod, Socket}
+%%     Mod = atom()
+%%     Socket = term()
+%%     Reason = close | not_owner | posix()
+%% @doc Wrapper to abstract the `controlling_process' function of
+%% multiple communication modules.
+
+gen_controlling_process({Mod, Socket}) ->
+    Mod:controlling_process(Socket).
+
+%% @spec (Socket_Desc) -> ok | {error, posix()}
+%%     Socket_Desc = {Mod, Socket}
+%%     Mod = atom()
+%%     Socket = term()
+%% @doc Wrapper to abstract the `close' function of multiple communication
+%% modules.
+
+gen_close({Mod, Socket}) ->
+    Mod:close(Socket).
 
 % --------------------------------------------------------------------
 % Base64 helpers.
