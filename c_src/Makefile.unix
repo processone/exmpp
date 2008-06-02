@@ -25,10 +25,6 @@ ZLIB_CPPFLAGS ?= -I/usr/include
 ZLIB_LDFLAGS ?= -L/usr/lib
 ZLIB_LIBS ?= -lz
 
-ICONV_CPPFLAGS ?= -I/usr/include
-ICONV_LDFLAGS ?= -L/usr/lib
-ICONV_LIBS ?= -liconv
-
 OPENSSL_CPPFLAGS ?= -I/usr/include
 OPENSSL_LDFLAGS ?= -L/usr/lib
 OPENSSL_LIBS ?= -lssl -lcrypto
@@ -39,14 +35,13 @@ else
 DYNAMIC_LIB_CFLAGS = -Wall -fpic -shared
 endif
 
-DRIVERS =  exmpp_expat.so exmpp_stringprep.so ejabberd_zlib_drv.so iconv_erl.so tls_drv.so
+DRIVERS =  exmpp_expat.so exmpp_stringprep.so ejabberd_zlib_drv.so tls_drv.so
 
 all: $(DRIVERS)
 
 clean:
 	$(RM) $(DRIVERS)
 	$(RM) $(BUILT_SOURCES)
-	$(RM) config.h
 
 .PHONY: clean
 
@@ -90,10 +85,6 @@ exmpp_stringprep.so: $(exmpp_stringprep_la_SOURCES)
 # Port drivers which are not ported yet.
 # --------------------------------------------------------------------
 
-# config.h.
-config.h:
-	echo '#define ICONV_CONST' > $@
-
 # ejabberd_zlib port driver
 ejabberd_zlib_drv_la_CPPFLAGS = $(EI_CPPFLAGS) \
 				$(ZLIB_CPPFLAGS)
@@ -103,16 +94,6 @@ ejabberd_zlib_drv_la_SOURCES = ejabberd_zlib_drv.c
 
 ejabberd_zlib_drv.so: $(ejabberd_zlib_drv_la_SOURCES)
 	$(CC) $(ejabberd_zlib_drv_la_CPPFLAGS) $(CPPFLAGS) $(DYNAMIC_LIB_CFLAGS) $(CFLAGS) $(ejabberd_zlib_drv_la_LDFLAGS) $(LDFLAGS) $(ejabberd_zlib_drv_la_SOURCES) -o $@
-
-# iconv port driver
-iconv_erl_la_CPPFLAGS = $(EI_CPPFLAGS) \
-			$(ICONV_CPPFLAGS)
-iconv_erl_la_LDFLAGS = $(EI_LDFLAGS) $(EI_LIBS) \
-		       $(ICONV_LDFLAGS) $(ICONV_LIBS)
-iconv_erl_la_SOURCES = iconv_erl.c
-
-iconv_erl.so: config.h $(iconv_erl_la_SOURCES)
-	$(CC) $(iconv_erl_la_CPPFLAGS) $(CPPFLAGS) $(DYNAMIC_LIB_CFLAGS) $(CFLAGS) $(iconv_erl_la_LDFLAGS) $(LDFLAGS) $(iconv_erl_la_SOURCES) -o $@
 
 # TLS port driver
 tls_drv_la_CPPFLAGS = $(EI_CPPFLAGS) \

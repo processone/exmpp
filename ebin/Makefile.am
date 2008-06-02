@@ -40,9 +40,7 @@ BEAM_FILES = exmpp.app							\
 
 if BUILD_COMPAT
 BEAM_FILES += ejabberd_zlib.beam					\
-	      iconv.beam						\
 	      jlib.beam							\
-	      sha.beam							\
 	      stringprep.beam						\
 	      tls.beam							\
 	      xml.beam

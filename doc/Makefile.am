@@ -55,9 +55,7 @@ HTML_FILES = index.html							\
 	     exmpp_xmlstream.html					\
 	     echo_client.html						\
 	     ejabberd_zlib.html						\
-	     iconv.html							\
 	     jlib.html							\
-	     sha.html							\
 	     stringprep.html						\
 	     tls.html							\
 	     xml.html

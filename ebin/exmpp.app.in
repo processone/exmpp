@@ -38,9 +38,7 @@
         exmpp_ssl,
         exmpp_tcp@COMPAT_MODULES_START@
         @COMPAT_MODULES@ejabberd_zlib,
-        @COMPAT_MODULES@iconv,
         @COMPAT_MODULES@jlib,
-        @COMPAT_MODULES@sha,
         @COMPAT_MODULES@stringprep,
         @COMPAT_MODULES@tls,
         @COMPAT_MODULES@xml

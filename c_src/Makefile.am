@@ -20,10 +20,6 @@ if WITH_ZLIB
 lib_LTLIBRARIES += ejabberd_zlib_drv.la
 endif
 
-if WITH_ICONV
-lib_LTLIBRARIES += iconv_erl.la
-endif
-
 if WITH_OPENSSL
 lib_LTLIBRARIES += tls_drv.la
 endif
@@ -114,15 +110,6 @@ ejabberd_zlib_drv_la_LDFLAGS = -module -avoid-version			\
 			       $(EI_LDFLAGS) $(EI_LIBS)			\
 			       $(ZLIB_LDFLAGS) $(ZLIB_LIBS)
 ejabberd_zlib_drv_la_SOURCES = ejabberd_zlib_drv.c
-
-# iconv port driver
-iconv_erl_la_CPPFLAGS = $(EI_CPPFLAGS)					\
-			$(ICONV_CPPFLAGS)
-iconv_erl_la_LDFLAGS = -module -avoid-version				\
-		       $(ERL_DRIVER_LDFLAGS)				\
-		       $(EI_LDFLAGS) $(EI_LIBS)				\
-		       $(ICONV_LDFLAGS) $(ICONV_LIBS)
-iconv_erl_la_SOURCES = iconv_erl.c
 
 # TLS port driver
 tls_drv_la_CPPFLAGS = $(EI_CPPFLAGS)					\

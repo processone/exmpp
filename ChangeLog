@@ -7,6 +7,13 @@
 
 	* src/core/exmpp_internals.erl: Fixed a bug with documentation.
 
+	* src/compat/iconv.erl, src/compat/sha.erl, c_src/iconv_erl.c,
+	m4/iconv.m4, src/Emakefile.in, src/Makefile.am, c_src/Makefile.unix,
+	c_src/Makefile.am, doc/Makefile.am, ebin/Makefile.am,
+	ebin/exmpp.app.in, configure.ac: Remove 'iconv' and 'sha' from the
+	compat layer as they belong to ejabberd specificaly. Also the
+	configure script doesn't check for iconv(3) anymore.
+
 2008-05-23  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* configure.ac: Reorganize the final summary and add bold titles to

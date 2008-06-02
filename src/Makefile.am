@@ -33,9 +33,7 @@ EXTRA_DIST = core/exmpp.erl						\
 	     server/exmpp_server_session.erl				\
 	     server/exmpp_server_tls.erl				\
 	     compat/ejabberd_zlib.erl					\
-	     compat/iconv.erl						\
 	     compat/jlib.erl						\
-	     compat/sha.erl						\
 	     compat/stringprep.erl					\
 	     compat/tls.erl						\
 	     compat/xml.erl						\

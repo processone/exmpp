@@ -394,15 +394,6 @@ if test "x${build_with_zlib}" = "xyes"; then
 	append_to_EMKOPTS "{d, 'HAVE_ZLIB'}"
 fi
 
-build_with_iconv="no"
-
-if test "x${enable_compat}" = "xyes"; then
-	dnl iconv port driver.
-	EXMPP_ICONV(build_with_iconv="yes", build_with_iconv="no")
-fi
-
-AM_CONDITIONAL(WITH_ICONV, test "x${build_with_iconv}" = "xyes")
-
 dnl ------------------------------------------------------------------
 dnl Finale substitutions.
 dnl ------------------------------------------------------------------
