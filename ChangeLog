@@ -1,3 +1,10 @@
+2008-06-02  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_internals.erl, src/core/exmpp_tls.erl,
+	src/core/exmpp_compress.erl: Move underlying_recv/2 and
+	underlying_send/2 to exmpp_internals. exmpp_tls and exmpp_compress
+	were sharing this small piece of code.
+
 2008-05-23  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* configure.ac: Reorganize the final summary and add bold titles to

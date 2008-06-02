@@ -44,12 +44,6 @@
   port_revision/1
 ]).
 
-% Communication with the underlying module/socket.
--export([
-  underlying_send/2,
-  underlying_recv/2
-]).
-
 % gen_server(3erl) callbacks.
 -export([
   init/1,
@@ -330,10 +324,10 @@ handshake2(client = Mode, Socket_Desc, Port, Recv_Timeout) ->
         want_read ->
             % Send the current data.
             New_Packet = engine_get_encrypted_output(Port),
-            case underlying_send(Socket_Desc, New_Packet) of
+            case exmpp_internals:gen_send(Socket_Desc, New_Packet) of
                 ok ->
                     % Wait for a packet from the client.
-                    case underlying_recv(Socket_Desc, Recv_Timeout) of
+                    case exmpp_internals:gen_recv(Socket_Desc, Recv_Timeout) of
                         {ok, Packet} ->
                             engine_set_encrypted_input(Port, Packet),
                             % Recurse!
@@ -350,7 +344,7 @@ handshake2(client = Mode, Socket_Desc, Port, Recv_Timeout) ->
     end;
 handshake2(server = Mode, Socket_Desc, Port, Recv_Timeout) ->
     % Wait for a packet from the client.
-    case underlying_recv(Socket_Desc, Recv_Timeout) of
+    case exmpp_internals:gen_recv(Socket_Desc, Recv_Timeout) of
         {ok, Packet} ->
             engine_set_encrypted_input(Port, Packet),
             % Try to handshake.
@@ -358,7 +352,7 @@ handshake2(server = Mode, Socket_Desc, Port, Recv_Timeout) ->
                 want_read ->
                     % Send the current data.
                     New_Packet = engine_get_encrypted_output(Port),
-                    case underlying_send(Socket_Desc, New_Packet) of
+                    case exmpp_internals:gen_send(Socket_Desc, New_Packet) of
                         ok ->
                             % Recurse!
                             handshake2(Mode, Socket_Desc, Port, Recv_Timeout);
@@ -367,7 +361,7 @@ handshake2(server = Mode, Socket_Desc, Port, Recv_Timeout) ->
                     end;
                 ok ->
                     New_Packet = engine_get_encrypted_output(Port),
-                    case underlying_send(Socket_Desc, New_Packet) of
+                    case exmpp_internals:gen_send(Socket_Desc, New_Packet) of
                         ok ->
                             % Handshake done.
                             #tls_socket{socket = Socket_Desc, port = Port};
@@ -496,7 +490,7 @@ send(#tls_socket{socket = Socket_Desc, port = Port}, Packet) ->
     try
         engine_set_decrypted_output(Port, Packet),
         Encrypted = engine_get_encrypted_output(Port),
-        underlying_send(Socket_Desc, Encrypted)
+        exmpp_internals:gen_send(Socket_Desc, Encrypted)
     catch
         Exception ->
             {error, Exception}
@@ -537,9 +531,12 @@ recv2(#tls_socket{socket = Socket_Desc, port = Port} = Socket_Data,
                 % Ok, we need more data.
                 {Recv, New_Timeout} = case Timeout of
                     infinity ->
-                        {underlying_recv(Socket_Desc, Timeout), Timeout};
+                        {
+                          exmpp_internals:gen_recv(Socket_Desc, Timeout),
+                          Timeout
+                        };
                     _ ->
-                        {Elapsed, Ret} = timer:tc(?MODULE, underlying_recv,
+                        {Elapsed, Ret} = timer:tc(exmpp_internals, gen_recv,
                           [Socket_Desc, Timeout]),
                         {Ret, Timeout - Elapsed div 1000}
                 end,
@@ -555,7 +552,7 @@ recv2(#tls_socket{socket = Socket_Desc, port = Port} = Socket_Data,
             Data ->
                 % Got a chunk of plain-text data.
                 Ack = engine_get_encrypted_output(Port),
-                case underlying_send(Socket_Desc, Ack) of
+                case exmpp_internals:gen_send(Socket_Desc, Ack) of
                     ok ->
                         recv2(Socket_Data,
                           Length - size(Data), Timeout,
@@ -588,7 +585,7 @@ close(#tls_socket{socket = {Mod, Socket} = Socket_Data,
     % First, shutdown the TLS session.
     engine_shutdown(Port),
     Notify = engine_get_encrypted_output(Port),
-    case underlying_send(Socket_Data, Notify) of
+    case exmpp_internals:gen_send(Socket_Data, Notify) of
         ok ->
             % Close the underlying socket.
             Mod:close(Socket);
@@ -732,20 +729,6 @@ engine_shutdown(Port) ->
         Result ->
             Result
     end.
-
-% --------------------------------------------------------------------
-% Communication with the underlying module/socket.
-% --------------------------------------------------------------------
-
-%% @hidden
-
-underlying_recv({Mod, Socket}, Timeout) ->
-    Mod:recv(Socket, 0, Timeout).
-
-%% @hidden
-
-underlying_send({Mod, Socket}, Packet) ->
-    Mod:send(Socket, Packet).
 
 % --------------------------------------------------------------------
 % gen_server(3erl) callbacks.

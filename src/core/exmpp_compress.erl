@@ -43,12 +43,6 @@
   port_revision/1
 ]).
 
-% Communication with the underlying module/socket.
--export([
-  underlying_send/2,
-  underlying_recv/2
-]).
-
 % gen_server(3erl) callbacks.
 -export([
   init/1,
@@ -324,7 +318,7 @@ get_packet_mode_from_options(Options) ->
 send(#compress_socket{socket = Socket_Desc, port = Port}, Packet) ->
     try
         Compressed = engine_compress(Port, Packet),
-        underlying_send(Socket_Desc, Compressed)
+        exmpp_internals:gen_send(Socket_Desc, Compressed)
     catch
         Exception ->
             {error, Exception}
@@ -355,7 +349,7 @@ recv(Socket_Data, Length) ->
 recv(#compress_socket{socket = Socket_Desc, packet_mode = Packet_Mode,
   port = Port}, _Length, Timeout) ->
     try
-        case underlying_recv(Socket_Desc, Timeout) of
+        case exmpp_internals:gen_recv(Socket_Desc, Timeout) of
             {ok, Packet} ->
                 Uncompressed = engine_uncompress(Port, Packet),
                 case Packet_Mode of
@@ -468,20 +462,6 @@ engine_svn_revision(Port) ->
         Revision ->
             binary_to_term(Revision)
     end.
-
-% --------------------------------------------------------------------
-% Communication with the underlying module/socket.
-% --------------------------------------------------------------------
-
-%% @hidden
-
-underlying_recv({Mod, Socket}, Timeout) ->
-    Mod:recv(Socket, 0, Timeout).
-
-%% @hidden
-
-underlying_send({Mod, Socket}, Packet) ->
-    Mod:send(Socket, Packet).
 
 % --------------------------------------------------------------------
 % gen_server(3erl) callbacks.

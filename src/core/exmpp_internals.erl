@@ -19,12 +19,22 @@
   close_port/1
 ]).
 
+% Generic socket handling.
+-export([
+  gen_recv/2,
+  gen_send/2
+]).
+
 % Base64 helpers.
 -export([
-  random_id/0,
-  random_id/1,
   encode_base64/1,
   decode_base64/1
+]).
+
+% Utils.
+-export([
+  random_id/0,
+  random_id/1
 ]).
 
 % --------------------------------------------------------------------
@@ -136,6 +146,70 @@ close_port(Port) ->
     erlang:port_close(Port).
 
 % --------------------------------------------------------------------
+% Generic socket handling.
+% --------------------------------------------------------------------
+
+%% @spec (Socket_Desc, Timeout) -> {ok, Packet} | {error, Reason}
+%%     Socket_Desc = {Mod, Socket}
+%%     Mod = atom()
+%%     Socket = term()
+%%     Timeout = integer()
+%%     Packet = [char()] | binary()
+%%     Reason = closed | posix()
+%% @doc Wrapper to abstract the recv function of multiple communication
+%% modules.
+
+gen_recv({gen_tcp, Socket}, Timeout) ->
+    gen_tcp:recv(Socket, 0, Timeout);
+gen_recv({Mod, Socket}, Timeout) ->
+    Mod:recv(Socket, Timeout).
+
+%% @spec (Socket_Desc, Packet) -> ok | {error, Reason}
+%%     Socket_Desc = {Mod, Socket}
+%%     Mod = atom()
+%%     Socket = term()
+%%     Packet = [char()] | binary()
+%%     Reason = closed | posix()
+%% @doc Wrapper to abstract the send function of multiple communication
+%% modules.
+
+gen_send({Mod, Socket}, Packet) ->
+    Mod:send(Socket, Packet).
+
+% --------------------------------------------------------------------
+% Base64 helpers.
+% --------------------------------------------------------------------
+
+-ifdef(ENABLE_HTTP_BASE_64).
+% Starting with inets 5.0, http_base_64 doesn't exist anymore.
+encode_base64(Data) ->
+    case catch http_base_64:encode(Data) of
+        {'EXIT', _} -> base64:encode_to_string(Data);
+        Base64      -> Base64
+    end.
+-else.
+encode_base64(Data) ->
+    base64:encode_to_string(Data).
+-endif.
+
+%% @spec (Base64) -> Data
+%%     Base64 = string()
+%%     Data = string()
+%% @doc Decode `Base64' to get `Data' back.
+
+-ifdef(ENABLE_HTTP_BASE_64).
+% Starting with inets 5.0, http_base_64 doesn't exist anymore.
+decode_base64(Base64) ->
+    case catch http_base_64:decode(Base64) of
+        {'EXIT', _} -> base64:decode_to_string(Base64);
+        Data        -> Data
+    end.
+-else.
+decode_base64(Base64) ->
+    base64:decode_to_string(Base64).
+-endif.
+
+% --------------------------------------------------------------------
 % Utils.
 % --------------------------------------------------------------------
 
@@ -167,32 +241,3 @@ random_id(Prefix) ->
 %%     Data = string()
 %%     Base64 = string()
 %% @doc Encode `Data' in Base64.
-
--ifdef(ENABLE_HTTP_BASE_64).
-% Starting with inets 5.0, http_base_64 doesn't exist anymore.
-encode_base64(Data) ->
-    case catch http_base_64:encode(Data) of
-        {'EXIT', _} -> base64:encode_to_string(Data);
-        Base64      -> Base64
-    end.
--else.
-encode_base64(Data) ->
-    base64:encode_to_string(Data).
--endif.
-
-%% @spec (Base64) -> Data
-%%     Base64 = string()
-%%     Data = string()
-%% @doc Decode `Base64' to get `Data' back.
-
--ifdef(ENABLE_HTTP_BASE_64).
-% Starting with inets 5.0, http_base_64 doesn't exist anymore.
-decode_base64(Base64) ->
-    case catch http_base_64:decode(Base64) of
-        {'EXIT', _} -> base64:decode_to_string(Base64);
-        Data        -> Data
-    end.
--else.
-decode_base64(Base64) ->
-    base64:decode_to_string(Base64).
--endif.
