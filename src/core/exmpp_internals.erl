@@ -180,6 +180,11 @@ gen_send({Mod, Socket}, Packet) ->
 % Base64 helpers.
 % --------------------------------------------------------------------
 
+%% @spec (Data) -> Base64
+%%     Data = string()
+%%     Base64 = string()
+%% @doc Encode `Data' in Base64.
+
 -ifdef(ENABLE_HTTP_BASE_64).
 % Starting with inets 5.0, http_base_64 doesn't exist anymore.
 encode_base64(Data) ->
@@ -236,8 +241,3 @@ random_id() ->
 
 random_id(Prefix) ->
     Prefix ++ "-" ++ integer_to_list(random:uniform(65536 * 65536)).
-
-%% @spec (Data) -> Base64
-%%     Data = string()
-%%     Base64 = string()
-%% @doc Encode `Data' in Base64.

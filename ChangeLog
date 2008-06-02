@@ -5,6 +5,8 @@
 	underlying_send/2 to exmpp_internals. exmpp_tls and exmpp_compress
 	were sharing this small piece of code.
 
+	* src/core/exmpp_internals.erl: Fixed a bug with documentation.
+
 2008-05-23  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* configure.ac: Reorganize the final summary and add bold titles to
