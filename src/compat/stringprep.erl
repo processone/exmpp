@@ -50,7 +50,7 @@ start_link() ->
 
 tolower(String) ->
     try
-	exmpp_stringprep:tolower(String)
+	exmpp_stringprep:to_lower(String)
     catch
 	_Exception ->
 	    error

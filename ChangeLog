@@ -18,6 +18,9 @@
 	new jlib header is added for the old #jid record. It's installed only
 	when the compat layer is enabled.
 
+	* src/compat/stringprep.erl (tolower): Fixed a typo in a function
+	name.
+
 2008-06-02  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_internals.erl, src/core/exmpp_tls.erl,
