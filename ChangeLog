@@ -3,6 +3,12 @@
 	* src/core/exmpp_internals.erl (gen_setopts): Fixed a bug where
 	'Options' was not passed to the underlying setopts/2 function.
 
+	* src/compat/xml.erl: Synchronize this compat module with the latest
+	version from ejabberd repository. This time, the only modifications
+	are the calls to exmpp_xml; there's no changes to the documentation or
+	the style. It should ease future modifications tracking. Also new
+	features missing in exmpp_xml were identified.
+
 2008-06-02  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_internals.erl, src/core/exmpp_tls.erl,

@@ -1,249 +1,181 @@
 % $Id$
 
-%% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
-
-%% @doc
-%% The module <strong>{@module}</strong> provides the deprecated API found
-%% in ejabberd, on top of {@link exmpp_xml}.
-
-%% @deprecated Please use {@link exmpp_xml}.
+%%%----------------------------------------------------------------------
+%%% File    : xml.erl
+%%% Author  : Alexey Shchepin <alexey@process-one.net>
+%%% Purpose : XML utils
+%%% Created : 20 Nov 2002 by Alexey Shchepin <alexey@process-one.net>
+%%%
+%%%
+%%% ejabberd, Copyright (C) 2002-2008   Process-one
+%%%
+%%% This program is free software; you can redistribute it and/or
+%%% modify it under the terms of the GNU General Public License as
+%%% published by the Free Software Foundation; either version 2 of the
+%%% License, or (at your option) any later version.
+%%%
+%%% This program is distributed in the hope that it will be useful,
+%%% but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+%%% General Public License for more details.
+%%%                         
+%%% You should have received a copy of the GNU General Public License
+%%% along with this program; if not, write to the Free Software
+%%% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+%%% 02111-1307 USA
+%%%
+%%%----------------------------------------------------------------------
 
 -module(xml).
--vsn('$Revision$').
+-author('alexey@process-one.net').
 
 -include("exmpp.hrl").
 
--export([
-	get_subtag/2,
-	add_child/2,
-	get_tag_attr/2,
-	get_tag_attr_s/2,
-	get_attr/2,
-	get_attr_s/2,
-	replace_attr/3,
-	replace_tag_attr/3,
-	remove_attr/2,
-	remove_tag_attr/2,
-	get_cdata/1,
-	get_tag_cdata/1,
-	remove_cdata/1,
-	get_path_s/2,
-	element_to_string/1,
-	crypt/1
-]).
+-export([element_to_string/1,
+	 crypt/1, make_text_node/1,
+	 remove_cdata/1,
+	 get_cdata/1, get_tag_cdata/1,
+	 get_attr/2, get_attr_s/2,
+	 get_tag_attr/2, get_tag_attr_s/2,
+	 get_subtag/2, get_subtag_cdata/2,
+	 get_path_s/2,
+	 replace_tag_attr/3]).
 
-% --------------------------------------------------------------------
-% Deprecated API (almost renamed functions).
-% --------------------------------------------------------------------
+%% Select at compile time how to escape characters in binary text
+%% nodes.
+%% Can be choosen with ./configure --enable-full-xml
+-ifdef(FULL_XML_SUPPORT).
+-define(ESCAPE_BINARY(CData), make_text_node(CData)).
+-else.
+-define(ESCAPE_BINARY(CData), crypt(CData)).
+-endif.
 
-%% @spec (XML_Element, Name) -> XML_Subelement | false
-%%     XML_Element = xmlnselement() | xmlelement()
-%%     Name = string() | atom()
-%%     XML_Subelement = xmlelement() | xmlnselement()
-%% @deprecated Please use {@link exmpp_xml:get_element_by_name/2}.
-%% @doc Search in the children of `XML_Element' an element named `Name'.
+element_to_string(El) ->
+    exmpp_xml:document_to_list(El).
 
-get_subtag(XML_Element, Name) ->
-	exmpp_xml:get_element_by_name(XML_Element, Name).
+crypt(S) ->
+    exmpp_xml:encode_entities(S).
 
-%% @spec (XML_Element, Child) -> New_XML_Element
-%%     XML_Element = xmlnselement() | xmlelement()
-%%     Child = xmlnselement() | xmlelement()
-%%     New_XML_Element = xmlnselement() | xmlelement()
-%% @deprecated Please use {@link exmpp_xml:append_child/2}.
-%% @doc Add `Child' to `XML_Element''s children.
-%%
-%% The new `Child' will be at the beginning of the list.
+%% Make a cdata_binary depending on what characters it contains
+make_text_node(CData) ->
+    case cdata_need_escape(CData) of
+	cdata ->
+	    CDATA1 = <<"<![CDATA[">>,
+	    CDATA2 = <<"]]>">>,
+	    concat_binary([CDATA1, CData, CDATA2]);
+	none ->
+	    CData;
+	{cdata, EndTokens} ->
+	    EscapedCData = escape_cdata(CData, EndTokens),
+	    concat_binary(EscapedCData)
+    end.
 
-add_child(#xmlelement{children = Children} = XML_Element, Child) ->
-	New_Children = [Child | Children],
-	XML_Element#xmlelement{children = New_Children};
+%% Returns escape type needed for the text node
+%% none, cdata, {cdata, [Positions]}
+%% Positions is a list a integer containing positions of CDATA end
+%% tokens, so that they can be escaped
+cdata_need_escape(CData) ->
+    cdata_need_escape(CData, 0, false, []).
+cdata_need_escape(<<>>, _, false, _) ->
+    none;
+cdata_need_escape(<<>>, _, true, []) ->
+    cdata;
+cdata_need_escape(<<>>, _, true, CDataEndTokens) ->
+    {cdata, lists:reverse(CDataEndTokens)};
+cdata_need_escape(<<$],$],$>,Rest/binary>>, CurrentPosition,
+                  _XMLEscape, CDataEndTokens) ->
+    NewPosition = CurrentPosition + 3,
+    cdata_need_escape(Rest, NewPosition, true,
+                      [CurrentPosition+1|CDataEndTokens]);
+%% Only <, & need to be escaped in XML text node
+%% See reference: http://www.w3.org/TR/xml11/#syntax
+cdata_need_escape(<<$<,Rest/binary>>, CurrentPosition,
+                  _XMLEscape, CDataEndTokens) ->
+    cdata_need_escape(Rest, CurrentPosition+1, true, CDataEndTokens);
+cdata_need_escape(<<$&,Rest/binary>>, CurrentPosition,
+                  _XMLEscape, CDataEndTokens) ->
+    cdata_need_escape(Rest, CurrentPosition+1, true, CDataEndTokens);
+cdata_need_escape(<<_:8,Rest/binary>>, CurrentPosition,
+		  XMLEscape, CDataEndTokens) ->
+    cdata_need_escape(Rest, CurrentPosition+1, XMLEscape,
+                      CDataEndTokens).
 
-add_child(#xmlnselement{children = Children} = XML_Element, Child) ->
-	New_Children = [Child | Children],
-	XML_Element#xmlnselement{children = New_Children}.
+%% escape cdata that contain CDATA end tokens
+%% EndTokens is a list of position of end tokens (integer)
+%% This is supposed to be a very rare case: You need to generate several
+%% fields, splitting it in the middle of the end token.
+%% See example: http://en.wikipedia.org/wiki/CDATA#Uses_of_CDATA_sections
+escape_cdata(CData, EndTokens) ->
+    escape_cdata(CData, 0, EndTokens, []).
+escape_cdata(<<>>, _CurrentPosition, [], Acc) ->
+    lists:reverse(Acc);
+escape_cdata(Rest, CurrentPosition, [], Acc) ->
+    CDATA1 = <<"<![CDATA[">>,
+    CDATA2 = <<"]]>">>,
+    escape_cdata(<<>>, CurrentPosition, [], [CDATA2, Rest, CDATA1|Acc]);
+escape_cdata(CData, Index, [Pos|Positions], Acc) ->
+    CDATA1 = <<"<![CDATA[">>,
+    CDATA2 = <<"]]>">>,
+    Split = Pos-Index,
+    {Part, Rest} = split_binary(CData, Split+1),
+    %% Note: We build the list in reverse to optimize construction
+    escape_cdata(Rest, Pos+1, Positions, [CDATA2, Part, CDATA1|Acc]).
 
-%% @spec (Attr_Name, XML_Element) -> {value, Value} | false
-%%     Attr_Name = string() | atom()
-%%     XML_Element = xmlnselement() | xmlelement()
-%% @deprecated Please use {@link exmpp_xml:get_attribute/2}.
-%% @doc Return the `Attr_Name' attribute value (in a tuple) from the
-%% `XML_Element' element.
+remove_cdata(L) -> exmpp_xml:remove_cdata_from_list(L).
 
-get_tag_attr(Attr_Name, #xmlelement{attrs = Attrs}) ->
-	get_attr(Attr_Name, Attrs);
+get_cdata(L) ->
+    exmpp_xml:get_cdata_from_list(L).
 
-get_tag_attr(Attr_Name, #xmlnselement{attrs = Attrs}) ->
-	get_attr(Attr_Name, Attrs).
+get_tag_cdata({xmlelement, _Name, _Attrs, Els}) ->
+    get_cdata(Els).
 
-%% @spec (Attr_Name, XML_Element) -> Value | false
-%%     Attr_Name = string() | atom()
-%%     XML_Element = xmlnselement() | xmllement()
-%% @deprecated Please use {@link exmpp_xml:get_attribute/2}.
-%% @doc Return the `Attr_Name' attribute value from the `XML_Element'
-%% element.
+get_attr(AttrName, Attrs) ->
+    case exmpp_xml:get_attribute_node_from_list(Attrs, AttrName) of
+	undefined ->
+	    false;
+	#xmlattr{value = Val} ->
+	    {value, Val};
+	{_Name, Val} ->
+	    {value, Val}
+    end.
 
-get_tag_attr_s(Attr_Name, #xmlelement{attrs = Attrs}) ->
-	get_attr_s(Attr_Name, Attrs);
+get_attr_s(AttrName, Attrs) ->
+    exmpp_xml:get_attribute_from_list(Attrs, AttrName).
 
-get_tag_attr_s(Attr_Name, #xmlnselement{attrs = Attrs}) ->
-	get_attr_s(Attr_Name, Attrs).
+get_tag_attr(AttrName, #xmlnselement{attrs = Attrs}) ->
+    get_attr(AttrName, Attrs);
+get_tag_attr(AttrName, #xmlelement{attrs = Attrs}) ->
+    get_attr(AttrName, Attrs).
 
-%% @spec (Attr_Name, Attrs) -> {value, Value} | false
-%%     Attr_Name = string() | atom()
-%%     Attrs = [xmlnsattribute() | xmlattribute()]
-%% @deprecated Please use {@link exmpp_xml:get_attribute_from_list/2}.
-%% @doc Return the `Attr_Name' attribute value (in a tuple) from the
-%% xmlattribute() list.
+get_tag_attr_s(AttrName, El) ->
+    exmpp_xml:get_attribute(El, AttrName).
 
-get_attr(Attr_Name, Attrs) ->
-	case exmpp_xml:get_attribute_node_from_list(Attrs, Attr_Name) of
-		#xmlattr{value = Value} ->
-			{value, Value};
-		{_Name, Value} ->
-			{value, Value};
-		false ->
-			false
-	end.
 
-%% @spec (Attr_Name, Attrs) -> Value | false
-%%     Attr_Name = string() | atom()
-%%     Attrs = [xmlnsattribute() | xmlattribute()]
-%% @deprecated Please use {@link exmpp_xml:get_attribute_from_list/2}.
-%% @doc Return the `Attr_Name' attribute value from the xmlattribute()
-%% list.
+get_subtag(El, Name) ->
+    case exmpp_xml:get_element_by_name(El, Name) of
+	undefined -> false;
+	Sub_El    -> Sub_El
+    end.
 
-get_attr_s(Attr_Name, Attrs) ->
-	case get_attr(Attr_Name, Attrs) of
-		{value, Value} ->
-			Value;
-		false ->
-			""
-	end.
+get_subtag_cdata(Tag, Name) ->
+    exmpp_xml:get_cdata(Tag, Name).
 
-%% @spec (Attr_Name, Attr_Value, Attrs) -> New_Attrs
-%%     Attr_Name = string() | atom()
-%%     Attr_Value = string()
-%%     Attrs = [xmlattribute()]
-%%     New_Attrs = [xmlnsattribute() | xmlattribute()]
-%% @deprecated Please use {@link exmpp_xml:set_attribute_in_list/3}.
-%% @doc Replace `Attr_Name' value with `Attr_Value'.
+get_path_s(El, []) ->
+    El;
+get_path_s(El, [{elem, Name} | Path]) ->
+    case get_subtag(El, Name) of
+	false ->
+	    "";
+	SubEl ->
+	    get_path_s(SubEl, Path)
+    end;
+get_path_s(El, [{attr, Name}]) ->
+    get_tag_attr_s(Name, El);
+get_path_s(El, [cdata]) ->
+    get_tag_cdata(El).
 
-replace_attr(Attr_Name, Attr_Value, Attrs) ->
-	exmpp_xml:set_attribute_in_list(Attrs, Attr_Name, Attr_Value).
 
-%% @spec (Attr_Name, Value, XML_Element) -> New_XML_Element
-%%     Attr_Name = string() | atom()
-%%     Value = string()
-%%     XML_Element = xmlelement() | xmlnselement()
-%%     New_XML_Element = xmlelement() | xmlnselement()
-%% @deprecated Please use {@link exmpp_xml:set_attribute/3}.
-%% @doc Replace the value of `Attr_Name' attribute with `Value' in the
-%% given `XML_Element' element.
+replace_tag_attr(Attr, Value, El) ->
+    exmpp_xml:set_attribute(El, Attr, Value).
 
-replace_tag_attr(Attr_Name, Attr_Value, XML_Element) ->
-	exmpp_xml:set_attribute(XML_Element, Attr_Name, Attr_Value).
 
-%% @spec (Attr_Name, Attrs) -> New_Attrs
-%%     Attr_Name = string() | atom()
-%%     Attrs = [xmlnsattribute() | xmlattribute()]
-%%     New_Attrs = [xmlnsattribute() | xmlattribute()]
-%% @deprecated Please use {@link exmpp_xml:remove_attribute_from_list/2}.
-%% @doc Remove an attribute and return the new list.
-
-remove_attr(Attr_Name, Attrs) ->
-	exmpp_xml:remove_attribute_from_list(Attrs, Attr_Name).
-
-%% @spec (Attr_Name, XML_Element) -> New_XML_Element
-%%     Attr_Name = string() | atom()
-%%     XML_Element = xmlnselement() | xmlelement()
-%%     New_XML_Element = xmlelement() | xmlnselement()
-%% @deprecated Please use {@link exmpp_xml:remove_attribute_from_list/2}.
-%% @doc Remove an attribute and return the new element.
-
-remove_tag_attr(Attr_Name, XML_Element) ->
-	exmpp_xml:remove_attribute(XML_Element, Attr_Name).
-
-%% @spec (Children) -> CData
-%%     Children = undefined | [xmlnselement() | xmlelement() | xmlcdata()]
-%%     CData = string()
-%% @deprecated Please use {@link exmpp_xml:get_cdata_from_list/1}.
-%% @doc Concatenate and return any character data from th given children list.
-
-get_cdata(Children) ->
-	exmpp_xml:get_cdata_from_list(Children).
-
-%% @spec (XML_Element) -> CData
-%%     XML_Element = xmlnselement() | xmlelement()
-%%     CData = string()
-%% @deprecated Please use {@link exmpp_xml:get_cdata/1}.
-%% @doc Concatenate and return any character data of the given XML element.
-
-get_tag_cdata(XML_Element) ->
-	exmpp_xml:get_cdata(XML_Element).
-
-%% @spec (Children) -> New_Children
-%%     Children = undefined | [xmlnselement() | xmlelement() | xmlcdata()]
-%%     New_Children = undefined | [xmlnselement() | xmlelement()]
-%% @deprecated Please use {@link exmpp_xml:remove_data_from_list/1}.
-%% @doc Remove any character data from the given XML element children list.
-
-remove_cdata(Children) ->
-	exmpp_xml:remove_cdata_from_list(Children).
-
-%% @spec (XML_Element, Path) -> XML_Subelement | Attr_Value | CData | Not_Found
-%%     XML_Element = xmlnselement() | xmlelement()
-%%     Path = [pathcomponent() | pathcomponentold()]
-%%     XML_Subelement = xmlnselement() | xmlelement()
-%%     Attr_Value = string()
-%%     CData = string()
-%%     Not_Found = nil()
-%% @deprecated Please use {@link exmpp_xml:get_path/2}.
-%% @doc Follow the given path and return what's pointed by the last
-%% component of it.
-
-get_path_s(XML_Element, Path) ->
-	New_Path = update_path(Path),
-	exmpp_xml:get_path(XML_Element, New_Path).
-
-update_path(Path) ->
-	update_path2(Path, []).
-
-update_path2([{elem, Name} | Rest], New_Path) ->
-	update_path2(Rest, [{element, Name} | New_Path]);
-update_path2([{attr, Name} | Rest], New_Path) ->
-	update_path2(Rest, [{attribute, Name} | New_Path]);
-update_path2([Other | Rest], New_Path) ->
-	update_path2(Rest, [Other | New_Path]);
-update_path2([], New_Path) ->
-	lists:reverse(New_Path).
-
-%% @spec (XML_Element) -> XML_Text
-%%     XML_Element = xmlnselement() | xmlelement()
-%%     XML_Text = string()
-%% @deprecated Please use {@link exmpp_xml:document_to_list/1}.
-%% @doc Serialize an XML tree to play text.
-
-element_to_string(XML_Element) ->
-	exmpp_xml:document_to_list(XML_Element).
-
-%% @spec (CData) -> Escaped_CData
-%%     CData = string() | binary()
-%%     Escaped_CData = string() | binary()
-%% @deprecated Please use {@link exmpp_xml:encode_entities/1}.
-%% @doc Replace sensible characters with entities.
-
-crypt(CData) when is_list(CData) ->
-	exmpp_xml:encode_entities(CData);
-
-crypt(CData) when is_binary(CData) ->
-	exmpp_xml:encode_entities(binary_to_list(CData)).
-
-% --------------------------------------------------------------------
-% Documentation / type definitions.
-% --------------------------------------------------------------------
-
-%% @type pathcomponentold() = {elem, Elem_Name} | {attr, Attr_Name} | cdata
-%%     Elem_Name = string() | atom()
-%%     Attr_Name = string() | atom().
-%% Represents a path component.
