@@ -192,7 +192,7 @@ gen_send({Mod, Socket}, Packet) ->
 gen_setopts({gen_tcp, Socket}, Options) ->
     inet:setopts(Socket, Options);
 gen_setopts({Mod, Socket}, Options) ->
-    Mod:setopts(Socket).
+    Mod:setopts(Socket, Options).
 
 %% @spec (Socket_Desc) -> {ok, {Address, Port}} | {error, posix()}
 %%     Socket_Desc = {Mod, Socket}
