@@ -13,6 +13,11 @@
 	latest version from ejabberd repository (revision 1344). As with xml,
 	the modifications are limited to the calls to exmpp_stringprep.
 
+	* include/jlib.hrl, include/Makefile.am, src/compat/jlib.erl: Again,
+	reduce diff with jlib from ejabberd repository (revision 1344). The
+	new jlib header is added for the old #jid record. It's installed only
+	when the compat layer is enabled.
+
 2008-06-02  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_internals.erl, src/core/exmpp_tls.erl,

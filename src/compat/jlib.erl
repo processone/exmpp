@@ -1,14 +1,33 @@
+% $Id$
+
 %%%----------------------------------------------------------------------
 %%% File    : jlib.erl
-%%% Author  : Alexey Shchepin <alexey@sevcom.net>
-%%% Purpose : 
-%%% Created : 23 Nov 2002 by Alexey Shchepin <alexey@sevcom.net>
-%%% Id      : $Id$
+%%% Author  : Alexey Shchepin <alexey@process-one.net>
+%%% Purpose : General XMPP library.
+%%% Created : 23 Nov 2002 by Alexey Shchepin <alexey@process-one.net>
+%%%
+%%%
+%%% ejabberd, Copyright (C) 2002-2008   Process-one
+%%%
+%%% This program is free software; you can redistribute it and/or
+%%% modify it under the terms of the GNU General Public License as
+%%% published by the Free Software Foundation; either version 2 of the
+%%% License, or (at your option) any later version.
+%%%
+%%% This program is distributed in the hope that it will be useful,
+%%% but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+%%% General Public License for more details.
+%%%                         
+%%% You should have received a copy of the GNU General Public License
+%%% along with this program; if not, write to the Free Software
+%%% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+%%% 02111-1307 USA
+%%%
 %%%----------------------------------------------------------------------
 
 -module(jlib).
--author('alexey@sevcom.net').
--vsn('$Revision$ ').
+-author('alexey@process-one.net').
 
 -export([make_result_iq_reply/1,
 	 make_error_reply/3,
@@ -32,6 +51,7 @@
 	 jid_replace_resource/2,
 	 get_iq_namespace/1,
 	 iq_query_info/1,
+	 iq_query_or_response_info/1,
 	 is_iq_request_type/1,
 	 iq_to_xml/1,
 	 parse_xdata_submit/1,
@@ -41,9 +61,10 @@
 	 now_to_local_string/1,
 	 datetime_string_to_timestamp/1,
 	 decode_base64/1,
-	 encode_base64/1]).
+	 encode_base64/1,
+	 ip_to_list/1]).
 
--include("exmpp.hrl").
+-include("jlib.hrl").
 
 %send_iq(From, To, ID, SubTags) ->
 %    ok.
@@ -140,28 +161,35 @@ remove_attr(Attr, {xmlelement, Name, Attrs, Els}) ->
     {xmlelement, Name, NewAttrs, Els}.
 
 
-make_jid(Node, Domain, Resource) ->
-    exmpp_jid:make_jid(Node, Domain, Resource).
+make_jid(User, Server, Resource) ->
+    try
+	exmpp_jid:make_jid(User, Server, Resource)
+    catch
+	_Exception ->
+	    error
+    end.
 
-make_jid({Node, Domain, Resource}) ->
-    exmpp_jid:make_jid(Node, Domain, Resource).
+make_jid({User, Server, Resource}) ->
+    make_jid(User, Server, Resource).
 
-string_to_jid(String) ->
-    exmpp_jid:string_to_jid(String).
+string_to_jid(J) ->
+    try
+	exmpp_jid:string_to_jid(J)
+    catch
+	_Exception -> error
+    end.
 
-jid_to_string({Node, Domain, Resource}) ->
-    case exmpp_jid:make_jid(Node, Domain, Resource) of
-        {error, Reason} ->
-            {error, Reason};
-        Jid ->
-            exmpp_jid:jid_to_string(Jid)
-    end;
-jid_to_string(Jid) ->
-    exmpp_jid:jid_to_string(Jid).
+jid_to_string(#jid{user = User, server = Server, resource = Resource}) ->
+    exmpp_jid:jid_to_string(User, Server, Resource);
+jid_to_string({Node, Server, Resource}) ->
+    exmpp_jid:jid_to_string(Node, Server, Resource).
 
 
-is_nodename(String) ->
-    exmpp_stringprep:is_node(String).
+is_nodename([]) ->
+    false;
+is_nodename(J) ->
+    nodeprep(J) /= error.
+
 
 %tolower_c(C) when C >= $A, C =< $Z ->
 %    C + 32;
@@ -202,7 +230,7 @@ tolower([]) ->
 
 
 nodeprep(S) when length(S) < 1024 ->
-    R = exmpp_stringprep:nodeprep(S),
+    R = stringprep:nodeprep(S),
     if
 	length(R) < 1024 -> R;
 	true -> error
@@ -211,7 +239,7 @@ nodeprep(_) ->
     error.
 
 nameprep(S) when length(S) < 1024 ->
-    R = exmpp_stringprep:nameprep(S),
+    R = stringprep:nameprep(S),
     if
 	length(R) < 1024 -> R;
 	true -> error
@@ -220,7 +248,7 @@ nameprep(_) ->
     error.
 
 resourceprep(S) when length(S) < 1024 ->
-    R = exmpp_stringprep:resourceprep(S),
+    R = stringprep:resourceprep(S),
     if
 	length(R) < 1024 -> R;
 	true -> error
@@ -229,7 +257,7 @@ resourceprep(_) ->
     error.
 
 
-jid_tolower(#jid{lnode = U, ldomain = S, lresource = R}) ->
+jid_tolower(#jid{luser = U, lserver = S, lresource = R}) ->
     {U, S, R};
 jid_tolower({U, S, R}) ->
     case nodeprep(U) of
@@ -269,39 +297,66 @@ get_iq_namespace({xmlelement, Name, _Attrs, Els}) when Name == "iq" ->
 get_iq_namespace(_) ->
     "".
 
-iq_query_info({xmlelement, Name, Attrs, Els}) when Name == "iq" ->
+iq_query_info(El) ->
+    iq_info_internal(El, request).
+
+iq_query_or_response_info(El) ->
+    iq_info_internal(El, any).
+
+iq_info_internal({xmlelement, Name, Attrs, Els}, Filter) when Name == "iq" ->
+    %% Filter is either request or any.  If it is request, any replies
+    %% are converted to the atom reply.
     ID = xml:get_attr_s("id", Attrs),
     Type = xml:get_attr_s("type", Attrs),
     Lang = xml:get_attr_s("xml:lang", Attrs),
-    Type1 = case Type of
-		"set" -> set;
-		"get" -> get;
-		"result" -> reply;
-		"error" -> reply;
-		_ -> invalid
+    {Type1, Class} = case Type of
+			 "set" -> {set, request};
+			 "get" -> {get, request};
+			 "result" -> {result, reply};
+			 "error" -> {error, reply};
+			 _ -> {invalid, invalid}
 	    end,
     if
-	(Type1 /= invalid) and (Type1 /= reply) ->
-	    case xml:remove_cdata(Els) of
-		[{xmlelement, Name2, Attrs2, Els2}] ->
-		    XMLNS = xml:get_attr_s("xmlns", Attrs2),
-		    if
-			XMLNS /= "" ->
+	Type1 == invalid ->
+	    invalid;
+	Class == request; Filter == any ->
+	    %% The iq record is a bit strange.  The sub_el field is an
+	    %% XML tuple for requests, but a list of XML tuples for
+	    %% responses.
+	    FilteredEls = xml:remove_cdata(Els),
+	    {XMLNS, SubEl} =
+		case {Class, FilteredEls} of
+		    {request, [{xmlelement, _Name2, Attrs2, _Els2}]} ->
+			{xml:get_attr_s("xmlns", Attrs2),
+			 hd(FilteredEls)};
+		    {reply, _} ->
+			%% Find the namespace of the first non-error
+			%% element, if there is one.
+			NonErrorEls = [El || 
+					  {xmlelement, SubName, _, _} = El
+					      <- FilteredEls, 
+					  SubName /= "error"],
+			{case NonErrorEls of
+			     [NonErrorEl] -> xml:get_tag_attr_s("xmlns", NonErrorEl);
+			     _ -> invalid
+			 end,
+			 FilteredEls};
+		    _ ->
+			{invalid, invalid}
+		end,
+	    if XMLNS == "", Class == request ->
+		    invalid;
+	       true ->
 			    #iq{id = ID,
 				type = Type1,
 				xmlns = XMLNS,
 				lang = Lang,
-				sub_el = {xmlelement, Name2, Attrs2, Els2}};
-			true ->
-			    invalid
+			sub_el = SubEl}
 		    end;
-		_ ->
-		    invalid
-	    end;
-	true ->
-	    Type1
+	Class == reply, Filter /= any ->
+	    reply
     end;
-iq_query_info(_) ->
+iq_info_internal(_, _) ->
     not_iq.
 
 is_iq_request_type(set) -> true;
@@ -569,3 +624,9 @@ e(X) when X>51, X<62 ->     X-4;
 e(62) ->                    $+;
 e(63) ->                    $/;
 e(X) ->                     exit({bad_encode_base64_token, X}).
+
+%% Convert Erlang inet IP to list
+ip_to_list({IP, _Port}) ->
+    ip_to_list(IP);
+ip_to_list({A,B,C,D}) ->
+    lists:flatten(io_lib:format("~w.~w.~w.~w",[A,B,C,D])).
