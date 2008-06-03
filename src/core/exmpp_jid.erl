@@ -271,6 +271,7 @@ jid_to_string(#jid{node = Node, domain = Domain, resource = Resource}) ->
 jid_to_string(Node, Domain, Resource) ->
     S1 = bare_jid_to_string(Node, Domain),
     case Resource of
+        ""        -> S1;
         undefined -> S1;
         _         -> S1 ++ "/" ++ Resource
     end.
@@ -285,6 +286,7 @@ bare_jid_to_string(#jid{node = Node, domain = Domain}) ->
 
 bare_jid_to_string(Node, Domain) ->
     S1 = case Node of
+        ""        -> "";
         undefined -> "";
         _         -> Node ++ "@"
     end,

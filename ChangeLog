@@ -21,6 +21,11 @@
 	* src/compat/stringprep.erl (tolower): Fixed a typo in a function
 	name.
 
+	* src/core/exmpp_jid.erl, src/compat/jlib.erl: For unspecified node or
+	resource, ejabberd expects the empty string, not 'undefined'. Also
+	fixed a bug with a call to a non-existing exmpp_jid:jid_to_string/3
+	function.
+
 2008-06-02  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_internals.erl, src/core/exmpp_tls.erl,

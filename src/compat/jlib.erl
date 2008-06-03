@@ -174,15 +174,25 @@ make_jid({User, Server, Resource}) ->
 
 string_to_jid(J) ->
     try
-	exmpp_jid:string_to_jid(J)
+	Jid0 = exmpp_jid:string_to_jid(J),
+	Jid1 = case Jid0#jid.user of
+	    undefined -> Jid0#jid{user = "", luser = ""};
+	    _         -> Jid0
+	end,
+	Jid2 = case Jid1#jid.resource of
+	    undefined -> Jid1#jid{resource = "", lresource = ""};
+	    _         -> Jid1
+	end,
+	Jid2
     catch
 	_Exception -> error
     end.
 
-jid_to_string(#jid{user = User, server = Server, resource = Resource}) ->
-    exmpp_jid:jid_to_string(User, Server, Resource);
 jid_to_string({Node, Server, Resource}) ->
-    exmpp_jid:jid_to_string(Node, Server, Resource).
+    Jid = exmpp_jid:make_jid(Node, Server, Resource),
+    exmpp_jid:jid_to_string(Jid);
+jid_to_string(Jid) ->
+    exmpp_jid:jid_to_string(Jid).
 
 
 is_nodename([]) ->
