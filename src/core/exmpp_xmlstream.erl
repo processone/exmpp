@@ -167,10 +167,8 @@ process_elements2(Stream, [XML_Element | Rest], Events) ->
             % Stream is freshly opened.
             New_Stream = Stream#xml_stream{opened = 1},
             New_Events = case Stream#xml_stream.xmlstreamstart of
-                old ->
-                    [{xmlstreamstart, Name, Attrs} | Events];
-                new ->
-                    [#xmlstreamstart{element = XML_Element} | Events]
+                old -> [{xmlstreamstart, Name, Attrs} | Events];
+                new -> [#xmlstreamstart{element = XML_Element} | Events]
             end,
             process_elements2(New_Stream, Rest, New_Events);
         #xmlnselement{} ->
@@ -191,10 +189,8 @@ process_elements2(Stream, [XML_Element | Rest], Events) ->
             % Stream is freshly opened.
             New_Stream = Stream#xml_stream{opened = 1},
             New_Events = case Stream#xml_stream.xmlstreamstart of
-                old ->
-                    [{xmlstreamstart, Name, Attrs} | Events];
-                new ->
-                    [#xmlstreamstart{element = XML_Element} | Events]
+                old -> [{xmlstreamstart, Name, Attrs} | Events];
+                new -> [#xmlstreamstart{element = XML_Element} | Events]
             end,
             process_elements2(New_Stream, Rest, New_Events);
         #xmlelement{} ->
