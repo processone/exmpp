@@ -1,3 +1,15 @@
+2008-06-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_xmlstream.erl: Add support for old xmlstreamstart
+	tuple. The format to use can be chosen by calling the new start/3
+	function. Be careful, the old format is selected by default now,
+	instead of the new one as before.
+	(start/1): Remove the clause that takes only XML parser options
+	because the API is confusing.
+
+	* testsuite/check_xmlstream.erl: Use explicitly the new xmlstreamstart
+	format.
+
 2008-06-03  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_internals.erl (gen_setopts): Fixed a bug where

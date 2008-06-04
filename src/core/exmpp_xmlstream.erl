@@ -23,12 +23,21 @@
 
 -include("exmpp.hrl").
 
--export([start/1, start/2, stop/1, parse/2]).
--export([parse_element/1, parse_element/2]).
+-export([
+  start/1,
+  start/2,
+  start/3,
+  stop/1,
+  parse/2,
+  send_events/2,
+  parse_element/1,
+  parse_element/2
+]).
 
 -record(xml_stream, {
   callback,
   parser,
+  xmlstreamstart = old,
   opened = 0
 }).
 
@@ -36,28 +45,21 @@
 % Stream parsing, chunk by chunk.
 % --------------------------------------------------------------------
 
-%% @spec (Parser_Options | Callback) -> {ok, Stream} | {error, Reason}
+%% @spec (Callback) -> {ok, Stream} | {error, Reason}
 %%     Callback = callback()
-%%     Parser_Options = [exmpp_xml:xmlparseroption()]
 %%     Stream = xmlstream()
 %% @doc Start a new stream handler.
 %%
-%% If the caller specifies a callback, the XML parser is created with
-%% default options, but the `root_depth' which is 1 and `endelement'
-%% which is set.
+%% The XML parser is created with default options, but the `root_depth'
+%% which is 1 and `endelement' which is set.
 %%
-%% <br/><br/>
-%% If the caller specifies parser options, the callback will be set to
-%% `no_callback'.
+%% The stream will use the old xmlstreamstart tuple.
 %%
 %% <br/><br/>
 %% This function (or {@link start/2}) must be called before any use of
 %% {@link parse/2}.
 %% @see exmpp_xml:start_parser/0.
 %% @see exmpp_xml:xmlparseroption().
-
-start(Parser_Options) when is_list(Parser_Options) ->
-    start(no_callback, Parser_Options);
 
 start(Callback) ->
     start(Callback, []).
@@ -72,18 +74,45 @@ start(Callback) ->
 %% `root_depth' is 1 and `endelement' is set). This function (or {@link
 %% start/1}) must be called before any use of {@link parse/2}.
 %%
+%% The stream will use the old xmlstreamstart tuple.
+%%
 %% @see exmpp_xml:start_parser/1.
 
 start(Callback, Parser_Options) ->
-    Parser_Options2 = [{root_depth, 1}, endelement | Parser_Options],
-    Parser = exmpp_xml:start_parser(Parser_Options2),
+    start(Callback, Parser_Options, []).
+
+%% @spec (Callback, Parser_Options, Stream_Options) -> {ok, Stream} | {error, Reason}
+%%     Callback = callback()
+%%     Stream = xmlstream()
+%%     Parser_Options = [exmpp_xml:xmlparseroption()]
+%%     Stream_Options = [Stream_Option]
+%%     Stream_Option = {xmlstreamstart, old | new}
+%% @doc Start a new stream handler.
+%%
+%% The XML parser is created with `Parser_Options' options (by default,
+%% `root_depth' is 1 and `endelement' is set). This function (or {@link
+%% start/1}) must be called before any use of {@link parse/2}.
+%%
+%% The stream will use the old xmlstreamstart tuple by default.
+%%
+%% @see exmpp_xml:start_parser/1.
+
+start(Callback, Parser_Options, Stream_Options) ->
     Callback2 = case Callback of
         Pid when is_pid(Pid) -> {process, Pid};
         _                    -> Callback
     end,
+    Parser_Options2 = [{root_depth, 1}, endelement | Parser_Options],
+    Parser = exmpp_xml:start_parser(Parser_Options2),
+    Stream_Start = case lists:keysearch(xmlstreamstart, 1, Stream_Options) of
+        {value, {_, new}} -> new;
+        {value, {_, old}} -> old;
+        false             -> old
+    end,
     #xml_stream{
       callback = Callback2,
-      parser = Parser
+      parser = Parser,
+      xmlstreamstart = Stream_Start
     }.
 
 %% @spec (Stream) -> ok | {error, Reason}
@@ -133,11 +162,16 @@ process_elements(Stream, XML_Elements) ->
 process_elements2(Stream, [XML_Element | Rest], Events) ->
     case XML_Element of
         % With namespace support.
-        #xmlnselement{} when Stream#xml_stream.opened == 0 ->
+        #xmlnselement{name = Name, attrs = Attrs}
+          when Stream#xml_stream.opened == 0 ->
             % Stream is freshly opened.
             New_Stream = Stream#xml_stream{opened = 1},
-            New_Events = [#xmlstreamstart{element = XML_Element} |
-              Events],
+            New_Events = case Stream#xml_stream.xmlstreamstart of
+                old ->
+                    [{xmlstreamstart, Name, Attrs} | Events];
+                new ->
+                    [#xmlstreamstart{element = XML_Element} | Events]
+            end,
             process_elements2(New_Stream, Rest, New_Events);
         #xmlnselement{} ->
             % An "depth 1" element and its children.
@@ -152,11 +186,16 @@ process_elements2(Stream, [XML_Element | Rest], Events) ->
             process_elements2(New_Stream, Rest, New_Events);
 
         % Without namespace support.
-        #xmlelement{} when Stream#xml_stream.opened == 0 ->
+        #xmlelement{name = Name, attrs = Attrs}
+          when Stream#xml_stream.opened == 0 ->
             % Stream is freshly opened.
             New_Stream = Stream#xml_stream{opened = 1},
-            New_Events = [#xmlstreamstart{element = XML_Element} |
-              Events],
+            New_Events = case Stream#xml_stream.xmlstreamstart of
+                old ->
+                    [{xmlstreamstart, Name, Attrs} | Events];
+                new ->
+                    [#xmlstreamstart{element = XML_Element} | Events]
+            end,
             process_elements2(New_Stream, Rest, New_Events);
         #xmlelement{} ->
             % An "depth 1" element and its children.
@@ -301,10 +340,12 @@ parse_element(Data, Parser_Options) ->
 %% start/0} or {@link start/1}.
 
 %% @type xmlstreamevent() = Stream_Start | Stream_Element | Stream_End | Error
-%%     Stream_Start = {xmlstreamstart, XML_Element}
+%%     Stream_Start = {xmlstreamstart, XML_Element} | {xmlstreamstart, Name, Attrs}
 %%     Stream_Element = {xmlstreamelement, XML_Element}
 %%     Stream_End = {xmlstreamend, XML_End_Element}
 %%       XML_Element = exmpp_xml:xmlnselement() | exmpp_xml:xmlelement()
 %%       XML_End_Element = exmpp_xml:xmlnsendelement() | exmpp_xml:xmlendelement()
+%%       Name = atom() | string()
+%%       Attrs = [exmpp_xml:xmlattribute() | exmpp_xml:xmlnsattribute()]
 %%     Stream_Error = {xmlstreamerror, Reason}.
 %% Records representing an event sent by the {@link parse/2} function.

@@ -67,7 +67,8 @@ do_check() ->
   }).
 
 test_parse_stream() ->
-    S1 = exmpp_xmlstream:start({apply, {?MODULE, test_parse_stream_p1, []}}),
+    S1 = exmpp_xmlstream:start({apply, {?MODULE, test_parse_stream_p1, []}},
+      [], [{xmlstreamstart, new}]),
     {ok, S2} = exmpp_xmlstream:parse(S1, ?CHUNK1),
     {ok, S3} = exmpp_xmlstream:parse(S2, ?CHUNK2),
     {ok, S4} = exmpp_xmlstream:parse(S3, ?CHUNK3),
@@ -76,7 +77,7 @@ test_parse_stream() ->
 
 test_parse_stream_ns() ->
     S1 = exmpp_xmlstream:start({apply, {?MODULE, test_parse_stream_p2, []}},
-      [namespace, name_as_atom]),
+      [namespace, name_as_atom], [{xmlstreamstart, new}]),
     {ok, S2} = exmpp_xmlstream:parse(S1, ?CHUNK1),
     {ok, S3} = exmpp_xmlstream:parse(S2, ?CHUNK2),
     {ok, S4} = exmpp_xmlstream:parse(S3, ?CHUNK3),
@@ -108,7 +109,7 @@ test_parse_stream_p2(Ret, _Extra) ->
     end.
 
 test_parse_stream_no_callback() ->
-    S1 = exmpp_xmlstream:start(no_callback),
+    S1 = exmpp_xmlstream:start(no_callback, [], [{xmlstreamstart, new}]),
     {ok, S2, Ret1} = exmpp_xmlstream:parse(S1, ?CHUNK1),
     testsuite:is(Ret1, [?CHUNK_EVENT1]),
     {ok, S3, Ret2} = exmpp_xmlstream:parse(S2, ?CHUNK2),
@@ -119,7 +120,8 @@ test_parse_stream_no_callback() ->
     ok.
 
 test_parse_stream_no_callback_ns() ->
-    S1 = exmpp_xmlstream:start(no_callback, [namespace, name_as_atom]),
+    S1 = exmpp_xmlstream:start(no_callback, [namespace, name_as_atom],
+      [{xmlstreamstart, new}]),
     {ok, S2, Ret1} = exmpp_xmlstream:parse(S1, ?CHUNK1),
     testsuite:is(Ret1, [?CHUNK_NS_EVENT1]),
     {ok, S3, Ret2} = exmpp_xmlstream:parse(S2, ?CHUNK2),
@@ -128,4 +130,3 @@ test_parse_stream_no_callback_ns() ->
     testsuite:is(Ret3, [?CHUNK_NS_EVENT2, ?CHUNK_NS_EVENT3]),
     exmpp_xmlstream:stop(S4),
     ok.
-
