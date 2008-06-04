@@ -43,7 +43,8 @@ BEAM_FILES += ejabberd_zlib.beam					\
 	      jlib.beam							\
 	      stringprep.beam						\
 	      tls.beam							\
-	      xml.beam
+	      xml.beam							\
+	      xml_stream.beam
 endif
 
 beam_DATA = $(BEAM_FILES)

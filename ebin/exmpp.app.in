@@ -41,7 +41,8 @@
         @COMPAT_MODULES@jlib,
         @COMPAT_MODULES@stringprep,
         @COMPAT_MODULES@tls,
-        @COMPAT_MODULES@xml
+        @COMPAT_MODULES@xml,
+        @COMPAT_MODULES@xml_stream
     ]},
     {registered, []},
     {applications, [

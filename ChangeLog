@@ -10,6 +10,10 @@
 	* testsuite/check_xmlstream.erl: Use explicitly the new xmlstreamstart
 	format.
 
+	* src/compat/xml_stream.erl, src/Emakefile.in, src/Makefile.am,
+	ebin/Makefile.am, ebin/exmpp.app.in, doc/Makefile.am: Add xml_stream
+	to the compat layer.
+
 2008-06-03  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_internals.erl (gen_setopts): Fixed a bug where

@@ -39,6 +39,7 @@
 		@COMPAT_MODULES@'@srcdir@/compat/stringprep',
 		@COMPAT_MODULES@'@srcdir@/compat/tls',
 		@COMPAT_MODULES@'@srcdir@/compat/xml',
+		@COMPAT_MODULES@'@srcdir@/compat/xml_stream',
                 '@srcdir@/examples/echo_client'
 	],
 	[

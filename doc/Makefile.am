@@ -58,7 +58,8 @@ HTML_FILES = index.html							\
 	     jlib.html							\
 	     stringprep.html						\
 	     tls.html							\
-	     xml.html
+	     xml.html							\
+	     xml_stream.html
 
 $(HTML_FILES): overview.edoc $(ERL_SRCS) stylesheet.css
 	$(ERL) -noshell\
