@@ -190,6 +190,15 @@ AC_ARG_ENABLE([documentation],
 	enable_documentation="yes")
 AM_CONDITIONAL(BUILD_DOCUMENTATION, test "x${enable_documentation}" = "xyes")
 
+dnl Internal escaping function to use.
+AC_ARG_ENABLE([escaping-using-cdata],
+	AC_HELP_STRING([--enable-escaping-using-cdata],
+	    [escape XML text node with CDATA sections [[default=off]]]),,
+	enable_http_base_64="no")
+if test "x${enable_escaping_using_cdata}" = "xyes"; then
+	append_to_EMKOPTS "{d, 'ESCAPE_USING_CDATA_SECTIONS'}"
+fi
+
 dnl ------------------------------------------------------------------
 dnl Erlang environment.
 dnl ------------------------------------------------------------------
