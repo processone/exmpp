@@ -461,6 +461,9 @@ echo "    Debug/warnings:     ${enable_debug}/${enable_warnings}"
 echo "    Compat modules:     ${enable_compat}"
 echo "    Documentation:      ${enable_documentation}"
 echo
+echo "    XML engines:"
+echo "      . Expat:          ${build_with_expat}"
+echo
 echo "    TLS engines:"
 echo "      . OpenSSL:        ${build_with_openssl}"
 echo
