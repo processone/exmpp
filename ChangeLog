@@ -89,6 +89,9 @@
 	src/client/exmpp_client_sasl.erl: Use get_cdata_as_list/1 instead of
 	get_cdata/1.
 
+	* src/compat/xml.erl: Use new CDATA escaping support from exmpp_xml.
+	(get_cdata): Use exmpp_xml:get_cdata_from_list_as_list/1.
+
 2008-06-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	With these changes, ejabberd 2.0.x can run without modifications with

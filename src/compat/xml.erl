@@ -54,77 +54,16 @@ element_to_string(El) ->
     exmpp_xml:document_to_list(El).
 
 crypt(S) ->
-    exmpp_xml:encode_entities(S).
+    exmpp_xml:escape_using_entities(S).
 
 %% Make a cdata_binary depending on what characters it contains
 make_text_node(CData) ->
-    case cdata_need_escape(CData) of
-	cdata ->
-	    CDATA1 = <<"<![CDATA[">>,
-	    CDATA2 = <<"]]>">>,
-	    concat_binary([CDATA1, CData, CDATA2]);
-	none ->
-	    CData;
-	{cdata, EndTokens} ->
-	    EscapedCData = escape_cdata(CData, EndTokens),
-	    concat_binary(EscapedCData)
-    end.
-
-%% Returns escape type needed for the text node
-%% none, cdata, {cdata, [Positions]}
-%% Positions is a list a integer containing positions of CDATA end
-%% tokens, so that they can be escaped
-cdata_need_escape(CData) ->
-    cdata_need_escape(CData, 0, false, []).
-cdata_need_escape(<<>>, _, false, _) ->
-    none;
-cdata_need_escape(<<>>, _, true, []) ->
-    cdata;
-cdata_need_escape(<<>>, _, true, CDataEndTokens) ->
-    {cdata, lists:reverse(CDataEndTokens)};
-cdata_need_escape(<<$],$],$>,Rest/binary>>, CurrentPosition,
-                  _XMLEscape, CDataEndTokens) ->
-    NewPosition = CurrentPosition + 3,
-    cdata_need_escape(Rest, NewPosition, true,
-                      [CurrentPosition+1|CDataEndTokens]);
-%% Only <, & need to be escaped in XML text node
-%% See reference: http://www.w3.org/TR/xml11/#syntax
-cdata_need_escape(<<$<,Rest/binary>>, CurrentPosition,
-                  _XMLEscape, CDataEndTokens) ->
-    cdata_need_escape(Rest, CurrentPosition+1, true, CDataEndTokens);
-cdata_need_escape(<<$&,Rest/binary>>, CurrentPosition,
-                  _XMLEscape, CDataEndTokens) ->
-    cdata_need_escape(Rest, CurrentPosition+1, true, CDataEndTokens);
-cdata_need_escape(<<_:8,Rest/binary>>, CurrentPosition,
-		  XMLEscape, CDataEndTokens) ->
-    cdata_need_escape(Rest, CurrentPosition+1, XMLEscape,
-                      CDataEndTokens).
-
-%% escape cdata that contain CDATA end tokens
-%% EndTokens is a list of position of end tokens (integer)
-%% This is supposed to be a very rare case: You need to generate several
-%% fields, splitting it in the middle of the end token.
-%% See example: http://en.wikipedia.org/wiki/CDATA#Uses_of_CDATA_sections
-escape_cdata(CData, EndTokens) ->
-    escape_cdata(CData, 0, EndTokens, []).
-escape_cdata(<<>>, _CurrentPosition, [], Acc) ->
-    lists:reverse(Acc);
-escape_cdata(Rest, CurrentPosition, [], Acc) ->
-    CDATA1 = <<"<![CDATA[">>,
-    CDATA2 = <<"]]>">>,
-    escape_cdata(<<>>, CurrentPosition, [], [CDATA2, Rest, CDATA1|Acc]);
-escape_cdata(CData, Index, [Pos|Positions], Acc) ->
-    CDATA1 = <<"<![CDATA[">>,
-    CDATA2 = <<"]]>">>,
-    Split = Pos-Index,
-    {Part, Rest} = split_binary(CData, Split+1),
-    %% Note: We build the list in reverse to optimize construction
-    escape_cdata(Rest, Pos+1, Positions, [CDATA2, Part, CDATA1|Acc]).
+    exmpp_xml:escape_using_cdata(CData).
 
 remove_cdata(L) -> exmpp_xml:remove_cdata_from_list(L).
 
 get_cdata(L) ->
-    exmpp_xml:get_cdata_from_list(L).
+    exmpp_xml:get_cdata_from_list_as_list(L).
 
 get_tag_cdata({xmlelement, _Name, _Attrs, Els}) ->
     get_cdata(Els).
