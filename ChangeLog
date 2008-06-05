@@ -5,6 +5,12 @@
 	COMMAND_QUIET_SHUTDOWN. Rewrite COMMAND_SHUTDOWN to handle uni- and
 	bidirectional shutdown.
 
+	* src/compat/ejabberd_socket.erl, src/Emakefile.in, src/Makefile.am,
+	ebin/Makefile.am, ebin/exmpp.app.in, doc/Makefile.am: Add
+	ejabberd_socket to the compat layer. This is needed to modify how
+	STARTTLS is handled in ejabberd: the <proceed/> element must be sent
+	before the call to tls:tcp_to_tls/2.
+
 2008-06-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	With these changes, ejabberd 2.0.x can run without modifications with

@@ -34,6 +34,7 @@
 		'@srcdir@/server/exmpp_server_sasl',
 		'@srcdir@/server/exmpp_server_session',
 		'@srcdir@/server/exmpp_server_tls',
+		@COMPAT_MODULES@'@srcdir@/compat/ejabberd_socket',
 		@COMPAT_MODULES@'@srcdir@/compat/ejabberd_zlib',
 		@COMPAT_MODULES@'@srcdir@/compat/jlib',
 		@COMPAT_MODULES@'@srcdir@/compat/stringprep',

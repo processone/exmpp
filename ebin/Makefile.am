@@ -39,7 +39,8 @@ BEAM_FILES = exmpp.app							\
 	     exmpp_tcp.beam
 
 if BUILD_COMPAT
-BEAM_FILES += ejabberd_zlib.beam					\
+BEAM_FILES += ejabberd_socket.beam					\
+	      ejabberd_zlib.beam					\
 	      jlib.beam							\
 	      stringprep.beam						\
 	      tls.beam							\
