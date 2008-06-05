@@ -23,6 +23,7 @@
 -export([
   gen_recv/2,
   gen_send/2,
+  gen_getopts/2,
   gen_setopts/2,
   gen_peername/1,
   gen_sockname/1,
@@ -180,6 +181,20 @@ gen_recv({Mod, Socket}, Timeout) ->
 
 gen_send({Mod, Socket}, Packet) ->
     Mod:send(Socket, Packet).
+
+%% @spec (Socket_Desc, Options) -> Option_Values | {error, posix()}
+%%     Socket_Desc = {Mod, Socket}
+%%     Mod = atom()
+%%     Socket = term()
+%%     Options = list()
+%%     Option_Values = list()
+%% @doc Wrapper to abstract the `getopts' function of multiple communication
+%% modules.
+
+gen_getopts({gen_tcp, Socket}, Options) ->
+    inet:getopts(Socket, Options);
+gen_getopts({Mod, Socket}, Options) ->
+    Mod:getopts(Socket, Options).
 
 %% @spec (Socket_Desc, Options) -> ok | {error, posix()}
 %%     Socket_Desc = {Mod, Socket}
