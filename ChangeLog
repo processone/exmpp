@@ -49,6 +49,9 @@
 	* src/compat/EXMPP-vendor: Add a file to track the ejabberd revision
 	the compat layer is based on.
 
+	* configure.ac: Add a line in the sumary to tell if Expat was found or
+	not.
+
 2008-06-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	With these changes, ejabberd 2.0.x can run without modifications with
