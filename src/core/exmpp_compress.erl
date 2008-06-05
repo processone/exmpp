@@ -74,7 +74,8 @@
 -record(compress_socket, {
   socket,
   packet_mode = binary,
-  port
+  port,
+  driver
 }).
 
 -define(SERVER, ?MODULE).
@@ -259,7 +260,7 @@ enable_compression(Socket_Desc, Options) ->
         engine_prepare_compress(Port),
         engine_prepare_uncompress(Port),
         #compress_socket{socket = Socket_Desc, packet_mode = Packet_Mode,
-          port = Port}
+          port = Port, driver = Driver_Name}
     catch
         Exception2 ->
             exmpp_internals:close_port(Port),
@@ -274,8 +275,10 @@ enable_compression(Socket_Desc, Options) ->
 %%     Socket = term()
 %% @doc Disable compression and return the underlying socket.
 
-disable_compression(#compress_socket{socket = Socket_Desc, port = Port}) ->
+disable_compression(#compress_socket{socket = Socket_Desc, port = Port,
+  driver = Driver_Name}) ->
     exmpp_internals:close_port(Port),
+    exmpp_internals:unload_driver(Driver_Name),
     Socket_Desc.
 
 % --------------------------------------------------------------------
@@ -444,9 +447,11 @@ controlling_process(#compress_socket{socket = Socket_Desc}, Pid) ->
 %% @spec (Compress_Socket) -> ok | {error, Reason}
 %%     Compress_Socket = compress_socket()
 %%     Reason = term()
-%% @doc Close the underlying socket.
+%% @doc Turn off compression and close the underlying socket.
 
-close(#compress_socket{socket = Socket_Desc}) ->
+close(#compress_socket{socket = Socket_Desc} = Compress_Socket) ->
+    % First, turn off compression.
+    disable_compression(Compress_Socket),
     % Close the underlying socket.
     exmpp_internals:gen_close(Socket_Desc).
 

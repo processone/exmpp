@@ -36,6 +36,9 @@
 	* src/compat/tls.erl: Synchronize this compat module with the latest
 	version from ejabberd (revision 1344).
 
+	* src/core/exmpp_compress.erl (disable_compression, close): The port
+	driver is closed and unloaded.
+
 2008-06-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	With these changes, ejabberd 2.0.x can run without modifications with
