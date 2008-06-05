@@ -84,4 +84,5 @@ exmpp_compress_zlib_la_LDFLAGS = -module -avoid-version			\
 				 $(ERL_DRIVER_LDFLAGS)			\
 				 $(EI_LDFLAGS) $(EI_LIBS)		\
 				 $(OPENSSL_LDFLAGS) $(OPENSSL_LIBS)
-exmpp_compress_zlib_la_SOURCES = exmpp_compress_zlib.c
+exmpp_compress_zlib_la_SOURCES = exmpp_compress.h			\
+				 exmpp_compress_zlib.c

@@ -55,6 +55,10 @@
 	* c_src/exmpp_tls.h, c_src/exmpp_tls_openssl.c: Move return codes
 	definition to the generic header.
 
+	* c_src/exmpp_compress.h, c_src/exmpp_compress_zlib.c,
+	c_src/Makefile.am: Add a generic header for all compression port
+	drivers. Move some definitions to it.
+
 2008-06-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	With these changes, ejabberd 2.0.x can run without modifications with

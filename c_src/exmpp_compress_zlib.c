@@ -5,22 +5,13 @@
 #include <ei.h>
 #include <zlib.h>
 
+#include "exmpp_compress.h"
+
 #define	DRIVER_NAME	exmpp_compress_zlib
 #define	_S(s)		#s
 #define	S(s)		_S(s)
 
 #define	BUF_SIZE	1024
-
-/* Control operations. */
-enum {
-	COMMAND_SET_COMPRESS_METHOD = 1,
-	COMMAND_SET_COMPRESS_LEVEL,
-	COMMAND_PREPARE_COMPRESS,
-	COMMAND_PREPARE_UNCOMPRESS,
-	COMMAND_COMPRESS,
-	COMMAND_UNCOMPRESS,
-	COMMAND_SVN_REVISION
-};
 
 /* Driver data. */
 struct exmpp_compress_zlib_data {
@@ -43,10 +34,10 @@ struct exmpp_compress_zlib_data {
 		return (-1);						\
 	ei_x_new_with_version((to_send));
 
-#define	COPY_AND_FREE_BUF(to_send, size, b)				\
+#define	COPY_AND_FREE_BUF(to_send, size, b, ret)			\
 	(size) = (to_send)->index + 1;					\
 	(b) = driver_alloc_binary((size));				\
-	(b)->orig_bytes[0] = 1;						\
+	(b)->orig_bytes[0] = (ret);					\
 	memcpy((b)->orig_bytes + 1, (to_send)->buff,			\
 	    (to_send)->index);						\
 	ei_x_free((to_send));						\
@@ -131,7 +122,7 @@ exmpp_compress_zlib_control(ErlDrvData drv_data, unsigned int command,
 			    "unsupported_compress_method");
 			ei_x_encode_string(to_send, atom);
 
-			COPY_AND_FREE_BUF(to_send, size, b);
+			COPY_AND_FREE_BUF(to_send, size, b, RET_ERROR);
 
 			break;
 		}
@@ -155,7 +146,7 @@ exmpp_compress_zlib_control(ErlDrvData drv_data, unsigned int command,
 				    "invalid_compress_level");
 				ei_x_encode_long(to_send, compress_level);
 
-				COPY_AND_FREE_BUF(to_send, size, b);
+				COPY_AND_FREE_BUF(to_send, size, b, RET_ERROR);
 
 				goto out;
 			}
@@ -174,7 +165,7 @@ exmpp_compress_zlib_control(ErlDrvData drv_data, unsigned int command,
 				    "invalid_compress_level");
 				ei_x_encode_atom(to_send, atom);
 
-				COPY_AND_FREE_BUF(to_send, size, b);
+				COPY_AND_FREE_BUF(to_send, size, b, RET_ERROR);
 
 				goto out;
 			}
@@ -213,7 +204,7 @@ exmpp_compress_zlib_control(ErlDrvData drv_data, unsigned int command,
 				ei_x_encode_atom(to_send,
 				    "zlib_internal_error");
 
-			COPY_AND_FREE_BUF(to_send, size, b);
+			COPY_AND_FREE_BUF(to_send, size, b, RET_ERROR);
 
 			break;
 		}
@@ -224,7 +215,7 @@ exmpp_compress_zlib_control(ErlDrvData drv_data, unsigned int command,
 		size = BUF_SIZE + 1;
 		rlen = 1;
 		b = driver_alloc_binary(size);
-		b->orig_bytes[0] = 0;
+		b->orig_bytes[0] = RET_OK;
 
 		z = NULL;
 		if (command == COMMAND_COMPRESS)
@@ -250,7 +241,8 @@ exmpp_compress_zlib_control(ErlDrvData drv_data, unsigned int command,
 					ei_x_encode_atom(to_send,
 					    "deflate_error");
 
-					COPY_AND_FREE_BUF(to_send, size, b);
+					COPY_AND_FREE_BUF(to_send, size, b,
+					    RET_ERROR);
 
 					goto out;
 				}
@@ -263,7 +255,8 @@ exmpp_compress_zlib_control(ErlDrvData drv_data, unsigned int command,
 					ei_x_encode_atom(to_send,
 					    "inflate_error");
 
-					COPY_AND_FREE_BUF(to_send, size, b);
+					COPY_AND_FREE_BUF(to_send, size, b,
+					    RET_ERROR);
 
 					goto out;
 				}
@@ -283,7 +276,7 @@ exmpp_compress_zlib_control(ErlDrvData drv_data, unsigned int command,
 		NEW_SEND_BUF(to_send);
 		ei_x_encode_string(to_send, "$Revision$");
 
-		COPY_AND_FREE_BUF(to_send, size, b);
+		COPY_AND_FREE_BUF(to_send, size, b, RET_ERROR);
 
 		break;
 	default:
@@ -293,14 +286,14 @@ exmpp_compress_zlib_control(ErlDrvData drv_data, unsigned int command,
 		ei_x_encode_atom(to_send, "unknown_command");
 		ei_x_encode_ulong(to_send, command);
 
-		COPY_AND_FREE_BUF(to_send, size, b);
+		COPY_AND_FREE_BUF(to_send, size, b, RET_ERROR);
 	}
 
 out:
 	if (b == NULL) {
 		size = 1;
 		b = driver_alloc_binary(size);
-		b->orig_bytes[0] = 0;
+		b->orig_bytes[0] = RET_OK;
 	}
 
 	*rbuf = (char *)b;
