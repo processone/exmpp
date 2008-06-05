@@ -598,5 +598,5 @@ get_condition(#xmlnselement{ns = ?NS_XMPP, name = 'error'} = El) ->
 get_text(#xmlnselement{ns = ?NS_XMPP, name = 'error'} = El) ->
     case exmpp_xml:get_element_by_name(El, ?NS_XMPP_STREAMS, 'text') of
         undefined -> undefined;
-        Text      -> exmpp_xml:get_cdata(Text)
+        Text      -> exmpp_xml:get_cdata_as_list(Text)
     end.

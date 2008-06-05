@@ -48,7 +48,7 @@ announced_methods2(#xmlnselement{children = Children}) ->
 
 announced_methods3(
   [#xmlnselement{ns = ?NS_COMPRESS, name = 'method'} = El | Rest], Result) ->
-    case exmpp_xml:get_cdata(El) of
+    case exmpp_xml:get_cdata_as_list(El) of
         "" ->
             throw({stream_compression, announced_methods, invalid_method, El});
         Method ->

@@ -142,13 +142,13 @@ failure(Condition) ->
 
 next_step(#xmlnselement{ns = ?NS_SASL, name = 'auth'} = El) ->
     Mechanism = exmpp_xml:get_attribute(El, 'mechanism'),
-    case string:strip(exmpp_xml:get_cdata(El)) of
+    case string:strip(exmpp_xml:get_cdata_as_list(El)) of
         ""      -> {auth, Mechanism, none};
         "="     -> {auth, Mechanism, ""};
         Encoded -> {auth, Mechanism, exmpp_internals:decode_base64(Encoded)}
     end;
 next_step(#xmlnselement{ns = ?NS_SASL, name = 'response'} = El) ->
-    Encoded = exmpp_xml:get_cdata(El),
+    Encoded = exmpp_xml:get_cdata_as_list(El),
     {response, exmpp_internals:decode_base64(Encoded)};
 next_step(#xmlnselement{ns = ?NS_SASL, name = 'abort'}) ->
     abort;

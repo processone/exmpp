@@ -111,22 +111,22 @@ get_credentials(Password_IQ) when ?IS_IQ(Password_IQ) ->
 get_credentials2(
   [#xmlnselement{ns = ?NS_JABBER_AUTH, name = 'username'} = Field | Rest],
   {_Username, Password, Resource}) ->
-    Username = exmpp_xml:get_cdata(Field),
+    Username = exmpp_xml:get_cdata_as_list(Field),
     get_credentials2(Rest, {Username, Password, Resource});
 get_credentials2(
   [#xmlnselement{ns = ?NS_JABBER_AUTH, name = 'password'} = Field | Rest],
   {Username, _Password, Resource}) ->
-    Password = exmpp_xml:get_cdata(Field),
+    Password = exmpp_xml:get_cdata_as_list(Field),
     get_credentials2(Rest, {Username, {plain, Password}, Resource});
 get_credentials2(
   [#xmlnselement{ns = ?NS_JABBER_AUTH, name = 'digest'} = Field | Rest],
   {Username, _Password, Resource}) ->
-    Password = unhex(exmpp_xml:get_cdata(Field)),
+    Password = unhex(exmpp_xml:get_cdata_as_list(Field)),
     get_credentials2(Rest, {Username, {digest, Password}, Resource});
 get_credentials2(
   [#xmlnselement{ns = ?NS_JABBER_AUTH, name = 'resource'} = Field | Rest],
   {Username, Password, _Resource}) ->
-    Resource = exmpp_xml:get_cdata(Field),
+    Resource = exmpp_xml:get_cdata_as_list(Field),
     get_credentials2(Rest, {Username, Password, Resource});
 get_credentials2([Field | _Rest], _Credentials) ->
     throw({legacy_auth, get_credentials, invalid_field, Field});

@@ -59,7 +59,7 @@ wished_resource(IQ) when ?IS_IQ(IQ) ->
                     case exmpp_xml:get_element_by_name(Bind,
                       ?NS_BIND, 'resource') of
                         #xmlnselement{} = Resource ->
-                            exmpp_xml:get_cdata(Resource);
+                            exmpp_xml:get_cdata_as_list(Resource);
                         _ ->
                             undefined
                     end;

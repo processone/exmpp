@@ -80,6 +80,14 @@
 	testsuite/check_xml_cdata_handlers.erl, testsuite/check_xml_path.erl:
 	Update testsuite to handle above changes.
 
+	* src/server/exmpp_server_sasl.erl,
+	src/server/exmpp_server_legacy_auth.erl,
+	src/server/exmpp_server_binding.erl, src/core/exmpp_stream.erl,
+	src/core/exmpp_stanza.erl, src/client/exmpp_client_binding.erl,
+	src/client/exmpp_client_compression.erl,
+	src/client/exmpp_client_sasl.erl: Use get_cdata_as_list/1 instead of
+	get_cdata/1.
+
 2008-06-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	With these changes, ejabberd 2.0.x can run without modifications with

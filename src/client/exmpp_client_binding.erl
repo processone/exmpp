@@ -95,7 +95,7 @@ bounded_jid(IQ) when ?IS_IQ(IQ) ->
                     case exmpp_xml:get_element_by_name(Bind,
                       ?NS_BIND, 'jid') of
                         #xmlnselement{} = Jid_El ->
-                            Jid_S = exmpp_xml:get_cdata(Jid_El),
+                            Jid_S = exmpp_xml:get_cdata_as_list(Jid_El),
                             exmpp_jid:string_to_jid(Jid_S);
                         _ ->
                             throw({resource_binding, bounded_jid, no_jid, IQ})

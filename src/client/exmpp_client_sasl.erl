@@ -53,7 +53,7 @@ announced_mechanisms2(#xmlnselement{children = Children}) ->
 
 announced_mechanisms3(
   [#xmlnselement{ns = ?NS_SASL, name = 'mechanism'} = El | Rest], Result) ->
-    case exmpp_xml:get_cdata(El) of
+    case exmpp_xml:get_cdata_as_list(El) of
         "" ->
             throw({sasl, announced_mechanisms, invalid_mechanism, El});
         Mechanism ->
@@ -135,7 +135,7 @@ abort() ->
 %% Any challenge or success data is Base64-decoded.
 
 next_step(#xmlnselement{ns = ?NS_SASL, name = 'challenge'} = El) ->
-    Encoded = exmpp_xml:get_cdata(El),
+    Encoded = exmpp_xml:get_cdata_as_list(El),
     {challenge, exmpp_internals:decode_base64(Encoded)};
 next_step(#xmlnselement{ns = ?NS_SASL, name = 'failure',
   children = [#xmlnselement{ns = ?NS_SASL, name = Condition}]}) ->
@@ -143,5 +143,5 @@ next_step(#xmlnselement{ns = ?NS_SASL, name = 'failure',
 next_step(#xmlnselement{ns = ?NS_SASL, name = 'failure'}) ->
     {failure, undefined};
 next_step(#xmlnselement{ns = ?NS_SASL, name = 'success'} = El) ->
-    Encoded = exmpp_xml:get_cdata(El),
+    Encoded = exmpp_xml:get_cdata_as_list(El),
     {success, exmpp_internals:decode_base64(Encoded)}.

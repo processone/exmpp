@@ -589,10 +589,10 @@ get_text_in_error(#xmlnselement{ns = NS} = Error)
   when NS == ?NS_JABBER_CLIENT; NS == ?NS_JABBER_SERVER ->
     case exmpp_xml:get_element_by_name(Error, ?NS_XMPP_STANZAS, 'text') of
         undefined -> undefined;
-        Text      -> exmpp_xml:get_cdata(Text)
+        Text      -> exmpp_xml:get_cdata_as_list(Text)
     end;
 get_text_in_error(Error) ->
     case exmpp_xml:get_element_by_name(Error, 'text') of
         undefined -> undefined;
-        Text      -> exmpp_xml:get_cdata(Text)
+        Text      -> exmpp_xml:get_cdata_as_list(Text)
     end.
