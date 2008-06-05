@@ -28,17 +28,25 @@
   get_engine_driver/1
 ]).
 
-% Handshake.
+% Handshake and other TLS operations.
 -export([
   connect/4,
-  accept/4
+  accept/4,
+  get_peer_certificate/1,
+  get_verify_result/1,
+  shutdown/1,
+  shutdown/2,
+  shutdown/3,
+  quiet_shutdown/1
 ]).
 
 % Common socket API.
 -export([
   send/2,
+  recv/1,
   recv/2,
-  recv/3,
+  recv_data/2,
+  getopts/2,
   setopts/2,
   peername/1,
   sockname/1,
@@ -72,7 +80,8 @@
 -record(tls_socket, {
   socket,
   packet_mode = binary,
-  port
+  port,
+  driver
 }).
 
 -define(SERVER, ?MODULE).
@@ -89,8 +98,11 @@
 -define(COMMAND_GET_DECRYPTED_INPUT,   9).
 -define(COMMAND_SET_DECRYPTED_OUTPUT, 10).
 -define(COMMAND_GET_ENCRYPTED_OUTPUT, 11).
--define(COMMAND_SHUTDOWN,             12).
--define(COMMAND_SVN_REVISION,         13).
+-define(COMMAND_GET_PEER_CERTIFICATE, 12).
+-define(COMMAND_GET_VERIFY_RESULT,    13).
+-define(COMMAND_SHUTDOWN,             14).
+-define(COMMAND_QUIET_SHUTDOWN,       15).
+-define(COMMAND_SVN_REVISION,         16).
 
 % --------------------------------------------------------------------
 % Initialization.
@@ -196,7 +208,7 @@ get_prefered_engine_name(Auth_Method) ->
     Engines = gen_server:call(?SERVER, {get_engines, Auth_Method}),
     case Engines of
         []           -> undefined;
-        [Engine | _] -> Engine
+        [Engine | _] -> Engine#tls_engine.name
     end.
 
 %% @spec (Engine_Name) -> Driver
@@ -217,7 +229,7 @@ get_engine_driver(Engine_Name) ->
     end.
 
 % --------------------------------------------------------------------
-% Handshake.
+% Handshake and other TLS operations.
 % --------------------------------------------------------------------
 
 %% @spec (Socket_Desc, Identity, Peer_Verification, Options) -> TLS_Socket
@@ -270,6 +282,14 @@ handshake(Mode, Socket_Desc, Identity, Peer_Verification, Options,
     check_identity(Identity, Mode),
     check_peer_verification(Peer_Verification, Mode),
 
+    % We save the 'active' state of the socket.
+    Is_Active = case exmpp_internals:gen_getopts(Socket_Desc, [active]) of
+        {ok, [{active, Active}]} ->
+            Active;
+        {error, Reason} ->
+            throw({tls, handshake, getopts, Reason})
+    end,
+
     % Start a port driver instance.
     Driver_Name = get_engine_from_args(Identity, Peer_Verification, Options),
     Port = try
@@ -310,14 +330,23 @@ handshake(Mode, Socket_Desc, Identity, Peer_Verification, Options,
         engine_set_options(Port, accept_corrupted_cert,
           is_flag_set(Options, accept_corrupted_cert)),
 
+        % Before anything use of the socket, we must disable the 'active'
+        % mode. Otherwise, we can't receive any data.
+        exmpp_internals:gen_setopts(Socket_Desc, [{active, false}]),
+
         % Handshake!
         engine_prepare_handshake(Port),
         TLS_Socket = handshake2(Mode, Socket_Desc, Port, Recv_Timeout),
-        TLS_Socket#tls_socket{packet_mode = Packet_Mode}
+
+        % We can now restore the 'active' mode.
+        exmpp_internals:gen_setopts(Socket_Desc, [{active, Is_Active}]),
+
+        TLS_Socket#tls_socket{packet_mode = Packet_Mode, driver = Driver_Name}
     catch
         Exception2 ->
             exmpp_internals:close_port(Port),
             exmpp_internals:unload_driver(Driver_Name),
+            exmpp_internals:gen_setopts(Socket_Desc, [{active, Is_Active}]),
             throw(Exception2)
     end.
 
@@ -376,16 +405,143 @@ handshake2(server = Mode, Socket_Desc, Port, Recv_Timeout) ->
             throw({tls, handshake, underlying_recv, Reason})
     end.
 
+%% @spec (TLS_Socket) -> Certificate | undefined
+%%     TLS_Socket = tls_socket()
+%%     Certificate = binary()
+%% @doc Return the peer certificate if he provided one.
+
+get_peer_certificate(#tls_socket{port = Port}) ->
+    case engine_get_peer_certificate(Port) of
+        undefined ->
+            undefined;
+        Bin_Cert ->
+            case ssl_pkix:decode_cert(Bin_Cert, [pkix]) of
+                {ok, Cert} ->
+                    Cert;
+                {error, Reason} ->
+                    throw({tls, peer_certificate, decode_failed, Reason})
+            end
+    end.
+
+%% @spec (TLS_Socket) -> Result
+%%     TLS_Socket = tls_socket()
+%%     Result = integer()
+%% @doc Return verify result.
+
+get_verify_result(#tls_socket{port = Port}) ->
+    engine_get_verify_result(Port).
+
+%% @spec (TLS_Socket) -> Socket_Desc
+%%     TLS_Socket = tls_socket()
+%%     Socket_Desc = {Mod, Socket}
+%% @doc Shutdown the TLS session.
+%%
+%% Only a unidirectional shutdown is made.
+%%
+%% The underlying socket is NOT closed.
+
+shutdown(TLS_Socket) ->
+    shutdown(TLS_Socket, unidirectional).
+
+%% @spec (TLS_Socket, Mode) -> Socket_Desc
+%%     TLS_Socket = tls_socket()
+%%     Mode = unidirectional | bidirectional
+%%     Socket_Desc = {Mod, Socket}
+%% @doc Shutdown the TLS session.
+%%
+%% For bidirectional shutdown, there's no timeout for the peer's
+%% "close notify".
+%%
+%% The underlying socket is NOT closed.
+
+shutdown(TLS_Socket, Mode) ->
+    shutdown(TLS_Socket, Mode, infinity).
+
+%% @spec (TLS_Socket, Mode, Timeout) -> Socket_Desc
+%%     TLS_Socket = tls_socket()
+%%     Mode = unidirectional | bidirectional
+%%     Timeout = infinity | integer()
+%%     Socket_Desc = {Mod, Socket}
+%% @doc Shutdown the TLS session.
+%%
+%% For bidirectional shutdown, the peer must send his "close notify" within
+%% `Timeout' milliseconds.
+%%
+%% If the peer doesn't send its "close notify" or if the underlying socket
+%% is closed, the function still succeeds.
+%%
+%% The underlying socket is NOT closed by this function.
+
+shutdown(#tls_socket{socket = Socket_Desc, port = Port,
+  driver = Driver_Name} = TLS_Socket, Mode, Timeout) ->
+    % Start/continue the shutdown process.
+    case engine_shutdown(Port) of
+        want_read when Mode == bidirectional ->
+            % Wait for a packet from the client.
+            case exmpp_internals:gen_recv(Socket_Desc, Timeout) of
+                {ok, Packet} ->
+                    engine_set_encrypted_input(Port, Packet),
+                    % Recurse!
+                    shutdown(TLS_Socket);
+                {error, timeout} ->
+                    % The peer didn't send its "close notify".
+                    % XXX Should this be treated as an error (the caller
+                    % asked for a bidirectional shutdown)?
+                    exmpp_internals:close_port(Port),
+                    exmpp_internals:unload_driver(Driver_Name),
+                    Socket_Desc;
+                {error, closed} ->
+                    % The peer closed the underlying socket.
+                    % XXX Should this be treated as an error (the purpose
+                    % was not to close the socket)?
+                    exmpp_internals:close_port(Port),
+                    exmpp_internals:unload_driver(Driver_Name),
+                    Socket_Desc;
+                {error, Reason} ->
+                    throw({tls, shutdown, underlying_recv, Reason})
+            end;
+        want_write ->
+            % The "close notify" is ready to be sent.
+            New_Packet = engine_get_encrypted_output(Port),
+            case exmpp_internals:gen_send(Socket_Desc, New_Packet) of
+                ok ->
+                    % Skip to the next step.
+                    shutdown(TLS_Socket);
+                {error, Reason} ->
+                    throw({tls, shutdown, underlying_send, Reason})
+            end;
+        _ ->
+            % The shutdown is complete (or unidirectionnal shutdown was
+            % prefered).
+            exmpp_internals:close_port(Port),
+            exmpp_internals:unload_driver(Driver_Name),
+            Socket_Desc
+    end.
+
+%% @spec (TLS_Socket) -> Socket_Desc
+%%     TLS_Socket = tls_socket()
+%%     Socket_Desc = {Mod, Socket}
+%% @doc Flag the TLS session as down but do not exchange "close notify".
+%%
+%% The underlying socket is NOT closed.
+
+quiet_shutdown(#tls_socket{socket = Socket_Desc, port = Port,
+  driver = Driver_Name}) ->
+    engine_quiet_shutdown(Port),
+    exmpp_internals:close_port(Port),
+    exmpp_internals:unload_driver(Driver_Name),
+    Socket_Desc.
+
 % --------------------------------------------------------------------
 % Handshake helpers.
 % --------------------------------------------------------------------
 
-get_engine_from_args(Identity, Peer_Verification, Options) ->
+get_engine_from_args(Identity, _Peer_Verification, Options) ->
     Engine_Name = case get_engine_from_options(Options) of
         undefined ->
             case get_engine_from_identity(Identity) of
                 undefined ->
-                    case get_engine_from_verification(Peer_Verification) of
+                    case get_engine_from_verification(Options) of
                         undefined ->
                             ?DEFAULT_ENGINE;
                         Name ->
@@ -412,16 +568,11 @@ get_engine_from_options(Options) ->
         _                         -> undefined
     end.
 
-get_engine_from_identity(Identity) ->
-    case lists:keysearch(certificate, 1, Identity) of
-        {value, {_, Auth_Method, _}} ->
-            get_prefered_engine_name(Auth_Method);
-        _ ->
-            undefined
-    end.
+get_engine_from_identity({Auth_Method, _, _}) ->
+    get_prefered_engine_name(Auth_Method).
 
-get_engine_from_verification(Peer_Verification) ->
-    case lists:keysearch(trusted_certs, 1, Peer_Verification) of
+get_engine_from_verification(Options) ->
+    case lists:keysearch(trusted_certs, 1, Options) of
         {value, {_, Auth_Method, _}} ->
             get_prefered_engine_name(Auth_Method);
         _ ->
@@ -483,11 +634,11 @@ is_flag_set(Options, Flag) ->
 % Common socket API.
 % --------------------------------------------------------------------
 
-%% @spec (TLS_Socket, Packet) -> ok | {error, Reason}
+%% @spec (TLS_Socket, Orig_Packet) -> ok | {error, Reason}
 %%     TLS_Socket = tls_socket()
-%%     Packet = binary() | list()
+%%     Orig_Packet = binary() | list()
 %%     Reason = term()
-%% @doc Send `Packet' over a TLS-protected connection.
+%% @doc Send `Orig_Packet' over a TLS-protected connection.
 
 send(#tls_socket{socket = Socket_Desc, port = Port}, Packet) ->
     try
@@ -499,37 +650,25 @@ send(#tls_socket{socket = Socket_Desc, port = Port}, Packet) ->
             {error, Exception}
     end.
 
-%% @spec (TLS_Socket, Length) -> {ok, Packet} | {error, Reason}
+%% @spec (TLS_Socket) -> {ok, Orig_Packet} | {error, Reason}
 %%     TLS_Socket = tls_socket()
-%%     Length = integer()
-%%     Packet = binary() | list()
+%%     Orig_Packet = binary() | list()
 %%     Reason = term()
 %% @doc Receive data over a TLS-protected connection.
 
-recv(Socket_Data, Length) ->
-    recv(Socket_Data, Length, infinity).
+recv(TLS_Socket) ->
+    recv(TLS_Socket, infinity).
 
-%% @spec (TLS_Socket, Length, Timeout) -> {ok, Packet} | {error, Reason}
+%% @spec (TLS_Socket, Timeout) -> {ok, Orig_Packet} | {error, Reason}
 %%     TLS_Socket = tls_socket()
-%%     Length = integer()
 %%     Timeout = integer()
-%%     Packet = binary() | list()
+%%     Orig_Packet = binary() | list()
 %%     Reason = term()
 %% @doc Receive data over a TLS-protected connection.
 
-recv(Socket_Data, Length, Timeout) ->
-    recv2(Socket_Data, Length, Timeout, <<>>).
-
-recv2(#tls_socket{packet_mode = Packet_Mode}, Length, _Timeout, Previous_Data)
-  when size(Previous_Data) > 0, Length =< 0 ->
-      case Packet_Mode of
-          binary -> {ok, Previous_Data};
-          list   -> {ok, binary_to_list(Previous_Data)}
-      end;
-recv2(#tls_socket{socket = Socket_Desc, port = Port} = Socket_Data,
-  Length, Timeout, Previous_Data) ->
+recv(#tls_socket{socket = Socket_Desc, port = Port} = TLS_Socket, Timeout) ->
     try
-        case engine_get_decrypted_input(Port, Length) of
+        case recv_common(TLS_Socket) of
             want_read ->
                 % Ok, we need more data.
                 {Recv, New_Timeout} = case Timeout of
@@ -547,30 +686,79 @@ recv2(#tls_socket{socket = Socket_Desc, port = Port} = Socket_Data,
                     {ok, Packet} ->
                         engine_set_encrypted_input(Port, Packet),
                         % Try to decipher it.
-                        recv2(Socket_Data, Length, New_Timeout,
-                          Previous_Data);
+                        recv(TLS_Socket, New_Timeout);
                     {error, Reason} ->
                         {error, Reason}
                 end;
             Data ->
                 % Got a chunk of plain-text data.
-                Ack = engine_get_encrypted_output(Port),
-                case exmpp_internals:gen_send(Socket_Desc, Ack) of
-                    ok ->
-                        recv2(Socket_Data,
-                          Length - size(Data), Timeout,
-                          <<Previous_Data/binary, Data/binary>>);
-                    {error, Reason} ->
-                        {error, Reason}
-                end
+                {ok, Data}
         end
     catch
         Exception ->
             {error, Exception}
     end.
 
-%% @spec (Compress_Socket, Options) -> ok | {error, posix()}
-%%     Socket_Desc = {Mod, Socket}
+%% @spec (TLS_Socket, Packet) -> {ok, Orig_Packet} | {error, Reason}
+%%     TLS_Socket = tls_socket()
+%%     Packet = binary() | list()
+%%     Orig_Packet = binary() | list()
+%%     Reason = term()
+%% @doc Decrypt already received data.
+%%
+%% This function won't read anything from the underlying socket but WILL
+%% write to it.
+
+recv_data(#tls_socket{port = Port, packet_mode = Packet_Mode} = TLS_Socket,
+  Packet) ->
+    try
+        % Give available encrypted data to the port driver.
+        engine_set_encrypted_input(Port, Packet),
+        % Ask for available unencrypted data.
+        case recv_common(TLS_Socket) of
+            want_read when Packet_Mode == binary -> {ok, <<>>};
+            want_read when Packet_Mode == list   -> {ok, ""};
+            Data                                 -> {ok, Data}
+        end
+    catch
+        Exception ->
+            {error, Exception}
+    end.
+
+recv_common(#tls_socket{socket = Socket_Desc, port = Port,
+  packet_mode = Packet_Mode}) ->
+    % Ask for available unencrypted data.
+    case engine_get_decrypted_input(Port) of
+        want_read ->
+            % Nothing is ready yet.
+            want_read;
+        Data ->
+            % Got a chunk of plain-text data.
+            Ack = engine_get_encrypted_output(Port),
+            case exmpp_internals:gen_send(Socket_Desc, Ack) of
+                ok ->
+                    case Packet_Mode of
+                        binary -> Data;
+                        list   -> binary_to_list(Data)
+                    end;
+                {error, Reason} ->
+                    {error, Reason}
+            end
+    end.
+
+%% @spec (TLS_Socket, Options) -> {ok, Option_Values} | {error, posix()}
+%%     TLS_Socket = tls_socket()
+%%     Mod = atom()
+%%     Socket = term()
+%%     Options = list()
+%%     Option_Values = list()
+%% @doc Gets one or more options for a socket.
+
+getopts(#tls_socket{socket = Socket_Desc}, Options) ->
+    exmpp_internals:gen_getopts(Socket_Desc, Options).
+
+%% @spec (TLS_Socket, Options) -> ok | {error, posix()}
+%%     TLS_Socket = tls_socket()
 %%     Mod = atom()
 %%     Socket = term()
 %%     Options = list()
@@ -579,8 +767,8 @@ recv2(#tls_socket{socket = Socket_Desc, port = Port} = Socket_Data,
 setopts(#tls_socket{socket = Socket_Desc}, Options) ->
     exmpp_internals:gen_setopts(Socket_Desc, Options).
 
-%% @spec (Compress_Socket) -> {ok, {Address, Port}} | {error, posix()}
-%%     Socket_Desc = {Mod, Socket}
+%% @spec (TLS_Socket) -> {ok, {Address, Port}} | {error, posix()}
+%%     TLS_Socket = tls_socket()
 %%     Mod = atom()
 %%     Socket = term()
 %%     Address = ip_address()
@@ -590,8 +778,8 @@ setopts(#tls_socket{socket = Socket_Desc}, Options) ->
 peername(#tls_socket{socket = Socket_Desc}) ->
     exmpp_internals:gen_peername(Socket_Desc).
 
-%% @spec (Compress_Socket) -> {ok, {Address, Port}} | {error, posix()}
-%%     Socket_Desc = {Mod, Socket}
+%% @spec (TLS_Socket) -> {ok, {Address, Port}} | {error, posix()}
+%%     TLS_Socket = tls_socket()
 %%     Mod = atom()
 %%     Socket = term()
 %%     Address = ip_address()
@@ -615,16 +803,15 @@ controlling_process(#tls_socket{socket = Socket_Desc}, Pid) ->
 %%     Reason = term()
 %% @doc Shutdown the TLS session and close the underlying socket.
 
-close(#tls_socket{socket = Socket_Desc, port = Port}) ->
-    % First, shutdown the TLS session.
-    engine_shutdown(Port),
-    Notify = engine_get_encrypted_output(Port),
-    case exmpp_internals:gen_send(Socket_Desc, Notify) of
-        ok ->
-            % Close the underlying socket.
-            exmpp_internals:gen_close(Socket_Desc);
-        {error, Reason} ->
-            {error, Reason}
+close(#tls_socket{socket = Socket_Desc} = TLS_Socket) ->
+    try
+        % First, shutdown the TLS session (unidirectional).
+        shutdown(TLS_Socket),
+        % Close the underlying socket.
+        exmpp_internals:gen_close(Socket_Desc)
+    catch
+        Exception ->
+            {error, Exception}
     end.
 
 %% @hidden
@@ -722,8 +909,8 @@ engine_set_encrypted_input(Port, Data) ->
             ok
     end.
 
-engine_get_decrypted_input(Port, Length) ->
-    case control(Port, ?COMMAND_GET_DECRYPTED_INPUT, term_to_binary(Length)) of
+engine_get_decrypted_input(Port) ->
+    case control(Port, ?COMMAND_GET_DECRYPTED_INPUT, term_to_binary(0)) of
         {error, Reason} ->
             throw({tls, recv, get_decrypted_input, Reason});
         Result ->
@@ -748,20 +935,50 @@ engine_get_encrypted_output(Port) ->
             Result
     end.
 
-engine_svn_revision(Port) ->
-    case control(Port, ?COMMAND_SVN_REVISION, <<>>) of
+engine_get_peer_certificate(Port) ->
+    case control(Port, ?COMMAND_GET_PEER_CERTIFICATE, <<>>) of
+        {error, no_certificate} ->
+            undefined;
         {error, Reason} ->
-            throw({tls, handshake, svn_revision, Reason});
-        Revision ->
-            binary_to_term(Revision)
+            throw({tls, get_peer_certificate, get_peer_certificate_failed,
+                Reason});
+        Result ->
+            Result
+    end.
+
+engine_get_verify_result(Port) ->
+    case control(Port, ?COMMAND_GET_VERIFY_RESULT, <<>>) of
+        {error, Reason} ->
+            throw({tls, get_verify_result, get_verify_result_failed,
+                Reason});
+        Result ->
+            binary_to_term(Result)
     end.
 
 engine_shutdown(Port) ->
     case control(Port, ?COMMAND_SHUTDOWN, <<>>) of
         {error, Reason} ->
             throw({tls, shutdown, shutdown_failed, Reason});
+        <<>> ->
+            ok;
         Result ->
             Result
+    end.
+
+engine_quiet_shutdown(Port) ->
+    case control(Port, ?COMMAND_QUIET_SHUTDOWN, <<>>) of
+        {error, Reason} ->
+            throw({tls, quiet_shutdown, shutdown_failed, Reason});
+        _ ->
+            ok
+    end.
+
+engine_svn_revision(Port) ->
+    case control(Port, ?COMMAND_SVN_REVISION, <<>>) of
+        {error, Reason} ->
+            throw({tls, handshake, svn_revision, Reason});
+        Revision ->
+            binary_to_term(Revision)
     end.
 
 % --------------------------------------------------------------------

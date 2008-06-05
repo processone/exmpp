@@ -17,6 +17,22 @@
 	recv functions. Add recv_data/2. Add getopts/2. Multiple fixes to the
 	documentation.
 
+	* src/core/exmpp_tls.erl: Remove the 'Length' argument to the
+	recv functions. Add recv_data/2. Add getopts/2. Add
+	get_peer_certificate/1 and get_verify_result/1. Add shutdown/{1-3} and
+	quiet_shutdown/1. Multiple fixes to the documentation.
+	(handshake): The 'active' state of the underlying socket is set to
+	false and restored after the handshake. This allows the caller to set
+	the socket to {active, once} or {active, true}. Before, the handshake
+	would fail because gen_tcp:recv/{2,3} would return {error, einval}.
+	(get_engine_from_identity, get_engine_from_verification): These
+	functions were not up-to-date regarding the data structures for the
+	identity, the peer verification and the options.
+	(shutdown, quiet_shutdown, close): The port driver is closed and
+	unloaded.
+	(engine_get_decrypted_input): The port driver still wants the length
+	argument. This should be fixed!
+
 2008-06-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	With these changes, ejabberd 2.0.x can run without modifications with
