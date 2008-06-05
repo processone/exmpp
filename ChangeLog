@@ -1,3 +1,10 @@
+2008-06-05  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* c_src/exmpp_tls.h, c_src/exmpp_tls_openssl.c: Add support for new
+	commands COMMAND_GET_PEER_CERTIFICATE, COMMAND_GET_VERIFY_RESULT and
+	COMMAND_QUIET_SHUTDOWN. Rewrite COMMAND_SHUTDOWN to handle uni- and
+	bidirectional shutdown.
+
 2008-06-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	With these changes, ejabberd 2.0.x can run without modifications with

@@ -41,6 +41,13 @@ struct exmpp_tls_openssl_data {
 	BIO		*bio_write;
 };
 
+enum {
+	RET_OK = 0,
+	RET_ERROR,
+	RET_WANT_READ,
+	RET_WANT_WRITE
+};
+
 static int	init_library(struct exmpp_tls_openssl_data *edd,
 		    ei_x_buff **to_send, size_t *size, ErlDrvBinary **b);
 static int	verify_callback(int preverify_ok, X509_STORE_CTX *x509_ctx);
@@ -58,10 +65,10 @@ static int	ssl_ex_index;
 		return (-1);						\
 	ei_x_new_with_version((to_send));
 
-#define	COPY_AND_FREE_BUF(to_send, size, b)				\
+#define	COPY_AND_FREE_BUF(to_send, size, b, ret)			\
 	(size) = (to_send)->index + 1;					\
 	(b) = driver_alloc_binary((size));				\
-	(b)->orig_bytes[0] = 1;						\
+	(b)->orig_bytes[0] = (ret);					\
 	memcpy((b)->orig_bytes + 1, (to_send)->buff,			\
 	    (to_send)->index);						\
 	ei_x_free((to_send));						\
@@ -126,15 +133,23 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 	int ret, index, version, arity, type, type_size, flag;
 	char atom[MAXATOMLEN];
 	size_t size;
-	long mode;
+	long mode, verify_result;
 	unsigned long data_len;
+	unsigned char *out;
 	ErlDrvBinary *b;
 	ei_x_buff *to_send;
+	X509 *cert;
 
 	edd = (struct exmpp_tls_openssl_data *)drv_data;
 
 	size = 0;
 	b = NULL;
+
+	/*
+	 * We never check return codes against SSL_ERROR_WANT_WRITE because
+	 * writes to BIO_mem() always succeed and OpenSSL can't tell if
+	 * the data was effectively written to the socket.
+	 */
 
 	switch (command) {
 	case COMMAND_SET_MODE:
@@ -158,7 +173,7 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 			ei_x_encode_atom(to_send, "unsupported_auth_method");
 			ei_x_encode_string(to_send, atom);
 
-			COPY_AND_FREE_BUF(to_send, size, b);
+			COPY_AND_FREE_BUF(to_send, size, b, RET_ERROR);
 
 			break;
 		}
@@ -215,7 +230,7 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 			ei_x_encode_atom(to_send, "unsupported_auth_method");
 			ei_x_encode_string(to_send, atom);
 
-			COPY_AND_FREE_BUF(to_send, size, b);
+			COPY_AND_FREE_BUF(to_send, size, b, RET_ERROR);
 
 			break;
 		}
@@ -252,7 +267,7 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 			ei_x_encode_atom(to_send, "unsupported_option");
 			ei_x_encode_atom(to_send, atom);
 
-			COPY_AND_FREE_BUF(to_send, size, b);
+			COPY_AND_FREE_BUF(to_send, size, b, RET_ERROR);
 
 			break;
 		}
@@ -275,14 +290,7 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 				/* OpenSSL is waiting for more data. */
 				size = 1;
 				b = driver_alloc_binary(size);
-				b->orig_bytes[0] = 2;
-
-				break;
-			case SSL_ERROR_WANT_WRITE:
-				/* OpenSSL need to send more data. */
-				size = 1;
-				b = driver_alloc_binary(size);
-				b->orig_bytes[0] = 3;
+				b->orig_bytes[0] = RET_WANT_READ;
 
 				break;
 			default:
@@ -295,7 +303,7 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 				ei_x_encode_string(to_send,
 				    ERR_error_string(ret, NULL));
 
-				COPY_AND_FREE_BUF(to_send, size, b);
+				COPY_AND_FREE_BUF(to_send, size, b, RET_ERROR);
 			}
 		}
 
@@ -316,7 +324,7 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 		rlen = data_len + 1;
 		size = 1;
 		b = driver_alloc_binary(rlen);
-		b->orig_bytes[0] = 0;
+		b->orig_bytes[0] = RET_OK;
 
 		/* Copy data. */
 		ret = SSL_read(edd->ssl, b->orig_bytes + size, data_len);
@@ -334,14 +342,7 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 				/* OpenSSL is waiting for more data. */
 				size = 1;
 				b = driver_alloc_binary(size);
-				b->orig_bytes[0] = 2;
-
-				break;
-			case SSL_ERROR_WANT_WRITE:
-				/* OpenSSL need to send more data. */
-				size = 1;
-				b = driver_alloc_binary(size);
-				b->orig_bytes[0] = 3;
+				b->orig_bytes[0] = RET_WANT_READ;
 
 				break;
 			default:
@@ -349,7 +350,7 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 				NEW_SEND_BUF(to_send);
 				ei_x_encode_atom(to_send, "decrypt_failed");
 
-				COPY_AND_FREE_BUF(to_send, size, b);
+				COPY_AND_FREE_BUF(to_send, size, b, RET_ERROR);
 			}
 		}
 
@@ -362,14 +363,7 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 				/* OpenSSL is waiting for more data. */
 				size = 1;
 				b = driver_alloc_binary(size);
-				b->orig_bytes[0] = 2;
-
-				break;
-			case SSL_ERROR_WANT_WRITE:
-				/* OpenSSL need to send more data. */
-				size = 1;
-				b = driver_alloc_binary(size);
-				b->orig_bytes[0] = 3;
+				b->orig_bytes[0] = RET_WANT_READ;
 
 				break;
 			default:
@@ -377,7 +371,7 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 				NEW_SEND_BUF(to_send);
 				ei_x_encode_atom(to_send, "encrypt_failed");
 
-				COPY_AND_FREE_BUF(to_send, size, b);
+				COPY_AND_FREE_BUF(to_send, size, b, RET_ERROR);
 			}
 		}
 
@@ -387,7 +381,7 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 		size = BUF_SIZE + 1;
 		rlen = 1;
 		b = driver_alloc_binary(size);
-		b->orig_bytes[0] = 0;
+		b->orig_bytes[0] = RET_OK;
 
 		/* Copy data. */
 		while ((ret = BIO_read(edd->bio_write,
@@ -401,8 +395,98 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 		b = driver_realloc_binary(b, size);
 
 		break;
+	case COMMAND_GET_PEER_CERTIFICATE:
+		/* Get the peer certificate. */
+		cert = SSL_get_peer_certificate(edd->ssl);
+		if (cert == NULL) {
+			NEW_SEND_BUF(to_send);
+			ei_x_encode_atom(to_send, "no_certificate");
+
+			COPY_AND_FREE_BUF(to_send, size, b, RET_ERROR);
+		}
+
+		/* Calculate the size of the certificate. */
+		rlen = i2d_X509(cert, NULL);
+		if (rlen < 0) {
+			X509_free(cert);
+			break;
+		}
+
+		/* Copy it to a binary. */
+		size = rlen + 1;
+		b = driver_alloc_binary(size);
+		b->orig_bytes[0] = RET_OK;
+		out = (unsigned char *)&(b->orig_bytes[1]);
+		i2d_X509(cert, &out);
+		X509_free(cert);
+
+		break;
+	case COMMAND_GET_VERIFY_RESULT:
+		verify_result = SSL_get_verify_result(edd->ssl);
+
+		NEW_SEND_BUF(to_send);
+		ei_x_encode_long(to_send, verify_result);
+
+		COPY_AND_FREE_BUF(to_send, size, b, RET_OK);
+
+		break;
 	case COMMAND_SHUTDOWN:
-		SSL_shutdown(edd->ssl);
+		type = SSL_get_shutdown(edd->ssl);
+		ret = SSL_shutdown(edd->ssl);
+		if (ret == 1) {
+			/* The shutdown is complete but if the peer
+			 * initiated it, the output buffer contains
+			 * our "close notify". */
+			if (!(type & SSL_SENT_SHUTDOWN)) {
+				/* Our "close notify" must be sent now. */
+				size = 1;
+				b = driver_alloc_binary(size);
+				b->orig_bytes[0] = RET_WANT_WRITE;
+			}
+
+			break;
+		} else if (ret == 0) {
+			/* We are waiting for the peer "close notify" */
+			if (!(type & SSL_SENT_SHUTDOWN)) {
+				/* Our "close notify" must be sent now. */
+				size = 1;
+				b = driver_alloc_binary(size);
+				b->orig_bytes[0] = RET_WANT_WRITE;
+			} else {
+				/* Ouf "close notify" was already sent. */
+				size = 1;
+				b = driver_alloc_binary(size);
+				b->orig_bytes[0] = RET_WANT_READ;
+			}
+
+			break;
+		} else if (ret < 0) {
+			switch (SSL_get_error(edd->ssl, ret)) {
+			case SSL_ERROR_WANT_READ:
+				/* OpenSSL is waiting for more data. */
+				size = 1;
+				b = driver_alloc_binary(size);
+				b->orig_bytes[0] = RET_WANT_READ;
+
+				break;
+			default:
+				/* An error occured. */
+				ret = ERR_get_error();
+
+				NEW_SEND_BUF(to_send);
+				ei_x_encode_tuple_header(to_send, 2);
+				ei_x_encode_long(to_send, ret);
+				ei_x_encode_string(to_send,
+				    ERR_error_string(ret, NULL));
+
+				COPY_AND_FREE_BUF(to_send, size, b, RET_ERROR);
+			}
+		}
+
+		break;
+	case COMMAND_QUIET_SHUTDOWN:
+		SSL_set_shutdown(edd->ssl,
+		    SSL_SENT_SHUTDOWN | SSL_RECEIVED_SHUTDOWN);
 
 		break;
 	case COMMAND_SVN_REVISION:
@@ -410,7 +494,7 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 		NEW_SEND_BUF(to_send);
 		ei_x_encode_string(to_send, "$Revision$");
 
-		COPY_AND_FREE_BUF(to_send, size, b);
+		COPY_AND_FREE_BUF(to_send, size, b, RET_ERROR);
 
 		break;
 	default:
@@ -420,13 +504,13 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 		ei_x_encode_atom(to_send, "unknown_command");
 		ei_x_encode_ulong(to_send, command);
 
-		COPY_AND_FREE_BUF(to_send, size, b);
+		COPY_AND_FREE_BUF(to_send, size, b, RET_ERROR);
 	}
 
 	if (b == NULL) {
 		size = 1;
 		b = driver_alloc_binary(size);
-		b->orig_bytes[0] = 0;
+		b->orig_bytes[0] = RET_OK;
 	}
 
 	*rbuf = (char *)b;
@@ -451,7 +535,7 @@ init_library(struct exmpp_tls_openssl_data *edd,
 		ei_x_encode_atom(*to_send,
 		    "ssl_context_init_failed");
 
-		COPY_AND_FREE_BUF(*to_send, *size, *b);
+		COPY_AND_FREE_BUF(*to_send, *size, *b, RET_ERROR);
 
 		goto err;
 	}
@@ -465,7 +549,7 @@ init_library(struct exmpp_tls_openssl_data *edd,
 			ei_x_encode_atom(*to_send,
 			    "load_cert_failed");
 
-			COPY_AND_FREE_BUF(*to_send, *size, *b);
+			COPY_AND_FREE_BUF(*to_send, *size, *b, RET_ERROR);
 
 			goto err;
 		}
@@ -480,7 +564,7 @@ init_library(struct exmpp_tls_openssl_data *edd,
 			ei_x_encode_atom(*to_send,
 			    "load_pk_failed");
 
-			COPY_AND_FREE_BUF(*to_send, *size, *b);
+			COPY_AND_FREE_BUF(*to_send, *size, *b, RET_ERROR);
 
 			goto err;
 		}
@@ -502,7 +586,7 @@ init_library(struct exmpp_tls_openssl_data *edd,
 			ei_x_encode_atom(*to_send,
 			    "load_trusted_certs_failed");
 
-			COPY_AND_FREE_BUF(*to_send, *size, *b);
+			COPY_AND_FREE_BUF(*to_send, *size, *b, RET_ERROR);
 
 			goto err;
 		}
@@ -515,7 +599,7 @@ init_library(struct exmpp_tls_openssl_data *edd,
 		ei_x_encode_atom(*to_send,
 		    "ssl_init_failed");
 
-		COPY_AND_FREE_BUF(*to_send, *size, *b);
+		COPY_AND_FREE_BUF(*to_send, *size, *b, RET_ERROR);
 
 		goto err;
 	}
