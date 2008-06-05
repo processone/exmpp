@@ -37,8 +37,10 @@
 % Common socket API.
 -export([
   send/2,
+  recv/1,
   recv/2,
-  recv/3,
+  recv_data/2,
+  getopts/2,
   setopts/2,
   peername/1,
   sockname/1,
@@ -324,11 +326,11 @@ get_packet_mode_from_options(Options) ->
 % Common socket API.
 % --------------------------------------------------------------------
 
-%% @spec (Compress_Socket, Packet) -> ok | {error, Reason}
+%% @spec (Compress_Socket, Orig_Packet) -> ok | {error, Reason}
 %%     Compress_Socket = compress_socket()
-%%     Packet = binary() | list()
+%%     Orig_Packet = binary() | list()
 %%     Reason = term()
-%% @doc Send `Packet' over a compressed connection.
+%% @doc Send `Orig_Packet' over a compressed connection.
 
 send(#compress_socket{socket = Socket_Desc, port = Port}, Packet) ->
     try
@@ -339,38 +341,27 @@ send(#compress_socket{socket = Socket_Desc, port = Port}, Packet) ->
             {error, Exception}
     end.
 
-%% @spec (Compress_Socket, Length) -> {ok, Packet} | {error, Reason}
+%% @spec (Compress_Socket) -> {ok, Orig_Packet} | {error, Reason}
 %%     Compress_Socket = compress_socket()
-%%     Length = integer()
-%%     Packet = binary() | list()
+%%     Orig_Packet = binary() | list()
 %%     Reason = term()
 %% @doc Receive data over a compressed connection.
-%%
-%% `Length' is currently ignored.
 
-recv(Socket_Data, Length) ->
-    recv(Socket_Data, Length, infinity).
+recv(Compress_Socket) ->
+    recv(Compress_Socket, infinity).
 
-%% @spec (Compress_Socket, Length, Timeout) -> {ok, Packet} | {error, Reason}
+%% @spec (Compress_Socket, Timeout) -> {ok, Orig_Packet} | {error, Reason}
 %%     Compress_Socket = compress_socket()
-%%     Length = integer()
 %%     Timeout = integer()
-%%     Packet = binary() | list()
+%%     Orig_Packet = binary() | list()
 %%     Reason = term()
 %% @doc Receive data over a compressed connection.
-%%
-%% `Length' is currently ignored.
 
-recv(#compress_socket{socket = Socket_Desc, packet_mode = Packet_Mode,
-  port = Port}, _Length, Timeout) ->
+recv(#compress_socket{socket = Socket_Desc} = Compress_Socket, Timeout) ->
     try
         case exmpp_internals:gen_recv(Socket_Desc, Timeout) of
             {ok, Packet} ->
-                Uncompressed = engine_uncompress(Port, Packet),
-                case Packet_Mode of
-                    binary -> {ok, Uncompressed};
-                    list   -> {ok, binary_to_list(Uncompressed)}
-                end;
+                recv_data(Compress_Socket, Packet);
             {error, Reason} ->
                 {error, Reason}
         end
@@ -379,8 +370,38 @@ recv(#compress_socket{socket = Socket_Desc, packet_mode = Packet_Mode,
             {error, Exception}
     end.
 
+%% @spec (Compress_Socket, Packet) -> {ok, Orig_Packet} | {error, Reason}
+%%     Compress_Socket = compress_socket()
+%%     Packet = binary() | list()
+%%     Orig_Packet = binary() | list()
+%%     Reason = term()
+%% @doc Uncompressed already received data.
+
+recv_data(#compress_socket{port = Port, packet_mode = Packet_Mode}, Packet) ->
+    try
+        Uncompressed = engine_uncompress(Port, Packet),
+        case Packet_Mode of
+            binary -> {ok, Uncompressed};
+            list   -> {ok, binary_to_list(Uncompressed)}
+        end
+    catch
+        Exception ->
+            {error, Exception}
+    end.
+
+%% @spec (Compress_Socket, Options) -> {ok, Option_Values} | {error, posix()}
+%%     Compress_Socket = tls_socket()
+%%     Mod = atom()
+%%     Socket = term()
+%%     Options = list()
+%%     Option_Values = list()
+%% @doc Sets one or more options for a socket.
+
+getopts(#compress_socket{socket = Socket_Desc}, Options) ->
+    exmpp_internals:gen_getopts(Socket_Desc, Options).
+
 %% @spec (Compress_Socket, Options) -> ok | {error, posix()}
-%%     Socket_Desc = {Mod, Socket}
+%%     Compress_Socket = tls_socket()
 %%     Mod = atom()
 %%     Socket = term()
 %%     Options = list()
@@ -390,7 +411,7 @@ setopts(#compress_socket{socket = Socket_Desc}, Options) ->
     exmpp_internals:gen_setopts(Socket_Desc, Options).
 
 %% @spec (Compress_Socket) -> {ok, {Address, Port}} | {error, posix()}
-%%     Socket_Desc = {Mod, Socket}
+%%     Compress_Socket = tls_socket()
 %%     Mod = atom()
 %%     Socket = term()
 %%     Address = ip_address()
@@ -401,7 +422,7 @@ peername(#compress_socket{socket = Socket_Desc}) ->
     exmpp_internals:gen_peername(Socket_Desc).
 
 %% @spec (Compress_Socket) -> {ok, {Address, Port}} | {error, posix()}
-%%     Socket_Desc = {Mod, Socket}
+%%     Compress_Socket = tls_socket()
 %%     Mod = atom()
 %%     Socket = term()
 %%     Address = ip_address()
