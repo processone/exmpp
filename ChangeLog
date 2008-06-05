@@ -72,7 +72,8 @@
 	specification). document_fragment_to_list/3 now escapes what needs to
 	be escaped and doesn't forget to normalize CDATA before. Documentation
 	is up-to-date.
-	(get_cdata_as_list): New function to get character data as string.
+	(get_cdata_as_list, get_cdata_from_list_as_list): New functions to get
+	character data as string.
 	(escape_using_cdata): Support for escaping with CDATA sections instead
 	of entities was taken from ejabberd. It's disabled by default.
 

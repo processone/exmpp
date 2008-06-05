@@ -84,6 +84,7 @@
 % Character data handling.
 -export([
   get_cdata_from_list/1,
+  get_cdata_from_list_as_list/1,
   get_cdata/1,
   get_cdata_as_list/1,
   normalize_cdata_in_list/1,
@@ -1123,6 +1124,15 @@ get_cdata_from_list2([_ | Rest], Data) ->
     get_cdata_from_list2(Rest, Data);
 get_cdata_from_list2([], Data) ->
     lists:reverse(Data).
+
+%% @spec (Children) -> CData
+%%     Children = undefined | [xmlnselement() | xmlelement() | xmlcdata()]
+%%     CData = string()
+%% @doc Concatenate and return any character data from the given
+%% children list.
+
+get_cdata_from_list_as_list(Children) ->
+    binary_to_list(get_cdata_from_list(Children)).
 
 %% @spec (XML_Element) -> CData
 %%     XML_Element = xmlnselement() | xmlelement()
