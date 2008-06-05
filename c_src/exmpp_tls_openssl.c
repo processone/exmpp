@@ -41,13 +41,6 @@ struct exmpp_tls_openssl_data {
 	BIO		*bio_write;
 };
 
-enum {
-	RET_OK = 0,
-	RET_ERROR,
-	RET_WANT_READ,
-	RET_WANT_WRITE
-};
-
 static int	init_library(struct exmpp_tls_openssl_data *edd,
 		    ei_x_buff **to_send, size_t *size, ErlDrvBinary **b);
 static int	verify_callback(int preverify_ok, X509_STORE_CTX *x509_ctx);

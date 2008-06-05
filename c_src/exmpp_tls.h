@@ -27,4 +27,12 @@ enum {
 	TLS_MODE_CLIENT
 };
 
+/* Return codes. */
+enum {
+	RET_OK = 0,
+	RET_ERROR,
+	RET_WANT_READ,
+	RET_WANT_WRITE
+};
+
 int	match_hostname(const char *cert_id, const char *expected_id);
