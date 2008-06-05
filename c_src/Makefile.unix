@@ -35,7 +35,7 @@ else
 DYNAMIC_LIB_CFLAGS = -Wall -fpic -shared
 endif
 
-DRIVERS =  exmpp_expat.so exmpp_stringprep.so ejabberd_zlib_drv.so tls_drv.so
+DRIVERS =  exmpp_expat.so exmpp_stringprep.so
 
 all: $(DRIVERS)
 
@@ -80,27 +80,3 @@ exmpp_stringprep_la_SOURCES = exmpp_stringprep.c
 
 exmpp_stringprep.so: $(exmpp_stringprep_la_SOURCES)
 	$(CC) $(exmpp_stringprep_la_CPPFLAGS) $(CPPFLAGS) $(DYNAMIC_LIB_CFLAGS) $(CFLAGS) $(exmpp_stringprep_la_LDFLAGS) $(LDFLAGS) $(exmpp_stringprep_la_SOURCES) -o $@
-
-# --------------------------------------------------------------------
-# Port drivers which are not ported yet.
-# --------------------------------------------------------------------
-
-# ejabberd_zlib port driver
-ejabberd_zlib_drv_la_CPPFLAGS = $(EI_CPPFLAGS) \
-				$(ZLIB_CPPFLAGS)
-ejabberd_zlib_drv_la_LDFLAGS = $(EI_LDFLAGS) $(EI_LIBS) \
-			       $(ZLIB_LDFLAGS) $(ZLIB_LIBS)
-ejabberd_zlib_drv_la_SOURCES = ejabberd_zlib_drv.c
-
-ejabberd_zlib_drv.so: $(ejabberd_zlib_drv_la_SOURCES)
-	$(CC) $(ejabberd_zlib_drv_la_CPPFLAGS) $(CPPFLAGS) $(DYNAMIC_LIB_CFLAGS) $(CFLAGS) $(ejabberd_zlib_drv_la_LDFLAGS) $(LDFLAGS) $(ejabberd_zlib_drv_la_SOURCES) -o $@
-
-# TLS port driver
-tls_drv_la_CPPFLAGS = $(EI_CPPFLAGS) \
-		      $(OPENSSL_CPPFLAGS)
-tls_drv_la_LDFLAGS = $(EI_LDFLAGS) $(EI_LIBS) \
-		     $(OPENSSL_LDFLAGS) $(OPENSSL_LIBS)
-tls_drv_la_SOURCES = tls_drv.c
-
-tls_drv.so: $(tls_drv_la_SOURCES)
-	$(CC) $(tls_drv_la_CPPFLAGS) $(CPPFLAGS) $(DYNAMIC_LIB_CFLAGS) $(CFLAGS) $(tls_drv_la_LDFLAGS) $(LDFLAGS) $(tls_drv_la_SOURCES) -o $@

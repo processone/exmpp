@@ -42,6 +42,10 @@
 	* src/compat/ejabberd_zlib.erl: Synchronize this compat module with
 	the latest version from ejabberd (revision 1344).
 
+	* c_src/tls_drv.c, c_src/ejabberd_zlib_drv.c, c_src/Makefile.am,
+	c_src/Makefile.unix: De-orbit old port drivers because the compat
+	layer is now ready.
+
 2008-06-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	With these changes, ejabberd 2.0.x can run without modifications with

@@ -14,18 +14,6 @@ if WITH_ZLIB
 lib_LTLIBRARIES += exmpp_compress_zlib.la
 endif
 
-if BUILD_COMPAT
-
-if WITH_ZLIB
-lib_LTLIBRARIES += ejabberd_zlib_drv.la
-endif
-
-if WITH_OPENSSL
-lib_LTLIBRARIES += tls_drv.la
-endif
-
-endif # BUILD_COMPAT
-
 EXTRA_DIST = contrib/hashtable.h contrib/hashtable_private.h		\
 	     xmpp_ns.h.awk xmpp_ns.h.in					\
 	     xmpp_names.h.awk xmpp_names.h.in				\
@@ -97,25 +85,3 @@ exmpp_compress_zlib_la_LDFLAGS = -module -avoid-version			\
 				 $(EI_LDFLAGS) $(EI_LIBS)		\
 				 $(OPENSSL_LDFLAGS) $(OPENSSL_LIBS)
 exmpp_compress_zlib_la_SOURCES = exmpp_compress_zlib.c
-
-# --------------------------------------------------------------------
-# Port drivers which are not ported yet.
-# --------------------------------------------------------------------
-
-# ejabberd_zlib port driver
-ejabberd_zlib_drv_la_CPPFLAGS = $(EI_CPPFLAGS)				\
-				$(ZLIB_CPPFLAGS)
-ejabberd_zlib_drv_la_LDFLAGS = -module -avoid-version			\
-			       $(ERL_DRIVER_LDFLAGS)			\
-			       $(EI_LDFLAGS) $(EI_LIBS)			\
-			       $(ZLIB_LDFLAGS) $(ZLIB_LIBS)
-ejabberd_zlib_drv_la_SOURCES = ejabberd_zlib_drv.c
-
-# TLS port driver
-tls_drv_la_CPPFLAGS = $(EI_CPPFLAGS)					\
-		      $(OPENSSL_CPPFLAGS)
-tls_drv_la_LDFLAGS = -module -avoid-version				\
-		     $(ERL_DRIVER_LDFLAGS)				\
-		     $(EI_LDFLAGS) $(EI_LIBS)				\
-		     $(OPENSSL_LDFLAGS) $(OPENSSL_LIBS)
-tls_drv_la_SOURCES = tls_drv.c
