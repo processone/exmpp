@@ -46,6 +46,9 @@
 	c_src/Makefile.unix: De-orbit old port drivers because the compat
 	layer is now ready.
 
+	* src/compat/EXMPP-vendor: Add a file to track the ejabberd revision
+	the compat layer is based on.
+
 2008-06-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	With these changes, ejabberd 2.0.x can run without modifications with
