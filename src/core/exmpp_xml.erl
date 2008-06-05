@@ -85,6 +85,7 @@
 -export([
   get_cdata_from_list/1,
   get_cdata/1,
+  get_cdata_as_list/1,
   normalize_cdata_in_list/1,
   normalize_cdata/1,
   set_cdata_in_list/2,
@@ -104,7 +105,9 @@
   document_fragment_to_list/3,
   document_to_list/1,
   clear_endelement_tuples/1,
-  encode_entities/1
+  escape_using_entities/1,
+  escape_using_cdata/1,
+  internal_escaping_function_name/0
 ]).
 
 -record(xml_parser, {
@@ -137,6 +140,12 @@
 ]).
 
 -define(PREFIXED_NAME(P, N), P ++ ":" ++ N).
+
+-ifdef(ESCAPE_USING_CDATA_SECTIONS).
+-define(ESCAPE(CData), escape_using_cdata(CData)).
+-else.
+-define(ESCAPE(CData), escape_using_entities(CData)).
+-endif.
 
 -define(IMPLICIT_NAMESPACES, [
   {?NS_XML, "xml"}
@@ -1097,27 +1106,27 @@ set_children(#xmlelement{} = XML_Element, New_Children) ->
 
 %% @spec (Children) -> CData
 %%     Children = undefined | [xmlnselement() | xmlelement() | xmlcdata()]
-%%     CData = string()
+%%     CData = binary()
 %% @doc Concatenate and return any character data from the given
 %% children list.
 
 get_cdata_from_list(undefined) ->
-    "";
+    <<>>;
 get_cdata_from_list(Children) ->
     % The function list_to_binary/1 will concatenate every
-    % binaries in the list returned by get_cdata2/2.
-    binary_to_list(list_to_binary(get_cdata_from_list2(Children, ""))).
+    % binaries in the list returned by get_cdata_from_list2/2.
+    list_to_binary(get_cdata_from_list2(Children, [])).
 
 get_cdata_from_list2([#xmlcdata{cdata = Chunk} | Rest], Data) ->
-    get_cdata_from_list2(Rest, [Data, Chunk]);
+    get_cdata_from_list2(Rest, [Chunk | Data]);
 get_cdata_from_list2([_ | Rest], Data) ->
     get_cdata_from_list2(Rest, Data);
 get_cdata_from_list2([], Data) ->
-    Data.
+    lists:reverse(Data).
 
 %% @spec (XML_Element) -> CData
 %%     XML_Element = xmlnselement() | xmlelement()
-%%     CData = string()
+%%     CData = binary()
 %% @doc Concatenate and return any character data of the given XML
 %% element.
 %%
@@ -1132,29 +1141,44 @@ get_cdata(#xmlelement{children = Children}) ->
 get_cdata(undefined) ->
     % This clause makes it possible to write code like:
     % exmpp_xml:get_cdata(exmpp_xml:get_element_by_name(XML_El, body))
-    "".
+    <<>>.
+
+%% @spec (XML_Element) -> CData
+%%     XML_Element = xmlnselement() | xmlelement()
+%%     CData = string()
+%% @doc Concatenate and return any character data of the given XML
+%% element.
+
+get_cdata_as_list(XML_Element) ->
+    binary_to_list(get_cdata(XML_Element)).
 
 %% @spec (Children) -> New_Children
 %%     Children = undefined | [xmlnselement() | xmlelement() | xmlcdata()]
 %%     New_Children = undefined | [xmlnselement() | xmlelement() | xmlcdata()]
 %% @doc Regroup all splitted {@link xmlcdata()} in a unique one.
-%%
-%% One caveats is the reconstructed {@link xmlcdata()} is appended at
-%% the end of the children list.
 
 normalize_cdata_in_list(undefined) ->
     undefined;
 normalize_cdata_in_list([]) ->
     [];
 normalize_cdata_in_list(Children) ->
-    CData = get_cdata_from_list(Children),
-    Purged_Children = remove_cdata_from_list(Children),
-    case CData of
-        "" ->
-            Purged_Children;
-        _ ->
-            Purged_Children ++ [#xmlcdata{cdata = list_to_binary(CData)}]
-    end.
+    normalize_cdata_in_list2(Children, [], []).
+
+normalize_cdata_in_list2([], Current_CDatas, New_Children) ->
+    New_Children1 = case list_to_binary(lists:reverse(Current_CDatas)) of
+        <<>>  -> [New_Children];
+        CData -> [#xmlcdata{cdata = CData} | New_Children]
+    end,
+    lists:reverse(lists:flatten(New_Children1));
+normalize_cdata_in_list2([#xmlcdata{cdata = CData} | Rest], Current_CDatas,
+  New_Children) ->
+    normalize_cdata_in_list2(Rest, [CData | Current_CDatas], New_Children);
+normalize_cdata_in_list2([XML_Node | Rest], Current_CDatas, New_Children) ->
+    New_Children1 = case list_to_binary(lists:reverse(Current_CDatas)) of
+        <<>>  -> [XML_Node | New_Children];
+        CData -> [XML_Node, #xmlcdata{cdata = CData} | New_Children]
+    end,
+    normalize_cdata_in_list2(Rest, [], New_Children1).
 
 %% @spec (XML_Element) -> New_XML_Element
 %%     XML_Element = xmlnselement() | xmlelement()
@@ -1244,7 +1268,7 @@ remove_cdata(#xmlelement{children = Children} = XML_Element) ->
 %%     Path = [pathcomponent()]
 %%     XML_Subelement = xmlnselement() | xmlelement()
 %%     Attr_Value = string()
-%%     CData = string()
+%%     CData = binary()
 %%     Not_Found = nil()
 %% @throws {xml, path, ending_component_not_at_the_end, Path} |
 %%         {xml, path, invalid_component,               Path}
@@ -1792,9 +1816,10 @@ document_fragment_to_list(El, Default_NS, Prefixed_NS) ->
                     % document_fragment_to_list/3
                     % again, but this isn't relevant
                     % without namespace support.
+                    Norm = normalize_cdata_in_list(Els),
                     [$<, Name_S, attrs_to_list(Attrs), $>,
                       [document_fragment_to_list(E, Default_NS, Prefixed_NS) ||
-                        E <- Els],
+                        E <- Norm],
                       $<, $/, Name_S, $>]
             end;
         #xmlendelement{name = Name} ->
@@ -1809,19 +1834,15 @@ document_fragment_to_list(El, Default_NS, Prefixed_NS) ->
                 true            -> Target
             end,
             [$<, $?, Target_S, $\s, Value, $?, $>];
-        #xmlcdata{cdata = CData} when is_binary(CData) ->
-            % We avoid calling crypt/1 directly with the binary()
-            % because it'll convert it back to binary().
-            encode_entities(binary_to_list(CData));
         #xmlcdata{cdata = CData} ->
-            encode_entities(CData)
+            binary_to_list(?ESCAPE(CData))
     end.
 
 attrs_to_list(Attrs) ->
     [attr_to_list(A) || A <- Attrs].
 
 attr_to_list({Name, Value}) ->
-    [$\s, encode_entities(Name), $=, $", encode_entities(Value), $"].
+    [$\s, Name, $=, $", escape_using_entities(Value), $"].
 
 %% @spec (XML_Element) -> XML_Text
 %%     XML_Element = xmlnselement() | xmlelement()
@@ -1863,7 +1884,7 @@ clear_endelement_tuples2([], Result) ->
 %% Processed characters are <tt>&amp;</tt>, <tt>&lt;</tt>,
 %% <tt>&gt;</tt>, <tt>&quot;</tt>, <tt>&apos;</tt>.
 
-encode_entities(S) when is_list(S) ->
+escape_using_entities(CData) when is_list(CData) ->
     lists:flatten([case C of
       $& -> "&amp;";
       $< -> "&lt;";
@@ -1871,12 +1892,12 @@ encode_entities(S) when is_list(S) ->
       $" -> "&quot;";
       $' -> "&apos;";
       _  -> C
-    end || C <- S]);
+    end || C <- CData]);
 
-encode_entities(S) when is_binary(S) ->
-    encode_entities2(S, []).
+escape_using_entities(CData) when is_binary(CData) ->
+    escape_using_entities2(CData, []).
 
-encode_entities2(<<C:8, Rest/binary>>, New_S) ->
+escape_using_entities2(<<C:8, Rest/binary>>, New_CData) ->
     New_C = case C of
         $& -> <<"&amp;">>;
         $< -> <<"&lt;">>;
@@ -1885,9 +1906,105 @@ encode_entities2(<<C:8, Rest/binary>>, New_S) ->
         $' -> <<"&apos;">>; % '
         _  -> C
     end,
-    encode_entities2(Rest, [New_C | New_S]);
-encode_entities2(<<>>, New_S) ->
-    list_to_binary(lists:reverse(New_S)).
+    escape_using_entities2(Rest, [New_C | New_CData]);
+escape_using_entities2(<<>>, New_CData) ->
+    list_to_binary(lists:reverse(New_CData)).
+
+%% @spec (CData) -> Escaped_CData
+%%     CData = string() | binary()
+%%     Escaped_CData = string() | binary()
+%% @doc Escape text using CDATA sections.
+
+escape_using_cdata(CData) when is_list(CData) ->
+    escape_using_cdata_list(CData, false, []);
+escape_using_cdata(CData) when is_binary(CData) ->
+    case cdata_need_escape(CData) of
+        no ->
+            CData;
+        global ->
+            list_to_binary([<<"<![CDATA[">>, CData, <<"]]>">>]);
+        {split, End_Token_Positions} ->
+            Escaped = escape_using_cdata_binary(CData, End_Token_Positions),
+            list_to_binary(Escaped)
+    end.
+
+% If a text node contains the characters '<' or '&', it must be enclosed
+% inside CDATA sections. If such a text also contains CDATA end token
+% ("]]>"), it must be split in multiple CDATA sections.
+%
+% See:
+%   http://www.w3.org/TR/xml11/#syntax
+%   http://en.wikipedia.org/wiki/CDATA#Uses_of_CDATA_sections
+%
+% For binary(), we do it in two steps (first, is it needed, then do it).
+% This is because in most cases, the text node won't have CDATA end token.
+% XXX Should we do the same for lists?
+
+escape_using_cdata_list([], false, Escaped) ->
+    lists:reverse(Escaped);
+escape_using_cdata_list([], true, Escaped) ->
+    "<![CDATA[" ++ lists:reverse(lists:flatten(Escaped)) ++ "]]>";
+escape_using_cdata_list([$], $], $> | Rest], _Must_Escape, Escaped) ->
+    escape_using_cdata_list(Rest, true, [">[ATADC[!<>]]]]" | Escaped]);
+escape_using_cdata_list([C | Rest], _Must_Escape, Escaped)
+  when C == $<; C == $& ->
+    escape_using_cdata_list(Rest, true, [C | Escaped]);
+escape_using_cdata_list([C | Rest], Must_Escape, Escaped) ->
+    escape_using_cdata_list(Rest, Must_Escape, [C | Escaped]).
+
+% This function returns what kind of escape must be done:
+%   . 'no'
+%   . 'global' for text containing '<' and '&'
+%   . {'split, End_Token_Pos} for text containing CDATA end token(s)
+
+cdata_need_escape(CData) ->
+    cdata_need_escape2(CData, 0, false, []).
+
+cdata_need_escape2(<<>>, _Current_Pos, false, _End_Token_Pos) ->
+    no;
+cdata_need_escape2(<<>>, _Current_Pos, true, []) ->
+    global;
+cdata_need_escape2(<<>>, _Current_Pos, true, End_Token_Pos) ->
+    {split, lists:reverse(End_Token_Pos)};
+cdata_need_escape2(<<$], $], $>, Rest/binary>>, Current_Pos, _Must_Escape,
+  End_Token_Pos) ->
+    cdata_need_escape2(Rest, Current_Pos + 3, true,
+      [Current_Pos + 1 | End_Token_Pos]);
+cdata_need_escape2(<<$<, Rest/binary>>, Current_Pos, _Must_Escape,
+  End_Token_Pos) ->
+    cdata_need_escape2(Rest, Current_Pos + 1, true, End_Token_Pos);
+cdata_need_escape2(<<$&, Rest/binary>>, Current_Pos, _Must_Escape,
+  End_Token_Pos) ->
+    cdata_need_escape2(Rest, Current_Pos + 1, true, End_Token_Pos);
+cdata_need_escape2(<<_:8, Rest/binary>>, Current_Pos, Must_Escape,
+  End_Token_Pos) ->
+    cdata_need_escape2(Rest, Current_Pos + 1, Must_Escape, End_Token_Pos).
+
+% This function use the End_Token_Pos list returned by
+% cdata_need_escape/1 and split CDATA end tokens at those positions.
+
+escape_using_cdata_binary(CData, End_Token_Pos) ->
+    escape_using_cdata_binary2(CData, 0, End_Token_Pos, []).
+
+escape_using_cdata_binary2(Rest, _Current_Pos, [], Escaped) ->
+    lists:reverse([<<"]]>">>, Rest, <<"<![CDATA[">> | Escaped]);
+escape_using_cdata_binary2(CData, Current_Pos, [Pos | End_Token_Pos],
+  Escaped) ->
+    Split = Pos - Current_Pos,
+    {CData1, CData2} = split_binary(CData, Split + 1),
+    escape_using_cdata_binary2(CData2, Pos + 1, End_Token_Pos,
+      [<<"]]>">>, CData1, <<"<![CDATA[">> | Escaped]).
+
+%% @spec () -> escape_using_entities | escape_using_cdata
+%% @doc Tell what escaping function will be used internally.
+
+-ifdef(ESCAPE_USING_CDATA_SECTIONS).
+internal_escaping_function_name() ->
+    escape_using_cdata.
+-else.
+internal_escaping_function_name() ->
+    escape_using_entities.
+-endif.
 
 % --------------------------------------------------------------------
 % Utilities.

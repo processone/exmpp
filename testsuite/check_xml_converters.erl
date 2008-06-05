@@ -12,12 +12,17 @@ check() ->
     testsuite:pass().
 
 do_check() ->
-    test_encode_enities(),
+    test_escape_using_entities(),
     test_xmlnselement_to_xmlelement(),
-    test_document_to_list_without_namespace(),
-    test_document_to_list_with_namespace(),
-    test_document_fragment_to_list_with_namespace(),
-    test_document_fragment_to_list_with_namespace2(),
+    case exmpp_xml:internal_escaping_function_name() of
+        escape_using_entities ->
+            test_document_to_list_without_namespace(),
+            test_document_to_list_with_namespace(),
+            test_document_fragment_to_list_with_namespace(),
+            test_document_fragment_to_list_with_namespace2();
+        escape_using_cdata ->
+            ok
+    end,
     test_clear_endelement_tuples(),
     ok.
 
@@ -248,10 +253,10 @@ test_document_fragment_to_list_with_namespace2() ->
       ?SOURCE3_2),
     ok.
 
-test_encode_enities() ->
-    testsuite:is(exmpp_xml:encode_entities("Entities: &<>\"'"),
+test_escape_using_entities() ->
+    testsuite:is(exmpp_xml:escape_using_entities("Entities: &<>\"'"),
       "Entities: &amp;&lt;&gt;&quot;&apos;"),
-    testsuite:is(exmpp_xml:encode_entities(<<"Entities: &<>\"'">>),
+    testsuite:is(exmpp_xml:escape_using_entities(<<"Entities: &<>\"'">>),
       <<"Entities: &amp;&lt;&gt;&quot;&apos;">>),
     ok.
 

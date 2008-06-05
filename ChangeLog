@@ -65,6 +65,21 @@
 	* configure.ac: Add a flag to use CDATA sections for text nodes
 	escaping.
 
+	* src/core/exmpp_xml.erl: A long standing confusion with CDATA
+	handling is now fixed: get_cdata/1 will now return binaries;
+	#xmlnselement and #xmlelment store these this way. normalize/1 is also
+	fixed to do what it is supposed to do (as specified in the DOM
+	specification). document_fragment_to_list/3 now escapes what needs to
+	be escaped and doesn't forget to normalize CDATA before. Documentation
+	is up-to-date.
+	(get_cdata_as_list): New function to get character data as string.
+	(escape_using_cdata): Support for escaping with CDATA sections instead
+	of entities was taken from ejabberd. It's disabled by default.
+
+	* testsuite/check_xml_converters.erl,
+	testsuite/check_xml_cdata_handlers.erl, testsuite/check_xml_path.erl:
+	Update testsuite to handle above changes.
+
 2008-06-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	With these changes, ejabberd 2.0.x can run without modifications with
