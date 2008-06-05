@@ -59,6 +59,9 @@
 	c_src/Makefile.am: Add a generic header for all compression port
 	drivers. Move some definitions to it.
 
+	* c_src/Makefile.unix: Add compilation instructions for
+	exmpp_tls_openssl.so and exmpp_compress_zlib.so.
+
 2008-06-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	With these changes, ejabberd 2.0.x can run without modifications with
