@@ -1,140 +1,91 @@
+% $Id$
+
 %%%----------------------------------------------------------------------
 %%% File    : ejabberd_zlib.erl
-%%% Author  : Alexey Shchepin <alexey@sevcom.net>
+%%% Author  : Alexey Shchepin <alexey@process-one.net>
 %%% Purpose : Interface to zlib
-%%% Created : 19 Jan 2006 by Alexey Shchepin <alexey@sevcom.net>
-%%% Id      : $Id$
+%%% Created : 19 Jan 2006 by Alexey Shchepin <alexey@process-one.net>
+%%%
+%%%
+%%% ejabberd, Copyright (C) 2002-2008   Process-one
+%%%
+%%% This program is free software; you can redistribute it and/or
+%%% modify it under the terms of the GNU General Public License as
+%%% published by the Free Software Foundation; either version 2 of the
+%%% License, or (at your option) any later version.
+%%%
+%%% This program is distributed in the hope that it will be useful,
+%%% but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+%%% General Public License for more details.
+%%%                         
+%%% You should have received a copy of the GNU General Public License
+%%% along with this program; if not, write to the Free Software
+%%% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+%%% 02111-1307 USA
+%%%
 %%%----------------------------------------------------------------------
 
 -module(ejabberd_zlib).
--author('alexey@sevcom.net').
--vsn('$Revision$ ').
-
--behaviour(gen_server).
+-author('alexey@process-one.net').
 
 -export([start/0, start_link/0,
 	 enable_zlib/2, disable_zlib/1,
 	 send/2,
 	 recv/2, recv/3, recv_data/2,
 	 setopts/2,
+	 sockname/1, peername/1,
 	 controlling_process/2,
 	 close/1]).
-
-%% Internal exports, call-back functions.
--export([init/1,
-	 handle_call/3,
-	 handle_cast/2,
-	 handle_info/2,
-	 code_change/3,
-	 terminate/2]).
 
 -define(DEFLATE, 1).
 -define(INFLATE, 2).
 
--record(zlibsock, {sockmod, socket, zlibport}).
-
 start() ->
-    gen_server:start({local, ?MODULE}, ?MODULE, [], []).
+    exmpp_compress:start().
 
 start_link() ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
-
-init([]) ->
-    Dir = case code:priv_dir(exmpp) of
-        {error, _Reason} -> "priv/lib";
-        Priv_Dir         -> Priv_Dir ++ "/lib"
-    end,
-    case erl_ddll:load_driver(Dir, ejabberd_zlib_drv) of
-	ok -> ok;
-	{error, already_loaded} -> ok
-    end,
-    Port = open_port({spawn, ejabberd_zlib_drv}, [binary]),
-    {ok, Port}.
-
-
-%%% --------------------------------------------------------
-%%% The call-back functions.
-%%% --------------------------------------------------------
-
-handle_call(_, _, State) ->
-    {noreply, State}.
-
-handle_cast(_, State) ->
-    {noreply, State}.
-
-handle_info({'EXIT', Port, Reason}, Port) ->
-    {stop, {port_died, Reason}, Port};
-
-handle_info({'EXIT', _Pid, _Reason}, Port) ->
-    {noreply, Port};
-
-handle_info(_, State) ->
-    {noreply, State}.
-
-code_change(_OldVsn, State, _Extra) ->
-    {ok, State}.
-
-terminate(_Reason, Port) ->
-    Port ! {self, close},
-    ok.
+    exmpp_compress:start_link().
 
 
 enable_zlib(SockMod, Socket) ->
-    Dir = case code:priv_dir(exmpp) of
-        {error, _Reason} -> "priv/lib";
-        Priv_Dir         -> Priv_Dir ++ "/lib"
-    end,
-    case erl_ddll:load_driver(Dir, ejabberd_zlib_drv) of
-	ok -> ok;
-	{error, already_loaded} -> ok
-    end,
-    Port = open_port({spawn, ejabberd_zlib_drv}, [binary]),
-    {ok, #zlibsock{sockmod = SockMod, socket = Socket, zlibport = Port}}.
-    
-disable_zlib(#zlibsock{sockmod = SockMod, socket = Socket, zlibport = Port}) ->
-    port_close(Port),
-    {SockMod, Socket}.
+    try
+	ZlibSock = exmpp_compress:enable_compression({SockMod, Socket},
+	  [{compress_method, zlib}]),
+	{ok, ZlibSock}
+    catch
+	Exception ->
+	    {error, Exception}
+    end.
+
+disable_zlib(ZlibSock) ->
+    exmpp_compress:disable_compression(ZlibSock).
 
 recv(Socket, Length) ->
     recv(Socket, Length, infinity).
-recv(#zlibsock{sockmod = SockMod, socket = Socket} = ZlibSock,
-     Length, Timeout) ->
-    case SockMod:recv(Socket, Length, Timeout) of
-	{ok, Packet} ->
-	    recv_data(ZlibSock, Packet);
-	{error, _Reason} = Error ->
-	    Error
-    end.
+recv(ZlibSock, _Length, Timeout) ->
+    exmpp_compress:recv(ZlibSock, Timeout).
 
-recv_data(#zlibsock{zlibport = Port} = _ZlibSock, Packet) ->
-    case port_control(Port, ?INFLATE, Packet) of
-	<<0, In/binary>> ->
-	    {ok, In};
-	<<1, Error/binary>> ->
-	    {error, binary_to_list(Error)}
-    end.
+recv_data(ZlibSock, Packet) ->
+    exmpp_compress:recv_data(ZlibSock, Packet).
 
-send(#zlibsock{sockmod = SockMod, socket = Socket, zlibport = Port},
-     Packet) ->
-    case port_control(Port, ?DEFLATE, Packet) of
-	<<0, Out/binary>> ->
-	    SockMod:send(Socket, Out);
-	<<1, Error/binary>> ->
-	    {error, binary_to_list(Error)}
-    end.
+send(ZlibSock, Packet) ->
+    exmpp_compress:send(ZlibSock, Packet).
 
 
-setopts(#zlibsock{sockmod = SockMod, socket = Socket}, Opts) ->
-    case SockMod of
-	gen_tcp ->
-	    inet:setopts(Socket, Opts);
-	_ ->
-	    SockMod:setopts(Socket, Opts)
-    end.
+setopts(ZlibSock, Opts) ->
+    exmpp_compress:setopts(ZlibSock, Opts).
 
-controlling_process(#zlibsock{sockmod = SockMod, socket = Socket}, Pid) ->
-    SockMod:controlling_process(Socket, Pid).
+sockname(ZlibSock) ->
+    exmpp_compress:sockname(ZlibSock).
 
-close(#zlibsock{sockmod = SockMod, socket = Socket, zlibport = Port}) ->
-    SockMod:close(Socket),
-    port_close(Port).
+peername(ZlibSock) ->
+    exmpp_compress:peername(ZlibSock).
+
+controlling_process(ZlibSock, Pid) ->
+    exmpp_compress:controlling_process(ZlibSock, Pid).
+
+close(ZlibSock) ->
+    exmpp_compress:close(ZlibSock).
+
+
