@@ -189,7 +189,11 @@ exmpp_stringprep_control(ErlDrvData drv_data, unsigned int command,
 	case SVN_REVISION_COMMAND:
 		rstring[0] = 1;
 		rstring[1] = 0;
+#if defined(_WIN32)
+		strcat_s(rstring, size, "$Revision$");
+#else
 		strcat(rstring, "$Revision$");
+#endif
 		*rbuf = rstring;
 		driver_free(str32);
 		return (strlen(rstring));
