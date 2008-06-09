@@ -630,7 +630,9 @@ get_method({basic, Method, _JID, _Password}) when atom(Method) ->
 
 %% Start parser and return stream reference
 start_parser() ->
-    exmpp_xmlstream:start({gen_fsm, self()}, ?PARSER_OPTIONS).
+    exmpp_xmlstream:start({gen_fsm, self()},
+                          ?PARSER_OPTIONS,
+                          [{xmlstreamstart,new}]).
 
 %% Authentication functions
 check_auth_method(Method, IQElement) ->

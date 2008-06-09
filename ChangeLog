@@ -1,3 +1,9 @@
+2008-06-09	Pablo Polvorin 		<pablo.polvorin@process-one.net>
+
+	* src/network/exmpp_session.erl: Use the appropriate options
+	when starting the exmpp_xmlstream ({xmlstreamstart,new}).
+
+
 2008-06-05  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* c_src/exmpp_tls.h, c_src/exmpp_tls_openssl.c: Add support for new
