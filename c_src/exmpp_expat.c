@@ -12,6 +12,10 @@
 #include "xmpp_names.h"
 #include "xmpp_attrs.h"
 
+#if defined(_WIN32)
+#define	strdup(s) _strdup(s)
+#endif
+
 #define	DRIVER_NAME	exmpp_expat
 #define	_S(s)		#s
 #define	S(s)		_S(s)
@@ -660,7 +664,8 @@ expat_cb_start_element(void *user_data,
 	 * sent separately but for <message/>, we are building a
 	 * complete tree with the children. */
 
-	if (ed->root_depth == -1 || ed->depth <= ed->root_depth) {
+	if (ed->root_depth == -1 ||
+	    ed->depth <= (unsigned long)ed->root_depth) {
 		/* Initialize a buffer to work on a new tree. */
 		tree = driver_alloc(sizeof(ei_x_buff));
 		if (tree == NULL)
@@ -867,7 +872,8 @@ expat_cb_start_element(void *user_data,
 
 	ei_x_encode_empty_list(tree);
 
-	if (ed->root_depth == -1 || ed->depth < ed->root_depth) {
+	if (ed->root_depth == -1 ||
+	    ed->depth < (unsigned long)ed->root_depth) {
 		/* Standalone node are moved to the final list. */
 		ei_x_encode_atom(tree, "undefined");
 		current_tree_finished(ed);
@@ -894,7 +900,8 @@ expat_cb_end_element(void *user_data,
 	    ed->depth, name);
 #endif
 
-	if ((ed->root_depth == -1 || ed->depth < ed->root_depth) &&
+	if ((ed->root_depth == -1 ||
+	    ed->depth < (unsigned long)ed->root_depth) &&
 	    ed->send_endelement) {
 		/* Initialize a buffer to work on a new tree. */
 		tree = driver_alloc(sizeof(ei_x_buff));
@@ -977,7 +984,8 @@ expat_cb_end_element(void *user_data,
 		}
 
 		current_tree_finished(ed);
-	} else if (ed->root_depth != -1 && ed->depth >= ed->root_depth &&
+	} else if (ed->root_depth != -1 &&
+	    ed->depth >= (unsigned long)ed->root_depth &&
 	    ed->current_tree != NULL) {
 		ei_x_encode_empty_list(ed->current_tree);
 
