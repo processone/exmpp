@@ -5,6 +5,10 @@
 
 #include "hashtable.h"
 
+#if defined(_MSC_VER)
+#define	inline __inline
+#endif
+
 /*****************************************************************************/
 struct entry
 {
