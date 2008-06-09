@@ -5,6 +5,10 @@
 
 #include "exmpp_tls.h"
 
+#if defined(_WIN32)
+#define	strcasecmp(s1, s2) _stricmp(s1, s2)
+#endif
+
 int
 match_hostname(const char *cert_id, const char *expected_id)
 {
