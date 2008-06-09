@@ -1,0 +1,98 @@
+# $Id$
+
+# Always define NODEBUG because OpenSSL is built with -MD (not -MDd). This
+# avoids a warning about conflicting MSVCRTs.
+!IFNDEF NODEBUG
+NODEBUG = 1
+!ENDIF
+
+!include <Win32.Mak>
+
+# Erlang environments.
+!IFNDEF ERLANG_ROOT_DIR
+ERLANG_ROOT_DIR = C:\Program Files\erl5.6.2
+!ENDIF
+!IFNDEF ERLANG_LIB_DIR_erl_interface
+ERLANG_LIB_DIR_erl_interface = $(ERLANG_ROOT_DIR)\lib\erl_interface-3.5.6
+!ENDIF
+
+EI_CPPFLAGS = -D__WIN32__ -I"$(ERLANG_ROOT_DIR)\usr\include" -I"$(ERLANG_LIB_DIR_erl_interface)\include"
+EI_LIBS = "$(ERLANG_LIB_DIR_erl_interface)\lib\ei_md.lib"
+
+!IFNDEF EXPAT_PREFIX
+EXPAT_PREFIX = C:\Program Files\Expat 2.0.1
+!ENDIF
+EXPAT_CPPFLAGS = -I"$(EXPAT_PREFIX)\Source\lib"
+EXPAT_LIBS = "$(EXPAT_PREFIX)\Bin\libexpat.lib"
+
+!IFNDEF OPENSSL_PREFIX
+OPENSSL_PREFIX = C:\Program Files\GnuWin32
+!ENDIF
+OPENSSL_CPPFLAGS = -I"$(OPENSSL_PREFIX)\include"
+OPENSSL_LIBS = "$(OPENSSL_PREFIX)\lib\libssl.lib" "$(OPENSSL_PREFIX)\lib\libcrypto.lib"
+!IFNDEF ZLIB_PREFIX
+ZLIB_PREFIX = C:\Program Files\zlib123-dll
+!ENDIF
+ZLIB_CPPFLAGS = -I"$(ZLIB_PREFIX)\include"
+ZLIB_LIBS = "$(ZLIB_PREFIX)\lib\zdll.lib"
+
+DRIVERS = exmpp_expat.dll exmpp_stringprep.dll exmpp_tls_openssl.dll exmpp_compress_zlib.dll
+
+BUILT_SOURCES = xmpp_ns.h xmpp_names.h xmpp_attrs.h
+
+all: $(DRIVERS)
+
+clean:
+	-del $(DRIVERS)
+	-del $(BUILT_SOURCES)
+	-del *.obj *.exp *.lib *.dll.manifest
+
+.PHONY: clean
+
+# --------------------------------------------------------------------
+# Supported port drivers.
+# --------------------------------------------------------------------
+
+# Generated headers.
+xmpp_ns.h: xmpp_ns.h.js xmpp_ns.h.in
+	cscript /nologo $*.h.js $*.h.in > $*.h
+
+xmpp_names.h: xmpp_names.h.js xmpp_names.h.in
+	cscript /nologo $*.h.js $*.h.in > $*.h
+
+xmpp_attrs.h: xmpp_attrs.h.js xmpp_attrs.h.in
+	cscript /nologo $*.h.js $*.h.in > $*.h
+
+# Expat port driver
+hashtable.obj: contrib\hashtable.h contrib\hashtable_private.h contrib\hashtable.c
+	$(cc) $(cdebug) $(cflags) -Icontrib $(cvarsdll) contrib\$*.c
+
+exmpp_expat.obj: $(BUILT_SOURCES) contrib\hashtable.h exmpp_expat.c
+	$(cc) $(cdebug) $(cflags) $(cvarsdll) $(EI_CPPFLAGS) $(EXPAT_CPPFLAGS) $*.c
+
+exmpp_expat.dll: hashtable.obj exmpp_expat.obj
+	$(link) $(ldebug) $(dlllflags) $(conlibsdll) -out:$*.dll $** $(EI_LIBS) $(EXPAT_LIBS)
+
+# Stringprep port driver.
+exmpp_stringprep.obj: stringprep_uni_data.h stringprep_uni_norm.h exmpp_stringprep.c
+	$(cc) $(cdebug) $(cflags) $(cvarsdll) $(EI_CPPFLAGS) $*.c
+
+exmpp_stringprep.dll: exmpp_stringprep.obj
+	$(link) $(ldebug) $(dlllflags) $(conlibsdll) -out:$*.dll $** $(EI_LIBS)
+
+# OpenSSL TLS port driver.
+exmpp_tls.obj: exmpp_tls.h exmpp_tls.c
+	$(cc) $(cdebug) $(cflags) $(cvarsdll) $*.c
+
+exmpp_tls_openssl.obj: exmpp_tls.h exmpp_tls_openssl.c
+	$(cc) $(cdebug) $(cflags) $(cvarsdll) $(EI_CPPFLAGS) $(OPENSSL_CPPFLAGS) $*.c
+
+exmpp_tls_openssl.dll: exmpp_tls.obj exmpp_tls_openssl.obj
+	$(link) $(ldebug) $(dlllflags) $(conlibsdll) -out:$*.dll $** $(EI_LIBS) $(OPENSSL_LIBS)
+
+# Zlib compression port driver.
+exmpp_compress_zlib.obj: exmpp_compress.h exmpp_compress_zlib.c
+	$(cc) $(cdebug) $(cflags) $(cvarsdll) $(EI_CPPFLAGS) $(ZLIB_CPPFLAGS) $*.c
+
+exmpp_compress_zlib.dll: exmpp_compress_zlib.obj
+	$(link) $(ldebug) $(dlllflags) $(conlibsdll) -out:$*.dll $** $(EI_LIBS) $(ZLIB_LIBS)
