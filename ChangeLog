@@ -1,8 +1,28 @@
-2008-06-09	Pablo Polvorin 		<pablo.polvorin@process-one.net>
+2008-06-09  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	With these commits, exmpp port drivers build with Visual C++ on
+	Microsoft Windows.
+
+	* c_src/exmpp_stringprep.c: Visual C++ uses strcat_s() instead of
+	strcat().
+
+	* c_src/exmpp_tls.c: Visual C++ uses _stricmp() instead of
+	strcasecmp().
+
+	* c_src/contrib/hashtable_private.h: Visual C++ uses __inline instead
+	of inline.
+
+	* c_src/exmpp_expat.c: Visual C++ uses _strdup() instead of strdup().
+	Fix several comparisons of long with different signedness.
+
+	* c_src/Makefile.win32, c_src/xmpp_ns.h.js, c_src/xmpp_names.h.js,
+	c_src/xmpp_attrs.h.js: Add a Makefile and scripts to build port
+	drivers on Windows using Visual C++.
+
+2008-06-09  Pablo Polvorin  <pablo.polvorin@process-one.net>
 
 	* src/network/exmpp_session.erl: Use the appropriate options
 	when starting the exmpp_xmlstream ({xmlstreamstart,new}).
-
 
 2008-06-05  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
@@ -1404,7 +1424,7 @@
 	old API, which can be enabled by defining WITH_DEPRECATED_API at
 	compile time.
 
-	* c_src/expat_drv.c: Imporve namespace support, especially for
+	* c_src/expat_drv.c: Improve namespace support, especially for
 	attributes. Add an option to put element and attribute name as
 	atom().
 
