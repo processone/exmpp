@@ -37,11 +37,13 @@ do_check() ->
 ).
 
 -define(TREE0_NS,
-  {xmlnselement, 'ns_stream', "stream", undefined, "stream", [], undefined}
+  {xmlnselement, 'ns_stream', [{'ns_stream', "stream"}],
+    "stream", [], undefined}
 ).
 
 -define(TREE0_NS_NAA,
-  {xmlnselement, 'ns_stream', "stream", undefined, 'stream', [], undefined}
+  {xmlnselement, 'ns_stream', [{'ns_stream', "stream"}],
+    'stream', [], undefined}
 ).
 
 -define(SOURCE0, "<stream:stream xmlns:stream=\"ns_stream\">").
@@ -53,15 +55,16 @@ do_check() ->
 ).
 
 -define(TREE1_NS,
-  {xmlnselement, 'ns_stream', "stream", undefined, "stream", [], []}
+  {xmlnselement, 'ns_stream', [{'ns_stream', "stream"}],
+    "stream", [], []}
 ).
 
 -define(SOURCE1, "<stream:stream xmlns:stream=\"ns_stream\"/>").
 
 -define(TREE2_NO_NS,
   {xmlelement, "stream:stream", [
-      {"xmlns:stream", "ns_stream"},
-      {"xmlns", "ns_default"}
+      {"xmlns", "ns_default"},
+      {"xmlns:stream", "ns_stream"}
     ], [
       {xmlelement, "iq", [
           {"xml:lang", "fr"},
@@ -73,8 +76,9 @@ do_check() ->
 ).
 
 -define(TREE2_NS,
-  {xmlnselement, 'ns_stream', "stream", 'ns_default', "stream", [], [
-      {xmlnselement, 'ns_default', undefined, undefined, "iq", [
+  {xmlnselement, 'ns_stream', [{'ns_stream', "stream"}, {'ns_default', none}],
+    "stream", [], [
+      {xmlnselement, 'ns_default', [], "iq", [
           {xmlattr, ?NS_XML, undefined, "lang", "fr"},
           {xmlattr, undefined, undefined, "version", "1.0"}
         ], [
@@ -84,8 +88,9 @@ do_check() ->
 ).
 
 -define(TREE2_NS_NAA,
-  {xmlnselement, 'ns_stream', "stream", 'ns_default', 'stream', [], [
-      {xmlnselement, 'ns_default', undefined, undefined, 'iq', [
+  {xmlnselement, 'ns_stream', [{'ns_stream', "stream"}, {'ns_default', none}],
+    'stream', [], [
+      {xmlnselement, 'ns_default', [], 'iq', [
           {xmlattr, ?NS_XML, undefined, 'lang', "fr"},
           {xmlattr, undefined, undefined, 'version', "1.0"}
         ], [
@@ -94,10 +99,10 @@ do_check() ->
     ]}
 ).
 
--define(SOURCE2, "<stream:stream xmlns:stream=\"ns_stream\" xmlns=\"ns_default\"><iq xml:lang=\"fr\" version=\"1.0\">Content</iq></stream:stream>").
+-define(SOURCE2, "<stream:stream xmlns=\"ns_default\" xmlns:stream=\"ns_stream\"><iq xml:lang=\"fr\" version=\"1.0\">Content</iq></stream:stream>").
 
 -define(TREE3_NS,
-  {xmlnselement, 'ns_iq', undefined, undefined, "iq", [
+  {xmlnselement, 'ns_iq', [], "iq", [
       {xmlattr, ?NS_XML, undefined, "lang", "fr"}
     ], [
       {xmlcdata, <<"Binary">>},
@@ -132,7 +137,7 @@ do_check() ->
 ).
 
 -define(TREE4_NS,
-  {xmlnselement, undefined, undefined, undefined, "stream", [
+  {xmlnselement, undefined, [], "stream", [
       {xmlattr, 'ns_attr', "pfx", "foo", "bar"}
     ], []}
 ).

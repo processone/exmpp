@@ -61,37 +61,37 @@ do_check() ->
 ).
 
 -define(TARGET_NS, {xmlnselement,
-    ?NS_XML, undefined, undefined, "target",
+    ?NS_XML, [], "target",
     [],
     []}
 ).
 
 -define(ELEMENT0_NS, {xmlnselement,
-    ?NS_XML, undefined, undefined, "element",
+    ?NS_XML, [], "element",
     [],
     undefined}
 ).
 
 -define(ELEMENT1_NS, {xmlnselement,
-    ?NS_XML, undefined, undefined, "element",
+    ?NS_XML, [], "element",
     [],
     []}
 ).
 
 -define(ELEMENT2_NS, {xmlnselement,
-    ?NS_XML, undefined, undefined, "element",
+    ?NS_XML, [], "element",
     [],
     [?TARGET_NS]}
 ).
 
 -define(ELEMENT3_NS, {xmlnselement,
-    ?NS_XML, undefined, undefined, "element",
+    ?NS_XML, [], "element",
     [],
     [?ELEMENT2_NS]}
 ).
 
 -define(ELEMENT4_NS, {xmlnselement, 
-    ?NS_XML, undefined, undefined, "element",
+    ?NS_XML, [], "element",
     [],
     [?ELEMENT1_NS,?ELEMENT2_NS]}
 ).
@@ -120,25 +120,25 @@ do_check() ->
 ).
 
 -define(CHILD1_NS, {xmlnselement,
-    ?NS_XML, undefined, undefined, "child",
+    ?NS_XML, [], "child",
     [],
     []}
 ).
 
 -define(CHILD2_NS, {xmlnselement,
-    'some_other_ns', undefined, undefined, "child",
+    'some_other_ns', [], "child",
     [],
     []}
 ).
 
 -define(OTHER_CHILD_NS, {xmlnselement,
-    ?NS_XML, undefined, undefined, "other",
+    ?NS_XML, [], "other",
     [],
     []}
 ).
 
 -define(ELEMENT5_NS, {xmlnselement,
-    ?NS_XML, undefined, undefined, "element",
+    ?NS_XML, [], "element",
     [],
     [
       ?CHILD1_NS,

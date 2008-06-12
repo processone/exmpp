@@ -195,11 +195,11 @@ opening(To, Default_NS, Version, Lang) ->
     end,
     % Create element.
     #xmlnselement{
-      ns         = ?NS_XMPP,
-      prefix     = ?STREAM_NS_PREFIX,
-      default_ns = Default_NS,
-      name       = 'stream',
-      attrs      = Attrs3
+      ns          = ?NS_XMPP,
+      declared_ns = [{?NS_XMPP, ?STREAM_NS_PREFIX}, {Default_NS, none}],
+      name        = 'stream',
+      attrs       = Attrs3,
+      children    = undefined
     }.
 
 %% @spec (From, Default_NS, Version, ID) -> Opening_Reply
@@ -245,11 +245,11 @@ opening_reply(From, Default_NS, Version, ID, Lang) ->
     end,
     % Create element.
     #xmlnselement{
-      ns         = ?NS_XMPP,
-      prefix     = ?STREAM_NS_PREFIX,
-      default_ns = Default_NS,
-      name       = 'stream',
-      attrs      = Attrs4
+      ns          = ?NS_XMPP,
+      declared_ns = [{?NS_XMPP, ?STREAM_NS_PREFIX}, {Default_NS, none}],
+      name        = 'stream',
+      attrs       = Attrs4,
+      children    = undefined
     }.
 
 %% @spec (Opening, ID) -> Opening_Reply
@@ -282,7 +282,12 @@ closing() ->
 %%     Closing = exmpp_xml:xmlnsendelement()
 %% @doc Make a `</stream>' closing tag for the given `Opening' tag.
 
-closing(#xmlnselement{ns = NS, prefix = Prefix, name = Name}) ->
+closing(#xmlnselement{ns = NS, declared_ns = Declared_NS, name = Name}) ->
+    Prefix = case lists:keysearch(NS, 1, Declared_NS) of
+        {value, {_NS, none}} -> undefined;
+        {value, {_NS, P}}    -> P;
+        _                    -> undefined
+    end,
     #xmlnsendelement{ns = NS, prefix = Prefix, name = Name}.
 
 % --------------------------------------------------------------------
@@ -331,15 +336,18 @@ set_initiating_entity(#xmlnselement{attrs = Attrs} = Opening, Hostname) ->
 set_initiating_entity_in_attrs(Attrs, Hostname) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'from', Hostname).
 
-%% @spec (Opening) -> Default_NS | nil()
+%% @spec (Opening) -> Default_NS | undefined
 %%     Opening = exmpp_xml:xmlnselement()
-%%     Default_NS = string()
+%%     Default_NS = atom() | string()
 %% @doc Return the default namespace.
 %%
 %% XMPP-IM defines `jabber:client' and `jabber:server'.
 
-get_default_ns(#xmlnselement{default_ns = Default_NS} = _Opening) ->
-    Default_NS.
+get_default_ns(#xmlnselement{declared_ns = Declared_NS} = _Opening) ->
+    case lists:keysearch(none, 2, Declared_NS) of
+        {value, {NS, _none}} -> NS;
+        _                    -> undefined
+    end.
 
 %% @spec (Opening, NS) -> New_Opening
 %%     Opening = exmpp_xml:xmlnselement()
@@ -349,11 +357,8 @@ get_default_ns(#xmlnselement{default_ns = Default_NS} = _Opening) ->
 %%
 %% XMPP-IM defines `jabber:client' and `jabber:server'.
 
-set_default_ns(Opening, NS) when is_atom(NS) ->
-    NS_S = atom_to_list(NS),
-    set_default_ns(Opening, NS_S);
-set_default_ns(Opening, NS) ->
-    Opening#xmlnselement{default_ns = NS}.
+set_default_ns(#xmlnselement{declared_ns = Declared_NS} = Opening, NS) ->
+    Opening#xmlnselement{declared_ns = [{NS, none} | Declared_NS]}.
 
 %% @spec (Opening) -> Version
 %%     Opening = exmpp_xml:xmlnselement()
@@ -482,7 +487,7 @@ serialize_version({Major, Minor}) ->
 features(Features) ->
     #xmlnselement{
       ns = ?NS_XMPP,
-      prefix = "stream",
+      declared_ns = [{?NS_XMPP, ?STREAM_NS_PREFIX}],
       name = 'features',
       children = Features
     }.
@@ -540,7 +545,7 @@ error(Condition, {Lang, Text}) ->
     },
     Error_El0 = #xmlnselement{
       ns = ?NS_XMPP,
-      prefix = ?STREAM_NS_PREFIX,
+      declared_ns = [{?NS_XMPP, ?STREAM_NS_PREFIX}],
       name = 'error',
       children = [Condition_El]
     },

@@ -29,25 +29,25 @@ do_check() ->
 -define(CDATA, {xmlcdata, <<"Content">>}).
 
 -define(TARGET, {xmlnselement,
-    ?NS_XML, undefined, undefined, "target",
+    ?NS_XML, [], "target",
     [?ATTRIBUTE],
     [?CDATA]}
 ).
 
 -define(ELEMENT1, {xmlnselement,
-    ?NS_XML, undefined, undefined, "element",
+    ?NS_XML, [], "element",
     [],
     []}
 ).
 
 -define(ELEMENT2, {xmlnselement,
-    ?NS_XML, undefined, undefined, "element",
+    ?NS_XML, [], "element",
     [?ATTRIBUTE],
     [?TARGET, ?CDATA]}
 ).
 
 -define(ELEMENT3, {xmlnselement,
-    ?NS_XML, undefined, undefined, "element",
+    ?NS_XML, [], "element",
     [],
     [?ELEMENT2]}
 ).
@@ -82,13 +82,13 @@ test_get_path_special_cases() ->
 test_get_path_element() ->
     testsuite:is(exmpp_xml:get_path(?ELEMENT1,
         [{element, "target"}]),
-      ""),
+      undefined),
     testsuite:is(exmpp_xml:get_path(?ELEMENT2,
         [{element, "target"}]),
       ?TARGET),
     testsuite:is(exmpp_xml:get_path(?ELEMENT3,
         [{element, "target"}]),
-      ""),
+      undefined),
     testsuite:is(exmpp_xml:get_path(?ELEMENT3,
         [{element, "element"}, {element, "target"}]),
       ?TARGET),
@@ -100,13 +100,13 @@ test_get_path_ns_element() ->
       ?TARGET),
     testsuite:is(exmpp_xml:get_path(?ELEMENT2,
         [{element, 'some_other_ns', "target"}]),
-      ""),
+      undefined),
     testsuite:is(exmpp_xml:get_path(?ELEMENT3,
         [{element, ?NS_XML, "target"}]),
-      ""),
+      undefined),
     testsuite:is(exmpp_xml:get_path(?ELEMENT3,
         [{element, 'some_other_ns', "target"}]),
-      ""),
+      undefined),
     testsuite:is(exmpp_xml:get_path(?ELEMENT3,
         [{element, ?NS_XML, "element"},
           {element, ?NS_XML, "target"}]),
@@ -114,7 +114,7 @@ test_get_path_ns_element() ->
     testsuite:is(exmpp_xml:get_path(?ELEMENT3,
         [{element, ?NS_XML, "element"},
           {element, 'some_other_ns', "target"}]),
-      ""),
+      undefined),
     ok.
 
 test_get_path_attribute() ->
@@ -178,13 +178,13 @@ test_get_path_ns_attribute() ->
 test_get_path_cdata() ->
     testsuite:is(exmpp_xml:get_path(?ELEMENT1,
         [{element, "target"}, cdata]),
-      ""),
+      <<>>),
     testsuite:is(exmpp_xml:get_path(?ELEMENT2,
         [{element, "target"}, cdata]),
       <<"Content">>),
     testsuite:is(exmpp_xml:get_path(?ELEMENT3,
         [{element, "target"}, cdata]),
-      ""),
+      <<>>),
     testsuite:is(exmpp_xml:get_path(?ELEMENT3,
         [{element, "element"}, {element, "target"}, cdata]),
       <<"Content">>),
@@ -196,13 +196,13 @@ test_get_path_ns_cdata() ->
       <<"Content">>),
     testsuite:is(exmpp_xml:get_path(?ELEMENT2,
         [{element, 'some_other_ns', "target"}, cdata]),
-      ""),
+      <<>>),
     testsuite:is(exmpp_xml:get_path(?ELEMENT3,
         [{element, ?NS_XML, "target"}, cdata]),
-      ""),
+      <<>>),
     testsuite:is(exmpp_xml:get_path(?ELEMENT3,
         [{element, 'some_other_ns', "target"}, cdata]),
-      ""),
+      <<>>),
     testsuite:is(exmpp_xml:get_path(?ELEMENT3,
         [{element, ?NS_XML, "element"},
           {element, ?NS_XML, "target"}, cdata]),
@@ -210,5 +210,5 @@ test_get_path_ns_cdata() ->
     testsuite:is(exmpp_xml:get_path(?ELEMENT3,
         [{element, ?NS_XML, "element"},
           {element, 'some_other_ns', "target"}, cdata]),
-      ""),
+      <<>>),
     ok.

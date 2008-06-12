@@ -57,6 +57,9 @@ enum {
 	EXPAT_SET_MAXSIZE,
 	EXPAT_SET_ROOTDEPTH,
 	EXPAT_SET_ENDELEMENT,
+	EXPAT_ADD_KNOWN_NS,
+	EXPAT_ADD_KNOWN_NAME,
+	EXPAT_ADD_KNOWN_ATTR,
 	EXPAT_PARSE,
 	EXPAT_PARSE_FINAL,
 	EXPAT_SVN_REVISION
@@ -77,10 +80,12 @@ struct exmpp_expat_data {
 	long			 cur_size;
 	ei_x_buff		*current_tree;
 	ei_x_buff		*complete_trees;
+	ei_x_buff		*declared_ns;
 	struct ns_entry		*default_ns_stack;
 
 	/* Lookup tables. */
 	struct hashtable	*prefixes;
+	struct hashtable	*new_ns;
 	struct hashtable	*known_ns;
 	struct hashtable	*known_names;
 	struct hashtable	*known_attrs;
@@ -114,6 +119,12 @@ static int		current_tree_finished(struct exmpp_expat_data *ed);
 static unsigned int	hash_djb2(void *key);
 static int		hash_equalkeys(void *k1, void *k2);
 static int		initialize_lookup_tables(struct exmpp_expat_data *ed);
+static int		add_known_ns(struct exmpp_expat_data *ed,
+			    char *ns);
+static int		add_known_name(struct exmpp_expat_data *ed,
+			    char *name);
+static int		add_known_attr(struct exmpp_expat_data *ed,
+			    char *attr);
 static int		is_a_known_ns(struct exmpp_expat_data *ed,
 			    const char *ns);
 static int		is_a_known_name(struct exmpp_expat_data *ed,
@@ -255,9 +266,11 @@ exmpp_expat_start(ErlDrvPort port, char *command)
 	ed->cur_size         = 0;
 	ed->current_tree     = NULL;
 	ed->complete_trees   = NULL;
+	ed->declared_ns      = NULL;
 	ed->default_ns_stack = NULL;
 
 	ed->prefixes         = NULL;
+	ed->new_ns           = NULL;
 
 	/* Without namespace support by default. */
 	ed->use_ns_parser = 0;
@@ -297,9 +310,18 @@ exmpp_expat_stop(ErlDrvData drv_data)
 
 	/* Destroy lookup tables, the Expat parser and the driver data
 	 * structure. */
+	if (ed->declared_ns) {
+		ei_x_free(ed->declared_ns);
+		driver_free(ed->declared_ns);
+		ed->declared_ns = NULL;
+	}
 	if (ed->prefixes) {
 		hashtable_destroy(ed->prefixes, 1);
 		ed->prefixes = NULL;
+	}
+	if (ed->new_ns) {
+		hashtable_destroy(ed->new_ns, 0);
+		ed->new_ns = NULL;
 	}
 	if (ed->known_ns) {
 		hashtable_destroy(ed->known_ns, 0);
@@ -324,8 +346,8 @@ exmpp_expat_control(ErlDrvData drv_data, unsigned int command,
     char *buf, int len, char **rbuf, int rlen)
 {
 	size_t size;
-	char *errmsg;
-	int ret, errcode, index, version;
+	char *errmsg, *known;
+	int ret, errcode, index, version, type;
 	struct exmpp_expat_data *ed;
 	ErlDrvBinary *b;
 	ei_x_buff *to_send;
@@ -386,6 +408,34 @@ exmpp_expat_control(ErlDrvData drv_data, unsigned int command,
 
 		MAKE_ATOM_OK(to_send);
 		break;
+	case EXPAT_ADD_KNOWN_NS:
+	case EXPAT_ADD_KNOWN_NAME:
+	case EXPAT_ADD_KNOWN_ATTR:
+		SKIP_VERSION(buf);
+		ei_get_type(buf, &index, &type, &ret);
+
+		known = malloc(ret + 1);
+		if (known == NULL)
+			return (-1);
+		ei_decode_string(buf, &index, known);
+
+		switch (command) {
+		case EXPAT_ADD_KNOWN_NS:
+			add_known_ns(ed, known);
+			break;
+		case EXPAT_ADD_KNOWN_NAME:
+			add_known_name(ed, known);
+			break;
+		case EXPAT_ADD_KNOWN_ATTR:
+			add_known_attr(ed, known);
+			break;
+		}
+
+		/* 'known' is freed when the hashtable is destroyed. */
+
+		MAKE_ATOM_OK(to_send);
+
+		break;
 	case EXPAT_SET_NSPARSER:
 		/* Get the flag value. */
 		SKIP_VERSION(buf);
@@ -399,6 +449,10 @@ exmpp_expat_control(ErlDrvData drv_data, unsigned int command,
 			hashtable_destroy(ed->prefixes, 1);
 			ed->prefixes = NULL;
 		}
+		if (ed->new_ns != NULL) {
+			hashtable_destroy(ed->new_ns, 0);
+			ed->new_ns = NULL;
+		}
 
 		if (ed->use_ns_parser) {
 			ed->prefixes = create_hashtable(16,
@@ -410,6 +464,11 @@ exmpp_expat_control(ErlDrvData drv_data, unsigned int command,
 			hashtable_insert(ed->prefixes,
 			    strdup(XML_NS),
 			    strdup("xml"));
+
+			ed->new_ns = create_hashtable(16,
+			    hash_djb2, hash_equalkeys);
+			if (ed->new_ns == NULL)
+				return (-1);
 		}
 
 		/* Initialize the ei_x_buff buffer used to store the
@@ -428,6 +487,10 @@ exmpp_expat_control(ErlDrvData drv_data, unsigned int command,
 			if (ed->prefixes) {
 				hashtable_destroy(ed->prefixes, 0);
 				ed->prefixes = NULL;
+			}
+			if (ed->new_ns) {
+				hashtable_destroy(ed->new_ns, 0);
+				ed->new_ns = NULL;
 			}
 		} else {
 			/* Store this information in the buffer. */
@@ -591,7 +654,7 @@ expat_cb_start_namespace(void *user_data,
 	    prefix, uri);
 #endif
 
-	if (ed->prefixes == NULL)
+	if (ed->prefixes == NULL || ed->new_ns == NULL)
 		return;
 
 	if (prefix == NULL) {
@@ -614,6 +677,30 @@ expat_cb_start_namespace(void *user_data,
 		 * hashtable_destroy will free it. */
 		hashtable_insert(ed->prefixes, strdup(uri), strdup(prefix));
 	}
+
+	/* Build the declared_ns list. This list will be reset
+	 * in expat_sb_start_element(). */
+	if (ed->declared_ns == NULL) {
+		ed->declared_ns = driver_alloc(sizeof(*(ed->declared_ns)));
+		if (ed->declared_ns == NULL)
+			return;
+		ei_x_new(ed->declared_ns);
+	}
+
+	ei_x_encode_list_header(ed->declared_ns, 1);
+	ei_x_encode_tuple_header(ed->declared_ns, 2);
+	if (is_a_known_ns(ed, uri))
+		ei_x_encode_atom(ed->declared_ns, uri);
+	else
+		ei_x_encode_string_fixed(ed->declared_ns, uri);
+
+	if (prefix == NULL)
+		ei_x_encode_atom(ed->declared_ns, "none");
+	else
+		ei_x_encode_string_fixed(ed->declared_ns, prefix);
+
+	/* Store the new namespace in the new_ns table. */
+	hashtable_insert(ed->new_ns, strdup(uri), "");
 }
 
 static void
@@ -637,8 +724,9 @@ expat_cb_end_namespace(void *user_data,
 		driver_free(entry->ns);
 		driver_free(entry);
 	} else {
-		/* FIXME Should we remove terminated namespaces from the
-		 * lookup table? */
+		/* We can't easily remove terminated namespaces from
+		 * the lookup table because Expat only provide the
+		 * prefix (we use the URI as the key). */
 	}
 }
 
@@ -646,7 +734,7 @@ static void
 expat_cb_start_element(void *user_data,
     const char *name, const char **attrs)
 {
-	int i;
+	int i, is_known;
 	char *ns_sep, *prefix;
 	ei_x_buff *tree;
 	struct exmpp_expat_data *ed;
@@ -679,21 +767,23 @@ expat_cb_start_element(void *user_data,
 	}
 
 	/* With namespace support, the tuple will be of the form:
-	 *   {xmlnselement, URI, Prefix, Default_NS,
+	 *   {xmlnselement, URI, [Declared_NS],
 	 *     Node_Name, [Attrs], [Children]}
 	 * Without namespace support, it will be:
 	 *   {xmlelement, Node_Name, [Attrs], [Children]} */
 	if (ed->use_ns_parser) {
-		ei_x_encode_tuple_header(tree, 7);
+		ei_x_encode_tuple_header(tree, 6);
 		ei_x_encode_atom(tree, TUPLE_XML_NS_ELEMENT);
 		ns_sep = strchr(name, NS_SEP);
 		if (ns_sep == NULL) {
 			/* Neither a namespace, nor a prefix. */
 			ei_x_encode_atom(tree, "undefined");
-			ei_x_encode_atom(tree, "undefined");
 
-			/* No default namespace. */
-			ei_x_encode_atom(tree, "undefined");
+			/* Copy the declared_ns list and terminate it. */
+			if (ed->declared_ns != NULL &&
+			    ed->declared_ns->index > 0)
+				ei_x_append(tree, ed->declared_ns);
+			ei_x_encode_empty_list(tree);
 
 			/* Encode the element name. */
 			if (ed->name_as_atom && is_a_known_name(ed, name)) {
@@ -708,42 +798,43 @@ expat_cb_start_element(void *user_data,
 
 			/* Check if the namespace is known, to decide if we
 			 * encode it as an atom() or a string(). */
-			if (is_a_known_ns(ed, name)) {
+			is_known = is_a_known_ns(ed, name);
+			if (is_known) {
 				ei_x_encode_atom(tree, name);
 			} else {
 				ei_x_encode_string_fixed(tree, name);
 			}
 
 			/* Lookup a prefix and eventually encode it as a
-			 * string() in the buffer. */
-			if (ed->prefixes) {
-				prefix = (char *)hashtable_search(
-				    ed->prefixes, (char *)name);
-			} else {
-				prefix = NULL;
-			}
-
-			if (prefix != NULL) {
-				ei_x_encode_string_fixed(tree, prefix);
-			} else {
-				ei_x_encode_atom(tree, "undefined");
-			}
-
-			if (ed->default_ns_stack != NULL) {
-				/* Check if the namespace is known, to
-				 * decide if we encode it as an atom()
-				 * or a string(). */
-				if (is_a_known_ns(ed,
-				    ed->default_ns_stack->ns)) {
-					ei_x_encode_atom(tree,
-					    ed->default_ns_stack->ns);
+			 * string() at the beginning of the declared_ns
+			 * list. This namespace/prefix pair may already
+			 * be in the declared_ns list, so do it only when
+			 * required. */
+			if (hashtable_search(ed->new_ns,
+			    (char *)name) == NULL) {
+				if (ed->prefixes) {
+					prefix = (char *)hashtable_search(
+					    ed->prefixes, (char *)name);
 				} else {
-					ei_x_encode_string_fixed(tree,
-					    ed->default_ns_stack->ns);
+					prefix = NULL;
 				}
-			} else {
-				ei_x_encode_atom(tree, "undefined");
+
+				if (prefix != NULL) {
+					ei_x_encode_list_header(tree, 1);
+					ei_x_encode_tuple_header(tree, 2);
+					if (is_known) {
+						ei_x_encode_atom(tree, name);
+					} else {
+						ei_x_encode_string_fixed(tree,
+						    name);
+					}
+					ei_x_encode_string_fixed(tree, prefix);
+				}
 			}
+
+			/* Copy the declared_ns list and terminate it. */
+			ei_x_append(tree, ed->declared_ns);
+			ei_x_encode_empty_list(tree);
 
 			/* Restore the namespace separator. */
 			*ns_sep = NS_SEP;
@@ -756,6 +847,11 @@ expat_cb_start_element(void *user_data,
 				ei_x_encode_string_fixed(tree, ns_sep + 1);
 			}
 		}
+
+		/* We can now reset the declared_ns list. We only reset the
+		 * index to avoid memory free/alloc. */
+		if (ed->declared_ns != NULL)
+			ed->declared_ns->index = 0;
 	} else {
 		ei_x_encode_tuple_header(tree, 4);
 		ei_x_encode_atom(tree, TUPLE_XML_ELEMENT);
@@ -1153,6 +1249,48 @@ initialize_lookup_tables(struct exmpp_expat_data *ed)
 		    strdup(xmpp_attrs_list[i]), (int *)&KNOWN);
 	}
 
+	return (0);
+}
+
+static int
+add_known_ns(struct exmpp_expat_data *ed, char *ns)
+{
+
+	if (!ed->check_ns || ed->known_ns == NULL)
+		return (1);
+
+	if (is_a_known_ns(ed, ns))
+		return (0);
+
+	hashtable_insert(ed->known_ns, ns, (int *)&KNOWN);
+	return (0);
+}
+
+static int
+add_known_name(struct exmpp_expat_data *ed, char *name)
+{
+
+	if (!ed->check_names || ed->known_names == NULL)
+		return (1);
+
+	if (is_a_known_name(ed, name))
+		return (0);
+
+	hashtable_insert(ed->known_names, name, (int *)&KNOWN);
+	return (0);
+}
+
+static int
+add_known_attr(struct exmpp_expat_data *ed, char *attr)
+{
+
+	if (!ed->check_attrs || ed->known_attrs == NULL)
+		return (1);
+
+	if (is_a_known_attr(ed, attr))
+		return (0);
+
+	hashtable_insert(ed->known_attrs, attr, (int *)&KNOWN);
 	return (0);
 }
 

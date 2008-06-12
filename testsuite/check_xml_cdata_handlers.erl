@@ -67,43 +67,43 @@ do_check() ->
 ).
 
 -define(ELEMENT0_NS, {xmlnselement,
-    ?NS_XML, undefined, undefined, "element",
+    ?NS_XML, [], "element",
     [],
     undefined}
 ).
 
 -define(ELEMENT1_NS, {xmlnselement,
-    ?NS_XML, undefined, undefined, "element",
+    ?NS_XML, [], "element",
     [],
     []}
 ).
 
 -define(ELEMENT2_NS, {xmlnselement,
-    ?NS_XML, undefined, undefined, "element",
+    ?NS_XML, [], "element",
     [],
     [?CDATA]}
 ).
 
 -define(ELEMENT3_NS, {xmlnselement,
-    ?NS_XML, undefined, undefined, "element",
+    ?NS_XML, [], "element",
     [],
     [?ELEMENT2_NS]}
 ).
 
 -define(ELEMENT3_2_NS, {xmlnselement,
-    ?NS_XML, undefined, undefined, "element",
+    ?NS_XML, [], "element",
     [],
     [?ELEMENT2_NS, ?CDATA]}
 ).
 
 -define(ELEMENT4_NS, {xmlnselement,
-    ?NS_XML, undefined, undefined, "element",
+    ?NS_XML, [], "element",
     [],
     [?CDATA, ?CDATA]}
 ).
 
 -define(ELEMENT4_NS_NORM, {xmlnselement,
-    ?NS_XML, undefined, undefined, "element",
+    ?NS_XML, [], "element",
     [],
     [?CDATA_DOUBLE]}
 ).

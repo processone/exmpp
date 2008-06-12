@@ -1,3 +1,28 @@
+2008-06-12  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* include/exmpp.hrl, src/core/exmpp_xml.erl, c_src/exmpp_expat.c:
+	Rework (again) namespace forward-declaration. It now supports default
+	and prefixed namespace and, hopefulily, it works. Caution, the record
+	format is changed! Record conversion is also cleaned up. Problems are
+	probably remaining if the caller mix atoms and strings for
+	namespaces/names/attributes. Add functions to add known namespace,
+	names and attributes to the tables used by the port driver. While
+	we're at it, implement a simple prefix auto-generation. Fixed
+	documentation at several places.
+	(get_path): When the target isn't found, return something
+	corresponding to the expected data type: 'undefined' for elements, an
+	empty list for attributes and an empty binary for character data.
+
+	* testsuite/check_xml_attribute_handlers.erl,
+	testsuite/check_xml_converters.erl,
+	testsuite/check_xml_cdata_handlers.erl,
+	testsuite/check_xml_parser.erl, testsuite/check_xml_path.erl,
+	testsuite/check_xmlstream.erl, testsuite/check_legacy_auth.erl,
+	testsuite/check_xml_element_handlers.erl, testsuite/check_stream.erl:
+	Use the new #xmlnselement record.
+
+	* src/core/exmpp_stream.erl: Use the new #xmlnselement record.
+
 2008-06-09  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	With these commits, exmpp port drivers build with Visual C++ on

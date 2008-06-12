@@ -6,9 +6,9 @@
 
 % Elements without namespace support.
 -record(xmlelement, {
-  name,                   % Tag name
-  attrs = [],             % Attribute list
-  children = undefined    % Children (tags or CDATA)
+  name,                   % Element name
+  attrs = [],             % Attributes list
+  children = undefined    % Children (elements or CDATA)
 }).
 
 -record(xmlendelement, {
@@ -17,12 +17,11 @@
 
 % Elements WITH namespace support.
 -record(xmlnselement, {
-  ns = undefined,         % Tag namespace
-  prefix = undefined,     % Namespace prefix
-  default_ns = undefined, % Current default namespace
-  name,                   % Tag name
-  attrs = [],             % Attribute list
-  children = undefined    % Children (tags or CDATA)
+  ns = undefined,         % Element namespace
+  declared_ns = [],       % Declared namespaces in this element
+  name,                   % Element name
+  attrs = [],             % Attributes list
+  children = undefined    % Children (elements or CDATA)
 }).
 
 -record(xmlnsendelement, {

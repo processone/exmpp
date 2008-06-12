@@ -31,13 +31,16 @@
   start_parser/0,
   start_parser/1,
   stop_parser/1,
-  port_revision/1,
+  add_known_nss/2,
+  add_known_names/2,
+  add_known_attrs/2,
   parse/2,
   parse_final/2,
   parse_document/1,
   parse_document/2,
   parse_document_fragment/1,
-  parse_document_fragment/2
+  parse_document_fragment/2,
+  port_revision/1
 ]).
 
 % Attribute handling.
@@ -125,9 +128,12 @@
 -define(EXPAT_SET_MAXSIZE,      6).
 -define(EXPAT_SET_ROOTDEPTH,    7).
 -define(EXPAT_SET_ENDELEMENT,   8).
--define(EXPAT_PARSE,            9).
--define(EXPAT_PARSE_FINAL,     10).
--define(EXPAT_SVN_REVISION,    11).
+-define(EXPAT_ADD_KNOWN_NS,     9).
+-define(EXPAT_ADD_KNOWN_NAME,  10).
+-define(EXPAT_ADD_KNOWN_ATTR,  11).
+-define(EXPAT_PARSE,           12).
+-define(EXPAT_PARSE_FINAL,     13).
+-define(EXPAT_SVN_REVISION,    14).
 
 -define(DEFAULT_PARSER_OPTIONS, [
   % no_namespace, % Handled by start_parser/1.
@@ -148,7 +154,7 @@
 -define(ESCAPE(CData), escape_using_entities(CData)).
 -endif.
 
--define(IMPLICIT_NAMESPACES, [
+-define(IMPLICIT_PREFIXED_NS, [
   {?NS_XML, "xml"}
 ]).
 
@@ -240,6 +246,67 @@ stop_parser(#xml_parser{port = Port} = _Parser) ->
     exmpp_internals:close_port(Port),
     exmpp_internals:unload_driver(?DRIVER_NAME),
     ok.
+
+%% @spec (Parser, NS_List) -> ok
+%%     Parser = xmlparser()
+%%     NS_List = [NS]
+%%     NS = atom() | string()
+%% @doc Tell the parser that `NS' are known namespaces.
+%%
+%% If enabled, all occurences of these namespaces will be represented as
+%% an atom().
+
+add_known_nss(Parser, [NS | Rest]) ->
+    add_known_ns(Parser, NS),
+    add_known_nss(Parser, Rest);
+add_known_nss(_Parser, []) ->
+    ok.
+
+add_known_ns(Parser, NS) when is_atom(NS) ->
+    add_known_ns(Parser, atom_to_list(NS));
+add_known_ns(#xml_parser{port = Port} = _Parser, NS) ->
+    port_control(Port, ?EXPAT_ADD_KNOWN_NS, term_to_binary(NS)).
+
+%% @spec (Parser, Names_List) -> ok
+%%     Parser = xmlparser()
+%%     Names_List = [Name]
+%%     Name = atom() | string()
+%% @doc Tell the parser that `Name' are known element names.
+%%
+%% If enabled, all occurences of these names will be represented as
+%% an atom().
+
+add_known_names(Parser, [Name | Rest]) ->
+    add_known_name(Parser, Name),
+    add_known_names(Parser, Rest);
+add_known_names(_Parser, []) ->
+    ok.
+
+add_known_name(Parser, Name) when is_atom(Name) ->
+    add_known_name(Parser, atom_to_list(Name));
+add_known_name(#xml_parser{port = Port} = _Parser, Name) ->
+    port_control(Port, ?EXPAT_ADD_KNOWN_NAME, term_to_binary(Name)).
+
+%% @spec (Parser, Attrs_List) -> ok
+%%     Parser = xmlparser()
+%%     Attrs_List = [Attr]
+%%     Attr = atom() | string()
+%% @doc Tell the parser that `Attr' are known element attributes.
+%%
+%% If enabled, all occurences of these attributes will be represented as
+%% an atom().
+
+add_known_attrs(Parser, [Attr | Rest]) ->
+    add_known_attr(Parser, Attr),
+    add_known_attrs(Parser, Rest);
+add_known_attrs(_Parser, []) ->
+    ok.
+
+add_known_attr(Parser, Attr) when is_atom(Attr) ->
+    add_known_attr(Parser, atom_to_list(Attr));
+add_known_attr(#xml_parser{port = Port} = _Parser, Attr) ->
+    binary_to_term(port_control(Port, ?EXPAT_ADD_KNOWN_ATTR,
+      term_to_binary(Attr))).
 
 %% @spec (Parser, Data) -> [XML_Element] | continue
 %%     Parser = xmlparser()
@@ -390,7 +457,7 @@ port_revision(#xml_parser{port = Port} = _Parser) ->
 
 %% @spec (Attrs, Attr_Name) -> Attr | undefined
 %%     Attrs = [xmlnsattribute() | xmlattribute()]
-%%     Attr_Name = string() | atom()
+%%     Attr_Name = atom() | string()
 %%     Attr = xmlnsattribute() | xmlattribute()
 %% @doc Return the attribute named `Attr_Name' from the list.
 %%
@@ -410,7 +477,8 @@ get_attribute_node_from_list([], _Name) ->
 
 %% @spec (Attrs, NS, Attr_Name) -> Attr | undefined
 %%     Attrs = [xmlnsattribute()]
-%%     Attr_Name = string() | atom()
+%%     NS = atom() | string()
+%%     Attr_Name = atom() | string()
 %%     Attr = xmlnsattribute()
 %% @doc Return the attribute named `Attr_Name' from the list with the
 %% `NS' namespace URI.
@@ -428,8 +496,8 @@ get_attribute_node_from_list([], _NS, _Name) ->
     undefined.
 
 %% @spec (XML_Element, Attr_Name) -> Attr | undefined
-%%     XML_Element = xmlnselement() | xmlelement()
-%%     Attr_Name = string() | atom()
+%%     XML_Element = xmlnselement() | xmlelement() | undefined
+%%     Attr_Name = atom() | string()
 %%     Attr = xmlnsattribute() | xmlattribute()
 %% @doc Return the attribute named `Attr_Name'.
 %%
@@ -443,9 +511,9 @@ get_attribute_node(undefined, _Name) ->
     undefined.
 
 %% @spec (XML_Element, NS, Attr_Name) -> Attr | undefined
-%%     XML_Element = xmlnselement()
-%%     NS = atom()
-%%     Attr_Name = string() | atom()
+%%     XML_Element = xmlnselement() | undefined
+%%     NS = atom() | string()
+%%     Attr_Name = atom() | string()
 %%     Attr = xmlnsattribute()
 %% @doc Return the attribute named `Attr_Name' with the `NS' namespace URI.
 %%
@@ -458,7 +526,7 @@ get_attribute_node(undefined, _NS, _Name) ->
 
 %% @spec (Attrs, Attr_Name) -> Attr_Value | nil()
 %%     Attrs = [xmlnsattribute() | xmlattribute()]
-%%     Attr_Name = string() | atom()
+%%     Attr_Name = atom() | string()
 %%     Attr_Value = string()
 %% @doc Return the value of the attribute named `Attr_Name' from the list.
 %%
@@ -476,8 +544,8 @@ get_attribute_from_list(Attrs, Attr_Name) ->
 
 %% @spec (Attrs, NS, Attr_Name) -> Attr_Value | nil()
 %%     Attrs = [xmlnsattribute()]
-%%     NS = atom()
-%%     Attr_Name = string() | atom()
+%%     NS = atom() | string()
+%%     Attr_Name = atom() | string()
 %%     Attr_Value = string()
 %% @doc Return the value of the attribute named `Attr_Name' from the
 %% list with the `NS' namespace URI.
@@ -493,8 +561,8 @@ get_attribute_from_list(Attrs, NS, Attr_Name) ->
     end.
 
 %% @spec (XML_Element, Attr_Name) -> Attr_Value | nil()
-%%     XML_Element = xmlnselement() | xmlelement()
-%%     Attr_Name = string() | atom()
+%%     XML_Element = xmlnselement() | xmlelement() | undefined
+%%     Attr_Name = atom() | string()
 %%     Attr_Value = string()
 %% @doc Return the value of the attribute named `Attr_Name'.
 %%
@@ -508,9 +576,9 @@ get_attribute(undefined, _Name) ->
     "".
 
 %% @spec (XML_Element, NS, Attr_Name) -> Attr_Value | nil()
-%%     XML_Element = xmlnselement()
-%%     NS = atom()
-%%     Attr_Name = string() | atom()
+%%     XML_Element = xmlnselement() | undefined
+%%     NS = atom() | string()
+%%     Attr_Name = atom() | string()
 %%     Attr_Value = string()
 %% @doc Return the value of the attribute named `Attr_Name' with the
 %% `NS' namespace URI.
@@ -524,7 +592,7 @@ get_attribute(undefined, _NS, _Name) ->
 
 %% @spec (Attrs, Attr_Name) -> bool()
 %%     Attrs = [xmlattribute() | xmlattribute()]
-%%     Attr_Name = strign() | atom()
+%%     Attr_Name = atom() | string()
 %% @doc Check the presence of attribute `Attr_Name' in the list.
 
 has_attribute_in_list(Attrs, Name) ->
@@ -535,8 +603,8 @@ has_attribute_in_list(Attrs, Name) ->
 
 %% @spec (Attrs, NS, Attr_Name) -> bool()
 %%     Attrs = [xmlattribute() | xmlattribute()]
-%%     NS = atom()
-%%     Attr_Name = strign() | atom()
+%%     NS = atom() | string()
+%%     Attr_Name = atom() | string()
 %% @doc Check the presence of attribute `Attr_Name' with namespace `NS'
 %% in the list.
 
@@ -547,8 +615,8 @@ has_attribute_in_list(Attrs, NS, Name) ->
     end.
 
 %% @spec (XML_Element, Attr_Name) -> bool()
-%%     XML_Element = xmlnselement() | xmlelement()
-%%     Attr_Name = strign() | atom()
+%%     XML_Element = xmlnselement() | xmlelement() | undefined
+%%     Attr_Name = atom() | string()
 %% @doc Check the presence of attribute `Attr_Name' in the XML element.
 
 has_attribute(#xmlnselement{attrs = Attrs} = _XML_Element, Name) ->
@@ -559,9 +627,9 @@ has_attribute(undefined, _Name) ->
     false.
 
 %% @spec (XML_Element, NS, Attr_Name) -> bool()
-%%     XML_Element = xmlnselement() | xmlelement()
-%%     NS = atom()
-%%     Attr_Name = strign() | atom()
+%%     XML_Element = xmlnselement() | xmlelement() | undefined
+%%     NS = atom() | string()
+%%     Attr_Name = atom() | string()
 %% @doc Check the presence of attribute `Attr_Name' with namespace `NS'
 %% in the XML element.
 
@@ -572,7 +640,7 @@ has_attribute(undefined, _NS, _Name) ->
 
 %% @spec (Attrs, Attr_Name, Attr_Value) -> New_Attrs
 %%     Attrs = [xmlnsattribute() | xmlattribute()]
-%%     Attr_Name = string() | atom()
+%%     Attr_Name = atom() | string()
 %%     Attr_Value = string()
 %%     New_Attrs = [xmlnsattribute() | xmlattribute()]
 %% @doc Add a new attribute or change the value of an existing attribute
@@ -610,8 +678,8 @@ set_attribute_in_list2([], Name, Value, New_Attrs) ->
 
 %% @spec (Attrs, NS, Attr_Name, Attr_Value) -> New_Attrs
 %%     Attrs = [xmlnsattribute()]
-%%     NS = atom()
-%%     Attr_Name = string() | atom()
+%%     NS = atom() | string()
+%%     Attr_Name = atom() | string()
 %%     Attr_Value = string()
 %%     New_Attrs = [xmlnsattribute()]
 %% @doc Add a new attribute or change the value of an existing attribute
@@ -636,8 +704,8 @@ set_attribute_in_list2([], NS, Name, Value, New_Attrs) ->
     New_Attrs ++ [#xmlattr{ns = NS, name = Name, value = Value}].
 
 %% @spec (XML_Element, Attr_Name, Attr_Value) -> New_XML_Element
-%%     XML_Element = [xmlnselement() | xmlelement()]
-%%     Attr_Name = string() | atom()
+%%     XML_Element = xmlnselement() | xmlelement()
+%%     Attr_Name = atom() | string()
 %%     Attr_Value = string()
 %%     New_XML_Element = xmlnselement() | xmlelement()
 %% @doc Add a new attribute or change the value of an existing attribute.
@@ -676,8 +744,8 @@ set_attribute2([], Name, Value, New_Attrs) ->
 
 %% @spec (XML_Element, NS, Attr_Name, Attr_Value) -> New_XML_Element
 %%     XML_Element = xmlnselement() | xmlelement()
-%%     NS = atom()
-%%     Attr_Name = string() | atom()
+%%     NS = atom() | string()
+%%     Attr_Name = atom() | string()
 %%     Attr_Value = string()
 %%     New_XML_Element = xmlnselement() | xmlelement()
 %% @doc Add a new attribute or change the value of an existing attribute
@@ -702,8 +770,8 @@ set_attribute_ns2([], NS, Name, Value, New_Attrs) ->
 %% @spec (XML_Element, Attrs_Spec) -> New_XML_Element
 %%     XML_Element = xmlnselement() | xmlelement()
 %%     Attrs_Spec = [{Name, Value} | {NS, Name, Value}]
-%%       NS = atom()
-%%       Name = string() | atom()
+%%       NS = atom() | string()
+%%       Name = atom() | string()
 %%       Value = string()
 %%     New_XML_Element = xmlnselement() | xmlelement()
 %% @doc Set multiple attributes at a time.
@@ -724,7 +792,7 @@ set_attributes(XML_Element, []) ->
 
 %% @spec (Attrs, Attr_Name) -> New_Attrs
 %%     Attrs = [xmlnsattribute() | xmlattribute()]
-%%     Attr_Name = string() | atom()
+%%     Attr_Name = atom() | string()
 %%     New_Attrs = [xmlnsattribute() | xmlattribute()]
 %% @doc Remove attribute named `Attr_Name' and return the new list.
 %%
@@ -749,7 +817,7 @@ remove_attribute_from_list2([], _Name, New_Attrs) ->
 
 %% @spec (Attrs, NS, Attr_Name) -> New_Attrs
 %%     Attrs = [xmlnsattribute() | xmlattribute()]
-%%     Attr_Name = string() | atom()
+%%     Attr_Name = atom() | string()
 %%     New_Attrs = [xmlnsattribute() | xmlattribute()]
 %% @doc Remove attribute named `Attr_Name' with the `NS' namespace URI
 %% and return the new list.
@@ -773,7 +841,7 @@ remove_attribute_from_list2([], _NS, _Name, New_Attrs) ->
 
 %% @spec (XML_Element, Attr_Name) -> New_XML_Element
 %%     XML_Element = xmlnselement() | xmlelement()
-%%     Attr_Name = string() | atom()
+%%     Attr_Name = atom() | string()
 %%     New_XML_Element = xmlnselement() | xmlelement()
 %% @doc Remove attribute named `Attr_Name' and return the new element.
 %%
@@ -790,8 +858,8 @@ remove_attribute(#xmlelement{attrs = Attrs} = XML_Element, Name) ->
 
 %% @spec (XML_Element, NS, Attr_Name) -> New_XML_Element
 %%     XML_Element = xmlnselement()
-%%     NS = atom()
-%%     Attr_Name = string() | atom()
+%%     NS = atom() | string()
+%%     Attr_Name = atom() | string()
 %%     New_XML_Element = xmlnselement()
 %% @doc Remove attribute named `Attr_Name' with the `NS' namespace URI
 %% and return the new element.
@@ -809,8 +877,8 @@ remove_attribute(#xmlnselement{attrs = Attrs} = XML_Element, NS, Name) ->
 % --------------------------------------------------------------------
 
 %% @spec (XML_Element, Name) -> XML_Subelement | undefined
-%%     XML_Element = xmlnselement() | xmlelement()
-%%     Name = string() | atom()
+%%     XML_Element = xmlnselement() | xmlelement() | undefined
+%%     Name = atom() | string()
 %%     XML_Subelement = xmlnselement() | xmlelement()
 %% @doc Search in the children of `XML_Element' an element named `Name'.
 %%
@@ -839,9 +907,9 @@ get_element_by_name2(undefined, _Name) ->
     undefined.
 
 %% @spec (XML_Element, NS, Name) -> XML_Subelement | undefined
-%%     XML_Element = xmlnselement()
-%%     NS = atom()
-%%     Name = string() | atom()
+%%     XML_Element = xmlnselement() | undefined
+%%     NS = atom() | string()
+%%     Name = atom() | string()
 %%     XML_Subelement = xmlnselement()
 %% @doc Search in the children of `XML_Element' an element named `Name'
 %% with `NS' namespace URI.
@@ -867,8 +935,8 @@ get_element_by_name2(undefined, _NS, _Name) ->
     undefined.
 
 %% @spec (XML_Element, Name) -> [XML_Subelement]
-%%     XML_Element = xmlnselement() | xmlelement()
-%%     Name = string() | atom()
+%%     XML_Element = xmlnselement() | xmlelement() | undefined
+%%     Name = atom() | string()
 %%     XML_Subelement = xmlnselement() | xmlelement()
 %% @doc Search in the children of `XML_Element' for all the elements
 %% named `Name'
@@ -897,9 +965,9 @@ filter_by_name(Searched_Name) ->
     end.
 
 %% @spec (XML_Element, NS, Name) -> [XML_Subelement]
-%%     XML_Element = xmlnselement()
-%%     Name = string() | atom()
-%%     NS = atom()
+%%     XML_Element = xmlnselement() | undefined
+%%     NS = atom() | string()
+%%     Name = atom() | string()
 %%     XML_Subelement = xmlnselement()
 %% @doc Search in the children of `XML_Element' for all the elements
 %% named `Name' with `NS' namespace URI.
@@ -928,11 +996,11 @@ filter_by_name(Searched_NS, Searched_Name) ->
     end.
 
 %% @spec (XML_Element, NS) -> XML_Subelement | undefined
-%%     XML_Element = xmlnselement()
-%%     NS = atom()
+%%     XML_Element = xmlnselement() | undefined
+%%     NS = atom() | string()
 %%     XML_Subelement = xmlnselement()
-%% @doc Search in the children of `XML_Element' an element with `NS'
-%% namespace URI.
+%% @doc Search in the children of `XML_Element' the first element with
+%% `NS' namespace URI.
 %%
 %% If no element with the given namespace is found, it returns
 %% `undefined'. This will only search among direct children.
@@ -957,7 +1025,7 @@ get_element_by_ns2(undefined, _NS) ->
     undefined.
 
 %% @spec (XML_Element) -> [XML_Subelement]
-%%     XML_Element = xmlnselement() | xmlelement()
+%%     XML_Element = xmlnselement() | xmlelement() | undefined
 %%     XML_Subelement = xmlnselement() | xmlelement()
 %% @doc Get all the element children of the given element, skipping
 %% non-element nodes likes cdata.
@@ -1106,7 +1174,7 @@ set_children(#xmlelement{} = XML_Element, New_Children) ->
 % --------------------------------------------------------------------
 
 %% @spec (Children) -> CData
-%%     Children = undefined | [xmlnselement() | xmlelement() | xmlcdata()]
+%%     Children = [xmlnselement() | xmlelement() | xmlcdata()] | undefined
 %%     CData = binary()
 %% @doc Concatenate and return any character data from the given
 %% children list.
@@ -1126,7 +1194,7 @@ get_cdata_from_list2([], Data) ->
     lists:reverse(Data).
 
 %% @spec (Children) -> CData
-%%     Children = undefined | [xmlnselement() | xmlelement() | xmlcdata()]
+%%     Children = [xmlnselement() | xmlelement() | xmlcdata()] | undefined
 %%     CData = string()
 %% @doc Concatenate and return any character data from the given
 %% children list.
@@ -1135,7 +1203,7 @@ get_cdata_from_list_as_list(Children) ->
     binary_to_list(get_cdata_from_list(Children)).
 
 %% @spec (XML_Element) -> CData
-%%     XML_Element = xmlnselement() | xmlelement()
+%%     XML_Element = xmlnselement() | xmlelement() | undefined
 %%     CData = binary()
 %% @doc Concatenate and return any character data of the given XML
 %% element.
@@ -1154,7 +1222,7 @@ get_cdata(undefined) ->
     <<>>.
 
 %% @spec (XML_Element) -> CData
-%%     XML_Element = xmlnselement() | xmlelement()
+%%     XML_Element = xmlnselement() | xmlelement() | undefined
 %%     CData = string()
 %% @doc Concatenate and return any character data of the given XML
 %% element.
@@ -1163,8 +1231,8 @@ get_cdata_as_list(XML_Element) ->
     binary_to_list(get_cdata(XML_Element)).
 
 %% @spec (Children) -> New_Children
-%%     Children = undefined | [xmlnselement() | xmlelement() | xmlcdata()]
-%%     New_Children = undefined | [xmlnselement() | xmlelement() | xmlcdata()]
+%%     Children = [xmlnselement() | xmlelement() | xmlcdata()] | undefined
+%%     New_Children = [xmlnselement() | xmlelement() | xmlcdata()] | undefined
 %% @doc Regroup all splitted {@link xmlcdata()} in a unique one.
 
 normalize_cdata_in_list(undefined) ->
@@ -1206,8 +1274,8 @@ normalize_cdata(#xmlelement{children = Children} = XML_Element) ->
     XML_Element#xmlelement{children = New_Children}.
 
 %% @spec (Children, CData) -> New_Children
-%%     Children = undefined | [xmlnselement() | xmlelement() | xmlcdata()]
-%%     CData = string() | binary()
+%%     Children = [xmlnselement() | xmlelement() | xmlcdata()] | undefined
+%%     CData = binary() | string()
 %%     New_Children = [xmlnselement() | xmlelement() | xmlcdata()]
 %% @doc Replace any character data by `CData' in the list.
 %%
@@ -1226,7 +1294,7 @@ set_cdata_in_list(Children, CData) ->
 
 %% @spec (XML_Element, CData) -> New_XML_Element
 %%     XML_Element = xmlnselement() | xmlelement()
-%%     CData = string() | binary()
+%%     CData = binary() | string()
 %%     New_XML_Element = xmlnselement() | xmlelement()
 %% @doc Replace any character data by `CData'.
 %%
@@ -1240,8 +1308,8 @@ set_cdata(#xmlelement{children = Children} = XML_Element, CData) ->
     XML_Element#xmlelement{children = New_Children}.
 
 %% @spec (Children) -> New_Children
-%%     Children = undefined | [xmlnselement() | xmlelement() | xmlcdata()]
-%%     New_Children = undefined | [xmlnselement() | xmlelement()]
+%%     Children = [xmlnselement() | xmlelement() | xmlcdata()] | undefined
+%%     New_Children = [xmlnselement() | xmlelement()] | undefined
 %% @doc Remove any character data from the given XML element children
 %% list.
 
@@ -1279,7 +1347,7 @@ remove_cdata(#xmlelement{children = Children} = XML_Element) ->
 %%     XML_Subelement = xmlnselement() | xmlelement()
 %%     Attr_Value = string()
 %%     CData = binary()
-%%     Not_Found = nil()
+%%     Not_Found = nil() | <<>> | undefined
 %% @throws {xml, path, ending_component_not_at_the_end, Path} |
 %%         {xml, path, invalid_component,               Path}
 %% @doc Follow the given path and return what's pointed by the last
@@ -1300,12 +1368,12 @@ remove_cdata(#xmlelement{children = Children} = XML_Element) ->
 
 get_path(XML_Element, [{element, Name} | Path]) ->
     case get_element_by_name(XML_Element, Name) of
-        undefined      -> "";
+        undefined      -> get_path_not_found(Path);
         XML_Subelement -> get_path(XML_Subelement, Path)
     end;
 get_path(XML_Element, [{element, NS, Name} | Path]) ->
     case get_element_by_name(XML_Element, NS, Name) of
-        undefined      -> "";
+        undefined      -> get_path_not_found(Path);
         XML_Subelement -> get_path(XML_Subelement, Path)
     end;
 get_path(XML_Element, [{attribute, Name}]) ->
@@ -1321,6 +1389,23 @@ get_path(_XML_Element, [{attribute, _Name} | _Rest] = Path) ->
 get_path(_XML_Element, [cdata | _Rest] = Path) ->
     throw({xml, path, ending_component_not_at_the_end, Path});
 get_path(_XML_Element, Path) ->
+    throw({xml, path, invalid_component, Path}).
+
+get_path_not_found([{element, _Name} | Rest]) ->
+    get_path_not_found(Rest);
+get_path_not_found([{attribute, _Name}]) ->
+    "";
+get_path_not_found([{attribute, _NS, _Name}]) ->
+    "";
+get_path_not_found([cdata]) ->
+    <<>>;
+get_path_not_found([]) ->
+    undefined;
+get_path_not_found([{attribute, _Name} | _Rest] = Path) ->
+    throw({xml, path, ending_component_not_at_the_end, Path});
+get_path_not_found([cdata | _Rest] = Path) ->
+    throw({xml, path, ending_component_not_at_the_end, Path});
+get_path_not_found(Path) ->
     throw({xml, path, invalid_component, Path}).
 
 % --------------------------------------------------------------------
@@ -1341,7 +1426,7 @@ xmlnselement_to_xmlelement(XML_Element) ->
 %%     XML_NS_Element = xmlnselement() | xmlelement() | xmlcdata()
 %%     Default_NS = [NS]
 %%     Prefixed_NS = [{NS, Prefix}]
-%%     NS = atom()
+%%     NS = atom() | string()
 %%     Prefix = string()
 %%     XML_Element = xmlelement() | xmlcdata()
 %% @doc Convert an {@link xmlnselement()} to an {@link xmlelement()} tuple.
@@ -1357,127 +1442,113 @@ xmlnselement_to_xmlelement(XML_Element) ->
 %% servers expects a `stream' prefix for the `<stream>' tag and the
 %% default namespace declaration in this same element.
 
-xmlnselement_to_xmlelement(
-  #xmlnselement{ns = NS, prefix = Prefix, default_ns = Curr_Def_NS,
-  name = Name, attrs = Attrs, children = Children}, Default_NS, Prefixed_NS) ->
-    {Attrs2, Prefixed_NS2} = xmlnsattributes_to_xmlattributes(
-      Attrs, Prefixed_NS),
-    NS_A = if
-        is_list(NS)   -> list_to_atom(NS);
-        true          -> NS
-    end,
+xmlnselement_to_xmlelement(#xmlnselement{ns = NS, name = Name, attrs = Attrs,
+  declared_ns = Declared_NS, children = Children}, Default_NS, Prefixed_NS) ->
+    % First, we add namespace declarations to element attributes.
+    {Prefix, Attrs1, Default_NS1, Prefixed_NS1} = forward_declare_ns(NS,
+      Declared_NS, Attrs, Default_NS, Prefixed_NS),
+    % Then, we convert attributes ot the old format.
+    {New_Attrs, Prefixed_NS2} = xmlnsattributes_to_xmlattributes(Attrs1,
+      Prefixed_NS1),
+    % We can now proceed with the modification of the name.
     Name_S = if
         is_atom(Name) -> atom_to_list(Name);
         true          -> Name
     end,
-    {New_Name, New_Attrs, New_Default_NS,
-      New_Prefixed_NS} = case Default_NS of
-        [NS_A | _] ->
-            % Use the default namespace.
-            {
-              Name_S,
-              Attrs2,
-              Default_NS,
-              Prefixed_NS2
-            };
-        _ when NS_A /= undefined ->
-            case lists:keysearch(NS_A, 1, Prefixed_NS2 ++
-              ?IMPLICIT_NAMESPACES) of
-                {value, {_NS_A, Other_Prefix}} ->
-                    % Use an already declared prefix.
-                    {
-                      ?PREFIXED_NAME(Other_Prefix, Name_S),
-                      Attrs2,
-                      Default_NS,
-                      Prefixed_NS2
-                    };
-                false when Prefix /= undefined ->
-                    % Never declared and provide a new prefix.
-                    NS_Decl = {"xmlns:" ++ Prefix, atom_to_list(NS_A)},
-                    {NS_Decl2, Default_NS2} = case Default_NS of
-                        [Curr_Def_NS | _] ->
-                            % We do not need to declare a default namespace
-                            % at the same time.
-                            {
-                              [NS_Decl],
-                              Default_NS
-                            };
-                        _ when Curr_Def_NS /= undefined ->
-                            % This element declares a default namespace
-                            % beside its own namespace.
-                            {
-                              [NS_Decl, {"xmlns", atom_to_list(Curr_Def_NS)}],
-                              [Curr_Def_NS | Default_NS]
-                            };
-                        _ ->
-                            {
-                              [NS_Decl],
-                              Default_NS
-                            }
-                    end,
-                    {
-                      ?PREFIXED_NAME(Prefix, Name_S),
-                      NS_Decl2 ++ Attrs2,
-                      Default_NS2,
-                      [{NS_A, Prefix} | Prefixed_NS2]
-                    };
-                false ->
-                    % Never declared and want a DEFAULT
-                    % namespace.
-                    NS_Decl = {"xmlns", atom_to_list(NS_A)},
-                    {
-                      Name_S,
-                      [NS_Decl | Attrs2],
-                      [NS_A | Default_NS],
-                      Prefixed_NS2
-                    }
-            end;
-        _ ->
-            {
-              Name_S,
-              Attrs2,
-              Default_NS,
-              Prefixed_NS2
-            }
-      end,
-      New_Children = xmlnselements_to_xmlelements(Children,
-        New_Default_NS, New_Prefixed_NS),
-      #xmlelement{name = New_Name, attrs = New_Attrs,
-        children = New_Children};
-xmlnselement_to_xmlelement(#xmlnsendelement{ns = NS, prefix = Prefix,
-  name = Name}, Default_NS, Prefixed_NS) ->
-    NS_A = if
-        is_list(NS)   -> list_to_atom(NS);
-        true          -> NS
+    New_Name = case Prefix of
+        none -> Name_S;
+        _    -> Prefix ++ ":" ++ Name_S
     end,
+    % Treat children.
+    New_Children = xmlnselements_to_xmlelements(Children,
+      Default_NS1, Prefixed_NS2),
+    % Now, create the final #xmlelement.
+    #xmlelement{name = New_Name, attrs = New_Attrs, children = New_Children};
+xmlnselement_to_xmlelement(#xmlnsendelement{ns = NS, name = Name,
+  prefix = Wanted_Prefix}, Default_NS, Prefixed_NS) ->
     Name_S = if
         is_atom(Name) -> atom_to_list(Name);
         true          -> Name
     end,
     New_Name = case Default_NS of
-        [NS_A | _] ->
+        [NS | _] ->
+            % This closing tag uses the default namespace.
             Name_S;
-        _ when NS_A /= undefined ->
-            case lists:keysearch(NS_A, 1, Prefixed_NS ++
-              ?IMPLICIT_NAMESPACES) of
-                {value, {_NS_A, Other_Prefix}} ->
-                    ?PREFIXED_NAME(Other_Prefix, Name_S);
-                _ when Prefix /= undefined ->
-                    ?PREFIXED_NAME(Prefix, Name_S);
-                _ ->
+        _ ->
+            % Search a prefix in already declared namespaces.
+            case search_in_prefixed_ns(NS, Prefixed_NS) of
+                undefined  when Wanted_Prefix /= undefined ->
+                    Wanted_Prefix ++ ":" ++ Name_S;
+                undefined ->
                     % Too late to declare something; the
                     % namespace should have been provided
                     % by the caller.
-                    Name_S
-            end;
-        _ ->
-            Name_S
+                    Name_S;
+                Prefix ->
+                    Prefix ++ ":" ++ Name_S
+            end
     end,
     #xmlendelement{name = New_Name};
 xmlnselement_to_xmlelement(XML_El, _Default_NS, _Prefixed_NS) ->
     % xmlelement() or xmlcdata().
     XML_El.
 
+% Function called to convert element attributes.
+xmlnsattributes_to_xmlattributes(Attrs, Prefixed_NS) ->
+    xmlnsattributes_to_xmlattributes2(Attrs, Prefixed_NS, []).
+
+xmlnsattributes_to_xmlattributes2([#xmlattr{ns = NS, name = Name,
+  value = Value, prefix = Wanted_Prefix} | Rest],
+  Prefixed_NS, Converted_Attrs) ->
+    Name_S = if
+        is_atom(Name) -> atom_to_list(Name);
+        true          -> Name
+    end,
+    {New_Name, Converted_Attrs1, Prefixed_NS1} = case NS of
+        undefined ->
+            {
+              Name_S,
+              Converted_Attrs,
+              Prefixed_NS
+            };
+        _ ->
+            case search_in_prefixed_ns(NS, Prefixed_NS) of
+                undefined ->
+                    % Never declared.
+                    Prefix = case Wanted_Prefix of
+                        undefined ->
+                            % Doesn't provide a prefix, it must be generated.
+                            % FIXME Generate a random prefix.
+                            new_auto_prefix(Prefixed_NS);
+                        _ ->
+                            % Use the desired prefix.
+                            Wanted_Prefix
+                    end,
+                    NS_S = if
+                        is_atom(NS) -> atom_to_list(NS);
+                        true        -> NS
+                    end,
+                    NS_Decl = {"xmlns:" ++ Prefix, NS_S},
+                    {
+                      Prefix ++ ":" ++ Name_S,
+                      Converted_Attrs ++ [NS_Decl],
+                      [{NS, Prefix} | Prefixed_NS]
+                    };
+                Prefix ->
+                    % Use an already declared prefix.
+                    {
+                      Prefix ++ ":" ++ Name_S,
+                      Converted_Attrs,
+                      Prefixed_NS
+                    }
+            end
+    end,
+    xmlnsattributes_to_xmlattributes2(Rest, Prefixed_NS1,
+      [{New_Name, Value} | Converted_Attrs1]);
+xmlnsattributes_to_xmlattributes2([], Prefixed_NS, Converted_Attrs) ->
+    {lists:reverse(Converted_Attrs), Prefixed_NS}.
+
+% Function called to convert element's children.
 xmlnselements_to_xmlelements(undefined, _Default_NS, _Prefixed_NS) ->
     undefined;
 xmlnselements_to_xmlelements([], _Default_NS, _Prefixed_NS) ->
@@ -1494,58 +1565,89 @@ xmlnselements_to_xmlelements2([XML_NS_Element | Rest], XML_Elements,
 xmlnselements_to_xmlelements2([], XML_Elements, _Default_NS, _Prefixed_NS) ->
     lists:reverse(XML_Elements).
 
-xmlnsattributes_to_xmlattributes(Attrs, Prefixed_NS) ->
-    xmlnsattributes_to_xmlattributes2(Attrs, Prefixed_NS, []).
-
-xmlnsattributes_to_xmlattributes2(
-  [#xmlattr{ns = NS, prefix = Prefix, name = Name, value = Value} | Rest],
-  Prefixed_NS, Converted_Attrs) ->
-    Name_S = if
-        is_atom(Name) -> atom_to_list(Name);
-        true          -> Name
-    end,
-    {New_Name, New_Converted_Attrs, New_Prefixed_NS} = case NS of
-        undefined ->
-            {
-              Name_S,
-              Converted_Attrs,
-              Prefixed_NS
-            };
+% Helpers.
+search_in_prefixed_ns(NS, Prefixed_NS) ->
+    case lists:keysearch(NS, 1, Prefixed_NS) of
+        {value, {_NS, Prefix}} ->
+            Prefix;
         _ ->
-            case lists:keysearch(NS, 1,
-              Prefixed_NS ++ ?IMPLICIT_NAMESPACES) of
-                {value, {_NS, Other_Prefix}} ->
-                    % Use an already declared prefix.
-                    {
-                      ?PREFIXED_NAME(Other_Prefix, Name_S),
-                      Converted_Attrs,
-                      Prefixed_NS
-                    };
-                false ->
-                    % Never declared.
-                    New_Prefix = case Prefix of
-                        undefined ->
-                            % Doesn't provide a
-                            % prefix, it must
-                            % be generated.
-                            % FIXME Generate a
-                            % random prefix.
-                            ok;
-                        _ ->
-                            Prefix
-                    end,
-                    NS_Decl = {"xmlns:" ++ New_Prefix, atom_to_list(NS)},
-                    {
-                      ?PREFIXED_NAME(New_Prefix, Name_S),
-                      Converted_Attrs ++ [NS_Decl],
-                      [{NS, New_Prefix} | Prefixed_NS]
-                    }
+            case lists:keysearch(NS, 1, ?IMPLICIT_PREFIXED_NS) of
+                {value, {_NS, Prefix}} ->
+                    Prefix;
+                _ ->
+                    undefined
             end
+    end.
+
+forward_declare_ns(Curr_NS, [{NS, none} | Rest],
+  Attrs, Default_NS, Prefixed_NS) ->
+    % Forward-declare a default namespace.
+    NS_S = if
+        is_atom(NS) -> atom_to_list(NS);
+        true        -> NS
     end,
-    xmlnsattributes_to_xmlattributes2(Rest, New_Prefixed_NS,
-      [{New_Name, Value} | New_Converted_Attrs]);
-xmlnsattributes_to_xmlattributes2([], Prefixed_NS, Converted_Attrs) ->
-    {lists:reverse(Converted_Attrs), Prefixed_NS}.
+    NS_Decl = #xmlattr{name = "xmlns", value = NS_S},
+    New_Attrs = [NS_Decl | Attrs],
+    New_Default_NS = [NS | Default_NS],
+    forward_declare_ns(Curr_NS, Rest, New_Attrs, New_Default_NS, Prefixed_NS);
+forward_declare_ns(Curr_NS, [{NS, Prefix} = PNS | Rest],
+  Attrs, Default_NS, Prefixed_NS) ->
+    case lists:member(PNS, ?IMPLICIT_PREFIXED_NS) of
+        true ->
+            % This is an implicitly declared namespace (with the same
+            % prefix). We do not re-declare it.
+            forward_declare_ns(Curr_NS, Rest, Attrs,
+              Default_NS, Prefixed_NS);
+        _ ->
+            % Forward-declare a prefixed namespace.
+            NS_S = if
+                is_atom(NS) -> atom_to_list(NS);
+                true        -> NS
+            end,
+            NS_Decl = #xmlattr{name = "xmlns:" ++ Prefix, value = NS_S},
+            New_Attrs = [NS_Decl | Attrs],
+            Prefixed_NS1 = [PNS | Prefixed_NS],
+            forward_declare_ns(Curr_NS, Rest, New_Attrs,
+              Default_NS, Prefixed_NS1)
+    end;
+forward_declare_ns(undefined, [], Attrs, Default_NS, Prefixed_NS) ->
+    {none, Attrs, Default_NS, Prefixed_NS};
+forward_declare_ns(Curr_NS, [], Attrs, Default_NS, Prefixed_NS) ->
+    % We finish with the current namespace of the element.
+    case Default_NS of
+        [Curr_NS | _] ->
+            % The element belongs to the current default namespace.
+            % There's nothing to do.
+            {none, Attrs, Default_NS, Prefixed_NS};
+        _ ->
+            % We look for a prefixed namespace.
+            case search_in_prefixed_ns(Curr_NS, Prefixed_NS) of
+                undefined ->
+                    % This element uses a new namespace: it'll become
+                    % the new default one.
+                    Curr_NS_S = if
+                        is_atom(Curr_NS) -> atom_to_list(Curr_NS);
+                        true             -> Curr_NS
+                    end,
+                    NS_Decl = #xmlattr{name = "xmlns", value = Curr_NS_S},
+                    New_Attrs = [NS_Decl | Attrs],
+                    Default_NS1 = [Curr_NS | Default_NS],
+                    {none, New_Attrs, Default_NS1, Prefixed_NS};
+                Prefix ->
+                    % Found one: we return the corresponding prefix.
+                    {Prefix, Attrs, Default_NS, Prefixed_NS}
+            end
+    end.
+
+new_auto_prefix(Prefixed_NS) ->
+    new_auto_prefix2(Prefixed_NS, 1).
+
+new_auto_prefix2(Prefixed_NS, Seq) ->
+    Prefix = "ns" ++ integer_to_list(Seq),
+    case lists:keymember(Prefix, 2, Prefixed_NS) of
+        true  -> new_auto_prefix2(Prefixed_NS, Seq + 1);
+        false -> Prefix
+    end.
 
 %% @spec (XML_Element) -> XML_NS_Element
 %%     XML_Element = xmlelement() | xmlcdata()
@@ -1562,7 +1664,7 @@ xmlelement_to_xmlnselement(XML_Element) ->
 %%     XML_Element = xmlelement() | xmlcdata()
 %%     Default_NS = [NS]
 %%     Prefixed_NS = [{NS, Prefix}]
-%%     NS = atom()
+%%     NS = atom() | string()
 %%     Prefix = string()
 %%     XML_NS_Element = xmlnselement() | xmlelement() | xmlcdata()
 %% @doc Convert an {@link xmlelement()} to an {@link xmlnselement()}
@@ -1582,7 +1684,7 @@ xmlelement_to_xmlnselement(XML_El, Default_NS, Prefixed_NS) ->
 %%     XML_Element = xmlelement() | xmlcdata()
 %%     Default_NS = [NS]
 %%     Prefixed_NS = [{NS, Prefix}]
-%%     NS = atom()
+%%     NS = atom() | string()
 %%     Prefix = string()
 %%     XML_NS_Element = xmlnselement() | xmlelement() | xmlcdata()
 %%     New_Default_NS = [NS]
@@ -1602,78 +1704,85 @@ xmlelement_to_xmlnselement(XML_El, Default_NS, Prefixed_NS) ->
 xmlelement_to_xmlnselement_and_ns_tables(
   #xmlelement{name = Name, attrs = Attrs, children = Children},
   Default_NS, Prefixed_NS) ->
-    % Udpate NS tables by looking at each attributes for NS declarations.
+    % Udpate NS tables by looking at each attribute for NS declarations.
     % These later are removed at the same time.
-    {Attrs2, Default_NS2, Prefixed_NS2} = update_ns_from_xmlattributes(
-      Attrs, Default_NS, Prefixed_NS),
+    {Declared_NS, Attrs1, Default_NS1, Prefixed_NS1} =
+      update_ns_from_xmlattributes(Attrs, Default_NS, Prefixed_NS),
     % Convert attributes and children to the new format.
-    Attrs3 = xmlattributes_to_xmlnsattributes(Attrs2, Prefixed_NS2),
-    Children2 = xmlelements_to_xmlnselements(Children,
-      Default_NS2, Prefixed_NS2),
+    New_Attrs = xmlattributes_to_xmlnsattributes(Attrs1, Prefixed_NS1),
+    New_Children = xmlelements_to_xmlnselements(Children,
+      Default_NS1, Prefixed_NS1),
     % Check the element namespace and convert it to the new format.
-    XML_NS_Element = case string:tokens(Name, ":") of
+    Name_S = if
+        is_atom(Name) -> atom_to_list(Name);
+        true          -> Name
+    end,
+    XML_NS_Element = case string:tokens(Name_S, ":") of
         [Prefix, Real_Name] ->
             Real_Name_A = list_to_atom(Real_Name),
-            case lists:keysearch(Prefix, 2,
-              Prefixed_NS2 ++ ?IMPLICIT_NAMESPACES) of
-                {value, {NS, _Prefix}} ->
-                    #xmlnselement{
-                      ns = NS,
-                      prefix = Prefix,
-                      name = Real_Name_A,
-                      attrs = Attrs3,
-                      children = Children2
-                    };
-                false ->
+            case search_prefix_in_prefixed_ns(Prefix, Prefixed_NS1) of
+                undefined ->
                     % Namespace never declared.
                     #xmlnselement{
                       ns = undefined,
-                      prefix = Prefix,
+                      declared_ns = Declared_NS,
                       name = Real_Name_A,
-                      attrs = Attrs3,
-                      children = Children2
+                      attrs = New_Attrs,
+                      children = New_Children
+                    };
+                NS ->
+                    #xmlnselement{
+                      ns = NS,
+                      declared_ns = Declared_NS,
+                      name = Real_Name_A,
+                      attrs = New_Attrs,
+                      children = New_Children
                     }
             end;
         [Real_Name] ->
             Real_Name_A = list_to_atom(Real_Name),
-            case Default_NS2 of
+            case Default_NS1 of
                 [NS | _] ->
+                    % Uses the current default namespace.
                     #xmlnselement{
                       ns = NS,
-                      prefix = undefined,
+                      declared_ns = lists:delete({NS, none}, Declared_NS),
                       name = Real_Name_A,
-                      attrs = Attrs3,
-                      children = Children2
+                      attrs = New_Attrs,
+                      children = New_Children
                     };
                 _ ->
                     % No default namespace declared.
                     #xmlnselement{
                       ns = undefined,
-                      prefix = undefined,
+                      declared_ns = Declared_NS,
                       name = Real_Name_A,
-                      attrs = Attrs3,
-                      children = Children2
+                      attrs = New_Attrs,
+                      children = New_Children
                     }
             end
     end,
-    {XML_NS_Element, Default_NS2, Prefixed_NS2};
+    {XML_NS_Element, Default_NS1, Prefixed_NS1};
 xmlelement_to_xmlnselement_and_ns_tables(
   #xmlendelement{name = Name}, Default_NS, Prefixed_NS) ->
-    XML_NS_Element = case string:tokens(Name, ":") of
+    Name_S = if
+        is_atom(Name) -> atom_to_list(Name);
+        true          -> Name
+    end,
+    XML_NS_Element = case string:tokens(Name_S, ":") of
         [Prefix, Real_Name] ->
             Real_Name_A = list_to_atom(Real_Name),
-            case lists:keysearch(Prefix, 2,
-              Prefixed_NS ++ ?IMPLICIT_NAMESPACES) of
-                {value, {NS, _Prefix}} ->
-                    #xmlnsendelement{
-                      ns = NS,
-                      prefix = Prefix,
-                      name = Real_Name_A
-                    };
-                false ->
+            case search_prefix_in_prefixed_ns(Prefix, Prefixed_NS) of
+                undefined ->
                     % Namespace never declared.
                     #xmlnsendelement{
                       ns = undefined,
+                      prefix = Prefix,
+                      name = Real_Name_A
+                    };
+                NS ->
+                    #xmlnsendelement{
+                      ns = NS,
                       prefix = Prefix,
                       name = Real_Name_A
                     }
@@ -1682,6 +1791,7 @@ xmlelement_to_xmlnselement_and_ns_tables(
             Real_Name_A = list_to_atom(Real_Name),
             case Default_NS of
                 [NS | _] ->
+                    % Uses the current default namespace.
                     #xmlnsendelement{
                       ns = NS,
                       prefix = undefined,
@@ -1701,70 +1811,61 @@ xmlelement_to_xmlnselement_and_ns_tables(XML_El, Default_NS, Prefixed_NS) ->
     % xmlnslement() ot xmlcdata().
     {XML_El, Default_NS, Prefixed_NS}.
 
-xmlelements_to_xmlnselements(undefined, _Default_NS, _Prefixed_NS) ->
-    undefined;
-xmlelements_to_xmlnselements([], _Default_NS, _Prefixed_NS) ->
-    [];
-xmlelements_to_xmlnselements(XML_Elements, Default_NS, Prefixed_NS) ->
-    xmlelements_to_xmlnselements2(XML_Elements, [],
-      Default_NS, Prefixed_NS).
-
-xmlelements_to_xmlnselements2([XML_Element | Rest], XML_NS_Elements,
-  Default_NS, Prefixed_NS) ->
-    XML_NS_Element = xmlelement_to_xmlnselement(XML_Element,
-      Default_NS, Prefixed_NS),
-    xmlelements_to_xmlnselements2(Rest,
-      [XML_NS_Element | XML_NS_Elements], Default_NS, Prefixed_NS);
-xmlelements_to_xmlnselements2([], XML_NS_Elements, _Default_NS, _Prefixed_NS) ->
-    lists:reverse(XML_NS_Elements).
-
+% Function called to extract namespaces and their prefix (if any).
 update_ns_from_xmlattributes(Attrs, Default_NS, Prefixed_NS) ->
-    update_ns_from_xmlattributes(Attrs, Default_NS, Prefixed_NS, []).
+    update_ns_from_xmlattributes2(Attrs, Default_NS, Prefixed_NS, [], []).
 
-update_ns_from_xmlattributes([{Name, Value} = Attr | Rest],
-  Default_NS, Prefixed_NS, Purged_Attrs) ->
+update_ns_from_xmlattributes2([{Name, Value} = Attr | Rest],
+  Default_NS, Prefixed_NS, Declared_NS, Purged_Attrs) ->
     case string:tokens(Name, ":") of
         ["xmlns"] ->
             % Default NS declaration.
-            update_ns_from_xmlattributes(Rest,
+            update_ns_from_xmlattributes2(Rest,
               [list_to_atom(Value) | Default_NS],
               Prefixed_NS,
+              [{list_to_atom(Value), none} | Declared_NS],
               Purged_Attrs);
         ["xmlns", Prefix] ->
             % Prefixed NS declaration.
-            update_ns_from_xmlattributes(Rest,
+            update_ns_from_xmlattributes2(Rest,
               Default_NS,
               [{list_to_atom(Value), Prefix} | Prefixed_NS],
+              [{list_to_atom(Value), Prefix} | Declared_NS],
               Purged_Attrs);
         _ ->
             % Irrelevant attribute.
-            update_ns_from_xmlattributes(Rest,
-              Default_NS, Prefixed_NS, Purged_Attrs ++ [Attr])
+            update_ns_from_xmlattributes2(Rest,
+              Default_NS, Prefixed_NS, Declared_NS, [Purged_Attrs | Attr])
     end;
-update_ns_from_xmlattributes([], Default_NS, Prefixed_NS, Purged_Attrs) ->
-    {Purged_Attrs, Default_NS, Prefixed_NS}.
+update_ns_from_xmlattributes2([], Default_NS, Prefixed_NS,
+  Declared_NS, Purged_Attrs) ->
+    {Declared_NS, lists:reverse(Purged_Attrs), Default_NS, Prefixed_NS}.
 
+% Function called to convert element's attributes.
 xmlattributes_to_xmlnsattributes(Attrs, Prefixed_NS) ->
     xmlattributes_to_xmlnsattributes(Attrs, Prefixed_NS, []).
 
 xmlattributes_to_xmlnsattributes([{Name, Value} | Rest],
   Prefixed_NS, Converted_Attrs) ->
-    New_Attr = case string:tokens(Name, ":") of
+    Name_S = if
+        is_atom(Name) -> atom_to_list(Name);
+        true          -> Name
+    end,
+    New_Attr = case string:tokens(Name_S, ":") of
         [Prefix, Real_Name] ->
             Real_Name_A = list_to_atom(Real_Name),
-            case lists:keysearch(Prefix, 2,
-              Prefixed_NS ++ ?IMPLICIT_NAMESPACES) of
-                {value, {NS, _Prefix}} ->
+            case search_prefix_in_prefixed_ns(Prefix, Prefixed_NS) of
+                undefined ->
+                    % Namespace never declared.
                     #xmlattr{
-                      ns = NS,
+                      ns = undefined,
                       prefix = Prefix,
                       name = Real_Name_A,
                       value = Value
                     };
-                false ->
-                    % Namespace never declared.
+                NS ->
                     #xmlattr{
-                      ns = undefined,
+                      ns = NS,
                       prefix = Prefix,
                       name = Real_Name_A,
                       value = Value
@@ -1784,6 +1885,38 @@ xmlattributes_to_xmlnsattributes([{Name, Value} | Rest],
       Converted_Attrs ++ [New_Attr]);
 xmlattributes_to_xmlnsattributes([], _Prefixed_NS, Converted_Attrs) ->
     Converted_Attrs.
+
+% Function called to convert element's children.
+xmlelements_to_xmlnselements(undefined, _Default_NS, _Prefixed_NS) ->
+    undefined;
+xmlelements_to_xmlnselements([], _Default_NS, _Prefixed_NS) ->
+    [];
+xmlelements_to_xmlnselements(XML_Elements, Default_NS, Prefixed_NS) ->
+    xmlelements_to_xmlnselements2(XML_Elements, [],
+      Default_NS, Prefixed_NS).
+
+xmlelements_to_xmlnselements2([XML_Element | Rest], XML_NS_Elements,
+  Default_NS, Prefixed_NS) ->
+    XML_NS_Element = xmlelement_to_xmlnselement(XML_Element,
+      Default_NS, Prefixed_NS),
+    xmlelements_to_xmlnselements2(Rest,
+      [XML_NS_Element | XML_NS_Elements], Default_NS, Prefixed_NS);
+xmlelements_to_xmlnselements2([], XML_NS_Elements, _Default_NS, _Prefixed_NS) ->
+    lists:reverse(XML_NS_Elements).
+
+% Helpers.
+search_prefix_in_prefixed_ns(Prefix, Prefixed_NS) ->
+    case lists:keysearch(Prefix, 2, Prefixed_NS) of
+        {value, {NS, _Prefix}} ->
+            NS;
+        _ ->
+            case lists:keysearch(Prefix, 2, ?IMPLICIT_PREFIXED_NS) of
+                {value, {NS, _Prefix}} ->
+                    NS;
+                _ ->
+                    undefined
+            end
+    end.
 
 %% @spec (XML_Element, Default_NS, Prefixed_NS) -> XML_Text
 %%     XML_Element = xmlnselement() | xmlelement()
@@ -2158,16 +2291,16 @@ handle_options([], Parser) ->
 %% encouters a closing tag above `root_depth'.
 
 %% @type xmlelement() = {xmlelement, Name, Attrs, Children}
-%%     Name = string() | atom()
+%%     Name = string()
 %%     Attrs = [xmlattribute()]
-%%     Children = undefined | [xmlelement() | xmlcdata()].
+%%     Children = [xmlelement() | xmlcdata()] | undefined.
 %% Record representing an XML tag.
 
 %% @type xmlnselement() = {xmlnselement, NS, Name, Attrs, Children}
-%%     NS = atom()
-%%     Name = string() | atom()
+%%     NS = atom() | string()
+%%     Name = atom() | string()
 %%     Attrs = [xmlnsattribute()]
-%%     Children = undefined | [xmlnselement() | xmlcdata()].
+%%     Children = [xmlnselement() | xmlcdata()] | undefined.
 %% Record representing an XML tag when namespace support is enabled.
 
 %% @type xmlcdata() = {xmlcdata, CData}
@@ -2175,13 +2308,13 @@ handle_options([], Parser) ->
 %% Record representing characters data inside an XML element.
 
 %% @type xmlattribute() = {Name, Value}
-%%     Name = string() | atom()
+%%     Name = atom() | string()
 %%     Value = string().
 %% Represents an tag attribute.
 
 %% @type xmlnsattribute() = {xmlattr, NS, Name, Value}
-%%     NS = atom()
-%%     Name = string() | atom()
+%%     NS = atom() | string()
+%%     Name = atom() | string()
 %%     Value = string().
 %% Represents an tag attribute.
 
@@ -2191,16 +2324,16 @@ handle_options([], Parser) ->
 %% `root_depth' (see {@link xmlparseroption()}).
 
 %% @type xmlnsendelement() = {xmlnsendelement, NS, Name}
-%%     NS = atom()
-%%     Name = string() | atom().
+%%     NS = atom() | string()
+%%     Name = atom() | string().
 %% Record representing an XML closing tag when namespace support is
 %% enabled, for nodes above the configured `root_depth' (see {@link
 %% xmlparseroption()}).
 
 %% @type pathcomponent() = {element, Elem_Name} | {element, NS, Elem_Name} | {attribute, Attr_Name} | {attribute, NS, Attr_Name} | cdata
-%%     NS = atom()
-%%     Elem_Name = string() | atom()
-%%     Attr_Name = string() | atom().
+%%     NS = atom() | string()
+%%     Elem_Name = atom() | string()
+%%     Attr_Name = atom() | string().
 %% Represents a path component. The `elem' tuple points to an XML
 %% element named `Elem_Name'. The `attr' tuple points to the value of
 %% the `Attr_Name' attribute. cdata asks for the character data of a

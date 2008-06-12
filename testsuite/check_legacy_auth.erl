@@ -25,154 +25,141 @@ do_check() ->
 % --------------------------------------------------------------------
 
 -define(REQUEST1,
-  {xmlnselement, ?NS_JABBER_CLIENT, undefined, undefined, 'iq', [
+  {xmlnselement, ?NS_JABBER_CLIENT, [], 'iq', [
       {xmlattr, undefined, undefined, 'type', "get"},
       {xmlattr, undefined, undefined, 'id', "foobar"},
       {xmlattr, undefined, undefined, 'to', "dest"}
     ], [
-      {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined, 'query',
+      {xmlnselement, ?NS_JABBER_AUTH, [], 'query',
         [], []}
     ]}
 ).
 
 -define(FIELDS1,
-  {xmlnselement, ?NS_JABBER_CLIENT, undefined, undefined, 'iq', [
+  {xmlnselement, ?NS_JABBER_CLIENT, [], 'iq', [
       {xmlattr, undefined, undefined, 'type', "result"},
       {xmlattr, undefined, undefined, 'id', "foobar"}
     ], [
-      {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined, 'query',
+      {xmlnselement, ?NS_JABBER_AUTH, [], 'query',
         [], [
-          {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined,
-            'username', [], []},
-          {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined,
-            'password', [], []},
-          {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined,
-            'resource', [], []}
+          {xmlnselement, ?NS_JABBER_AUTH, [], 'username', [], []},
+          {xmlnselement, ?NS_JABBER_AUTH, [], 'password', [], []},
+          {xmlnselement, ?NS_JABBER_AUTH, [], 'resource', [], []}
         ]}
     ]}
 ).
 
 -define(FIELDS2,
-  {xmlnselement, ?NS_JABBER_CLIENT, undefined, undefined, 'iq', [
+  {xmlnselement, ?NS_JABBER_CLIENT, [], 'iq', [
       {xmlattr, undefined, undefined, 'type', "result"},
       {xmlattr, undefined, undefined, 'id', "foobar"}
     ], [
-      {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined, 'query',
+      {xmlnselement, ?NS_JABBER_AUTH, [], 'query',
         [], [
-          {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined,
-            'username', [], []},
-          {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined,
-            'digest', [], []},
-          {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined,
-            'resource', [], []}
+          {xmlnselement, ?NS_JABBER_AUTH, [], 'username', [], []},
+          {xmlnselement, ?NS_JABBER_AUTH, [], 'digest', [], []},
+          {xmlnselement, ?NS_JABBER_AUTH, [], 'resource', [], []}
         ]}
     ]}
 ).
 
 -define(FIELDS3,
-  {xmlnselement, ?NS_JABBER_CLIENT, undefined, undefined, 'iq', [
+  {xmlnselement, ?NS_JABBER_CLIENT, [], 'iq', [
       {xmlattr, undefined, undefined, 'type', "result"},
       {xmlattr, undefined, undefined, 'id', "foobar"}
     ], [
-      {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined, 'query',
+      {xmlnselement, ?NS_JABBER_AUTH, [], 'query',
         [], [
-          {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined,
-            'username', [], []},
-          {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined,
-            'password', [], []},
-          {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined,
-            'digest', [], []},
-          {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined,
-            'resource', [], []}
+          {xmlnselement, ?NS_JABBER_AUTH, [], 'username', [], []},
+          {xmlnselement, ?NS_JABBER_AUTH, [], 'password', [], []},
+          {xmlnselement, ?NS_JABBER_AUTH, [], 'digest', [], []},
+          {xmlnselement, ?NS_JABBER_AUTH, [], 'resource', [], []}
         ]}
     ]}
 ).
 
 -define(PASSWORD1,
-  {xmlnselement, ?NS_JABBER_CLIENT, undefined, undefined, 'iq', [
+  {xmlnselement, ?NS_JABBER_CLIENT, [], 'iq', [
       {xmlattr, undefined, undefined, 'type', "set"},
       {xmlattr, undefined, undefined, 'id', "foobar"}
     ], [
-      {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined, 'query',
+      {xmlnselement, ?NS_JABBER_AUTH, [], 'query',
         [], [
-          {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined,
+          {xmlnselement, ?NS_JABBER_AUTH, [],
             'username', [], [{xmlcdata, <<"User">>}]},
-          {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined,
+          {xmlnselement, ?NS_JABBER_AUTH, [],
             'password', [], [{xmlcdata, <<"Password">>}]},
-          {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined,
+          {xmlnselement, ?NS_JABBER_AUTH, [],
             'resource', [], [{xmlcdata, <<"Resource">>}]}
         ]}
     ]}
 ).
 
 -define(PASSWORD2,
-  {xmlnselement, ?NS_JABBER_CLIENT, undefined, undefined, 'iq', [
+  {xmlnselement, ?NS_JABBER_CLIENT, [], 'iq', [
       {xmlattr, undefined, undefined, 'type', "set"},
       {xmlattr, undefined, undefined, 'id', "foobar"}
     ], [
-      {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined, 'query', [], [
-          {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined,
+      {xmlnselement, ?NS_JABBER_AUTH, [], 'query', [], [
+          {xmlnselement, ?NS_JABBER_AUTH, [],
             'username', [], [{xmlcdata, <<"User">>}]},
-          {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined,
+          {xmlnselement, ?NS_JABBER_AUTH, [],
             'digest', [],
             [{xmlcdata, <<"ab8bb63d7fb73e5b06b325ec1c147945cfac5a77">>}]},
-          {xmlnselement, ?NS_JABBER_AUTH, undefined, undefined,
+          {xmlnselement, ?NS_JABBER_AUTH, [],
             'resource', [], [{xmlcdata, <<"Resource">>}]}
         ]}
     ]}
 ).
 
 -define(SUCCESS1,
-  {xmlnselement, ?NS_JABBER_CLIENT, undefined, undefined, 'iq', [
+  {xmlnselement, ?NS_JABBER_CLIENT, [], 'iq', [
       {xmlattr, undefined, undefined, 'type', "result"},
       {xmlattr, undefined, undefined, 'id', "foobar"}
     ], []}
 ).
 
 -define(FAILURE1,
-  {xmlnselement, ?NS_JABBER_CLIENT, undefined, undefined, 'iq', [
+  {xmlnselement, ?NS_JABBER_CLIENT, [], 'iq', [
       {xmlattr, undefined, undefined, 'id', "foobar"},
       {xmlattr, undefined, undefined, 'type', "error"}
     ], [
-      {xmlnselement, ?NS_JABBER_CLIENT, undefined, undefined, 'error',
+      {xmlnselement, ?NS_JABBER_CLIENT, [], 'error',
         [
           {xmlattr, undefined, undefined, 'type', "auth"},
           {xmlattr, undefined, undefined, 'code', "401"}
         ], [
-          {xmlnselement, ?NS_XMPP_STANZAS, undefined, undefined,
-            'not-authorized', [], []}
+          {xmlnselement, ?NS_XMPP_STANZAS, [], 'not-authorized', [], []}
         ]}
     ]}
 ).
 
 -define(FAILURE2,
-  {xmlnselement, ?NS_JABBER_CLIENT, undefined, undefined, 'iq', [
+  {xmlnselement, ?NS_JABBER_CLIENT, [], 'iq', [
       {xmlattr, undefined, undefined, 'id', "foobar"},
       {xmlattr, undefined, undefined, 'type', "error"}
     ], [
-      {xmlnselement, ?NS_JABBER_CLIENT, undefined, undefined, 'error',
+      {xmlnselement, ?NS_JABBER_CLIENT, [], 'error',
         [
           {xmlattr, undefined, undefined, 'type', "cancel"},
           {xmlattr, undefined, undefined, 'code', "409"}
         ], [
-          {xmlnselement, ?NS_XMPP_STANZAS, undefined, undefined,
-            'conflict', [], []}
+          {xmlnselement, ?NS_XMPP_STANZAS, [], 'conflict', [], []}
         ]}
     ]}
 ).
 
 -define(FAILURE3,
-  {xmlnselement, ?NS_JABBER_CLIENT, undefined, undefined, 'iq', [
+  {xmlnselement, ?NS_JABBER_CLIENT, [], 'iq', [
       {xmlattr, undefined, undefined, 'id', "foobar"},
       {xmlattr, undefined, undefined, 'type', "error"}
     ], [
-      {xmlnselement, ?NS_JABBER_CLIENT, undefined, undefined, 'error',
+      {xmlnselement, ?NS_JABBER_CLIENT, [], 'error',
         [
           {xmlattr, undefined, undefined, 'type', "modify"},
           {xmlattr, undefined, undefined, 'code', "406"}
         ], [
-          {xmlnselement, ?NS_XMPP_STANZAS, undefined, undefined,
-            'not-acceptable', [], []}
+          {xmlnselement, ?NS_XMPP_STANZAS, [], 'not-acceptable', [], []}
         ]}
     ]}
 ).
