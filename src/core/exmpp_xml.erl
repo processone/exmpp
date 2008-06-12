@@ -1347,7 +1347,7 @@ remove_cdata(#xmlelement{children = Children} = XML_Element) ->
 %%     XML_Subelement = xmlnselement() | xmlelement()
 %%     Attr_Value = string()
 %%     CData = binary()
-%%     Not_Found = nil() | <<>> | undefined
+%%     Not_Found = nil() | binary() | undefined
 %% @throws {xml, path, ending_component_not_at_the_end, Path} |
 %%         {xml, path, invalid_component,               Path}
 %% @doc Follow the given path and return what's pointed by the last

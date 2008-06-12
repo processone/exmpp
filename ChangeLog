@@ -23,6 +23,8 @@
 
 	* src/core/exmpp_stream.erl: Use the new #xmlnselement record.
 
+	* src/core/exmpp_xml.erl: Fix a bug in the documentation.
+
 2008-06-09  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	With these commits, exmpp port drivers build with Visual C++ on
