@@ -43,7 +43,7 @@ do_check() ->
 
 -define(CHUNK_EVENT3,
   {xmlstreamend,
-    {xmlendelement, "stream"}
+    {xmlendtag, undefined, undefined, "stream"}
   }).
 
 -define(CHUNK_NS_EVENT1,
@@ -63,7 +63,7 @@ do_check() ->
 
 -define(CHUNK_NS_EVENT3,
   {xmlstreamend,
-    {xmlnsendelement, undefined, undefined, 'stream'}
+    {xmlendtag, undefined, undefined, 'stream'}
   }).
 
 test_parse_stream() ->

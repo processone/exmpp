@@ -270,16 +270,16 @@ opening_reply(#xmlnselement{attrs = Attrs} = Opening, ID) ->
     Opening#xmlnselement{attrs = Attrs2}.
 
 %% @spec () -> Closing
-%%     Closing = exmpp_xml:xmlnsendelement()
+%%     Closing = exmpp_xml:xmlendtag()
 %% @doc Make a `</stream>' closing tag.
 
 closing() ->
-    #xmlnsendelement{ns = ?NS_XMPP, prefix = ?STREAM_NS_PREFIX,
+    #xmlendtag{ns = ?NS_XMPP, prefix = ?STREAM_NS_PREFIX,
       name = 'stream'}.
 
 %% @spec (Opening) -> Closing
 %%     Opening = exmpp_xml:xmlnselement()
-%%     Closing = exmpp_xml:xmlnsendelement()
+%%     Closing = exmpp_xml:xmlendtag()
 %% @doc Make a `</stream>' closing tag for the given `Opening' tag.
 
 closing(#xmlnselement{ns = NS, declared_ns = Declared_NS, name = Name}) ->
@@ -288,7 +288,7 @@ closing(#xmlnselement{ns = NS, declared_ns = Declared_NS, name = Name}) ->
         {value, {_NS, P}}    -> P;
         _                    -> undefined
     end,
-    #xmlnsendelement{ns = NS, prefix = Prefix, name = Name}.
+    #xmlendtag{ns = NS, prefix = Prefix, name = Name}.
 
 % --------------------------------------------------------------------
 % Stream standard attributes.

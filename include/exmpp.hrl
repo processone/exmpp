@@ -11,10 +11,6 @@
   children = []           % Children (elements or CDATA)
 }).
 
--record(xmlendelement, {
-  name
-}).
-
 % Elements WITH namespace support.
 -record(xmlnselement, {
   ns = undefined,         % Element namespace
@@ -22,12 +18,6 @@
   name,                   % Element name
   attrs = [],             % Attributes list
   children = []           % Children (elements or CDATA)
-}).
-
--record(xmlnsendelement, {
-  ns = undefined,
-  prefix = undefined,
-  name
 }).
 
 % Attributes WITH namespace support.
@@ -41,6 +31,14 @@
 % Character data.
 -record(xmlcdata, {
   cdata = []              % Character data
+}).
+
+% XML end tag.
+% To use when 'children' is undefined in xmlnselement or xmlelement.
+-record(xmlendtag, {
+  ns = undefined,
+  prefix = undefined,
+  name
 }).
 
 % Processing Instruction.
@@ -65,7 +63,7 @@
 
 % Stream end.
 -record(xmlstreamend, {
-  endelement              % xmlnsendelement
+  endtag                  % xmlnsendelement
 }).
 
 % --------------------------------------------------------------------

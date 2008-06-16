@@ -120,7 +120,7 @@ do_check() ->
   ], [
     {xmlcdata, <<"Content">>}
   ]},
-  {xmlendelement, "stream:stream"}
+  {xmlendtag, undefined, undefined, "stream:stream"}
 ]).
 
 -define(TREE1_NS_END_EL, [
@@ -132,7 +132,7 @@ do_check() ->
   ], [
     {xmlcdata, <<"Content">>}
   ]},
-  {xmlnsendelement, 'ns_stream', "stream", "stream"}
+  {xmlendtag, 'ns_stream', "stream", "stream"}
 ]).
 
 -define(SOURCE2, "<element xmlns='unknown_ns' xmlns:stream='http://etherx.jabber.org/streams' xml:lang='fr' stream:version='1.0'/>").
@@ -291,13 +291,13 @@ test_parser_with_ns_root_depth() ->
 
 test_parser_with_end_element() ->
     testsuite:is(exmpp_xml:parse_document(?SOURCE1,
-        [{root_depth, 1}, endelement]),
+        [{root_depth, 1}, endtag]),
       ?TREE1_END_EL),
     ok.
 
 test_parser_with_ns_end_element() ->
     testsuite:is(exmpp_xml:parse_document(?SOURCE1,
-        [namespace, {root_depth, 1}, endelement, no_ns_check]),
+        [namespace, {root_depth, 1}, endtag, no_ns_check]),
       ?TREE1_NS_END_EL),
     ok.
 

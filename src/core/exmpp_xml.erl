@@ -108,7 +108,7 @@
   xmlelement_to_xmlnselement_and_ns_tables/3,
   document_fragment_to_list/3,
   document_to_list/1,
-  clear_endelement_tuples/1,
+  clear_endtag_tuples/1,
   escape_using_entities/1,
   escape_using_cdata/1,
   internal_escaping_function_name/0
@@ -141,7 +141,7 @@
   % ns_check,     % By default in the port driver.
   % names_check,
   % attrs_check,
-  no_endelement,
+  no_endtag,
   {root_depth, 0},
   no_maxsize
 ]).
@@ -168,7 +168,7 @@
 %%
 %% Default options are:
 %% ```
-%% [no_namespace, name_as_string, no_endelement, {root_depth, 0}, no_maxsize]
+%% [no_namespace, name_as_string, no_endtag, {root_depth, 0}, no_maxsize]
 %% '''
 %%
 %% Activating namespace support enables `ns_check'. Activating
@@ -311,7 +311,7 @@ add_known_attr(#xml_parser{port = Port} = _Parser, Attr) ->
 %% @spec (Parser, Data) -> [XML_Element] | continue
 %%     Parser = xmlparser()
 %%     Data = string() | binary()
-%%     XML_Element = xmlelement() | xmlnselement() | xmlendelement() | xmlnsendelement()
+%%     XML_Element = xmlelement() | xmlnselement() | xmlendtag()
 %% @throws {xml_parser, parsing, Reason, undefined} |
 %%         {xml_parser, parsing, malformed_xml, Reason}
 %% @doc Parse a chunk from an XML stream.
@@ -346,7 +346,7 @@ parse(#xml_parser{port = Port} = _Parser, Data) when is_binary(Data) ->
 %% @spec (Parser, Data) -> [XML_Element] | done
 %%     Parser = xmlparser()
 %%     Data = string() | binary()
-%%     XML_Element = xmlelement() | xmlnselement() | xmlendelement() | xmlnsendelement()
+%%     XML_Element = xmlelement() | xmlnselement() | xmlendtag()
 %% @throws {xml_parser, parsing, Reason, undefined} |
 %%         {xml_parser, parsing, malformed_xml, Reason}
 %% @doc Parse the last chunk from an XML stream.
@@ -373,7 +373,7 @@ parse_final(#xml_parser{port = Port} = _Parser, Data) when is_binary(Data) ->
 
 %% @spec (Document) -> [XML_Element] | done
 %%     Document = string() | binary()
-%%     XML_Element = xmlnselement() | xmlelement() | xmlnsendelement() | xmlendelement()
+%%     XML_Element = xmlnselement() | xmlelement() | xmlendtag()
 %% @doc Parse an entire XML document at once.
 %%
 %% Initializing a parser with {@link start_parser/1} isn't necessary,
@@ -386,7 +386,7 @@ parse_document(Document) ->
 %% @spec (Document, Parser_Options) -> [XML_Element] | done
 %%     Document = string() | binary()
 %%     Parser_Options = [xmlparseroption()]
-%%     XML_Element = xmlnselement() | xmlelement() | xmlnsendelement() | xmlendelement()
+%%     XML_Element = xmlnselement() | xmlelement() | xmlendtag()
 %% @doc Parse an entire XML document at once.
 %%
 %% Initializing a parser with {@link start_parser/1} isn't necessary,
@@ -408,7 +408,7 @@ parse_document(Document, Parser_Options) ->
 
 %% @spec (Fragment) -> [XML_Element]
 %%     Fragment = string() | binary()
-%%     XML_Element = xmlnselement() | xmlelement() | xmlnsendelement() | xmlendelement()
+%%     XML_Element = xmlnselement() | xmlelement() | xmlendtag()
 %% @doc Parse a fragment of an XML document at once.
 %%
 %% Initializing a parser with {@link start_parser/1} isn't necessary,
@@ -422,7 +422,7 @@ parse_document_fragment(Fragment) ->
 %% @spec (Fragment, Parser_Options) -> [XML_Element]
 %%     Fragment = string() | binary()
 %%     Parser_Options = [xmlparseroption()]
-%%     XML_Element = xmlnselement() | xmlelement() | xmlnsendelement() | xmlendelement()
+%%     XML_Element = xmlnselement() | xmlelement() | xmlendtag()
 %% @doc Parse an entire XML document at once.
 %%
 %% Initializing a parser with {@link start_parser/1} isn't necessary,
@@ -1464,7 +1464,7 @@ xmlnselement_to_xmlelement(#xmlnselement{ns = NS, name = Name, attrs = Attrs,
       Default_NS1, Prefixed_NS2),
     % Now, create the final #xmlelement.
     #xmlelement{name = New_Name, attrs = New_Attrs, children = New_Children};
-xmlnselement_to_xmlelement(#xmlnsendelement{ns = NS, name = Name,
+xmlnselement_to_xmlelement(#xmlendtag{ns = NS, name = Name,
   prefix = Wanted_Prefix}, Default_NS, Prefixed_NS) ->
     Name_S = if
         is_atom(Name) -> atom_to_list(Name);
@@ -1472,7 +1472,7 @@ xmlnselement_to_xmlelement(#xmlnsendelement{ns = NS, name = Name,
     end,
     New_Name = case Default_NS of
         [NS | _] ->
-            % This closing tag uses the default namespace.
+            % This end tag uses the default namespace.
             Name_S;
         _ ->
             % Search a prefix in already declared namespaces.
@@ -1488,7 +1488,7 @@ xmlnselement_to_xmlelement(#xmlnsendelement{ns = NS, name = Name,
                     Prefix ++ ":" ++ Name_S
             end
     end,
-    #xmlendelement{name = New_Name};
+    #xmlendtag{ns = undefined, prefix = undefined, name = New_Name};
 xmlnselement_to_xmlelement(XML_El, _Default_NS, _Prefixed_NS) ->
     % xmlelement() or xmlcdata().
     XML_El.
@@ -1764,7 +1764,7 @@ xmlelement_to_xmlnselement_and_ns_tables(
     end,
     {XML_NS_Element, Default_NS1, Prefixed_NS1};
 xmlelement_to_xmlnselement_and_ns_tables(
-  #xmlendelement{name = Name}, Default_NS, Prefixed_NS) ->
+  #xmlendtag{name = Name}, Default_NS, Prefixed_NS) ->
     Name_S = if
         is_atom(Name) -> atom_to_list(Name);
         true          -> Name
@@ -1775,13 +1775,13 @@ xmlelement_to_xmlnselement_and_ns_tables(
             case search_prefix_in_prefixed_ns(Prefix, Prefixed_NS) of
                 undefined ->
                     % Namespace never declared.
-                    #xmlnsendelement{
+                    #xmlendtag{
                       ns = undefined,
                       prefix = Prefix,
                       name = Real_Name_A
                     };
                 NS ->
-                    #xmlnsendelement{
+                    #xmlendtag{
                       ns = NS,
                       prefix = Prefix,
                       name = Real_Name_A
@@ -1792,14 +1792,14 @@ xmlelement_to_xmlnselement_and_ns_tables(
             case Default_NS of
                 [NS | _] ->
                     % Uses the current default namespace.
-                    #xmlnsendelement{
+                    #xmlendtag{
                       ns = NS,
                       prefix = undefined,
                       name = Real_Name_A
                     };
                 _ ->
                     % No default namespace declared.
-                    #xmlnsendelement{
+                    #xmlendtag{
                       ns = undefined,
                       prefix = undefined,
                       name = Real_Name_A
@@ -1938,10 +1938,6 @@ document_fragment_to_list(El, Default_NS, Prefixed_NS) ->
             document_to_list(
               xmlnselement_to_xmlelement(El,
                 Default_NS, Prefixed_NS));
-        #xmlnsendelement{} ->
-            document_to_list(
-              xmlnselement_to_xmlelement(El,
-                Default_NS, Prefixed_NS));
         #xmlelement{name = Name, attrs = Attrs, children = Els} ->
             Name_S = if
                 is_atom(Name) -> atom_to_list(Name);
@@ -1965,12 +1961,16 @@ document_fragment_to_list(El, Default_NS, Prefixed_NS) ->
                         E <- Norm],
                       $<, $/, Name_S, $>]
             end;
-        #xmlendelement{name = Name} ->
+        #xmlendtag{ns = undefined, name = Name} ->
             Name_S = if
                 is_atom(Name) -> atom_to_list(Name);
                 true          -> Name
             end,
             [$<, $/, Name_S, $>];
+        #xmlendtag{} ->
+            document_to_list(
+              xmlnselement_to_xmlelement(El,
+                Default_NS, Prefixed_NS));
         #xmlpi{target = Target, value = Value} ->
             Target_S = if
                 is_atom(Target) -> atom_to_list(Target);
@@ -1997,26 +1997,24 @@ document_to_list(El) ->
 
 %% @spec (XML_Elements) -> Cleaned_XML_Elements
 %%     XML_Elements = [xmlnselement() | xmlelement() | xmlcdata() |
-%%         xmlnsendelement() | xmlendelement()]
+%%         xmlendtag()]
 %%     Cleaned_XML_Elements = [xmlnselement() | xmlelement() | xmlcdata()]
-%% @doc Remove any {@link xmlnsendelement()} or {@link xmlendelement()}
+%% @doc Remove any {@link xmlendtag()}
 %% from the list of XML elements.
 %%
 %% This is primarily designed to work on returned value of {@link
-%% parse/2} and {@link parse_final/2} when the `no_endelement' parser
+%% parse/2} and {@link parse_final/2} when the `no_endtag' parser
 %% option (see {@link xmlparseroption()}) wasn't specified at {@link
 %% start_parser/1} time.
 
-clear_endelement_tuples(XML_Elements) ->
-    clear_endelement_tuples2(XML_Elements, []).
+clear_endtag_tuples(XML_Elements) ->
+    clear_endtag_tuples2(XML_Elements, []).
 
-clear_endelement_tuples2([#xmlnsendelement{} | Rest], Result) ->
-    clear_endelement_tuples2(Rest, Result);
-clear_endelement_tuples2([#xmlendelement{} | Rest], Result) ->
-    clear_endelement_tuples2(Rest, Result);
-clear_endelement_tuples2([XML_Element | Rest], Result) ->
-    clear_endelement_tuples2(Rest, [XML_Element | Result]);
-clear_endelement_tuples2([], Result) ->
+clear_endtag_tuples2([#xmlendtag{} | Rest], Result) ->
+    clear_endtag_tuples2(Rest, Result);
+clear_endtag_tuples2([XML_Element | Rest], Result) ->
+    clear_endtag_tuples2(Rest, [XML_Element | Result]);
+clear_endtag_tuples2([], Result) ->
     lists:reverse(Result).
 
 %% @spec (CData) -> Escaped_CData
@@ -2216,10 +2214,10 @@ handle_options([{root_depth, Depth} | Rest], #xml_parser{port = P} = Parser)
     port_control(P, ?EXPAT_SET_ROOTDEPTH, term_to_binary(Depth)),
     handle_options(Rest, Parser);
 
-handle_options([endelement | Rest], #xml_parser{port = P} = Parser) ->
+handle_options([endtag | Rest], #xml_parser{port = P} = Parser) ->
     port_control(P, ?EXPAT_SET_ENDELEMENT, term_to_binary(true)),
     handle_options(Rest, Parser);
-handle_options([no_endelement | Rest], #xml_parser{port = P} = Parser) ->
+handle_options([no_endtag | Rest], #xml_parser{port = P} = Parser) ->
     port_control(P, ?EXPAT_SET_ENDELEMENT, term_to_binary(false)),
     handle_options(Rest, Parser);
 
@@ -2246,7 +2244,7 @@ handle_options([], Parser) ->
 %%       Attrs_Check = attrs_check | no_attrs_check
 %%     Stanza_Max_Size  = no_maxsize | {maxsize, infinity} | {maxsize, Size}
 %%     Root_Depth = no_root_depth | {root_depth, none} | {root_depth, Depth}
-%%     Send_End_Element = endelement | noendelement.
+%%     Send_End_Element = endtag | no_endtag.
 %% The `namespace' and `no_namespace' flags enable or disable the
 %% support for namespaces respectively. Note that the support is very
 %% experimental. Tag and attribute namespaces are supported.
@@ -2286,9 +2284,9 @@ handle_options([], Parser) ->
 %% element without any children.
 %%
 %% <br/><br/>
-%% The `endelement' and `no_endelement' select if the parser must
-%% produce {@link xmlendelement()} or {@link xmlnsendelement()} when it
-%% encouters a closing tag above `root_depth'.
+%% The `endtag' and `no_endtag' select if the parser must
+%% produce {@link xmlendtag()} when it encouters an end tag
+%% above `root_depth'.
 
 %% @type xmlelement() = {xmlelement, Name, Attrs, Children}
 %%     Name = string()
@@ -2296,8 +2294,10 @@ handle_options([], Parser) ->
 %%     Children = [xmlelement() | xmlcdata()] | undefined.
 %% Record representing an XML tag.
 
-%% @type xmlnselement() = {xmlnselement, NS, Name, Attrs, Children}
+%% @type xmlnselement() = {xmlnselement, NS, Declared_NS, Name, Attrs, Children}
 %%     NS = atom() | string()
+%%     Declared_NS = [{NS, Prefix} | {NS, none}]
+%%     Prefix = string()
 %%     Name = atom() | string()
 %%     Attrs = [xmlnsattribute()]
 %%     Children = [xmlnselement() | xmlcdata()] | undefined.
@@ -2312,21 +2312,18 @@ handle_options([], Parser) ->
 %%     Value = string().
 %% Represents an tag attribute.
 
-%% @type xmlnsattribute() = {xmlattr, NS, Name, Value}
+%% @type xmlnsattribute() = {xmlattr, NS, Prefix, Name, Value}
 %%     NS = atom() | string()
+%%     Prefix = string() | undefined
 %%     Name = atom() | string()
 %%     Value = string().
 %% Represents an tag attribute.
 
-%% @type xmlendelement() = {xmlendelement, Name}
-%%     Name = string().
-%% Record representing an XML closing tag for nodes above the configured
-%% `root_depth' (see {@link xmlparseroption()}).
-
-%% @type xmlnsendelement() = {xmlnsendelement, NS, Name}
+%% @type xmlendtag() = {xmlendtag, NS, Prefix, Name}
 %%     NS = atom() | string()
+%%     Prefix = string() | undefined
 %%     Name = atom() | string().
-%% Record representing an XML closing tag when namespace support is
+%% Record representing an XML end tag when namespace support is
 %% enabled, for nodes above the configured `root_depth' (see {@link
 %% xmlparseroption()}).
 

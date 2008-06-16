@@ -23,7 +23,7 @@ do_check() ->
         escape_using_cdata ->
             ok
     end,
-    test_clear_endelement_tuples(),
+    test_clear_endtag_tuples(),
     ok.
 
 % --------------------------------------------------------------------
@@ -143,31 +143,31 @@ do_check() ->
 ).
 
 -define(TREE5_NO_NS,
-  {xmlendelement, "stream:stream"}
+  {xmlendtag, undefined, undefined, "stream:stream"}
 ).
 
 -define(TREE5_NO_NS2,
-  {xmlendelement, "stream"}
+  {xmlendtag, undefined, undefined, "stream"}
 ).
 
 -define(TREE5_NO_NS3,
-  {xmlendelement, "stream2:stream"}
+  {xmlendtag, undefined, undefined, "stream2:stream"}
 ).
 
 -define(TREE5_NS,
-  {xmlnsendelement, 'ns_stream', "stream", "stream"}
+  {xmlendtag, 'ns_stream', "stream", "stream"}
 ).
 
 -define(TREE5_NS2,
-  {xmlnsendelement, 'ns_stream', undefined, "stream"}
+  {xmlendtag, 'ns_stream', undefined, "stream"}
 ).
 
 -define(TREE5_NS3,
-  {xmlnsendelement, undefined, undefined, "stream"}
+  {xmlendtag, undefined, undefined, "stream"}
 ).
 
 -define(TREE5_NS_NAA,
-  {xmlnsendelement, 'ns_stream', "stream", 'stream'}
+  {xmlendtag, 'ns_stream', "stream", 'stream'}
 ).
 
 -define(SOURCE5, "</stream:stream>").
@@ -290,11 +290,11 @@ test_escape_using_entities() ->
       <<"Entities: &amp;&lt;&gt;&quot;&apos;">>),
     ok.
 
-test_clear_endelement_tuples() ->
-    testsuite:is(exmpp_xml:clear_endelement_tuples([?TREE5_NO_NS]), []),
-    testsuite:is(exmpp_xml:clear_endelement_tuples(
+test_clear_endtag_tuples() ->
+    testsuite:is(exmpp_xml:clear_endtag_tuples([?TREE5_NO_NS]), []),
+    testsuite:is(exmpp_xml:clear_endtag_tuples(
         [?TREE0_NO_NS, ?TREE5_NO_NS]), [?TREE0_NO_NS]),
-    testsuite:is(exmpp_xml:clear_endelement_tuples([?TREE5_NS]), []),
-    testsuite:is(exmpp_xml:clear_endelement_tuples(
+    testsuite:is(exmpp_xml:clear_endtag_tuples([?TREE5_NS]), []),
+    testsuite:is(exmpp_xml:clear_endtag_tuples(
         [?TREE0_NS, ?TREE5_NS]), [?TREE0_NS]),
     ok.

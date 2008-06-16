@@ -100,7 +100,7 @@ do_check() ->
 ).
 
 -define(CLOSING1,
-  {xmlnsendelement, ?NS_XMPP, "stream", 'stream'}
+  {xmlendtag, ?NS_XMPP, "stream", 'stream'}
 ).
 
 test_stream_opening() ->

@@ -27,6 +27,16 @@
 	children in #xmlnselement &nd #xmlelement to the empty list. This is a
 	more sensible value that will spare systematic initialization.
 
+	* include/exmpp.hrl, src/core/exmpp_stream.erl,
+	src/core/exmpp_xmlstream.erl, src/core/exmpp_xml.erl,
+	src/network/exmpp_session.erl, c_src/exmpp_expat.c,
+	testsuite/check_xml_converters.erl, testsuite/check_xmlstream.erl,
+	testsuite/check_xml_parser.erl, testsuite/check_stream.erl: Merge
+	#xmlnsendelement and #xmlendelement in #xmlendtag. This is done
+	because this notion didn't exist in ejabberd and the name was wrong;
+	this record doesn't represent an element. When namespace support is
+	disabled, the members 'ns' and 'prefix' are set to 'undefined'.
+
 	* testsuite/Makefile.am: Tests depend on the .beam files AND the .erl
 	sources.
 

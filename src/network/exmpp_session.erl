@@ -352,7 +352,7 @@ setup(_UnknownMessage, _From, State) ->
 
 %% Standard end of stream:
 -define(streamend,
-        #xmlstreamend{endelement=#xmlnsendelement{
+        #xmlstreamend{endtag=#xmlendtag{
           ns='http://etherx.jabber.org/streams',
           name=stream}}).
 

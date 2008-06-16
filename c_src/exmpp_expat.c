@@ -27,8 +27,7 @@
 #define	TUPLE_XML_NS_ELEMENT		"xmlnselement"
 #define	TUPLE_XML_ATTR			"xmlattr"
 #define	TUPLE_XML_CDATA			"xmlcdata"
-#define	TUPLE_XML_END_ELEMENT		"xmlendelement"
-#define	TUPLE_XML_NS_END_ELEMENT	"xmlnsendelement"
+#define	TUPLE_XML_END_TAG		"xmlendtag"
 #define	TUPLE_XML_ERROR			"xmlerror"
 
 #define	NS_SEP				'|'
@@ -1012,7 +1011,7 @@ expat_cb_end_element(void *user_data,
 		 *   {xmlendelement, Node_Name} */
 		if (ed->use_ns_parser) {
 			ei_x_encode_tuple_header(tree, 4);
-			ei_x_encode_atom(tree, TUPLE_XML_NS_END_ELEMENT);
+			ei_x_encode_atom(tree, TUPLE_XML_END_TAG);
 			ns_sep = strchr(name, NS_SEP);
 			if (ns_sep == NULL) {
 				/* Neither a namespace, nor a prefix. */
@@ -1068,8 +1067,12 @@ expat_cb_end_element(void *user_data,
 				}
 			}
 		} else {
-			ei_x_encode_tuple_header(tree, 2);
-			ei_x_encode_atom(tree, TUPLE_XML_END_ELEMENT);
+			ei_x_encode_tuple_header(tree, 4);
+			ei_x_encode_atom(tree, TUPLE_XML_END_TAG);
+
+			/* Namespace and prefix are not filled. */
+			ei_x_encode_atom(tree, "undefined");
+			ei_x_encode_atom(tree, "undefined");
 
 			/* Encode the element name. */
 			if (ed->name_as_atom && is_a_known_name(ed, name)) {

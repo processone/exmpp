@@ -51,7 +51,7 @@
 %% @doc Start a new stream handler.
 %%
 %% The XML parser is created with default options, but the `root_depth'
-%% which is 1 and `endelement' which is set.
+%% which is 1 and `endtag' which is set.
 %%
 %% The stream will use the old xmlstreamstart tuple.
 %%
@@ -71,7 +71,7 @@ start(Callback) ->
 %% @doc Start a new stream handler.
 %%
 %% The XML parser is created with `Parser_Options' options (by default,
-%% `root_depth' is 1 and `endelement' is set). This function (or {@link
+%% `root_depth' is 1 and `endtag' is set). This function (or {@link
 %% start/1}) must be called before any use of {@link parse/2}.
 %%
 %% The stream will use the old xmlstreamstart tuple.
@@ -90,7 +90,7 @@ start(Callback, Parser_Options) ->
 %% @doc Start a new stream handler.
 %%
 %% The XML parser is created with `Parser_Options' options (by default,
-%% `root_depth' is 1 and `endelement' is set). This function (or {@link
+%% `root_depth' is 1 and `endtag' is set). This function (or {@link
 %% start/1}) must be called before any use of {@link parse/2}.
 %%
 %% The stream will use the old xmlstreamstart tuple by default.
@@ -102,7 +102,7 @@ start(Callback, Parser_Options, Stream_Options) ->
         Pid when is_pid(Pid) -> {process, Pid};
         _                    -> Callback
     end,
-    Parser_Options2 = [{root_depth, 1}, endelement | Parser_Options],
+    Parser_Options2 = [{root_depth, 1}, endtag | Parser_Options],
     Parser = exmpp_xml:start_parser(Parser_Options2),
     Stream_Start = case lists:keysearch(xmlstreamstart, 1, Stream_Options) of
         {value, {_, new}} -> new;
@@ -176,12 +176,6 @@ process_elements2(Stream, [XML_Element | Rest], Events) ->
             New_Events = [#xmlstreamelement{element = XML_Element} |
               Events],
             process_elements2(Stream, Rest, New_Events);
-        #xmlnsendelement{} ->
-            % Stream is closed.
-            New_Stream = Stream#xml_stream{opened = 0},
-            New_Events = [#xmlstreamend{endelement = XML_Element} |
-              Events],
-            process_elements2(New_Stream, Rest, New_Events);
 
         % Without namespace support.
         #xmlelement{name = Name, attrs = Attrs}
@@ -198,10 +192,12 @@ process_elements2(Stream, [XML_Element | Rest], Events) ->
             New_Events = [#xmlstreamelement{element = XML_Element} |
               Events],
             process_elements2(Stream, Rest, New_Events);
-        #xmlendelement{} ->
+
+        % Common.
+        #xmlendtag{} ->
             % Stream is closed.
             New_Stream = Stream#xml_stream{opened = 0},
-            New_Events = [#xmlstreamend{endelement = XML_Element} |
+            New_Events = [#xmlstreamend{endtag = XML_Element} |
               Events],
             process_elements2(New_Stream, Rest, New_Events)
 
@@ -338,9 +334,9 @@ parse_element(Data, Parser_Options) ->
 %% @type xmlstreamevent() = Stream_Start | Stream_Element | Stream_End | Error
 %%     Stream_Start = {xmlstreamstart, XML_Element} | {xmlstreamstart, Name, Attrs}
 %%     Stream_Element = {xmlstreamelement, XML_Element}
-%%     Stream_End = {xmlstreamend, XML_End_Element}
+%%     Stream_End = {xmlstreamend, XML_End_Tag}
 %%       XML_Element = exmpp_xml:xmlnselement() | exmpp_xml:xmlelement()
-%%       XML_End_Element = exmpp_xml:xmlnsendelement() | exmpp_xml:xmlendelement()
+%%       XML_End_Tag = exmpp_xml:xmlendtag()
 %%       Name = atom() | string()
 %%       Attrs = [exmpp_xml:xmlattribute() | exmpp_xml:xmlnsattribute()]
 %%     Stream_Error = {xmlstreamerror, Reason}.
