@@ -63,8 +63,8 @@ do_check() ->
 
 -define(TREE2_NO_NS,
   {xmlelement, "stream:stream", [
-      {"xmlns", "ns_default"},
-      {"xmlns:stream", "ns_stream"}
+      {"xmlns:stream", "ns_stream"},
+      {"xmlns", "ns_default"}
     ], [
       {xmlelement, "iq", [
           {"xml:lang", "fr"},
@@ -99,7 +99,7 @@ do_check() ->
     ]}
 ).
 
--define(SOURCE2, "<stream:stream xmlns=\"ns_default\" xmlns:stream=\"ns_stream\"><iq xml:lang=\"fr\" version=\"1.0\">Content</iq></stream:stream>").
+-define(SOURCE2, "<stream:stream xmlns:stream=\"ns_stream\" xmlns=\"ns_default\"><iq xml:lang=\"fr\" version=\"1.0\">Content</iq></stream:stream>").
 
 -define(TREE3_NS,
   {xmlnselement, 'ns_iq', [], "iq", [
@@ -172,6 +172,25 @@ do_check() ->
 
 -define(SOURCE5, "</stream:stream>").
 
+
+-define(TREE6_NO_NS,
+  {xmlelement, "stream:stream", [
+      {"xmlns", "ns_default"},
+      {"xmlns:stream", "ns_stream"},
+      {"xmlns:other", "ns_other"}
+    ], []}
+).
+
+-define(TREE6_NS,
+  {xmlnselement, 'ns_stream', [
+    {'ns_default', none},
+    {'ns_stream', "stream"},
+    {'ns_other', "other"}
+  ], "stream", [], []}
+).
+
+-define(SOURCE6, "<stream:stream xmlns=\"ns_default\" xmlns:stream=\"ns_stream\" xmlns:other=\"ns_other\"/>").
+
 test_xmlnselement_to_xmlelement() ->
     testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE0_NO_NS),
       ?TREE0_NO_NS),
@@ -224,6 +243,9 @@ test_document_to_list_without_namespace() ->
     testsuite:is(
       lists:flatten(exmpp_xml:document_to_list(?TREE5_NO_NS)),
       ?SOURCE5),
+    testsuite:is(
+      lists:flatten(exmpp_xml:document_to_list(?TREE6_NO_NS)),
+      ?SOURCE6),
     ok.
 
 test_document_to_list_with_namespace() ->
@@ -242,6 +264,9 @@ test_document_to_list_with_namespace() ->
     testsuite:is(
       lists:flatten(exmpp_xml:document_to_list(?TREE5_NS_NAA)),
       ?SOURCE5),
+    testsuite:is(
+      lists:flatten(exmpp_xml:document_to_list(?TREE6_NS)),
+      ?SOURCE6),
     ok.
 
 test_document_fragment_to_list_with_namespace() ->

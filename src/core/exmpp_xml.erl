@@ -1446,7 +1446,7 @@ xmlnselement_to_xmlelement(#xmlnselement{ns = NS, name = Name, attrs = Attrs,
   declared_ns = Declared_NS, children = Children}, Default_NS, Prefixed_NS) ->
     % First, we add namespace declarations to element attributes.
     {Prefix, Attrs1, Default_NS1, Prefixed_NS1} = forward_declare_ns(NS,
-      Declared_NS, Attrs, Default_NS, Prefixed_NS),
+      lists:reverse(Declared_NS), Attrs, Default_NS, Prefixed_NS),
     % Then, we convert attributes ot the old format.
     {New_Attrs, Prefixed_NS2} = xmlnsattributes_to_xmlattributes(Attrs1,
       Prefixed_NS1),
@@ -1531,7 +1531,7 @@ xmlnsattributes_to_xmlattributes2([#xmlattr{ns = NS, name = Name,
                     NS_Decl = {"xmlns:" ++ Prefix, NS_S},
                     {
                       Prefix ++ ":" ++ Name_S,
-                      Converted_Attrs ++ [NS_Decl],
+                      [NS_Decl | Converted_Attrs],
                       [{NS, Prefix} | Prefixed_NS]
                     };
                 Prefix ->

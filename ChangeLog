@@ -1,3 +1,8 @@
+2008-06-16  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_xml.erl, testsuite/check_xml_converters.erl: Preserve
+	attributes order when making the text version.
+
 2008-06-12  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl, src/core/exmpp_xml.erl, c_src/exmpp_expat.c:
