@@ -27,6 +27,9 @@
 	children in #xmlnselement &nd #xmlelement to the empty list. This is a
 	more sensible value that will spare systematic initialization.
 
+	* testsuite/Makefile.am: Tests depend on the .beam files AND the .erl
+	sources.
+
 2008-06-12  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl, src/core/exmpp_xml.erl, c_src/exmpp_expat.c:

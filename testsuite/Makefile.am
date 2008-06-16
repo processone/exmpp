@@ -1,17 +1,16 @@
 # $Id$
-
-EXTRA_DIST = testsuite.erl test.sh					\
-	     check_xml_parser.erl					\
-	     check_xml_attribute_handlers.erl				\
-	     check_xml_element_handlers.erl				\
-	     check_xml_cdata_handlers.erl				\
-	     check_xml_path.erl						\
-	     check_xml_converters.erl					\
-	     check_xmlstream.erl					\
-	     check_jid.erl						\
-	     check_stream.erl						\
-	     check_legacy_auth.erl					\
-	     check_coverity.erl
+	     
+ERL_FILES = check_xml_parser.erl					\
+	    check_xml_attribute_handlers.erl				\
+	    check_xml_element_handlers.erl				\
+	    check_xml_cdata_handlers.erl				\
+	    check_xml_path.erl						\
+	    check_xml_converters.erl					\
+	    check_xmlstream.erl						\
+	    check_jid.erl						\
+	    check_stream.erl						\
+	    check_legacy_auth.erl					\
+	    check_coverity.erl
 
 BEAM_FILES = check_xml_parser.beam					\
 	     check_xml_attribute_handlers.beam				\
@@ -24,6 +23,9 @@ BEAM_FILES = check_xml_parser.beam					\
 	     check_stream.beam						\
 	     check_legacy_auth.beam					\
 	     check_coverity.beam
+
+EXTRA_DIST = testsuite.erl test.sh					\
+	     $(ERL_FILES)
 
 CLEANFILES = $(BEAM_FILES) *.html $(TESTS) erl_crash.dump
 
@@ -61,7 +63,7 @@ TESTS_ENVIRONMENT = ERL="$(ERL)"					\
 
 TSCRIPT = $(srcdir)/test.sh
 
-$(BEAM_FILES):
+$(BEAM_FILES): $(ERL_FILES)
 	@$(ERL) -noshell -pa @top_builddir@/ebin			\
 		-eval "case make:all() of				\
 		         up_to_date -> halt(0);				\
