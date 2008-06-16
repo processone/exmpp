@@ -109,6 +109,9 @@ td {
 .percent {
 	text-align: right;
 }
+.bar {
+	width: 200px;
+}
 hr {
 	text-align: left;
 	margin: 0px auto 0px 0px;

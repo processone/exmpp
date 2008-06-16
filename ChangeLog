@@ -3,6 +3,12 @@
 	* src/core/exmpp_xml.erl, testsuite/check_xml_converters.erl: Preserve
 	attributes order when making the text version.
 
+	* testsuite/Makefile.am: Simplify this Makefile: all shell scripts are
+	'built' the same way.
+
+	* testsuite/test.sh: Specify the bar graph column width. It doesn't
+	shrink to fit the larger bar anymore.
+
 2008-06-12  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl, src/core/exmpp_xml.erl, c_src/exmpp_expat.c:

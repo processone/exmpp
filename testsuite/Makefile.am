@@ -13,7 +13,19 @@ EXTRA_DIST = testsuite.erl test.sh					\
 	     check_legacy_auth.erl					\
 	     check_coverity.erl
 
-CLEANFILES = *.beam *.html $(TESTS) erl_crash.dump
+BEAM_FILES = check_xml_parser.beam					\
+	     check_xml_attribute_handlers.beam				\
+	     check_xml_element_handlers.beam				\
+	     check_xml_cdata_handlers.beam				\
+	     check_xml_path.beam					\
+	     check_xml_converters.beam					\
+	     check_xmlstream.beam					\
+	     check_jid.beam						\
+	     check_stream.beam						\
+	     check_legacy_auth.beam					\
+	     check_coverity.beam
+
+CLEANFILES = $(BEAM_FILES) *.html $(TESTS) erl_crash.dump
 
 REAL_TESTS =
 
@@ -47,39 +59,21 @@ TESTS_ENVIRONMENT = ERL="$(ERL)"					\
 	TESTS="$(REAL_TESTS)"						\
 	COVERED_MODULES="$(COVERED_MODULES)"
 
-build:
-	rm -f index.html
-	$(ERL) -make
+TSCRIPT = $(srcdir)/test.sh
 
-check_xml_parser: build $(srcdir)/test.sh
-	cp $(srcdir)/test.sh $@ && chmod 755 $@
+$(BEAM_FILES):
+	@$(ERL) -noshell -pa @top_builddir@/ebin			\
+		-eval "case make:all() of				\
+		         up_to_date -> halt(0);				\
+		         Err ->						\
+		           io:format(\"~p~n\", [Err]),			\
+		           halt(1)					\
+		       end"
 
-check_xml_attribute_handlers: build $(srcdir)/test.sh
-	cp $(srcdir)/test.sh $@ && chmod 755 $@
 
-check_xml_element_handlers: build $(srcdir)/test.sh
-	cp $(srcdir)/test.sh $@ && chmod 755 $@
+all-local:
+	@rm -f index.html
 
-check_xml_cdata_handlers: build $(srcdir)/test.sh
-	cp $(srcdir)/test.sh $@ && chmod 755 $@
-
-check_xml_path: build $(srcdir)/test.sh
-	cp $(srcdir)/test.sh $@ && chmod 755 $@
-
-check_xml_converters: build $(srcdir)/test.sh
-	cp $(srcdir)/test.sh $@ && chmod 755 $@
-
-check_xmlstream: build $(srcdir)/test.sh
-	cp $(srcdir)/test.sh $@ && chmod 755 $@
-
-check_jid: build $(srcdir)/test.sh
-	cp $(srcdir)/test.sh $@ && chmod 755 $@
-
-check_stream: build $(srcdir)/test.sh
-	cp $(srcdir)/test.sh $@ && chmod 755 $@
-
-check_legacy_auth: build $(srcdir)/test.sh
-	cp $(srcdir)/test.sh $@ && chmod 755 $@
-
-check_coverity: build $(srcdir)/test.sh
-	cp $(srcdir)/test.sh $@ && chmod 755 $@
+$(TESTS): $(BEAM_FILES) $(TSCRIPT)
+	@(test $(TSCRIPT) -nt $@ && echo "Create: $@" &&		\
+	 cp $(TSCRIPT) $@ && chmod 755 $@) || :
