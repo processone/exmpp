@@ -53,8 +53,7 @@ announced_support2(Feature) ->
 establish() ->
     Session = #xmlnselement{
       ns = ?NS_SESSION,
-      name = 'session',
-      children = []
+      name = 'session'
     },
     exmpp_iq:set(?NS_JABBER_CLIENT, Session,
       exmpp_internals:random_id("session")).

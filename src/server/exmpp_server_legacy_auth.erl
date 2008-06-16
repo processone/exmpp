@@ -49,14 +49,10 @@ fields(Request_IQ) ->
 %% @doc Make an `<iq>' for advertising fields.
 
 fields(Request_IQ, Auth) when ?IS_IQ(Request_IQ) ->
-    Username_El = #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'username',
-      children = []},
-    Password_El = #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'password',
-      children = []},
-    Digest_El = #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'digest',
-      children = []},
-    Resource_El = #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'resource',
-      children = []},
+    Username_El = #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'username'},
+    Password_El = #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'password'},
+    Digest_El   = #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'digest'},
+    Resource_El = #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'resource'},
     Children = case Auth of
         plain  -> [Username_El, Password_El, Resource_El];
         digest -> [Username_El, Digest_El, Resource_El];

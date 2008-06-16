@@ -9,6 +9,24 @@
 	* testsuite/test.sh: Specify the bar graph column width. It doesn't
 	shrink to fit the larger bar anymore.
 
+	* include/exmpp.hrl, src/core/exmpp_stream.erl,
+	src/core/exmpp_stanza.erl, src/core/exmpp_iq.erl,
+	src/server/exmpp_server_compression.erl,
+	src/server/exmpp_server_tls.erl, src/server/exmpp_server_sasl.erl,
+	src/server/exmpp_server_session.erl,
+	src/server/exmpp_server_legacy_auth.erl,
+	src/server/exmpp_server_binding.erl,
+	src/client/exmpp_client_binding.erl,
+	src/client/exmpp_client_roster.erl,
+	src/client/exmpp_client_pubsub.erl,
+	src/client/exmpp_client_compression.erl,
+	src/client/exmpp_client_tls.erl, src/client/exmpp_client_sasl.erl,
+	src/client/exmpp_client_session.erl,
+	src/client/exmpp_client_register.erl,
+	src/client/exmpp_client_legacy_auth.erl: Change the default value for
+	children in #xmlnselement &nd #xmlelement to the empty list. This is a
+	more sensible value that will spare systematic initialization.
+
 2008-06-12  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl, src/core/exmpp_xml.erl, c_src/exmpp_expat.c:

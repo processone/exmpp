@@ -65,8 +65,7 @@ methods_list2([Method | Rest], Children) ->
         true ->
             Child = #xmlnselement{
               ns = ?NS_COMPRESS,
-              name = 'method',
-              children = []
+              name = 'method'
             },
             methods_list2(Rest,
               Children ++ [exmpp_xml:set_cdata(Child, Method)]);
@@ -94,8 +93,7 @@ standard_conditions() ->
 compressed() ->
     #xmlnselement{
       ns = ?NS_COMPRESS,
-      name = 'compressed',
-      children = []
+      name = 'compressed'
     }.
 
 %% @spec (Condition) -> Failure
@@ -109,8 +107,7 @@ failure(Condition) ->
         {value, _} ->
             Condition_El = #xmlnselement{
               ns = ?NS_COMPRESS,
-              name = Condition,
-              children = []
+              name = Condition
             },
             #xmlnselement{
               ns = ?NS_COMPRESS,

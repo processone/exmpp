@@ -43,11 +43,11 @@ create_node(Service, Node) ->
 create_node(Id, Service, Node) ->
 	% Make the <create/> element.
 	Create = exmpp_xml:set_attributes(
-	    #xmlnselement{ns = ?NS_PUBSUB, name = 'create', children = []}, [
+	    #xmlnselement{ns = ?NS_PUBSUB, name = 'create'}, [
 	    {'node', Node}]),
 	% Prepare the final <iq/>.
 	Pubsub = exmpp_xml:append_child(
-	    #xmlnselement{ns = ?NS_PUBSUB, name = 'pubsub', children = []},
+	    #xmlnselement{ns = ?NS_PUBSUB, name = 'pubsub'},
 	    Create),
 	Iq = exmpp_xml:set_attributes(
 	    #xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
@@ -77,11 +77,11 @@ delete_node(Service, Node) ->
 delete_node(Id, Service, Node) ->
 	% Make the <delete/> element.
 	Create = exmpp_xml:set_attributes(
-	    #xmlnselement{ns = ?NS_PUBSUB, name = 'delete', children = []}, [
+	    #xmlnselement{ns = ?NS_PUBSUB, name = 'delete'}, [
 	    {'node', Node}]),
 	% Prepare the final <iq/>.
 	Pubsub = exmpp_xml:append_child(
-	    #xmlnselement{ns = ?NS_PUBSUB, name = 'pubsub', children = []},
+	    #xmlnselement{ns = ?NS_PUBSUB, name = 'pubsub'},
 	    Create),
 	Iq = exmpp_xml:set_attributes(
 	    #xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
@@ -113,12 +113,12 @@ subscribe(From, Service, Node) ->
 subscribe(Id, From, Service, Node) ->
 	% Make the <subscribe/> element.
 	Subscribe = exmpp_xml:set_attributes(
-	    #xmlnselement{ns = ?NS_PUBSUB, name = 'subscribe', children = []}, [
+	    #xmlnselement{ns = ?NS_PUBSUB, name = 'subscribe'}, [
 	    {'node', Node},
 	    {'jid', From}]),
 	% Prepare the final <iq/>.
 	Pubsub = exmpp_xml:append_child(
-	    #xmlnselement{ns = ?NS_PUBSUB, name = 'pubsub', children = []},
+	    #xmlnselement{ns = ?NS_PUBSUB, name = 'pubsub'},
 	    Subscribe),
 	Iq = exmpp_xml:set_attributes(
 	    #xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
@@ -165,7 +165,7 @@ publish(Id, Service, Node, Item_Children) ->
 	    {'node', Node}]),
 	% Prepare the final <iq/>.
 	Pubsub = exmpp_xml:append_child(
-	    #xmlnselement{ns = ?NS_PUBSUB, name = 'pubsub', children = []},
+	    #xmlnselement{ns = ?NS_PUBSUB, name = 'pubsub'},
 	    Publish),
 	Iq = exmpp_xml:set_attributes(
 	    #xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [

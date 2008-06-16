@@ -60,8 +60,7 @@ mechanisms_list2([Mechanism | Rest], Children) ->
         true ->
             Child = #xmlnselement{
               ns = ?NS_SASL,
-              name = 'mechanism',
-              children = []
+              name = 'mechanism'
             },
             mechanisms_list2(Rest,
               [exmpp_xml:set_cdata(Child, Mechanism) | Children]);
@@ -96,8 +95,7 @@ standard_conditions() ->
 challenge(Challenge) ->
     El = #xmlnselement{
       ns = ?NS_SASL,
-      name = 'challenge',
-      children = []
+      name = 'challenge'
     },
     exmpp_xml:set_cdata(El, exmpp_internals:encode_base64(Challenge)).
 
@@ -108,8 +106,7 @@ challenge(Challenge) ->
 failure() ->
     #xmlnselement{
       ns = ?NS_SASL,
-      name = 'failure',
-      children = []
+      name = 'failure'
     }.
 
 %% @spec (Condition) -> Failure
@@ -124,8 +121,7 @@ failure(Condition) ->
     end,
     Condition_El = #xmlnselement{
       ns = ?NS_SASL,
-      name = Condition,
-      children = []
+      name = Condition
     },
     exmpp_xml:append_child(failure(), Condition_El).
 

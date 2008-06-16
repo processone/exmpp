@@ -71,8 +71,7 @@ announced_methods3([], Result) ->
 selected_method(Method) ->
     El = #xmlnselement{
       ns = ?NS_COMPRESS,
-      name = 'method',
-      children = []
+      name = 'method'
     },
     #xmlnselement{
       ns = ?NS_COMPRESS,

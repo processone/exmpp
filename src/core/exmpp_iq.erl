@@ -99,8 +99,7 @@ result(Request_IQ) ->
     #xmlnselement{
       ns = Request_IQ#xmlnselement.ns,
       name = 'iq',
-      attrs = Attrs2,
-      children = []
+      attrs = Attrs2
     }.
 
 %% @spec (Request_IQ, Result) -> Response_IQ

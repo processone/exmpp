@@ -76,8 +76,7 @@ announced_mechanisms3([], Result) ->
 selected_mechanism(Mechanism) ->
     El = #xmlnselement{
       ns = ?NS_SASL,
-      name = 'auth',
-      children = []
+      name = 'auth'
     },
     exmpp_xml:set_attribute(El, 'mechanism', Mechanism).
 
@@ -106,8 +105,7 @@ selected_mechanism(Mechanism, Initial_Response) ->
 response(Response_Data) ->
     El = #xmlnselement{
       ns = ?NS_SASL,
-      name = 'response',
-      children = []
+      name = 'response'
     },
     exmpp_xml:set_cdata(El, exmpp_internals:encode_base64(Response_Data)).
 
@@ -118,8 +116,7 @@ response(Response_Data) ->
 abort() ->
     #xmlnselement{
       ns = ?NS_SASL,
-      name = 'abort',
-      children = []
+      name = 'abort'
     }.
 
 %% @spec (El) -> Type

@@ -63,6 +63,5 @@ announced_support2(#xmlnselement{ns = ?NS_TLS, name = 'starttls'} = El) ->
 starttls() ->
     #xmlnselement{
       ns = ?NS_TLS,
-      name = 'starttls',
-      children = []
+      name = 'starttls'
     }.

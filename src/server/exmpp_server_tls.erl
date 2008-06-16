@@ -55,15 +55,13 @@ feature() ->
 feature(Is_Required) ->
     Feature = #xmlnselement{
       ns = ?NS_TLS,
-      name = 'starttls',
-      children = []
+      name = 'starttls'
     },
     if
         Is_Required ->
             Required = #xmlnselement{
               ns = ?NS_TLS,
-              name = 'required',
-              children = []
+              name = 'required'
             },
             exmpp_xml:append_child(Feature, Required);
         true ->
@@ -82,8 +80,7 @@ feature(Is_Required) ->
 proceed() ->
     #xmlnselement{
       ns = ?NS_TLS,
-      name = 'proceed',
-      children = []
+      name = 'proceed'
     }.
 
 %% @spec () -> Failure
@@ -94,6 +91,5 @@ proceed() ->
 failure() ->
     #xmlnselement{
       ns = ?NS_TLS,
-      name = 'failure',
-      children = []
+      name = 'failure'
     }.

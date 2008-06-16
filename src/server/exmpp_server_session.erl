@@ -36,8 +36,7 @@
 feature() ->
     #xmlnselement{
       ns = ?NS_SESSION,
-      name = 'session',
-      children = []
+      name = 'session'
     }.
 
 % --------------------------------------------------------------------

@@ -147,8 +147,7 @@ request(To) ->
 request(To, ID) ->
     Query = #xmlnselement{
       ns = ?NS_JABBER_AUTH,
-      name = 'query',
-      children = []
+      name = 'query'
     },
     IQ = exmpp_iq:get(?NS_JABBER_CLIENT, Query, ID),
     exmpp_stanza:set_recipient(IQ, To).

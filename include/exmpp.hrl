@@ -8,7 +8,7 @@
 -record(xmlelement, {
   name,                   % Element name
   attrs = [],             % Attributes list
-  children = undefined    % Children (elements or CDATA)
+  children = []           % Children (elements or CDATA)
 }).
 
 -record(xmlendelement, {
@@ -21,7 +21,7 @@
   declared_ns = [],       % Declared namespaces in this element
   name,                   % Element name
   attrs = [],             % Attributes list
-  children = undefined    % Children (elements or CDATA)
+  children = []           % Children (elements or CDATA)
 }).
 
 -record(xmlnsendelement, {

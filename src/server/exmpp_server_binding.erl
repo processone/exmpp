@@ -36,8 +36,7 @@
 feature() ->
     #xmlnselement{
       ns = ?NS_BIND,
-      name = 'bind',
-      children = []
+      name = 'bind'
     }.
 
 % --------------------------------------------------------------------
@@ -83,8 +82,7 @@ bind(IQ, Jid) when ?IS_IQ(IQ) ->
     Jid_S = exmpp_jid:jid_to_string(Jid),
     El = #xmlnselement{
       ns = ?NS_BIND,
-      name = 'jid',
-      children = []
+      name = 'jid'
     },
     Children = [exmpp_xml:set_cdata(El, Jid_S)],
     Bind = #xmlnselement{

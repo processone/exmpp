@@ -392,8 +392,7 @@ error(NS, Condition) ->
 error(NS, Condition, {Lang, Text}) ->
     Condition_El = #xmlnselement{
       ns = ?NS_XMPP_STANZAS,
-      name = Condition,
-      children = []
+      name = Condition
     },
     Error_El0 = #xmlnselement{
       ns = NS,
@@ -406,8 +405,7 @@ error(NS, Condition, {Lang, Text}) ->
         _ ->
             Text_El0 = #xmlnselement{
               ns = ?NS_XMPP_STANZAS,
-              name = 'text',
-              children = []
+              name = 'text'
             },
             Text_El = case Lang of
                 undefined ->

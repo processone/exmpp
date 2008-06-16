@@ -89,9 +89,8 @@ remove_account() ->
 %% user is supposed to be already logged in.
 remove_account(Id) ->
     %% Make query tag
-    Query =  #xmlnselement{ns = ?NS_JABBER_REGISTER, name = 'query'},
-    Remove = #xmlnselement{ns = ?NS_JABBER_REGISTER, name = 'remove', 
-			   children = []},
+    Query  = #xmlnselement{ns = ?NS_JABBER_REGISTER, name = 'query'},
+    Remove = #xmlnselement{ns = ?NS_JABBER_REGISTER, name = 'remove'},
     PreparedQuery = exmpp_xml:append_child(Query, Remove),
     %% Put the prepared query in IQ
     Iq = exmpp_xml:set_attributes(

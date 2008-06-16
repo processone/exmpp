@@ -67,8 +67,7 @@ bind(Resource) ->
         _ ->
             El = #xmlnselement{
               ns = ?NS_BIND,
-              name = 'resource',
-              children = []
+              name = 'resource'
             },
             [exmpp_xml:set_cdata(El, Resource)]
     end,
