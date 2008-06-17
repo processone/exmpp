@@ -5,6 +5,22 @@
 	the final test script: if the script didn't exist before, the copy was
 	not made.
 
+	* src/core/exmpp_xml.erl, c_src/exmpp_xml_expat.c,
+	c_src/exmpp_expat.c, c_src/Makefile.am, c_src/Makefile.unix,
+	c_src/Makefile.win32: Rename exmpp_expat to exmpp_xml_expat. The new
+	name use the same model than exmpp_tls_[engine] and
+	exmpp_compress_[engine].
+
+	* c_src/Makefile.am: Use a custom directory prefix (execdrivers) to
+	install port drivers, instead of the common libdir. This avoids
+	recursion (libdir="${libdir}/...") in some cases. Fix CPPFLAGS and
+	LDFLAGS for exmpp_compress_zlib; it was using those for OpenSSL, not
+	Zlib as it should.
+
+	* configure.ac: Resurrect the --with-erlang flag to indicate Erlang
+	root directory. It's used when cross-compiling because this directory
+	can't be guessed.
+
 2008-06-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Your attention please: #xmlnselement was renamed to #xmlel!

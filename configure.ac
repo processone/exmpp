@@ -210,13 +210,18 @@ dnl erl(1) is used to compile Erlang modules (regardless of the host).
 AC_ERLANG_PATH_ERL
 AC_ERLANG_PATH_ERLC
 
-dnl erl_interface is needed to build port drivers.
+dnl Erlang and especially erl_interface are needed to build port drivers.
+AC_ARG_WITH([erlang],
+	AC_HELP_STRING([--with-erlang=PREFIX (optional)],
+	    [prefix where erlang is installed]),,
+	with_erlang="")
+
 AC_ARG_WITH([erl_interface],
 	AC_HELP_STRING([--with-erl_interface=PREFIX (optional)],
 	    [prefix where erl_interface is installed]),,
 	with_erl_interface="")
 
-if test "x${with_erl_interface}" = "x"; then
+if test "x${with_erlang}" = "x"; then
 	dnl If we're cross-compiling, no Erlang checks will be ran.
 	if test "x${cross_compiling}" = "xno"; then
 		dnl Get Erlang $ROOT dir and lib dir.
@@ -231,7 +236,27 @@ if test "x${with_erl_interface}" = "x"; then
 			dnl Check for inets (to verify if http_base_64 is
 			dnl present).
 			AC_ERLANG_CHECK_LIB([inets],,)
+		else
+			AC_MSG_ERROR(
+[Erlang not found. Fill the ERL variable with erl(1) path or provide
+Erlang prefix with --with-erlang.])
+		fi
+	else
+		AC_MSG_ERROR(
+[Erlang cannot be found if cross-compiling. Provide Erlang prefix with
+--with-erlang.])
+	fi
+else
+	ERLANG_ROOT_DIR="${with_erlang}"
+	ERLANG_LIB_DIR="${ERLANG_ROOT_DIR}/lib"
+	AC_SUBST(ERLANG_ROOT_DIR)
+	AC_SUBST(ERLANG_LIB_DIR)
+fi
 
+if test "x${with_erl_interface}" = "x"; then
+	dnl If we're cross-compiling, no Erlang checks will be ran.
+	if test "x${cross_compiling}" = "xno"; then
+		if test "x${ERL}" != "x"; then
 			dnl Check for erl_interface.
 			AC_ERLANG_CHECK_LIB([erl_interface], [],
 			    [AC_MSG_ERROR([erl_interface was not found!])]
@@ -252,7 +277,7 @@ fi
 
 dnl Determine directories for installation.
 if test "x${prefix}" = "xNONE"; then
-	# Inside Erlang $ROOT dir
+	# Inside Erlang lib dir
 	ERLANG_INSTALL_LIB_DIR="${ERLANG_LIB_DIR}"
 else
 	# Under $prefix
