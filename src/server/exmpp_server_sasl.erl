@@ -35,7 +35,7 @@
 
 %% @spec (Mechanisms) -> Feature
 %%     Mechanisms = [string()]
-%%     Feature = exmpp_xml:xmlnselement()
+%%     Feature = exmpp_xml:xmlel()
 %% @throws {sasl, feature_announcement, invalid_mechanisms_list, []} |
 %%         {sasl, feature_announcement, invalid_mechanism, Mechanism}
 %% @doc Make a feature announcement child.
@@ -44,7 +44,7 @@
 
 feature(Mechanisms) ->
     Children = mechanisms_list(Mechanisms),
-    #xmlnselement{
+    #xmlel{
       ns = ?NS_SASL,
       name = 'mechanisms',
       children = Children
@@ -58,7 +58,7 @@ mechanisms_list(Mechanisms) ->
 mechanisms_list2([Mechanism | Rest], Children) ->
     case io_lib:deep_char_list(Mechanism) of
         true ->
-            Child = #xmlnselement{
+            Child = #xmlel{
               ns = ?NS_SASL,
               name = 'mechanism'
             },
@@ -87,31 +87,31 @@ standard_conditions() ->
 
 %% @spec (Challenge) -> Challenge_El
 %%     Challenge = string()
-%%     Challenge_El = exmpp_xml:xmlnselement()
+%%     Challenge_El = exmpp_xml:xmlel()
 %% @doc Prepare a `<challenge/>' element with the given challenge.
 %%
 %% `Challenge' will be Base64-encoded by this function.
 
 challenge(Challenge) ->
-    El = #xmlnselement{
+    El = #xmlel{
       ns = ?NS_SASL,
       name = 'challenge'
     },
     exmpp_xml:set_cdata(El, exmpp_internals:encode_base64(Challenge)).
 
 %% @spec () -> Failure
-%%     Failure = exmpp_xml:xmlnselement()
+%%     Failure = exmpp_xml:xmlel()
 %% @doc Prepare a `<failure/>' element.
 
 failure() ->
-    #xmlnselement{
+    #xmlel{
       ns = ?NS_SASL,
       name = 'failure'
     }.
 
 %% @spec (Condition) -> Failure
 %%     Condition = atom()
-%%     Failure = exmpp_xml:xmlnselement()
+%%     Failure = exmpp_xml:xmlel()
 %% @doc Prepare a `<failure/>' element.
 
 failure(Condition) ->
@@ -119,14 +119,14 @@ failure(Condition) ->
         true  -> ok;
         false -> throw({sasl, failure, invalid_condition, Condition})
     end,
-    Condition_El = #xmlnselement{
+    Condition_El = #xmlel{
       ns = ?NS_SASL,
       name = Condition
     },
     exmpp_xml:append_child(failure(), Condition_El).
 
 %% @spec (El) -> Type
-%%     El = exmpp_xml:xmlnselement()
+%%     El = exmpp_xml:xmlel()
 %%     Type = Auth | Response | Abort
 %%     Auth = {auth, Mechanism, none | string()}
 %%     Response = {response, string()}
@@ -136,17 +136,17 @@ failure(Condition) ->
 %%
 %% Any response data is Base64-decoded.
 
-next_step(#xmlnselement{ns = ?NS_SASL, name = 'auth'} = El) ->
+next_step(#xmlel{ns = ?NS_SASL, name = 'auth'} = El) ->
     Mechanism = exmpp_xml:get_attribute(El, 'mechanism'),
     case string:strip(exmpp_xml:get_cdata_as_list(El)) of
         ""      -> {auth, Mechanism, none};
         "="     -> {auth, Mechanism, ""};
         Encoded -> {auth, Mechanism, exmpp_internals:decode_base64(Encoded)}
     end;
-next_step(#xmlnselement{ns = ?NS_SASL, name = 'response'} = El) ->
+next_step(#xmlel{ns = ?NS_SASL, name = 'response'} = El) ->
     Encoded = exmpp_xml:get_cdata_as_list(El),
     {response, exmpp_internals:decode_base64(Encoded)};
-next_step(#xmlnselement{ns = ?NS_SASL, name = 'abort'}) ->
+next_step(#xmlel{ns = ?NS_SASL, name = 'abort'}) ->
     abort;
 next_step(El) ->
     throw({sasl, next_step, unexpected_element, El}).

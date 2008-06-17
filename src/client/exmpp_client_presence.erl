@@ -29,16 +29,16 @@
 %% @spec (ShowOrType, Status) -> PresenceStanza
 %%     ShowOrType = atom()
 %%     Status = string()
-%%     PresenceStanza = exmpp_xml:xmlnselement()
+%%     PresenceStanza = exmpp_xml:xmlel()
 %% @doc Make a `<presence>' packet.
 presence(ShowOrType, Status) ->
     PresenceElement = exmpp_xml:set_attributes(
-			#xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'presence'},
+			#xmlel{ns = ?NS_JABBER_CLIENT, name = 'presence'},
 			[]),
     ShowElement = show_element(ShowOrType),
     PresenceElt2 = exmpp_xml:append_child(PresenceElement, ShowElement),
     ShowElement2 = exmpp_xml:set_cdata(
-		     #xmlnselement{ns = ?NS_JABBER_CLIENT, name = status},
+		     #xmlel{ns = ?NS_JABBER_CLIENT, name = status},
 		     Status),
     exmpp_xml:append_child(PresenceElt2, ShowElement2).
 
@@ -48,7 +48,7 @@ presence(ShowOrType, Status) ->
 
 %% @spec (ShowOrType) -> StatusElement
 %%     ShowOrType = atom()
-%%     ShowElement = exmpp_xml:xmlnselement()
+%%     ShowElement = exmpp_xml:xmlel()
 %% @doc Generate a valid presence stanza given the presence parameter
 show_element(?P_AVAILABLE) ->
     ?NO_ELEMENT;
@@ -69,8 +69,8 @@ show_element(_) ->
 
 %% @spec (Value) -> StatusElement
 %%     Value = binary()
-%%     StatusElement = exmpp_xml:xmlnselement()
+%%     StatusElement = exmpp_xml:xmlel()
 set_show_element_value(Value) ->
     exmpp_xml:set_cdata(
-      #xmlnselement{ns = ?NS_JABBER_CLIENT, name = show},
+      #xmlel{ns = ?NS_JABBER_CLIENT, name = show},
       Value).

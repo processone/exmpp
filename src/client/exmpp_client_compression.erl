@@ -29,25 +29,25 @@
 % --------------------------------------------------------------------
 
 %% @spec (Features_Announcement) -> Methods
-%%     Features_Announcement = exmpp_xml:xmlnselement()
+%%     Features_Announcement = exmpp_xml:xmlel()
 %%     Methods = [string()]
 %% @throws {stream_compression, announced_methods, invalid_feature, Feature} |
 %%         {stream_compression, announced_methods, invalid_method, El}
 %% @doc Return the list of supported compression methods.
 
-announced_methods(#xmlnselement{ns = ?NS_XMPP, name = 'features'} = El) ->
+announced_methods(#xmlel{ns = ?NS_XMPP, name = 'features'} = El) ->
     case exmpp_xml:get_element_by_name(El, ?NS_COMPRESS, 'compression') of
         undefined -> [];
         Methods   -> announced_methods2(Methods)
     end.
 
-announced_methods2(#xmlnselement{children = []} = Feature) ->
+announced_methods2(#xmlel{children = []} = Feature) ->
     throw({stream_compression, announced_methods, invalid_feature, Feature});
-announced_methods2(#xmlnselement{children = Children}) ->
+announced_methods2(#xmlel{children = Children}) ->
     announced_methods3(Children, []).
 
 announced_methods3(
-  [#xmlnselement{ns = ?NS_COMPRESS, name = 'method'} = El | Rest], Result) ->
+  [#xmlel{ns = ?NS_COMPRESS, name = 'method'} = El | Rest], Result) ->
     case exmpp_xml:get_cdata_as_list(El) of
         "" ->
             throw({stream_compression, announced_methods, invalid_method, El});
@@ -65,15 +65,15 @@ announced_methods3([], Result) ->
 
 %% @spec (Method) -> Compress
 %%     Method = string()
-%%     Compress = exmpp_xml:xmlnselement()
+%%     Compress = exmpp_xml:xmlel()
 %% @doc Prepare an request to select prefered compression method.
 
 selected_method(Method) ->
-    El = #xmlnselement{
+    El = #xmlel{
       ns = ?NS_COMPRESS,
       name = 'method'
     },
-    #xmlnselement{
+    #xmlel{
       ns = ?NS_COMPRESS,
       name = 'compress',
       children = [exmpp_xml:set_cdata(El, Method)]

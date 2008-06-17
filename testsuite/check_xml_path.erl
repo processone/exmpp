@@ -28,25 +28,25 @@ do_check() ->
 -define(ATTRIBUTE, {xmlattr, ?NS_XML, undefined, "lang", "fr"}).
 -define(CDATA, {xmlcdata, <<"Content">>}).
 
--define(TARGET, {xmlnselement,
+-define(TARGET, {xmlel,
     ?NS_XML, [], "target",
     [?ATTRIBUTE],
     [?CDATA]}
 ).
 
--define(ELEMENT1, {xmlnselement,
+-define(ELEMENT1, {xmlel,
     ?NS_XML, [], "element",
     [],
     []}
 ).
 
--define(ELEMENT2, {xmlnselement,
+-define(ELEMENT2, {xmlel,
     ?NS_XML, [], "element",
     [?ATTRIBUTE],
     [?TARGET, ?CDATA]}
 ).
 
--define(ELEMENT3, {xmlnselement,
+-define(ELEMENT3, {xmlel,
     ?NS_XML, [], "element",
     [],
     [?ELEMENT2]}

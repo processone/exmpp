@@ -31,7 +31,7 @@
 
 %% @spec (Methods) -> Feature
 %%     Methods = [string()]
-%%     Feature = exmpp_xml:xmlnselement()
+%%     Feature = exmpp_xml:xmlel()
 %% @throws {stream_compression, feature_announcement, invalid_methods_list,
 %%           []} |
 %%         {stream_compression, feature_announcement, invalid_method, Method}
@@ -48,7 +48,7 @@
 %% The result should then be passed to {@link exmpp_stream:features/1}.
 
 feature(Methods) ->
-    #xmlnselement{
+    #xmlel{
       ns = ?NS_COMPRESS,
       name = 'compression',
       children = methods_list(Methods)
@@ -63,7 +63,7 @@ methods_list(Methods) ->
 methods_list2([Method | Rest], Children) ->
     case io_lib:deep_char_list(Method) of
         true ->
-            Child = #xmlnselement{
+            Child = #xmlel{
               ns = ?NS_COMPRESS,
               name = 'method'
             },
@@ -87,29 +87,29 @@ standard_conditions() ->
     ].
 
 %% @spec () -> Compressed
-%%     Compressed = exmpp_xml:xmlnselement()
+%%     Compressed = exmpp_xml:xmlel()
 %% @doc Prepare a `<compressed/>' element.
 
 compressed() ->
-    #xmlnselement{
+    #xmlel{
       ns = ?NS_COMPRESS,
       name = 'compressed'
     }.
 
 %% @spec (Condition) -> Failure
 %%     Condition = atom()
-%%     Failure = exmpp_xml:xmlnselement()
+%%     Failure = exmpp_xml:xmlel()
 %% @throws {stream_compression, failure, invalid_condition, Condition}
 %% @doc Prepare a `<failure/>' element.
 
 failure(Condition) ->
     case lists:keysearch(Condition, 1, standard_conditions()) of
         {value, _} ->
-            Condition_El = #xmlnselement{
+            Condition_El = #xmlel{
               ns = ?NS_COMPRESS,
               name = Condition
             },
-            #xmlnselement{
+            #xmlel{
               ns = ?NS_COMPRESS,
               name = failure,
               children = [Condition_El]

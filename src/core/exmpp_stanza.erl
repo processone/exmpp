@@ -68,14 +68,14 @@
 % --------------------------------------------------------------------
 
 %% @spec (Stanza) -> Error | undefined
-%%     Stanza = exmpp_xml:xmlnselement()
-%%     Error = exmpp_xml:xmlnselement()
+%%     Stanza = exmpp_xml:xmlel()
+%%     Error = exmpp_xml:xmlel()
 %% @doc Return the error element from `Stanza'.
 %%
 %% The error element is supposed to have the name `error' and the same
 %% namespace as the stanza.
 
-get_error(#xmlnselement{ns = NS} = Stanza) ->
+get_error(#xmlel{ns = NS} = Stanza) ->
     exmpp_xml:get_element_by_name(Stanza, NS, 'error').
 
 % --------------------------------------------------------------------
@@ -83,14 +83,14 @@ get_error(#xmlnselement{ns = NS} = Stanza) ->
 % --------------------------------------------------------------------
 
 %% @spec (Stanza) -> Sender | nil()
-%%     Stanza = exmpp_xml:xmlnselement()
+%%     Stanza = exmpp_xml:xmlel()
 %%     Sender = string()
 %% @doc Return the sender.
 %%
 %% The return value should be a JID and may be parsed with
 %% {@link exmpp_jid:string_to_jid/1}.
 
-get_sender(#xmlnselement{attrs = Attrs} = _Stanza) ->
+get_sender(#xmlel{attrs = Attrs} = _Stanza) ->
     get_sender_from_attrs(Attrs).
 
 %% @spec (Attrs) -> Sender | nil()
@@ -105,14 +105,14 @@ get_sender_from_attrs(Attrs) ->
     exmpp_xml:get_attribute_from_list(Attrs, 'from').
 
 %% @spec (Stanza, Sender) -> New_Stanza
-%%     Stanza = exmpp_xml:xmlnselement()
+%%     Stanza = exmpp_xml:xmlel()
 %%     Sender = string()
-%%     New_Stanza = exmpp_xml:xmlnselement()
+%%     New_Stanza = exmpp_xml:xmlel()
 %% @doc Set the sender.
 
-set_sender(#xmlnselement{attrs = Attrs} = Stanza, Sender) ->
+set_sender(#xmlel{attrs = Attrs} = Stanza, Sender) ->
     New_Attrs = set_sender_in_attrs(Attrs, Sender),
-    Stanza#xmlnselement{attrs = New_Attrs}.
+    Stanza#xmlel{attrs = New_Attrs}.
 
 %% @spec (Attrs, Sender) -> New_Attrs
 %%     Attrs = [exmpp_xml:xmlnsattribute()]
@@ -124,14 +124,14 @@ set_sender_in_attrs(Attrs, Sender) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'from', Sender).
 
 %% @spec (Stanza) -> Recipient | nil()
-%%     Stanza = exmpp_xml:xmlnselement()
+%%     Stanza = exmpp_xml:xmlel()
 %%     Recipient = string()
 %% @doc Return the recipient.
 %%
 %% The return value should be a JID and may be parsed with
 %% {@link exmpp_jid:string_to_jid/1}.
 
-get_recipient(#xmlnselement{attrs = Attrs} = _Stanza) ->
+get_recipient(#xmlel{attrs = Attrs} = _Stanza) ->
     get_recipient_from_attrs(Attrs).
 
 %% @spec (Attrs) -> Recipient | nil()
@@ -146,14 +146,14 @@ get_recipient_from_attrs(Attrs) ->
     exmpp_xml:get_attribute_from_list(Attrs, 'to').
 
 %% @spec (Stanza, Recipient) -> New_Stanza
-%%     Stanza = exmpp_xml:xmlnselement()
+%%     Stanza = exmpp_xml:xmlel()
 %%     Recipient = string()
-%%     New_Stanza = exmpp_xml:xmlnselement()
+%%     New_Stanza = exmpp_xml:xmlel()
 %% @doc Set the recipient.
 
-set_recipient(#xmlnselement{attrs = Attrs} = Stanza, Recipient) ->
+set_recipient(#xmlel{attrs = Attrs} = Stanza, Recipient) ->
     New_Attrs = set_recipient_in_attrs(Attrs, Recipient),
-    Stanza#xmlnselement{attrs = New_Attrs}.
+    Stanza#xmlel{attrs = New_Attrs}.
 
 %% @spec (Attrs, Recipient) -> New_Attrs
 %%     Attrs = [exmpp_xml:xmlnsattribute()]
@@ -165,11 +165,11 @@ set_recipient_in_attrs(Attrs, Recipient) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'to', Recipient).
 
 %% @spec (Stanza) -> ID | nil()
-%%     Stanza = exmpp_xml:xmlnselement()
+%%     Stanza = exmpp_xml:xmlel()
 %%     ID = string()
 %% @doc Return the stanza ID.
 
-get_id(#xmlnselement{attrs = Attrs} = _Stanza) ->
+get_id(#xmlel{attrs = Attrs} = _Stanza) ->
     get_id_from_attrs(Attrs).
 
 %% @spec (Attrs) -> ID | nil()
@@ -181,18 +181,18 @@ get_id_from_attrs(Attrs) ->
     exmpp_xml:get_attribute_from_list(Attrs, 'id').
 
 %% @spec (Stanza, ID) -> New_Stanza
-%%     Stanza = exmpp_xml:xmlnselement()
+%%     Stanza = exmpp_xml:xmlel()
 %%     ID = string() | undefined
-%%     New_Stanza = exmpp_xml:xmlnselement()
+%%     New_Stanza = exmpp_xml:xmlel()
 %% @doc Set the id.
 
-set_id(#xmlnselement{attrs = Attrs, name = Name} = Stanza, ID)
+set_id(#xmlel{attrs = Attrs, name = Name} = Stanza, ID)
   when ID == undefined; ID == "" ->
     New_Attrs = set_id_in_attrs(Attrs, exmpp_internals:random_id(Name)),
-    Stanza#xmlnselement{attrs = New_Attrs};
-set_id(#xmlnselement{attrs = Attrs} = Stanza, ID) ->
+    Stanza#xmlel{attrs = New_Attrs};
+set_id(#xmlel{attrs = Attrs} = Stanza, ID) ->
     New_Attrs = set_id_in_attrs(Attrs, ID),
-    Stanza#xmlnselement{attrs = New_Attrs}.
+    Stanza#xmlel{attrs = New_Attrs}.
 
 %% @spec (Attrs, ID) -> New_Attrs
 %%     Attrs = [exmpp_xml:xmlnsattribute()]
@@ -206,11 +206,11 @@ set_id_in_attrs(Attrs, ID) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'id', ID).
 
 %% @spec (Stanza) -> Type | nil()
-%%     Stanza = exmpp_xml:xmlnselement()
+%%     Stanza = exmpp_xml:xmlel()
 %%     Type = string()
 %% @doc Return the type of the stanza.
 
-get_type(#xmlnselement{attrs = Attrs} = _Stanza) ->
+get_type(#xmlel{attrs = Attrs} = _Stanza) ->
     get_type_from_attrs(Attrs).
 
 %% @spec (Attrs) -> Type | nil()
@@ -222,14 +222,14 @@ get_type_from_attrs(Attrs) ->
     exmpp_xml:get_attribute_from_list(Attrs, 'type').
 
 %% @spec (Stanza, Type) -> New_Stanza
-%%     Stanza = exmpp_xml:xmlnselement()
+%%     Stanza = exmpp_xml:xmlel()
 %%     Type = string()
-%%     New_Stanza = exmpp_xml:xmlnselement()
+%%     New_Stanza = exmpp_xml:xmlel()
 %% @doc Set the type of the stanza.
 
-set_type(#xmlnselement{attrs = Attrs} = Stanza, Type) ->
+set_type(#xmlel{attrs = Attrs} = Stanza, Type) ->
     New_Attrs = set_type_in_attrs(Attrs, Type),
-    Stanza#xmlnselement{attrs = New_Attrs}.
+    Stanza#xmlel{attrs = New_Attrs}.
 
 %% @spec (Attrs, Type) -> New_Attrs
 %%     Attrs = [exmpp_xml:xmlnsattribute()]
@@ -241,11 +241,11 @@ set_type_in_attrs(Attrs, Type) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'type', Type).
 
 %% @spec (Stanza) -> Lang | nil()
-%%     Stanza = exmpp_xml:xmlnselement()
+%%     Stanza = exmpp_xml:xmlel()
 %%     Lang = string()
 %% @doc Return the language of the stanza.
 
-get_lang(#xmlnselement{attrs = Attrs} = _Stanza) ->
+get_lang(#xmlel{attrs = Attrs} = _Stanza) ->
     get_lang_from_attrs(Attrs).
 
 %% @spec (Attrs) -> Lang | nil()
@@ -257,14 +257,14 @@ get_lang_from_attrs(Attrs) ->
     exmpp_xml:get_attribute_in_list(Attrs, ?NS_XML, 'lang').
 
 %% @spec (Stanza, Lang) -> New_Stanza
-%%     Stanza = exmpp_xml:xmlnselement()
+%%     Stanza = exmpp_xml:xmlel()
 %%     Lang = string()
-%%     New_Stanza = exmpp_xml:xmlnselement()
+%%     New_Stanza = exmpp_xml:xmlel()
 %% @doc Set the lang.
 
-set_lang(#xmlnselement{attrs = Attrs} = Stanza, Lang) ->
+set_lang(#xmlel{attrs = Attrs} = Stanza, Lang) ->
     New_Attrs = set_lang_in_attrs(Attrs, Lang),
-    Stanza#xmlnselement{attrs = New_Attrs}.
+    Stanza#xmlel{attrs = New_Attrs}.
 
 %% @spec (Attrs, Lang) -> New_Attrs
 %%     Attrs = [exmpp_xml:xmlnsattribute()]
@@ -280,15 +280,15 @@ set_lang_in_attrs(Attrs, Lang) ->
 % --------------------------------------------------------------------
 
 %% @spec (Stanza) -> Stanza_Reply
-%%     Stanza = exmpp_xml:xmlnselement()
-%%     Stanza_Reply = exmpp_xml:xmlnselement()
+%%     Stanza = exmpp_xml:xmlel()
+%%     Stanza_Reply = exmpp_xml:xmlel()
 %% @doc Prepare a reply to `Stanza'.
 %%
 %% @see reply_from_attrs/1.
 
-reply(#xmlnselement{attrs = Attrs} = Stanza) ->
+reply(#xmlel{attrs = Attrs} = Stanza) ->
     New_Attrs = reply_from_attrs(Attrs),
-    Stanza#xmlnselement{attrs = New_Attrs}.
+    Stanza#xmlel{attrs = New_Attrs}.
 
 %% @spec (Attrs) -> New_Attrs
 %%     Attrs = [exmpp_xml:xmlnsattribute()]
@@ -324,9 +324,9 @@ reply_from_attrs(Attrs) ->
     end.
 
 %% @spec (Stanza, Condition) -> Stanza_Reply
-%%     Stanza = exmpp_xml:xmlnselement()
+%%     Stanza = exmpp_xml:xmlel()
 %%     Condition = atop()
-%%     Stanza_Reply = exmpp_xml:xmlnselement()
+%%     Stanza_Reply = exmpp_xml:xmlel()
 %% @doc Prepare an error reply to `Stanza'.
 
 reply_with_error(Stanza, Condition) ->
@@ -366,7 +366,7 @@ standard_conditions() ->
 %% @spec (NS, Condition) -> Stanza_Error
 %%     NS = atom() | string()
 %%     Condition = atom()
-%%     Stanza_Error = exmpp_xml:xmlnselement()
+%%     Stanza_Error = exmpp_xml:xmlel()
 %% @doc Create an `<error/>' element based on the given `Condition'.
 %%
 %% A default type is set by {@link set_error_type/2} if `NS' is
@@ -382,7 +382,7 @@ error(NS, Condition) ->
 %%     Text_Spec = {Lang, Text} | Text | undefined
 %%     Lang = string() | undefined
 %%     Text = string() | undefined
-%%     Stanza_Error = exmpp_xml:xmlnselement()
+%%     Stanza_Error = exmpp_xml:xmlel()
 %% @doc Create an `<error/>' element based on the given `Condition'.
 %%
 %% A default type is set by {@link set_error_type/2} if `NS' is
@@ -390,11 +390,11 @@ error(NS, Condition) ->
 %% element.
 
 error(NS, Condition, {Lang, Text}) ->
-    Condition_El = #xmlnselement{
+    Condition_El = #xmlel{
       ns = ?NS_XMPP_STANZAS,
       name = Condition
     },
-    Error_El0 = #xmlnselement{
+    Error_El0 = #xmlel{
       ns = NS,
       name = 'error',
       children = [Condition_El]
@@ -403,7 +403,7 @@ error(NS, Condition, {Lang, Text}) ->
         undefined ->
             Error_El0;
         _ ->
-            Text_El0 = #xmlnselement{
+            Text_El0 = #xmlel{
               ns = ?NS_XMPP_STANZAS,
               name = 'text'
             },
@@ -420,9 +420,9 @@ error(NS, Condition, Text) ->
     error(NS, Condition, {undefined, Text}).
 
 %% @spec (Stanza, Error) -> Stanza_Error
-%%     Stanza = exmpp_xml:xmlnselement()
-%%     Error = exmpp_xml:xmlnselement()
-%%     Stanza_Error = exmpp_xml:xmlnselement()
+%%     Stanza = exmpp_xml:xmlel()
+%%     Error = exmpp_xml:xmlel()
+%%     Stanza_Error = exmpp_xml:xmlel()
 %% @doc Transform `Stanza' in a stanza error.
 %%
 %% The `type' attribute is set and an error condition is added. The
@@ -437,9 +437,9 @@ stanza_error(Stanza, Error) ->
     set_type(Stanza_Error, "error").
 
 %% @spec (Stanza, Error) -> Stanza_Error
-%%     Stanza = exmpp_xml:xmlnselement()
-%%     Error = exmpp_xml:xmlnselement()
-%%     Stanza_Error = exmpp_xml:xmlnselement()
+%%     Stanza = exmpp_xml:xmlel()
+%%     Error = exmpp_xml:xmlel()
+%%     Stanza_Error = exmpp_xml:xmlel()
 %% @doc Transform `Stanza' in a stanza error.
 %%
 %% Previous child elements from `Stanza' are not kept.
@@ -451,7 +451,7 @@ stanza_error_without_original(Stanza, Error) ->
     set_type(Stanza_Error, "error").
 
 %% @spec (Stanza) -> bool()
-%%     Stanza = exmpp_xml:xmlnselement()
+%%     Stanza = exmpp_xml:xmlel()
 %% @doc Tell if the stanza transports an error.
 
 is_stanza_error(Stanza) ->
@@ -461,7 +461,7 @@ is_stanza_error(Stanza) ->
     end.
 
 %% @spec (Stanza) -> Type
-%%     Stanza = exmpp_xml:xmlnselement()
+%%     Stanza = exmpp_xml:xmlel()
 %%     Type = string()
 %% @throws {stanza_error, error_type, no_error_element_found, Stanza}
 %% @doc Return the type of the error element.
@@ -478,9 +478,9 @@ get_error_type_from_error(Error) ->
     exmpp_xml:get_attribute(Error, 'type').
 
 %% @spec (Stanza, Type) -> New_Stanza
-%%     Stanza = exmpp_xml:xmlnselement()
+%%     Stanza = exmpp_xml:xmlel()
 %%     Type = string()
-%%     New_Stanza = exmpp_xml:xmlnselement()
+%%     New_Stanza = exmpp_xml:xmlel()
 %% @throws {stanza_error, error_type, no_error_element_found, Stanza}
 %% @doc Set the type of the error element.
 
@@ -497,9 +497,9 @@ set_error_type_in_error(Error, Type) ->
     exmpp_xml:set_attribute(Error, 'type', Type).
 
 %% @spec (Stanza, Condition) -> New_Stanza
-%%     Stanza = exmpp_xml:xmlnselement()
+%%     Stanza = exmpp_xml:xmlel()
 %%     Condition = atom()
-%%     New_Stanza = exmpp_xml:xmlnselement()
+%%     New_Stanza = exmpp_xml:xmlel()
 %% @throws {stanza_error, error_type, no_error_element_found, Stanza} |
 %%         {stanza_error, error_type, invalid_condition, {NS, Condition}}
 %% @doc Set the type of the error element, based on the given condition.
@@ -516,7 +516,7 @@ set_error_type_from_condition(Stanza, Condition) ->
             exmpp_xml:replace_child(Stanza, Error, New_Error)
     end.
 
-set_error_type_from_condition_in_error(#xmlnselement{ns = NS} = Error,
+set_error_type_from_condition_in_error(#xmlel{ns = NS} = Error,
   Condition) when NS == ?NS_JABBER_CLIENT; NS == ?NS_JABBER_SERVER ->
     case lists:keysearch(Condition, 1, standard_conditions()) of
         {value, {_, undefined}} ->
@@ -531,7 +531,7 @@ set_error_type_from_condition_in_error(Error, _Condition) ->
     Error.
 
 %% @spec (Stanza) -> Condition | undefined
-%%     Stanza = exmpp_xml:xmlnselement()
+%%     Stanza = exmpp_xml:xmlel()
 %%     Condition = atom()
 %% @throws {stanza_error, condition, no_error_element_found, Stanza} |
 %%         {stanza_error, condition, no_condition_found, Error}
@@ -549,26 +549,26 @@ get_condition(Stanza) ->
             get_condition_in_error(Error)
     end.
 
-get_condition_in_error(#xmlnselement{ns = NS} = Error)
+get_condition_in_error(#xmlel{ns = NS} = Error)
   when NS == ?NS_JABBER_CLIENT; NS == ?NS_JABBER_SERVER ->
     case exmpp_xml:get_element_by_ns(Error, ?NS_XMPP_STANZAS) of
         undefined ->
             % This <error/> element is invalid because the condition must be
             % present (and first).
             throw({stanza_error, condition, no_condition_found, Error});
-        #xmlnselement{name = 'text'} ->
+        #xmlel{name = 'text'} ->
             % Same as above.
             throw({stanza_error, condition, no_condition_found, Error});
-        #xmlnselement{name = Condition} ->
+        #xmlel{name = Condition} ->
             Condition
     end;
-get_condition_in_error(#xmlnselement{children = [First | _]} = _Error) ->
-    First#xmlnselement.name;
+get_condition_in_error(#xmlel{children = [First | _]} = _Error) ->
+    First#xmlel.name;
 get_condition_in_error(_Error) ->
     undefined.
 
 %% @spec (Stanza) -> Text | undefined
-%%     Stanza = exmpp_xml:xmlnselement()
+%%     Stanza = exmpp_xml:xmlel()
 %%     Text = string()
 %% @throws {stanza_error, text, no_error_element_found, Stanza}
 %% @doc Return the text that describes the error.
@@ -583,7 +583,7 @@ get_text(Stanza) ->
             get_text_in_error(Error)
     end.
 
-get_text_in_error(#xmlnselement{ns = NS} = Error)
+get_text_in_error(#xmlel{ns = NS} = Error)
   when NS == ?NS_JABBER_CLIENT; NS == ?NS_JABBER_SERVER ->
     case exmpp_xml:get_element_by_name(Error, ?NS_XMPP_STANZAS, 'text') of
         undefined -> undefined;

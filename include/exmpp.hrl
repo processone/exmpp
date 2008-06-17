@@ -12,7 +12,7 @@
 }).
 
 % Elements WITH namespace support.
--record(xmlnselement, {
+-record(xmlel, {
   ns = undefined,         % Element namespace
   declared_ns = [],       % Declared namespaces in this element
   name,                   % Element name
@@ -34,7 +34,7 @@
 }).
 
 % XML end tag.
-% To use when 'children' is undefined in xmlnselement or xmlelement.
+% To use when 'children' is undefined in xmlel or xmlelement.
 -record(xmlendtag, {
   ns = undefined,
   prefix = undefined,
@@ -53,12 +53,12 @@
 
 % Stream start.
 -record(xmlstreamstart, {
-  element                 % #xmlnselement
+  element                 % #xmlel
 }).
 
 % Depth 1 element, inside a stream.
 -record(xmlstreamelement, {
-  element                 % #xmlnselement
+  element                 % #xmlel
 }).
 
 % Stream end.
@@ -72,8 +72,8 @@
 
 % Guard expression to test an IQ.
 -define(IS_IQ(IQ),
-  IQ#xmlnselement.name == 'iq', IQ#xmlnselement.ns == ?NS_JABBER_CLIENT;
-  IQ#xmlnselement.name == 'iq', IQ#xmlnselement.ns == ?NS_JABBER_SERVER
+  IQ#xmlel.name == 'iq', IQ#xmlel.ns == ?NS_JABBER_CLIENT;
+  IQ#xmlel.name == 'iq', IQ#xmlel.ns == ?NS_JABBER_SERVER
 ).
 
 % --------------------------------------------------------------------

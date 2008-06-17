@@ -28,17 +28,17 @@
 % --------------------------------------------------------------------
 
 %% @spec (Features_Announcement) -> bool()
-%%     Features_Announcement = exmpp_xml:xmlnselement()
+%%     Features_Announcement = exmpp_xml:xmlel()
 %% @throws {resource_binding, announced_support, invalid_feature, Feature}
 %% @doc Tell if the Resource Binding feature is supported.
 
-announced_support(#xmlnselement{ns = ?NS_XMPP, name = 'features'} = El) ->
+announced_support(#xmlel{ns = ?NS_XMPP, name = 'features'} = El) ->
     case exmpp_xml:get_element_by_name(El, ?NS_BIND, 'bind') of
         undefined -> false;
         Child     -> announced_support2(Child)
     end.
 
-announced_support2(#xmlnselement{children = []}) ->
+announced_support2(#xmlel{children = []}) ->
     true;
 announced_support2(Feature) ->
     throw({resource_binding, announced_support, invalid_feature, Feature}).
@@ -48,14 +48,14 @@ announced_support2(Feature) ->
 % --------------------------------------------------------------------
 
 %% @spec () -> Bind
-%%     Bind = exmpp_xml:xmlnselement()
+%%     Bind = exmpp_xml:xmlel()
 %% @doc Prepare a Resource Binding request.
 
 bind() ->
     bind(undefined).
 
 %% @spec (Resource) -> Bind
-%%     Bind = exmpp_xml:xmlnselement()
+%%     Bind = exmpp_xml:xmlel()
 %% @doc Prepare a Resource Binding request for the given `Resource'.
 
 bind(Resource) ->
@@ -65,13 +65,13 @@ bind(Resource) ->
         "" ->
             [];
         _ ->
-            El = #xmlnselement{
+            El = #xmlel{
               ns = ?NS_BIND,
               name = 'resource'
             },
             [exmpp_xml:set_cdata(El, Resource)]
     end,
-    Bind = #xmlnselement{
+    Bind = #xmlel{
       ns = ?NS_BIND,
       name = 'bind',
       children = Children
@@ -79,7 +79,7 @@ bind(Resource) ->
     exmpp_iq:set(?NS_JABBER_CLIENT, Bind, exmpp_internals:random_id("bind")).
 
 %% @spec (Bind) -> Jid
-%%     Bind = exmpp_xml:xmlnselement()
+%%     Bind = exmpp_xml:xmlel()
 %%     Jid = string()
 %% @throws {resource_binding, bounded_jid, invalid_bind, Stanza} |
 %%         {resource_binding, bounded_jid, no_jid, IQ} |
@@ -90,10 +90,10 @@ bounded_jid(IQ) when ?IS_IQ(IQ) ->
     case exmpp_iq:get_type(IQ) of
         'result' ->
             case exmpp_iq:get_result(IQ) of
-                #xmlnselement{ns = ?NS_BIND, name = 'bind'} = Bind ->
+                #xmlel{ns = ?NS_BIND, name = 'bind'} = Bind ->
                     case exmpp_xml:get_element_by_name(Bind,
                       ?NS_BIND, 'jid') of
-                        #xmlnselement{} = Jid_El ->
+                        #xmlel{} = Jid_El ->
                             Jid_S = exmpp_xml:get_cdata_as_list(Jid_El),
                             exmpp_jid:string_to_jid(Jid_S);
                         _ ->

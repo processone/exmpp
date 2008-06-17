@@ -163,7 +163,7 @@
 %%     Version = string() | {Major, Minor}
 %%     Major = integer()
 %%     Minor = integer()
-%%     Opening = exmpp_xml:xmlnselement()
+%%     Opening = exmpp_xml:xmlel()
 %% @doc Make a `<stream>' opening tag.
 %%
 %% @see opening/4.
@@ -178,7 +178,7 @@ opening(To, Default_NS, Version) ->
 %%     Major = integer()
 %%     Minor = integer()
 %%     Lang = string() | undefined
-%%     Opening = exmpp_xml:xmlnselement()
+%%     Opening = exmpp_xml:xmlel()
 %% @doc Make a `<stream>' opening tag.
 %%
 %% This element is supposed to be sent by the initiating entity
@@ -194,7 +194,7 @@ opening(To, Default_NS, Version, Lang) ->
         _         -> set_lang_in_attrs(Attrs2, Lang)
     end,
     % Create element.
-    #xmlnselement{
+    #xmlel{
       ns          = ?NS_XMPP,
       declared_ns = [{?NS_XMPP, ?STREAM_NS_PREFIX}, {Default_NS, none}],
       name        = 'stream',
@@ -209,7 +209,7 @@ opening(To, Default_NS, Version, Lang) ->
 %%     Major = integer()
 %%     Minor = integer()
 %%     ID = string() | undefined
-%%     Opening_Reply = exmpp_xml:xmlnselement()
+%%     Opening_Reply = exmpp_xml:xmlel()
 %% @doc Make a `<stream>' opening reply tag.
 %%
 %% @see opening_reply/5.
@@ -225,7 +225,7 @@ opening_reply(From, Default_NS, Version, ID) ->
 %%     Minor = integer()
 %%     ID = string() | undefined
 %%     Lang = string() | undefined
-%%     Opening_Reply = exmpp_xml:xmlnselement()
+%%     Opening_Reply = exmpp_xml:xmlel()
 %% @doc Make a `<stream>' opening reply tag.
 %%
 %% This element is supposed to be sent by the receiving entity in reply
@@ -244,7 +244,7 @@ opening_reply(From, Default_NS, Version, ID, Lang) ->
         _         -> set_lang_in_attrs(Attrs3, Lang)
     end,
     % Create element.
-    #xmlnselement{
+    #xmlel{
       ns          = ?NS_XMPP,
       declared_ns = [{?NS_XMPP, ?STREAM_NS_PREFIX}, {Default_NS, none}],
       name        = 'stream',
@@ -253,9 +253,9 @@ opening_reply(From, Default_NS, Version, ID, Lang) ->
     }.
 
 %% @spec (Opening, ID) -> Opening_Reply
-%%     Opening = exmpp_xml:xmlnselement()
+%%     Opening = exmpp_xml:xmlel()
 %%     ID = string() | undefined
-%%     Opening_Reply = exmpp_xml:xmlnselement()
+%%     Opening_Reply = exmpp_xml:xmlel()
 %% @doc Make a `<stream>' opening reply tag for the given `Opening' tag.
 %%
 %% This element is supposed to be sent by the receiving entity in reply
@@ -264,10 +264,10 @@ opening_reply(From, Default_NS, Version, ID, Lang) ->
 %%
 %% If `ID' is `undefined', one will be generated automatically.
 
-opening_reply(#xmlnselement{attrs = Attrs} = Opening, ID) ->
+opening_reply(#xmlel{attrs = Attrs} = Opening, ID) ->
     Attrs1 = exmpp_stanza:reply_from_attrs(Attrs),
     Attrs2 = set_id_in_attrs(Attrs1, ID),
-    Opening#xmlnselement{attrs = Attrs2}.
+    Opening#xmlel{attrs = Attrs2}.
 
 %% @spec () -> Closing
 %%     Closing = exmpp_xml:xmlendtag()
@@ -278,11 +278,11 @@ closing() ->
       name = 'stream'}.
 
 %% @spec (Opening) -> Closing
-%%     Opening = exmpp_xml:xmlnselement()
+%%     Opening = exmpp_xml:xmlel()
 %%     Closing = exmpp_xml:xmlendtag()
 %% @doc Make a `</stream>' closing tag for the given `Opening' tag.
 
-closing(#xmlnselement{ns = NS, declared_ns = Declared_NS, name = Name}) ->
+closing(#xmlel{ns = NS, declared_ns = Declared_NS, name = Name}) ->
     Prefix = case lists:keysearch(NS, 1, Declared_NS) of
         {value, {_NS, none}} -> undefined;
         {value, {_NS, P}}    -> P;
@@ -295,7 +295,7 @@ closing(#xmlnselement{ns = NS, declared_ns = Declared_NS, name = Name}) ->
 % --------------------------------------------------------------------
 
 %% @spec (Opening) -> Hostname | nil()
-%%     Opening = exmpp_xml:xmlnselement()
+%%     Opening = exmpp_xml:xmlel()
 %%     Hostname = string()
 %% @doc Return the receiving entity hostname.
 
@@ -303,20 +303,20 @@ get_receiving_entity(Opening) ->
     exmpp_xml:get_attribute(Opening, 'to').
 
 %% @spec (Opening, Hostname) -> New_Opening
-%%     Opening = exmpp_xml:xmlnselement()
+%%     Opening = exmpp_xml:xmlel()
 %%     Hostname = string()
-%%     New_Opening = exmpp_xml:xmlnselement()
+%%     New_Opening = exmpp_xml:xmlel()
 %% @doc Set the receiving entity in the `to' attribute.
 
-set_receiving_entity(#xmlnselement{attrs = Attrs} = Opening, Hostname) ->
+set_receiving_entity(#xmlel{attrs = Attrs} = Opening, Hostname) ->
     New_Attrs = set_receiving_entity_in_attrs(Attrs, Hostname),
-    Opening#xmlnselement{attrs = New_Attrs}.
+    Opening#xmlel{attrs = New_Attrs}.
 
 set_receiving_entity_in_attrs(Attrs, Hostname) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'to', Hostname).
 
 %% @spec (Opening) -> Hostname | nil()
-%%     Opening = exmpp_xml:xmlnselement()
+%%     Opening = exmpp_xml:xmlel()
 %%     Hostname = string()
 %% @doc Return the initiating entity hostname.
 
@@ -324,44 +324,44 @@ get_initiating_entity(Opening) ->
     exmpp_xml:get_attribute(Opening, 'from').
 
 %% @spec (Opening, Hostname) -> New_Opening
-%%     Opening = exmpp_xml:xmlnselement()
+%%     Opening = exmpp_xml:xmlel()
 %%     Hostname = string()
-%%     New_Opening = exmpp_xml:xmlnselement()
+%%     New_Opening = exmpp_xml:xmlel()
 %% @doc Set the initiating entity in the `from' attribute.
 
-set_initiating_entity(#xmlnselement{attrs = Attrs} = Opening, Hostname) ->
+set_initiating_entity(#xmlel{attrs = Attrs} = Opening, Hostname) ->
     New_Attrs = set_receiving_entity_in_attrs(Attrs, Hostname),
-    Opening#xmlnselement{attrs = New_Attrs}.
+    Opening#xmlel{attrs = New_Attrs}.
 
 set_initiating_entity_in_attrs(Attrs, Hostname) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'from', Hostname).
 
 %% @spec (Opening) -> Default_NS | undefined
-%%     Opening = exmpp_xml:xmlnselement()
+%%     Opening = exmpp_xml:xmlel()
 %%     Default_NS = atom() | string()
 %% @doc Return the default namespace.
 %%
 %% XMPP-IM defines `jabber:client' and `jabber:server'.
 
-get_default_ns(#xmlnselement{declared_ns = Declared_NS} = _Opening) ->
+get_default_ns(#xmlel{declared_ns = Declared_NS} = _Opening) ->
     case lists:keysearch(none, 2, Declared_NS) of
         {value, {NS, _none}} -> NS;
         _                    -> undefined
     end.
 
 %% @spec (Opening, NS) -> New_Opening
-%%     Opening = exmpp_xml:xmlnselement()
+%%     Opening = exmpp_xml:xmlel()
 %%     NS = atom() | string()
-%%     New_Opening = exmpp_xml:xmlnselement()
+%%     New_Opening = exmpp_xml:xmlel()
 %% @doc Set the default namespace.
 %%
 %% XMPP-IM defines `jabber:client' and `jabber:server'.
 
-set_default_ns(#xmlnselement{declared_ns = Declared_NS} = Opening, NS) ->
-    Opening#xmlnselement{declared_ns = [{NS, none} | Declared_NS]}.
+set_default_ns(#xmlel{declared_ns = Declared_NS} = Opening, NS) ->
+    Opening#xmlel{declared_ns = [{NS, none} | Declared_NS]}.
 
 %% @spec (Opening) -> Version
-%%     Opening = exmpp_xml:xmlnselement()
+%%     Opening = exmpp_xml:xmlel()
 %%     Version = {Major, Minor}
 %%     Major = integer()
 %%     Minor = integer()
@@ -371,16 +371,16 @@ get_version(Opening) ->
     parse_version(exmpp_xml:get_attribute(Opening, 'version')).
 
 %% @spec (Opening, Version) -> New_Opening
-%%     Opening = exmpp_xml:xmlnselement()
+%%     Opening = exmpp_xml:xmlel()
 %%     Version = string() | {Major, Minor} | undefined
 %%     Major = integer()
 %%     Minor = integer()
-%%     New_Opening = exmpp_xml:xmlnselement()
+%%     New_Opening = exmpp_xml:xmlel()
 %% @doc Set the protocol version.
 
-set_version(#xmlnselement{attrs = Attrs} = Opening, Version) ->
+set_version(#xmlel{attrs = Attrs} = Opening, Version) ->
     New_Attrs = set_version_in_attrs(Attrs, Version),
-    Opening#xmlnselement{attrs = New_Attrs}.
+    Opening#xmlel{attrs = New_Attrs}.
 
 set_version_in_attrs(Attrs, Version)
   when Version == undefined; Version == ""; Version == {0, 0} ->
@@ -392,7 +392,7 @@ set_version_in_attrs(Attrs, Version) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'version', Version).
 
 %% @spec (Opening) -> ID | nil()
-%%     Opening = exmpp_xml:xmlnselement()
+%%     Opening = exmpp_xml:xmlel()
 %%     ID = string()
 %% @doc Return the stream ID.
 
@@ -400,14 +400,14 @@ get_id(Opening) ->
     exmpp_xml:get_attribute(Opening, 'id').
 
 %% @spec (Opening, ID) -> New_Opening
-%%     Opening = exmpp_xml:xmlnselement()
+%%     Opening = exmpp_xml:xmlel()
 %%     ID = string() | undefined
-%%     New_Opening = exmpp_xml:xmlnselement()
+%%     New_Opening = exmpp_xml:xmlel()
 %% @doc Set the stream ID.
 
-set_id(#xmlnselement{attrs = Attrs} = Opening, ID) ->
+set_id(#xmlel{attrs = Attrs} = Opening, ID) ->
     New_Attrs = set_id_in_attrs(Attrs, ID),
-    Opening#xmlnselement{attrs = New_Attrs}.
+    Opening#xmlel{attrs = New_Attrs}.
 
 set_id_in_attrs(Attrs, ID) when ID == undefined; ID == "" ->
     set_id_in_attrs(Attrs, exmpp_internals:random_id("stream"));
@@ -415,7 +415,7 @@ set_id_in_attrs(Attrs, ID) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'id', ID).
 
 %% @spec (Opening) -> Lang | nil()
-%%     Opening = exmpp_xml:xmlnselement()
+%%     Opening = exmpp_xml:xmlel()
 %%     Lang = string()
 %% @doc Return the language of the stream.
 
@@ -423,14 +423,14 @@ get_lang(Opening) ->
     exmpp_xml:get_attribute(Opening, ?NS_XML, 'lang').
 
 %% @spec (Opening, Lang) -> New_Opening
-%%     Opening = exmpp_xml:xmlnselement()
+%%     Opening = exmpp_xml:xmlel()
 %%     Lang = string()
-%%     New_Opening = exmpp_xml:xmlnselement()
+%%     New_Opening = exmpp_xml:xmlel()
 %% @doc Set the default language.
 
-set_lang(#xmlnselement{attrs = Attrs} = Opening, Lang) ->
+set_lang(#xmlel{attrs = Attrs} = Opening, Lang) ->
     New_Attrs = set_lang_in_attrs(Attrs, Lang),
-    Opening#xmlnselement{attrs = New_Attrs}.
+    Opening#xmlel{attrs = New_Attrs}.
 
 set_lang_in_attrs(Attrs, Lang) ->
     exmpp_xml:set_attribute_in_list(Attrs, ?NS_XML, 'lang', Lang).
@@ -480,12 +480,12 @@ serialize_version({Major, Minor}) ->
 % --------------------------------------------------------------------
 
 %% @spec (Features) -> Features_Announcement
-%%     Features = [exmpp_xml:xmlnselement()]
-%%     Features_Announcement = exmpp_xml:xmlnselement()
+%%     Features = [exmpp_xml:xmlel()]
+%%     Features_Announcement = exmpp_xml:xmlel()
 %% @doc Make the features annoucement element.
 
 features(Features) ->
-    #xmlnselement{
+    #xmlel{
       ns = ?NS_XMPP,
       declared_ns = [{?NS_XMPP, ?STREAM_NS_PREFIX}],
       name = 'features',
@@ -526,7 +526,7 @@ standard_conditions() ->
 
 %% @spec (Condition) -> Stream_Error
 %%     Condition = atom()
-%%     Stream_Error = exmpp_xml:xmlnselement()
+%%     Stream_Error = exmpp_xml:xmlel()
 %% @doc Make a standard `<stream:error>' element based on the given
 %% `Condition'.
 
@@ -538,11 +538,11 @@ error(Condition, {Lang, Text}) ->
         true  -> ok;
         false -> throw({stream_error, condition, invalid, Condition})
     end,
-    Condition_El = #xmlnselement{
+    Condition_El = #xmlel{
       ns = ?NS_XMPP_STREAMS,
       name = Condition
     },
-    Error_El0 = #xmlnselement{
+    Error_El0 = #xmlel{
       ns = ?NS_XMPP,
       declared_ns = [{?NS_XMPP, ?STREAM_NS_PREFIX}],
       name = 'error',
@@ -552,7 +552,7 @@ error(Condition, {Lang, Text}) ->
         undefined ->
             Error_El0;
         _ ->
-            Text_El0 = #xmlnselement{
+            Text_El0 = #xmlel{
               ns = ?NS_XMPP_STREAMS,
               name = 'text'
             },
@@ -566,39 +566,39 @@ error(Condition, {Lang, Text}) ->
     end.
 
 %% @spec (XML_El) -> bool()
-%%     XML_El = exmpp_xml:xmlnselement()
+%%     XML_El = exmpp_xml:xmlel()
 %% @doc Tell if this element is a stream error.
 
-is_error(#xmlnselement{ns = ?NS_XMPP, name = 'error'}) ->
+is_error(#xmlel{ns = ?NS_XMPP, name = 'error'}) ->
     true;
 is_error(_) ->
     false.
 
 %% @spec (Stream_Error) -> Condition | undefined
-%%     Stream_Error = exmpp_xml:xmlnselement()
+%%     Stream_Error = exmpp_xml:xmlel()
 %%     Condition = atom()
 %% @doc Return the child element name corresponding to the stanza error
 %% condition.
 
-get_condition(#xmlnselement{ns = ?NS_XMPP, name = 'error'} = El) ->
+get_condition(#xmlel{ns = ?NS_XMPP, name = 'error'} = El) ->
     case exmpp_xml:get_element_by_ns(El, ?NS_XMPP_STREAMS) of
         undefined ->
             % This <stream:error/> element is invalid because the
             % condition must be present (and first).
             undefined;
-        #xmlnselement{name = 'text'} ->
+        #xmlel{name = 'text'} ->
             % Same as above.
             undefined;
-        #xmlnselement{name = Condition} ->
+        #xmlel{name = Condition} ->
             Condition
     end.
 
 %% @spec (Stream_Error) -> Text | undefined
-%%     Stream_Error = exmpp_xml:xmlnselement()
+%%     Stream_Error = exmpp_xml:xmlel()
 %%     Text = string()
 %% @doc Return the text that describes the error.
 
-get_text(#xmlnselement{ns = ?NS_XMPP, name = 'error'} = El) ->
+get_text(#xmlel{ns = ?NS_XMPP, name = 'error'} = El) ->
     case exmpp_xml:get_element_by_name(El, ?NS_XMPP_STREAMS, 'text') of
         undefined -> undefined;
         Text      -> exmpp_xml:get_cdata_as_list(Text)

@@ -162,7 +162,7 @@ process_elements(Stream, XML_Elements) ->
 process_elements2(Stream, [XML_Element | Rest], Events) ->
     case XML_Element of
         % With namespace support.
-        #xmlnselement{name = Name, attrs = Attrs}
+        #xmlel{name = Name, attrs = Attrs}
           when Stream#xml_stream.opened == 0 ->
             % Stream is freshly opened.
             New_Stream = Stream#xml_stream{opened = 1},
@@ -171,7 +171,7 @@ process_elements2(Stream, [XML_Element | Rest], Events) ->
                 new -> [#xmlstreamstart{element = XML_Element} | Events]
             end,
             process_elements2(New_Stream, Rest, New_Events);
-        #xmlnselement{} ->
+        #xmlel{} ->
             % An "depth 1" element and its children.
             New_Events = [#xmlstreamelement{element = XML_Element} |
               Events],
@@ -335,7 +335,7 @@ parse_element(Data, Parser_Options) ->
 %%     Stream_Start = {xmlstreamstart, XML_Element} | {xmlstreamstart, Name, Attrs}
 %%     Stream_Element = {xmlstreamelement, XML_Element}
 %%     Stream_End = {xmlstreamend, XML_End_Tag}
-%%       XML_Element = exmpp_xml:xmlnselement() | exmpp_xml:xmlelement()
+%%       XML_Element = exmpp_xml:xmlel() | exmpp_xml:xmlelement()
 %%       XML_End_Tag = exmpp_xml:xmlendtag()
 %%       Name = atom() | string()
 %%       Attrs = [exmpp_xml:xmlattribute() | exmpp_xml:xmlnsattribute()]

@@ -23,7 +23,7 @@
 	 remove_account/0, remove_account/1]).
 
 %% @spec () -> Register_Iq
-%%     Register_Iq = exmpp_xml:xmlnselement()
+%%     Register_Iq = exmpp_xml:xmlel()
 %% @doc Make an `<iq>' to get the instruction to register and the list
 %% of registration fields.
 %%
@@ -34,15 +34,15 @@ get_registration_fields() ->
 
 %% @spec (Id) -> Register_Iq
 %%     Id = string()
-%%     Register_Iq = exmpp_xml:xmlnselement()
+%%     Register_Iq = exmpp_xml:xmlel()
 %% @doc Make an `<iq>' to get the instruction to register and the list
 %% of registration fields.
 
 get_registration_fields(Id) ->
     %% Make empty query
-    Query = #xmlnselement{ns = ?NS_JABBER_REGISTER, name = 'query'},
+    Query = #xmlel{ns = ?NS_JABBER_REGISTER, name = 'query'},
     Iq = exmpp_xml:set_attributes(
-	   #xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'},
+	   #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
 	   [{'type', "get"}, {'id', Id}]),
     exmpp_xml:append_child(Iq, Query).
 
@@ -51,7 +51,7 @@ get_registration_fields(Id) ->
 %%     Field = {Fieldname, Value}
 %%     Fieldname = atom()
 %%     Value = string()
-%%     Register_Iq = exmpp_xml:xmlnselement()
+%%     Register_Iq = exmpp_xml:xmlel()
 %% @doc Make an `<iq>' that prepare a registration packet for the user.
 register_account(Fields) ->
     register_account(register_id(), Fields).
@@ -62,21 +62,21 @@ register_account(Fields) ->
 %%     Field = {Fieldname, Value}
 %%     Fieldname = atom()
 %%     Value = string()
-%%     Register_Iq = exmpp_xml:xmlnselement()
+%%     Register_Iq = exmpp_xml:xmlel()
 %% @doc Make an `<iq>' that prepare a registration packet for the user.
 register_account(Id, Fields) ->
     %% Make query tag
-    Query =  #xmlnselement{ns = ?NS_JABBER_REGISTER, name = 'query'},
+    Query =  #xmlel{ns = ?NS_JABBER_REGISTER, name = 'query'},
     %% Add fields to the query tag
     PreparedQuery = append_fields(Query, Fields),
     %% Put the prepared query in IQ
     Iq = exmpp_xml:set_attributes(
-	   #xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'},
+	   #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
 	   [{'type', "set"}, {'id', Id}]),
     exmpp_xml:append_child(Iq, PreparedQuery).
 
 %% @spec () -> RemoveRegister_Iq
-%%     RemoveRegister_Iq = exmpp_xml:xmlnselement()
+%%     RemoveRegister_Iq = exmpp_xml:xmlel()
 %% @doc Make an `<iq>' that delete user account on the server. The
 %% user is supposed to be already logged in.
 remove_account() ->
@@ -84,17 +84,17 @@ remove_account() ->
 
 %% @spec (Id) -> RemoveRegister_Iq
 %%     Id = string()
-%%     RemoveRegister_Iq = exmpp_xml:xmlnselement()
+%%     RemoveRegister_Iq = exmpp_xml:xmlel()
 %% @doc Make an `<iq>' that delete user account on the server. The
 %% user is supposed to be already logged in.
 remove_account(Id) ->
     %% Make query tag
-    Query  = #xmlnselement{ns = ?NS_JABBER_REGISTER, name = 'query'},
-    Remove = #xmlnselement{ns = ?NS_JABBER_REGISTER, name = 'remove'},
+    Query  = #xmlel{ns = ?NS_JABBER_REGISTER, name = 'query'},
+    Remove = #xmlel{ns = ?NS_JABBER_REGISTER, name = 'remove'},
     PreparedQuery = exmpp_xml:append_child(Query, Remove),
     %% Put the prepared query in IQ
     Iq = exmpp_xml:set_attributes(
-	   #xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'},
+	   #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
 	   [{'type', "set"}, {'id', Id}]),
     exmpp_xml:append_child(Iq, PreparedQuery).
 
@@ -107,7 +107,7 @@ append_fields(Query, [{Field, Value}|Fields])
   when atom(Field),
        list(Value) -> 
     FieldElement = exmpp_xml:set_cdata(
-		     #xmlnselement{ns = ?NS_JABBER_REGISTER, name = Field},
+		     #xmlel{ns = ?NS_JABBER_REGISTER, name = Field},
 		     Value),
     UpdatedQuery = exmpp_xml:append_child(Query, FieldElement),
     append_fields(UpdatedQuery, Fields).

@@ -333,19 +333,19 @@ setup(_UnknownMessage, _From, State) ->
 
 %% Standard opening stream:
 -define(stream,
-	#xmlstreamstart{element=#xmlnselement{
+	#xmlstreamstart{element=#xmlel{
           ns='http://etherx.jabber.org/streams',
           name=stream}}).
 %% Standard stream error:
 -define(streamerror,
-	#xmlstreamelement{element=#xmlnselement{
+	#xmlstreamelement{element=#xmlel{
           ns='http://etherx.jabber.org/streams',
           name=error,
-          children=[#xmlnselement{name=Reason} | _MoreReasons]}}).
+          children=[#xmlel{name=Reason} | _MoreReasons]}}).
 
 %% Special stream error: disconnected
 -define(streamdisconnected,
-        #xmlstreamelement{element=#xmlnselement{
+        #xmlstreamelement{element=#xmlel{
           ns='http://etherx.jabber.org/streams',
           name=error,
           children=[#xmlcdata{cdata=  <<"Disconnected">> }]}}).
@@ -359,20 +359,20 @@ setup(_UnknownMessage, _From, State) ->
 %% Extract IQElement from IQ 
 -define(iq,
 	#xmlstreamelement{
-	  element=#xmlnselement{name=iq, attrs=Attrs}=IQElement}).
+	  element=#xmlel{name=iq, attrs=Attrs}=IQElement}).
 
 %% Used to match a presence packet in stream.
 -define(presence,
 	#xmlstreamelement{
-	  element=#xmlnselement{name=presence, attrs=Attrs}=PresenceElement}).
+	  element=#xmlel{name=presence, attrs=Attrs}=PresenceElement}).
 %% Used to match a message packet in stream
 -define(message,
 	#xmlstreamelement{
-	  element=#xmlnselement{name=message, attrs=Attrs}=MessageElement}). 
+	  element=#xmlel{name=message, attrs=Attrs}=MessageElement}). 
 %% To match an XMLNSElement of type Iq:
--define(iqattrs, #xmlnselement{name=iq, attrs=Attrs}=IQElement).
+-define(iqattrs, #xmlel{name=iq, attrs=Attrs}=IQElement).
 %% To match either presence or message
--define(elementattrs, #xmlnselement{attrs=Attrs}=Element).
+-define(elementattrs, #xmlel{attrs=Attrs}=Element).
 
 
 %% We cannot receive API call in this state
@@ -715,24 +715,24 @@ send_packet(?iqattrs, Module, ConnRef) ->
     case Type of 
 	"error" ->
 	    {Attrs2, PacketId} = check_id(Attrs),
-	    Module:send(ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
+	    Module:send(ConnRef, IQElement#xmlel{attrs=Attrs2}),
 	    PacketId;
 	"result" -> 
 	    {Attrs2, PacketId} = check_id(Attrs),
-	    Module:send(ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
+	    Module:send(ConnRef, IQElement#xmlel{attrs=Attrs2}),
 	    PacketId;
 	"set" ->
 	    {Attrs2, PacketId} = check_id(Attrs),
-	    Module:send(ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
+	    Module:send(ConnRef, IQElement#xmlel{attrs=Attrs2}),
 	    PacketId;
 	"get" ->
 	    {Attrs2, PacketId} = check_id(Attrs),
-	    Module:send(ConnRef, IQElement#xmlnselement{attrs=Attrs2}),
+	    Module:send(ConnRef, IQElement#xmlel{attrs=Attrs2}),
 	    PacketId
     end;
 send_packet(?elementattrs, Module, ConnRef) ->
     {Attrs2, Id} = check_id(Attrs),
-    Module:send(ConnRef, Element#xmlnselement{attrs=Attrs2}),
+    Module:send(ConnRef, Element#xmlel{attrs=Attrs2}),
     Id.
 
 register_account(ConnRef, Module, Username, Password) ->

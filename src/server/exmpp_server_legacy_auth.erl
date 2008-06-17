@@ -33,8 +33,8 @@
 % --------------------------------------------------------------------
 
 %% @spec (Request_IQ) -> Fields_IQ
-%%     Request_IQ = exmpp_xml:xmlnselement()
-%%     Fields_IQ = exmpp_xml:xmlnselement()
+%%     Request_IQ = exmpp_xml:xmlel()
+%%     Fields_IQ = exmpp_xml:xmlel()
 %% @doc Make an `<iq>' for advertising fields.
 %%
 %% Both authentication methods are proposed.
@@ -43,22 +43,22 @@ fields(Request_IQ) ->
     fields(Request_IQ, both).
 
 %% @spec (Request_IQ, Auth) -> Fields_IQ
-%%     Request_IQ = exmpp_xml:xmlnselement()
+%%     Request_IQ = exmpp_xml:xmlel()
 %%     Auth = plain | digest | both
-%%     Fields_IQ = exmpp_xml:xmlnselement()
+%%     Fields_IQ = exmpp_xml:xmlel()
 %% @doc Make an `<iq>' for advertising fields.
 
 fields(Request_IQ, Auth) when ?IS_IQ(Request_IQ) ->
-    Username_El = #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'username'},
-    Password_El = #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'password'},
-    Digest_El   = #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'digest'},
-    Resource_El = #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'resource'},
+    Username_El = #xmlel{ns = ?NS_JABBER_AUTH, name = 'username'},
+    Password_El = #xmlel{ns = ?NS_JABBER_AUTH, name = 'password'},
+    Digest_El   = #xmlel{ns = ?NS_JABBER_AUTH, name = 'digest'},
+    Resource_El = #xmlel{ns = ?NS_JABBER_AUTH, name = 'resource'},
     Children = case Auth of
         plain  -> [Username_El, Password_El, Resource_El];
         digest -> [Username_El, Digest_El, Resource_El];
         both   -> [Username_El, Password_El, Digest_El, Resource_El]
     end,
-    Query = #xmlnselement{
+    Query = #xmlel{
       ns = ?NS_JABBER_AUTH,
       name = 'query',
       children = Children
@@ -66,17 +66,17 @@ fields(Request_IQ, Auth) when ?IS_IQ(Request_IQ) ->
     exmpp_iq:result(Request_IQ, Query).
 
 %% @spec (Password_IQ) -> Success_IQ
-%%     Password_IQ = exmpp_xml:xmlnselement()
-%%     Success_IQ = exmpp_xml:xmlnselement()
+%%     Password_IQ = exmpp_xml:xmlel()
+%%     Success_IQ = exmpp_xml:xmlel()
 %% @doc Make an `<iq>' to notify a successfull authentication.
 
 success(Password_IQ) when ?IS_IQ(Password_IQ) ->
     exmpp_iq:result(Password_IQ).
 
 %% @spec (Password_IQ, Condition) -> Failure_IQ
-%%     Password_IQ = exmpp_xml:xmlnselement()
+%%     Password_IQ = exmpp_xml:xmlel()
 %%     Condition = not_authorized | conflict | not_acceptable
-%%     Failure_IQ = exmpp_xml:xmlnselement()
+%%     Failure_IQ = exmpp_xml:xmlel()
 %% @doc Make an `<iq>' to notify a successfull authentication.
 
 failure(Password_IQ, Condition) when ?IS_IQ(Password_IQ) ->
@@ -86,7 +86,7 @@ failure(Password_IQ, Condition) when ?IS_IQ(Password_IQ) ->
         'not-acceptable' -> "406"
     end,
     Error = exmpp_xml:set_attribute(
-      exmpp_stanza:error(Password_IQ#xmlnselement.ns, Condition),
+      exmpp_stanza:error(Password_IQ#xmlel.ns, Condition),
       'code', Code),
     exmpp_iq:error_without_original(Password_IQ, Error).
 
@@ -97,7 +97,7 @@ failure(Password_IQ, Condition) when ?IS_IQ(Password_IQ) ->
 get_credentials(Password_IQ) when ?IS_IQ(Password_IQ) ->
     Request = exmpp_iq:get_request(Password_IQ),
     case Request of
-        #xmlnselement{ns = ?NS_JABBER_AUTH, name = 'query', children = Children}
+        #xmlel{ns = ?NS_JABBER_AUTH, name = 'query', children = Children}
           when length(Children) == 3 ->
             get_credentials2(Children, {undefined, undefined, undefined});
         _ ->
@@ -105,22 +105,22 @@ get_credentials(Password_IQ) when ?IS_IQ(Password_IQ) ->
     end.
 
 get_credentials2(
-  [#xmlnselement{ns = ?NS_JABBER_AUTH, name = 'username'} = Field | Rest],
+  [#xmlel{ns = ?NS_JABBER_AUTH, name = 'username'} = Field | Rest],
   {_Username, Password, Resource}) ->
     Username = exmpp_xml:get_cdata_as_list(Field),
     get_credentials2(Rest, {Username, Password, Resource});
 get_credentials2(
-  [#xmlnselement{ns = ?NS_JABBER_AUTH, name = 'password'} = Field | Rest],
+  [#xmlel{ns = ?NS_JABBER_AUTH, name = 'password'} = Field | Rest],
   {Username, _Password, Resource}) ->
     Password = exmpp_xml:get_cdata_as_list(Field),
     get_credentials2(Rest, {Username, {plain, Password}, Resource});
 get_credentials2(
-  [#xmlnselement{ns = ?NS_JABBER_AUTH, name = 'digest'} = Field | Rest],
+  [#xmlel{ns = ?NS_JABBER_AUTH, name = 'digest'} = Field | Rest],
   {Username, _Password, Resource}) ->
     Password = unhex(exmpp_xml:get_cdata_as_list(Field)),
     get_credentials2(Rest, {Username, {digest, Password}, Resource});
 get_credentials2(
-  [#xmlnselement{ns = ?NS_JABBER_AUTH, name = 'resource'} = Field | Rest],
+  [#xmlel{ns = ?NS_JABBER_AUTH, name = 'resource'} = Field | Rest],
   {Username, Password, _Resource}) ->
     Resource = exmpp_xml:get_cdata_as_list(Field),
     get_credentials2(Rest, {Username, Password, Resource});

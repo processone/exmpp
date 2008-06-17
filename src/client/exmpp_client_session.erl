@@ -27,17 +27,17 @@
 % --------------------------------------------------------------------
 
 %% @spec (Features_Announcement) -> bool()
-%%     Features_Announcement = exmpp_xml:xmlnselement()
+%%     Features_Announcement = exmpp_xml:xmlel()
 %% @throws {session, announced_support, invalid_feature, Feature}
 %% @doc Tell if the Session Establishment feature is supported.
 
-announced_support(#xmlnselement{ns = ?NS_XMPP, name = 'features'} = El) ->
+announced_support(#xmlel{ns = ?NS_XMPP, name = 'features'} = El) ->
     case exmpp_xml:get_element_by_name(El, ?NS_SESSION, 'session') of
         undefined -> false;
         Child     -> announced_support2(Child)
     end.    
     
-announced_support2(#xmlnselement{children = []}) ->
+announced_support2(#xmlel{children = []}) ->
     true;
 announced_support2(Feature) ->
     throw({session, announced_support, invalid_feature, Feature}).
@@ -47,11 +47,11 @@ announced_support2(Feature) ->
 % --------------------------------------------------------------------
 
 %% @spec () -> Session
-%%     Session = exmpp_xml:xmlnselement()
+%%     Session = exmpp_xml:xmlel()
 %% @doc Make a `<session/>' element to create a session.
 
 establish() ->
-    Session = #xmlnselement{
+    Session = #xmlel{
       ns = ?NS_SESSION,
       name = 'session'
     },
@@ -59,7 +59,7 @@ establish() ->
       exmpp_internals:random_id("session")).
 
 %% @spec (IQ) -> ok
-%%     IQ = exmpp_xml:xmlnselement()
+%%     IQ = exmpp_xml:xmlel()
 %% @throws {session, check_establishment, establishment_failed, Condition}
 %% @doc Check that the session was created successfully.
 

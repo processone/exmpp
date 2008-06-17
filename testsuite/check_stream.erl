@@ -22,14 +22,14 @@ do_check() ->
 % --------------------------------------------------------------------
 
 -define(OPENING1,
-  {xmlnselement, ?NS_XMPP, [{?NS_XMPP, "stream"}, {?NS_JABBER_CLIENT, none}],
+  {xmlel, ?NS_XMPP, [{?NS_XMPP, "stream"}, {?NS_JABBER_CLIENT, none}],
     'stream', [
       {xmlattr, undefined, undefined, 'to', "dest"}
     ], undefined}
 ).
 
 -define(OPENING2,
-  {xmlnselement, ?NS_XMPP, [{?NS_XMPP, "stream"}, {?NS_JABBER_CLIENT, none}],
+  {xmlel, ?NS_XMPP, [{?NS_XMPP, "stream"}, {?NS_JABBER_CLIENT, none}],
     'stream', [
       {xmlattr, undefined, undefined, 'to', "dest"},
       {xmlattr, undefined, undefined, 'version', "1.0"}
@@ -37,7 +37,7 @@ do_check() ->
 ).
 
 -define(OPENING3,
-  {xmlnselement, ?NS_XMPP, [{?NS_XMPP, "stream"}, {?NS_JABBER_CLIENT, none}],
+  {xmlel, ?NS_XMPP, [{?NS_XMPP, "stream"}, {?NS_JABBER_CLIENT, none}],
     'stream', [
       {xmlattr, undefined, undefined, 'to', "dest"},
       {xmlattr, undefined, undefined, 'version', "1.0"},
@@ -46,7 +46,7 @@ do_check() ->
 ).
 
 -define(OPENING_REPLY1,
-  {xmlnselement, ?NS_XMPP, [{?NS_XMPP, "stream"}, {?NS_JABBER_CLIENT, none}],
+  {xmlel, ?NS_XMPP, [{?NS_XMPP, "stream"}, {?NS_JABBER_CLIENT, none}],
     'stream', [
       {xmlattr, undefined, undefined, 'from', "dest"},
       {xmlattr, undefined, undefined, 'id', "foobar"}
@@ -54,7 +54,7 @@ do_check() ->
 ).
 
 -define(OPENING_REPLY2,
-  {xmlnselement, ?NS_XMPP, [{?NS_XMPP, "stream"}, {?NS_JABBER_CLIENT, none}],
+  {xmlel, ?NS_XMPP, [{?NS_XMPP, "stream"}, {?NS_JABBER_CLIENT, none}],
     'stream', [
       {xmlattr, undefined, undefined, 'from', "dest"},
       {xmlattr, undefined, undefined, 'version', "1.0"},
@@ -63,7 +63,7 @@ do_check() ->
 ).
 
 -define(OPENING_REPLY3,
-  {xmlnselement, ?NS_XMPP, [{?NS_XMPP, "stream"}, {?NS_JABBER_CLIENT, none}],
+  {xmlel, ?NS_XMPP, [{?NS_XMPP, "stream"}, {?NS_JABBER_CLIENT, none}],
     'stream', [
       {xmlattr, undefined, undefined, 'from', "dest"},
       {xmlattr, undefined, undefined, 'version', "1.0"},
@@ -73,7 +73,7 @@ do_check() ->
 ).
 
 -define(OPENING_REPLY1a,
-  {xmlnselement, ?NS_XMPP, [{?NS_XMPP, "stream"}, {?NS_JABBER_CLIENT, none}],
+  {xmlel, ?NS_XMPP, [{?NS_XMPP, "stream"}, {?NS_JABBER_CLIENT, none}],
     'stream', [
       {xmlattr, undefined, undefined, 'from', "dest"},
       {xmlattr, undefined, undefined, 'id', "foobar"}
@@ -81,7 +81,7 @@ do_check() ->
 ).
 
 -define(OPENING_REPLY2a,
-  {xmlnselement, ?NS_XMPP, [{?NS_XMPP, "stream"}, {?NS_JABBER_CLIENT, none}],
+  {xmlel, ?NS_XMPP, [{?NS_XMPP, "stream"}, {?NS_JABBER_CLIENT, none}],
     'stream', [
       {xmlattr, undefined, undefined, 'version', "1.0"},
       {xmlattr, undefined, undefined, 'from', "dest"},
@@ -90,7 +90,7 @@ do_check() ->
 ).
 
 -define(OPENING_REPLY3a,
-  {xmlnselement, ?NS_XMPP, [{?NS_XMPP, "stream"}, {?NS_JABBER_CLIENT, none}],
+  {xmlel, ?NS_XMPP, [{?NS_XMPP, "stream"}, {?NS_JABBER_CLIENT, none}],
     'stream', [
       {xmlattr, undefined, undefined, 'version', "1.0"},
       {xmlattr, ?NS_XML, undefined, 'lang', "fr"},

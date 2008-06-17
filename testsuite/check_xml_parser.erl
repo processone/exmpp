@@ -67,9 +67,9 @@ do_check() ->
 ]).
 
 -define(TREE1_NS, [
-  {xmlnselement, 'ns_stream', [{'ns_stream', "stream"}, {'ns_default', none}],
+  {xmlel, 'ns_stream', [{'ns_stream', "stream"}, {'ns_default', none}],
     "stream", [], [
-    {xmlnselement, 'ns_default', [], "iq", [
+    {xmlel, 'ns_default', [], "iq", [
       {xmlattr, ?NS_XML, "xml", "lang", "fr"}
     ], [
       {xmlcdata, <<"Content">>}
@@ -78,9 +78,9 @@ do_check() ->
 ]).
 
 -define(TREE1_NS_ATOM, [
-  {xmlnselement, 'ns_stream', [{'ns_stream', "stream"}, {'ns_default', none}],
+  {xmlel, 'ns_stream', [{'ns_stream', "stream"}, {'ns_default', none}],
     'stream', [], [
-    {xmlnselement, 'ns_default', [], 'iq', [
+    {xmlel, 'ns_default', [], 'iq', [
       {xmlattr, ?NS_XML, "xml", 'lang', "fr"}
     ], [
       {xmlcdata, <<"Content">>}
@@ -101,9 +101,9 @@ do_check() ->
 ]).
 
 -define(TREE1_NS_ROOT_DEPTH, [
-  {xmlnselement, 'ns_stream', [{'ns_stream', "stream"}, {'ns_default', none}],
+  {xmlel, 'ns_stream', [{'ns_stream', "stream"}, {'ns_default', none}],
     "stream", [], undefined},
-  {xmlnselement, 'ns_default', [], "iq", [
+  {xmlel, 'ns_default', [], "iq", [
     {xmlattr, ?NS_XML, "xml", "lang", "fr"}
   ], [
     {xmlcdata, <<"Content">>}
@@ -124,9 +124,9 @@ do_check() ->
 ]).
 
 -define(TREE1_NS_END_EL, [
-  {xmlnselement, 'ns_stream', [{'ns_stream', "stream"}, {'ns_default', none}],
+  {xmlel, 'ns_stream', [{'ns_stream', "stream"}, {'ns_default', none}],
     "stream", [], undefined},
-  {xmlnselement, 'ns_default', [], "iq", [
+  {xmlel, 'ns_default', [], "iq", [
     {xmlattr, ?NS_XML, "xml",
       "lang", "fr"}
   ], [
@@ -138,7 +138,7 @@ do_check() ->
 -define(SOURCE2, "<element xmlns='unknown_ns' xmlns:stream='http://etherx.jabber.org/streams' xml:lang='fr' stream:version='1.0'/>").
 
 -define(TREE2_NS_CHECK, [
-  {xmlnselement, "unknown_ns",
+  {xmlel, "unknown_ns",
     [{"unknown_ns", none}, {'http://etherx.jabber.org/streams',"stream"}],
     "element", [
     {xmlattr, ?NS_XML, "xml", "lang", "fr"},
@@ -149,8 +149,8 @@ do_check() ->
 -define(SOURCE3, "<message><unknown/></message>").
 
 -define(TREE3_NS_CHECK, [
-  {xmlnselement, undefined, [], 'message', [], [
-      {xmlnselement, undefined, [], "unknown", [], []}
+  {xmlel, undefined, [], 'message', [], [
+      {xmlel, undefined, [], "unknown", [], []}
   ]}
 ]).
 
@@ -162,7 +162,7 @@ do_check() ->
 -define(SOURCE4, "<stream version='1.0' foo='bar'/>").
 
 -define(TREE4_NS_CHECK, [
-  {xmlnselement, undefined, [], 'stream', [
+  {xmlel, undefined, [], 'stream', [
     {xmlattr, undefined, undefined, 'version', "1.0"},
     {xmlattr, undefined, undefined, "foo", "bar"}
   ], []}

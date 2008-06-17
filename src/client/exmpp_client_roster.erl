@@ -17,7 +17,7 @@
 	set_item/3, set_item/4]).
 
 %% @spec () -> Roster_Iq
-%%     Roster_Iq = exmpp_xml:xmlnselement()
+%%     Roster_Iq = exmpp_xml:xmlel()
 %% @doc Make an `<iq>' to retrieve user roster.
 %%
 %% The stanza `id' is generated automatically.
@@ -26,12 +26,12 @@ get_roster() ->
 
 %% @spec (Id) -> Roster_Iq
 %%     Id = string()
-%%     Roster_Iq = exmpp_xml:xmlnselement()
+%%     Roster_Iq = exmpp_xml:xmlel()
 %% @doc Make an `<iq>' to retrieve user roster.
 get_roster(Id) ->
-    Query = #xmlnselement{ns = ?NS_JABBER_ROSTER, name = 'query'},
+    Query = #xmlel{ns = ?NS_JABBER_ROSTER, name = 'query'},
     Iq = exmpp_xml:set_attributes(
-	   #xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'},
+	   #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
 	   [{'type', "get"}, {'id', Id}]),
     exmpp_xml:append_child(Iq, Query).
 
@@ -39,7 +39,7 @@ get_roster(Id) ->
 %%     ContactJID = string()
 %%     Groups = [string()]
 %%     Nick = string()
-%%     Roster_Iq = exmpp_xml:xmlnselement()
+%%     Roster_Iq = exmpp_xml:xmlel()
 %% @doc Make an `<iq>' to update a roster item. This function is used
 %% both to create a roster item and to update an roster entry
 set_item(ContactJID, Groups, Nick) ->
@@ -50,18 +50,18 @@ set_item(ContactJID, Groups, Nick) ->
 %%     ContactJID = string()
 %%     Groups = [string()]
 %%     Nick = string()
-%%     Roster_Iq = exmpp_xml:xmlnselement()
+%%     Roster_Iq = exmpp_xml:xmlel()
 %% @doc Make an `<iq>' to update a roster item. This function is used
 %% both to create a roster item and to update an roster entry
 %% TODO: Groups support
 set_item(Id, ContactJID, _Groups, Nick) ->
     Item = exmpp_xml:set_attributes(
-	     #xmlnselement{name = 'item'},
+	     #xmlel{name = 'item'},
 	     [{'name', Nick}, {'jid', ContactJID}]),
-    Query = #xmlnselement{ns = ?NS_JABBER_ROSTER, name = 'query'},
+    Query = #xmlel{ns = ?NS_JABBER_ROSTER, name = 'query'},
     Query2 = exmpp_xml:append_child(Query, Item),
     Iq = exmpp_xml:set_attributes(
-	   #xmlnselement{ns = ?NS_JABBER_CLIENT, name = 'iq'},
+	   #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
 	   [{'type', "set"}, {'id', Id}]),
     exmpp_xml:append_child(Iq, Query2).
     

@@ -66,43 +66,43 @@ do_check() ->
     [?CDATA_DOUBLE]}
 ).
 
--define(ELEMENT0_NS, {xmlnselement,
+-define(ELEMENT0_NS, {xmlel,
     ?NS_XML, [], "element",
     [],
     undefined}
 ).
 
--define(ELEMENT1_NS, {xmlnselement,
+-define(ELEMENT1_NS, {xmlel,
     ?NS_XML, [], "element",
     [],
     []}
 ).
 
--define(ELEMENT2_NS, {xmlnselement,
+-define(ELEMENT2_NS, {xmlel,
     ?NS_XML, [], "element",
     [],
     [?CDATA]}
 ).
 
--define(ELEMENT3_NS, {xmlnselement,
+-define(ELEMENT3_NS, {xmlel,
     ?NS_XML, [], "element",
     [],
     [?ELEMENT2_NS]}
 ).
 
--define(ELEMENT3_2_NS, {xmlnselement,
+-define(ELEMENT3_2_NS, {xmlel,
     ?NS_XML, [], "element",
     [],
     [?ELEMENT2_NS, ?CDATA]}
 ).
 
--define(ELEMENT4_NS, {xmlnselement,
+-define(ELEMENT4_NS, {xmlel,
     ?NS_XML, [], "element",
     [],
     [?CDATA, ?CDATA]}
 ).
 
--define(ELEMENT4_NS_NORM, {xmlnselement,
+-define(ELEMENT4_NS_NORM, {xmlel,
     ?NS_XML, [], "element",
     [],
     [?CDATA_DOUBLE]}

@@ -81,7 +81,7 @@ get_attr(AttrName, Attrs) ->
 get_attr_s(AttrName, Attrs) ->
     exmpp_xml:get_attribute_from_list(Attrs, AttrName).
 
-get_tag_attr(AttrName, #xmlnselement{attrs = Attrs}) ->
+get_tag_attr(AttrName, #xmlel{attrs = Attrs}) ->
     get_attr(AttrName, Attrs);
 get_tag_attr(AttrName, #xmlelement{attrs = Attrs}) ->
     get_attr(AttrName, Attrs).

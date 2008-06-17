@@ -48,7 +48,7 @@ do_check() ->
 
 -define(CHUNK_NS_EVENT1,
   {xmlstreamstart,
-    {xmlnselement, undefined, [], 'stream', [
+    {xmlel, undefined, [], 'stream', [
         {xmlattr, ?NS_XML, "xml", 'lang', "fr"},
         {xmlattr, undefined, undefined, 'version', "1.0"}
       ], undefined}
@@ -56,7 +56,7 @@ do_check() ->
 
 -define(CHUNK_NS_EVENT2,
   {xmlstreamelement,
-    {xmlnselement, undefined, [], 'message', [], [
+    {xmlel, undefined, [], 'message', [], [
         {xmlcdata, <<"Content">>}
       ]}
   }).

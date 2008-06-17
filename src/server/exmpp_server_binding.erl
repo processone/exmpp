@@ -28,13 +28,13 @@
 % --------------------------------------------------------------------
 
 %% @spec () -> Feature
-%%     Feature = exmpp_xml:xmlnselement()
+%%     Feature = exmpp_xml:xmlel()
 %% @doc Make a feature announcement child.
 %%
 %% The result should then be passed to {@link exmpp_stream:features/1}.
 
 feature() ->
-    #xmlnselement{
+    #xmlel{
       ns = ?NS_BIND,
       name = 'bind'
     }.
@@ -44,7 +44,7 @@ feature() ->
 % --------------------------------------------------------------------
 
 %% @spec (IQ) -> Resource | undefined
-%%     IQ = exmpp_xml:xmlnselement()
+%%     IQ = exmpp_xml:xmlel()
 %%     Resource = string()
 %% @throws {resource_binding, wished_resource, invalid_bind, IQ}
 %% @doc Return the resource the client wants or `undefined' if he
@@ -54,10 +54,10 @@ wished_resource(IQ) when ?IS_IQ(IQ) ->
     case exmpp_iq:get_type(IQ) of
         'set' ->
             case exmpp_iq:get_request(IQ) of
-                #xmlnselement{ns = ?NS_BIND, name = 'bind'} = Bind ->
+                #xmlel{ns = ?NS_BIND, name = 'bind'} = Bind ->
                     case exmpp_xml:get_element_by_name(Bind,
                       ?NS_BIND, 'resource') of
-                        #xmlnselement{} = Resource ->
+                        #xmlel{} = Resource ->
                             exmpp_xml:get_cdata_as_list(Resource);
                         _ ->
                             undefined
@@ -73,19 +73,19 @@ wished_resource(Stanza) ->
     throw({resource_binding, wished_resource, invalid_bind, Stanza}).
 
 %% @spec (IQ, Jid) -> Reply
-%%     IQ = exmpp_xml:xmlnselement()
+%%     IQ = exmpp_xml:xmlel()
 %%     Jid = exmpp_jid:jid()
-%%     Reply = exmpp_xml:xmlnselement()
+%%     Reply = exmpp_xml:xmlel()
 %% @doc Prepare a reply to `IQ' to inform the client of its final JID.
 
 bind(IQ, Jid) when ?IS_IQ(IQ) ->
     Jid_S = exmpp_jid:jid_to_string(Jid),
-    El = #xmlnselement{
+    El = #xmlel{
       ns = ?NS_BIND,
       name = 'jid'
     },
     Children = [exmpp_xml:set_cdata(El, Jid_S)],
-    Bind = #xmlnselement{
+    Bind = #xmlel{
       ns = ?NS_BIND,
       name = 'bind',
       children = Children
@@ -93,11 +93,11 @@ bind(IQ, Jid) when ?IS_IQ(IQ) ->
     exmpp_iq:result(IQ, Bind).
 
 %% @spec (IQ, Condition) -> Error_IQ
-%%     IQ = exmpp_xml:xmlnselement()
+%%     IQ = exmpp_xml:xmlel()
 %%     Condition = atom()
-%%     Error_IQ = exmpp_xml:xmlnselement()
+%%     Error_IQ = exmpp_xml:xmlel()
 %% @doc Prepare an error reply to `IQ'.
 
 error(IQ, Condition) when ?IS_IQ(IQ) ->
-    Error = exmpp_stanza:error(IQ#xmlnselement.ns, Condition),
+    Error = exmpp_stanza:error(IQ#xmlel.ns, Condition),
     exmpp_iq:error(IQ, Error).

@@ -13,7 +13,7 @@ check() ->
 
 do_check() ->
     test_escape_using_entities(),
-    test_xmlnselement_to_xmlelement(),
+    test_xmlel_to_xmlelement(),
     case exmpp_xml:internal_escaping_function_name() of
         escape_using_entities ->
             test_document_to_list_without_namespace(),
@@ -37,12 +37,12 @@ do_check() ->
 ).
 
 -define(TREE0_NS,
-  {xmlnselement, 'ns_stream', [{'ns_stream', "stream"}],
+  {xmlel, 'ns_stream', [{'ns_stream', "stream"}],
     "stream", [], undefined}
 ).
 
 -define(TREE0_NS_NAA,
-  {xmlnselement, 'ns_stream', [{'ns_stream', "stream"}],
+  {xmlel, 'ns_stream', [{'ns_stream', "stream"}],
     'stream', [], undefined}
 ).
 
@@ -55,7 +55,7 @@ do_check() ->
 ).
 
 -define(TREE1_NS,
-  {xmlnselement, 'ns_stream', [{'ns_stream', "stream"}],
+  {xmlel, 'ns_stream', [{'ns_stream', "stream"}],
     "stream", [], []}
 ).
 
@@ -76,9 +76,9 @@ do_check() ->
 ).
 
 -define(TREE2_NS,
-  {xmlnselement, 'ns_stream', [{'ns_stream', "stream"}, {'ns_default', none}],
+  {xmlel, 'ns_stream', [{'ns_stream', "stream"}, {'ns_default', none}],
     "stream", [], [
-      {xmlnselement, 'ns_default', [], "iq", [
+      {xmlel, 'ns_default', [], "iq", [
           {xmlattr, ?NS_XML, undefined, "lang", "fr"},
           {xmlattr, undefined, undefined, "version", "1.0"}
         ], [
@@ -88,9 +88,9 @@ do_check() ->
 ).
 
 -define(TREE2_NS_NAA,
-  {xmlnselement, 'ns_stream', [{'ns_stream', "stream"}, {'ns_default', none}],
+  {xmlel, 'ns_stream', [{'ns_stream', "stream"}, {'ns_default', none}],
     'stream', [], [
-      {xmlnselement, 'ns_default', [], 'iq', [
+      {xmlel, 'ns_default', [], 'iq', [
           {xmlattr, ?NS_XML, undefined, 'lang', "fr"},
           {xmlattr, undefined, undefined, 'version', "1.0"}
         ], [
@@ -102,7 +102,7 @@ do_check() ->
 -define(SOURCE2, "<stream:stream xmlns:stream=\"ns_stream\" xmlns=\"ns_default\"><iq xml:lang=\"fr\" version=\"1.0\">Content</iq></stream:stream>").
 
 -define(TREE3_NS,
-  {xmlnselement, 'ns_iq', [], "iq", [
+  {xmlel, 'ns_iq', [], "iq", [
       {xmlattr, ?NS_XML, undefined, "lang", "fr"}
     ], [
       {xmlcdata, <<"Binary">>},
@@ -137,7 +137,7 @@ do_check() ->
 ).
 
 -define(TREE4_NS,
-  {xmlnselement, undefined, [], "stream", [
+  {xmlel, undefined, [], "stream", [
       {xmlattr, 'ns_attr', "pfx", "foo", "bar"}
     ], []}
 ).
@@ -182,7 +182,7 @@ do_check() ->
 ).
 
 -define(TREE6_NS,
-  {xmlnselement, 'ns_stream', [
+  {xmlel, 'ns_stream', [
     {'ns_default', none},
     {'ns_stream', "stream"},
     {'ns_other', "other"}
@@ -191,42 +191,42 @@ do_check() ->
 
 -define(SOURCE6, "<stream:stream xmlns=\"ns_default\" xmlns:stream=\"ns_stream\" xmlns:other=\"ns_other\"/>").
 
-test_xmlnselement_to_xmlelement() ->
-    testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE0_NO_NS),
+test_xmlel_to_xmlelement() ->
+    testsuite:is(exmpp_xml:xmlel_to_xmlelement(?TREE0_NO_NS),
       ?TREE0_NO_NS),
-    testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE0_NS),
+    testsuite:is(exmpp_xml:xmlel_to_xmlelement(?TREE0_NS),
       ?TREE0_NO_NS),
-    testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE0_NS_NAA),
+    testsuite:is(exmpp_xml:xmlel_to_xmlelement(?TREE0_NS_NAA),
       ?TREE0_NO_NS),
-    testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE1_NO_NS),
+    testsuite:is(exmpp_xml:xmlel_to_xmlelement(?TREE1_NO_NS),
       ?TREE1_NO_NS),
-    testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE1_NS),
+    testsuite:is(exmpp_xml:xmlel_to_xmlelement(?TREE1_NS),
       ?TREE1_NO_NS),
-    testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE2_NO_NS),
+    testsuite:is(exmpp_xml:xmlel_to_xmlelement(?TREE2_NO_NS),
       ?TREE2_NO_NS),
-    testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE2_NS),
+    testsuite:is(exmpp_xml:xmlel_to_xmlelement(?TREE2_NS),
       ?TREE2_NO_NS),
-    testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE2_NS_NAA),
+    testsuite:is(exmpp_xml:xmlel_to_xmlelement(?TREE2_NS_NAA),
       ?TREE2_NO_NS),
-    testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE4_NO_NS),
+    testsuite:is(exmpp_xml:xmlel_to_xmlelement(?TREE4_NO_NS),
       ?TREE4_NO_NS),
-    testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE4_NS),
+    testsuite:is(exmpp_xml:xmlel_to_xmlelement(?TREE4_NS),
       ?TREE4_NO_NS),
-    testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE5_NO_NS),
+    testsuite:is(exmpp_xml:xmlel_to_xmlelement(?TREE5_NO_NS),
       ?TREE5_NO_NS),
-    testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE5_NS),
+    testsuite:is(exmpp_xml:xmlel_to_xmlelement(?TREE5_NS),
       ?TREE5_NO_NS),
-    testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE5_NS_NAA),
+    testsuite:is(exmpp_xml:xmlel_to_xmlelement(?TREE5_NS_NAA),
       ?TREE5_NO_NS),
-    testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE5_NS,
+    testsuite:is(exmpp_xml:xmlel_to_xmlelement(?TREE5_NS,
         ['ns_stream', 'other'], []),
       ?TREE5_NO_NS2),
-    testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE5_NS,
+    testsuite:is(exmpp_xml:xmlel_to_xmlelement(?TREE5_NS,
         [], [{'ns_stream', "stream2"}]),
       ?TREE5_NO_NS3),
-    testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE5_NS2),
+    testsuite:is(exmpp_xml:xmlel_to_xmlelement(?TREE5_NS2),
       ?TREE5_NO_NS2),
-    testsuite:is(exmpp_xml:xmlnselement_to_xmlelement(?TREE5_NS3),
+    testsuite:is(exmpp_xml:xmlel_to_xmlelement(?TREE5_NS3),
       ?TREE5_NO_NS2),
     ok.
 

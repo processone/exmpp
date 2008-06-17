@@ -24,7 +24,7 @@
 #define	TUPLE_DRV_ERROR			"error"
 
 #define	TUPLE_XML_ELEMENT		"xmlelement"
-#define	TUPLE_XML_NS_ELEMENT		"xmlnselement"
+#define	TUPLE_XML_NS_ELEMENT		"xmlel"
 #define	TUPLE_XML_ATTR			"xmlattr"
 #define	TUPLE_XML_CDATA			"xmlcdata"
 #define	TUPLE_XML_END_TAG		"xmlendtag"

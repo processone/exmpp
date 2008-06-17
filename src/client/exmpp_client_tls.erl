@@ -31,24 +31,24 @@
 % --------------------------------------------------------------------
 
 %% @spec (Features_Announcement) -> Support
-%%     Features_Announcement = exmpp_xml:xmlnselement()
+%%     Features_Announcement = exmpp_xml:xmlel()
 %%     Support = none | optional | required
 %% @throws {tls, announced_support, invalid_announcement, El}
 %% @doc Return the kind of TLS negotiation the receiving entity asks for.
 
-announced_support(#xmlnselement{ns = ?NS_XMPP, name = 'features'} = El) ->
+announced_support(#xmlel{ns = ?NS_XMPP, name = 'features'} = El) ->
     case exmpp_xml:get_element_by_name(El, ?NS_TLS, 'starttls') of
         undefined -> none;
         Child     -> announced_support2(Child)
     end.
 
-announced_support2(#xmlnselement{ns = ?NS_TLS, name = 'starttls',
+announced_support2(#xmlel{ns = ?NS_TLS, name = 'starttls',
   children = []}) ->
     optional;
-announced_support2(#xmlnselement{ns = ?NS_TLS, name = 'starttls',
-  children = [#xmlnselement{ns = ?NS_TLS, name = 'required'}]}) ->
+announced_support2(#xmlel{ns = ?NS_TLS, name = 'starttls',
+  children = [#xmlel{ns = ?NS_TLS, name = 'required'}]}) ->
     required;
-announced_support2(#xmlnselement{ns = ?NS_TLS, name = 'starttls'} = El) ->
+announced_support2(#xmlel{ns = ?NS_TLS, name = 'starttls'} = El) ->
     throw({tls, announced_support, invalid_announcement, El}).
 
 % --------------------------------------------------------------------
@@ -56,12 +56,12 @@ announced_support2(#xmlnselement{ns = ?NS_TLS, name = 'starttls'} = El) ->
 % --------------------------------------------------------------------
 
 %% @spec () -> STARTTLS
-%%     STARTTLS = exmpp_xml:xmlnselement()
+%%     STARTTLS = exmpp_xml:xmlel()
 %% @doc Make an XML element to tell the receiving entity that we want to
 %% use TLS.
 
 starttls() ->
-    #xmlnselement{
+    #xmlel{
       ns = ?NS_TLS,
       name = 'starttls'
     }.

@@ -1,3 +1,11 @@
+2008-06-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	Your attention please: #xmlnselement was renamed to #xmlel!
+
+	I repeat: #xmlnselement was renamed to #xmlel!
+
+	You may now resume your daily activities. Thanks you.
+
 2008-06-16  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_xml.erl, testsuite/check_xml_converters.erl: Preserve

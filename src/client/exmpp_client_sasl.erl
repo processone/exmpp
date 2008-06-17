@@ -34,25 +34,25 @@
 % --------------------------------------------------------------------
 
 %% @spec (Features_Annoucenement) -> Mechanisms
-%%     Features_Announcement = exmpp_xml:xmlnselement()
+%%     Features_Announcement = exmpp_xml:xmlel()
 %%     Mechanisms = [string()]
 %% @throws {sasl, announced_mechanisms, invalid_feature, Feature} |
 %%         {sasl, announced_mechanisms, invalid_mechanism, El}
 %% @doc Return the list of SASL mechanisms announced by the receiving entity.
 
-announced_mechanisms(#xmlnselement{ns = ?NS_XMPP, name = 'features'} = El) ->
+announced_mechanisms(#xmlel{ns = ?NS_XMPP, name = 'features'} = El) ->
     case exmpp_xml:get_element_by_name(El, ?NS_SASL, 'mechanisms') of
         undefined  -> [];
         Mechanisms -> announced_mechanisms2(Mechanisms)
     end.
 
-announced_mechanisms2(#xmlnselement{children = []} = Feature) ->
+announced_mechanisms2(#xmlel{children = []} = Feature) ->
     throw({sasl, announced_mechanisms, invalid_feature, Feature});
-announced_mechanisms2(#xmlnselement{children = Children}) ->
+announced_mechanisms2(#xmlel{children = Children}) ->
     announced_mechanisms3(Children, []).
 
 announced_mechanisms3(
-  [#xmlnselement{ns = ?NS_SASL, name = 'mechanism'} = El | Rest], Result) ->
+  [#xmlel{ns = ?NS_SASL, name = 'mechanism'} = El | Rest], Result) ->
     case exmpp_xml:get_cdata_as_list(El) of
         "" ->
             throw({sasl, announced_mechanisms, invalid_mechanism, El});
@@ -70,11 +70,11 @@ announced_mechanisms3([], Result) ->
 
 %% @spec (Mechanism) -> Auth
 %%     Mechanism = string()
-%%     Auth = exmpp_xml:xmlnselement()
+%%     Auth = exmpp_xml:xmlel()
 %% @doc Prepare an `<auth/>' element with the selected mechanism.
 
 selected_mechanism(Mechanism) ->
-    El = #xmlnselement{
+    El = #xmlel{
       ns = ?NS_SASL,
       name = 'auth'
     },
@@ -83,7 +83,7 @@ selected_mechanism(Mechanism) ->
 %% @spec (Mechanism, Initial_Response) -> Auth
 %%     Mechanism = string()
 %%     Initial_Response = string()
-%%     Auth = exmpp_xml:xmlnselement()
+%%     Auth = exmpp_xml:xmlel()
 %% @doc Prepare an `<auth/>' element with the selected mechanism.
 %%
 %% The initial response will be Base64-encoded before inclusion.
@@ -97,30 +97,30 @@ selected_mechanism(Mechanism, Initial_Response) ->
 
 %% @spec (Response_Data) -> Response
 %%     Response_Data = string()
-%%     Response = exmpp_xml:xmlnselement()
+%%     Response = exmpp_xml:xmlel()
 %% @doc Prepare a `<response/>' element to send the challenge's response.
 %%
 %% `Response_Data' will be Base64-encoded.
 
 response(Response_Data) ->
-    El = #xmlnselement{
+    El = #xmlel{
       ns = ?NS_SASL,
       name = 'response'
     },
     exmpp_xml:set_cdata(El, exmpp_internals:encode_base64(Response_Data)).
 
 %% @spec () -> Abort
-%%     Abort = exmpp_xml:xmlnselement()
+%%     Abort = exmpp_xml:xmlel()
 %% @doc Make a `<abort/>' element.
 
 abort() ->
-    #xmlnselement{
+    #xmlel{
       ns = ?NS_SASL,
       name = 'abort'
     }.
 
 %% @spec (El) -> Type
-%%     El = exmpp_xml:xmlnselement() 
+%%     El = exmpp_xml:xmlel() 
 %%     Type = Challenge | Success | Failure
 %%     Challenge = {challenge, string()}
 %%     Success = {success, string()}
@@ -131,14 +131,14 @@ abort() ->
 %%
 %% Any challenge or success data is Base64-decoded.
 
-next_step(#xmlnselement{ns = ?NS_SASL, name = 'challenge'} = El) ->
+next_step(#xmlel{ns = ?NS_SASL, name = 'challenge'} = El) ->
     Encoded = exmpp_xml:get_cdata_as_list(El),
     {challenge, exmpp_internals:decode_base64(Encoded)};
-next_step(#xmlnselement{ns = ?NS_SASL, name = 'failure',
-  children = [#xmlnselement{ns = ?NS_SASL, name = Condition}]}) ->
+next_step(#xmlel{ns = ?NS_SASL, name = 'failure',
+  children = [#xmlel{ns = ?NS_SASL, name = Condition}]}) ->
     {failure, Condition};
-next_step(#xmlnselement{ns = ?NS_SASL, name = 'failure'}) ->
+next_step(#xmlel{ns = ?NS_SASL, name = 'failure'}) ->
     {failure, undefined};
-next_step(#xmlnselement{ns = ?NS_SASL, name = 'success'} = El) ->
+next_step(#xmlel{ns = ?NS_SASL, name = 'success'} = El) ->
     Encoded = exmpp_xml:get_cdata_as_list(El),
     {success, exmpp_internals:decode_base64(Encoded)}.
