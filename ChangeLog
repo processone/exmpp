@@ -21,6 +21,11 @@
 	root directory. It's used when cross-compiling because this directory
 	can't be guessed.
 
+	* c_src/exmpp_stringprep.c: strcat_s() exists when using Microsoft
+	Visual C++ but MingW provides the standard strcat(3) instead.
+	Therefore we test the use of Visual C++ specifically, not the Windows
+	target.
+
 2008-06-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Your attention please: #xmlnselement was renamed to #xmlel!
