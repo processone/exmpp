@@ -1,5 +1,12 @@
 2008-06-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
+	* testsuite/Makefile.am: Fix th ERL_FILES and BEAM_FILES: it was
+	missing the 'testsuite' module. Fix the command that copy test.sh to
+	the final test script: if the script didn't exist before, the copy was
+	not made.
+
+2008-06-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
 	Your attention please: #xmlnselement was renamed to #xmlel!
 
 	I repeat: #xmlnselement was renamed to #xmlel!

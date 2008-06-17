@@ -1,6 +1,7 @@
 # $Id$
 	     
-ERL_FILES = check_xml_parser.erl					\
+ERL_FILES = testsuite.erl						\
+	    check_xml_parser.erl					\
 	    check_xml_attribute_handlers.erl				\
 	    check_xml_element_handlers.erl				\
 	    check_xml_cdata_handlers.erl				\
@@ -12,7 +13,8 @@ ERL_FILES = check_xml_parser.erl					\
 	    check_legacy_auth.erl					\
 	    check_coverity.erl
 
-BEAM_FILES = check_xml_parser.beam					\
+BEAM_FILES = testsuite.beam						\
+	     check_xml_parser.beam					\
 	     check_xml_attribute_handlers.beam				\
 	     check_xml_element_handlers.beam				\
 	     check_xml_cdata_handlers.beam				\
@@ -24,8 +26,7 @@ BEAM_FILES = check_xml_parser.beam					\
 	     check_legacy_auth.beam					\
 	     check_coverity.beam
 
-EXTRA_DIST = testsuite.erl test.sh					\
-	     $(ERL_FILES)
+EXTRA_DIST = $(ERL_FILES) test.sh
 
 CLEANFILES = $(BEAM_FILES) *.html $(TESTS) erl_crash.dump
 
@@ -77,5 +78,5 @@ all-local:
 	@rm -f index.html
 
 $(TESTS): $(BEAM_FILES) $(TSCRIPT)
-	@(test $(TSCRIPT) -nt $@ && echo "Create: $@" &&		\
+	@(test ! -e $@ -o $(TSCRIPT) -nt $@ && echo "Create: $@" &&	\
 	 cp $(TSCRIPT) $@ && chmod 755 $@) || :
