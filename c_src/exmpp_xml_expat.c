@@ -16,7 +16,7 @@
 #define	strdup(s) _strdup(s)
 #endif
 
-#define	DRIVER_NAME	exmpp_expat
+#define	DRIVER_NAME	exmpp_xml_expat
 #define	_S(s)		#s
 #define	S(s)		_S(s)
 
@@ -71,7 +71,7 @@ struct ns_entry {
 };
 
 /* Driver data (also, user data for expat). */
-struct exmpp_expat_data {
+struct exmpp_xml_expat_data {
 	/* Internal state. */
 	ErlDrvPort		 port;
 	XML_Parser		 parser;
@@ -112,23 +112,25 @@ static void		expat_cb_end_element(void *user_data,
 static void		expat_cb_character_data(void *user_data,
 			    const char *data, int len);
 
-static int		create_parser(struct exmpp_expat_data *ed);
-static int		destroy_parser(struct exmpp_expat_data *ed);
-static int		current_tree_finished(struct exmpp_expat_data *ed);
+static int		create_parser(struct exmpp_xml_expat_data *ed);
+static int		destroy_parser(struct exmpp_xml_expat_data *ed);
+static int		current_tree_finished(
+			    struct exmpp_xml_expat_data *ed);
 static unsigned int	hash_djb2(void *key);
 static int		hash_equalkeys(void *k1, void *k2);
-static int		initialize_lookup_tables(struct exmpp_expat_data *ed);
-static int		add_known_ns(struct exmpp_expat_data *ed,
+static int		initialize_lookup_tables(
+			    struct exmpp_xml_expat_data *ed);
+static int		add_known_ns(struct exmpp_xml_expat_data *ed,
 			    char *ns);
-static int		add_known_name(struct exmpp_expat_data *ed,
+static int		add_known_name(struct exmpp_xml_expat_data *ed,
 			    char *name);
-static int		add_known_attr(struct exmpp_expat_data *ed,
+static int		add_known_attr(struct exmpp_xml_expat_data *ed,
 			    char *attr);
-static int		is_a_known_ns(struct exmpp_expat_data *ed,
+static int		is_a_known_ns(struct exmpp_xml_expat_data *ed,
 			    const char *ns);
-static int		is_a_known_name(struct exmpp_expat_data *ed,
+static int		is_a_known_name(struct exmpp_xml_expat_data *ed,
 			    const char *name);
-static int		is_a_known_attr(struct exmpp_expat_data *ed,
+static int		is_a_known_attr(struct exmpp_xml_expat_data *ed,
 			    const char *attr);
 
 /* This constant is used as value in known_ns, known_names and known_attrs
@@ -246,9 +248,9 @@ ei_x_encode_string_fixed(ei_x_buff *x, const char *s)
  * ------------------------------------------------------------------- */
 
 static ErlDrvData
-exmpp_expat_start(ErlDrvPort port, char *command)
+exmpp_xml_expat_start(ErlDrvPort port, char *command)
 {
-	struct exmpp_expat_data *ed;
+	struct exmpp_xml_expat_data *ed;
 
 	/* Set binary mode. */
 	set_port_control_flags(port, PORT_CONTROL_FLAG_BINARY);
@@ -301,11 +303,11 @@ exmpp_expat_start(ErlDrvPort port, char *command)
 }
 
 static void
-exmpp_expat_stop(ErlDrvData drv_data)
+exmpp_xml_expat_stop(ErlDrvData drv_data)
 {
-	struct exmpp_expat_data *ed;
+	struct exmpp_xml_expat_data *ed;
 
-	ed = (struct exmpp_expat_data *)drv_data;
+	ed = (struct exmpp_xml_expat_data *)drv_data;
 
 	/* Destroy lookup tables, the Expat parser and the driver data
 	 * structure. */
@@ -341,17 +343,17 @@ exmpp_expat_stop(ErlDrvData drv_data)
 }
 
 static int
-exmpp_expat_control(ErlDrvData drv_data, unsigned int command,
+exmpp_xml_expat_control(ErlDrvData drv_data, unsigned int command,
     char *buf, int len, char **rbuf, int rlen)
 {
 	size_t size;
 	char *errmsg, *known;
 	int ret, errcode, index, version, type;
-	struct exmpp_expat_data *ed;
+	struct exmpp_xml_expat_data *ed;
 	ErlDrvBinary *b;
 	ei_x_buff *to_send;
 
-	ed = (struct exmpp_expat_data *)drv_data;
+	ed = (struct exmpp_xml_expat_data *)drv_data;
 
 	ret = -1;
 	*rbuf = NULL;
@@ -642,11 +644,11 @@ static void
 expat_cb_start_namespace(void *user_data,
     const char *prefix, const char *uri)
 {
-	struct exmpp_expat_data *ed;
+	struct exmpp_xml_expat_data *ed;
 	struct ns_entry *entry;
 	size_t uri_len;
 
-	ed = (struct exmpp_expat_data *)user_data;
+	ed = (struct exmpp_xml_expat_data *)user_data;
 
 #if defined(DRV_DEBUG)
 	printf("===> namespace (start): prefix=%s, uri=%s\r\n",
@@ -706,10 +708,10 @@ static void
 expat_cb_end_namespace(void *user_data,
     const char *prefix)
 {
-	struct exmpp_expat_data *ed;
+	struct exmpp_xml_expat_data *ed;
 	struct ns_entry *entry;
 
-	ed = (struct exmpp_expat_data *)user_data;
+	ed = (struct exmpp_xml_expat_data *)user_data;
 
 #if defined(DRV_DEBUG)
 	printf("---> namespace (end): prefix=%s\r\n", prefix);
@@ -736,9 +738,9 @@ expat_cb_start_element(void *user_data,
 	int i, is_known;
 	char *ns_sep, *prefix;
 	ei_x_buff *tree;
-	struct exmpp_expat_data *ed;
+	struct exmpp_xml_expat_data *ed;
 
-	ed = (struct exmpp_expat_data *)user_data;
+	ed = (struct exmpp_xml_expat_data *)user_data;
 
 #if defined(DRV_DEBUG)
 	printf("===> [depth=%02lu] element (start): name=%s\r\n",
@@ -983,9 +985,9 @@ expat_cb_end_element(void *user_data,
 {
 	char *ns_sep, *prefix;
 	ei_x_buff *tree;
-	struct exmpp_expat_data *ed;
+	struct exmpp_xml_expat_data *ed;
 
-	ed = (struct exmpp_expat_data *)user_data;
+	ed = (struct exmpp_xml_expat_data *)user_data;
 
 	if (ed->depth > 0)
 		ed->depth--;
@@ -1098,9 +1100,9 @@ static void
 expat_cb_character_data(void *user_data,
     const char *data, int len)
 {
-	struct exmpp_expat_data *ed;
+	struct exmpp_xml_expat_data *ed;
 
-	ed = (struct exmpp_expat_data *)user_data;
+	ed = (struct exmpp_xml_expat_data *)user_data;
 
 #if defined(DRV_DEBUG)
 	printf("     character data: data=%.*s\r\n", len, data);
@@ -1120,7 +1122,7 @@ expat_cb_character_data(void *user_data,
  * ------------------------------------------------------------------- */
 
 static int
-create_parser(struct exmpp_expat_data *ed)
+create_parser(struct exmpp_xml_expat_data *ed)
 {
 
 	if (ed->use_ns_parser) {
@@ -1152,7 +1154,7 @@ create_parser(struct exmpp_expat_data *ed)
 }
 
 static int
-destroy_parser(struct exmpp_expat_data *ed)
+destroy_parser(struct exmpp_xml_expat_data *ed)
 {
 
 	if (ed->parser != NULL)
@@ -1164,7 +1166,7 @@ destroy_parser(struct exmpp_expat_data *ed)
 }
 
 static int
-current_tree_finished(struct exmpp_expat_data *ed)
+current_tree_finished(struct exmpp_xml_expat_data *ed)
 {
 	int ret;
 
@@ -1213,7 +1215,7 @@ hash_equalkeys(void *k1, void *k2)
 }
 
 static int
-initialize_lookup_tables(struct exmpp_expat_data *ed)
+initialize_lookup_tables(struct exmpp_xml_expat_data *ed)
 {
 	int i;
 
@@ -1256,7 +1258,7 @@ initialize_lookup_tables(struct exmpp_expat_data *ed)
 }
 
 static int
-add_known_ns(struct exmpp_expat_data *ed, char *ns)
+add_known_ns(struct exmpp_xml_expat_data *ed, char *ns)
 {
 
 	if (!ed->check_ns || ed->known_ns == NULL)
@@ -1270,7 +1272,7 @@ add_known_ns(struct exmpp_expat_data *ed, char *ns)
 }
 
 static int
-add_known_name(struct exmpp_expat_data *ed, char *name)
+add_known_name(struct exmpp_xml_expat_data *ed, char *name)
 {
 
 	if (!ed->check_names || ed->known_names == NULL)
@@ -1284,7 +1286,7 @@ add_known_name(struct exmpp_expat_data *ed, char *name)
 }
 
 static int
-add_known_attr(struct exmpp_expat_data *ed, char *attr)
+add_known_attr(struct exmpp_xml_expat_data *ed, char *attr)
 {
 
 	if (!ed->check_attrs || ed->known_attrs == NULL)
@@ -1298,7 +1300,7 @@ add_known_attr(struct exmpp_expat_data *ed, char *attr)
 }
 
 static int
-is_a_known_ns(struct exmpp_expat_data *ed, const char *ns)
+is_a_known_ns(struct exmpp_xml_expat_data *ed, const char *ns)
 {
 	int *is_known;
 
@@ -1310,7 +1312,7 @@ is_a_known_ns(struct exmpp_expat_data *ed, const char *ns)
 }
 
 static int
-is_a_known_name(struct exmpp_expat_data *ed, const char *name)
+is_a_known_name(struct exmpp_xml_expat_data *ed, const char *name)
 {
 	int *is_known;
 
@@ -1322,7 +1324,7 @@ is_a_known_name(struct exmpp_expat_data *ed, const char *name)
 }
 
 static int
-is_a_known_attr(struct exmpp_expat_data *ed, const char *attr)
+is_a_known_attr(struct exmpp_xml_expat_data *ed, const char *attr)
 {
 	int *is_known;
 
@@ -1338,18 +1340,18 @@ is_a_known_attr(struct exmpp_expat_data *ed, const char *attr)
  * ------------------------------------------------------------------- */
 
 static ErlDrvEntry expat_driver_entry = {
-	NULL,			/* init */
-	exmpp_expat_start,	/* start */
-	exmpp_expat_stop,	/* stop */
-	NULL,			/* output */
-	NULL,			/* ready_input */
-	NULL,			/* ready_output */
-	S(DRIVER_NAME),		/* driver name */
-	NULL,			/* finish */
-	NULL,			/* handle */
-	exmpp_expat_control,	/* control */
-	NULL,			/* timeout */
-	NULL			/* outputv */
+	NULL,				/* init */
+	exmpp_xml_expat_start,		/* start */
+	exmpp_xml_expat_stop,		/* stop */
+	NULL,				/* output */
+	NULL,				/* ready_input */
+	NULL,				/* ready_output */
+	S(DRIVER_NAME),			/* driver name */
+	NULL,				/* finish */
+	NULL,				/* handle */
+	exmpp_xml_expat_control,	/* control */
+	NULL,				/* timeout */
+	NULL				/* outputv */
 };
 
 DRIVER_INIT(DRIVER_NAME)

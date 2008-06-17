@@ -36,7 +36,7 @@ ZLIB_PREFIX = C:\Program Files\zlib123-dll
 ZLIB_CPPFLAGS = -I"$(ZLIB_PREFIX)\include"
 ZLIB_LIBS = "$(ZLIB_PREFIX)\lib\zdll.lib"
 
-DRIVERS = exmpp_expat.dll exmpp_stringprep.dll exmpp_tls_openssl.dll exmpp_compress_zlib.dll
+DRIVERS = exmpp_xml_expat.dll exmpp_stringprep.dll exmpp_tls_openssl.dll exmpp_compress_zlib.dll
 
 BUILT_SOURCES = xmpp_ns.h xmpp_names.h xmpp_attrs.h
 
@@ -67,10 +67,10 @@ xmpp_attrs.h: xmpp_attrs.h.js xmpp_attrs.h.in
 hashtable.obj: contrib\hashtable.h contrib\hashtable_private.h contrib\hashtable.c
 	$(cc) $(cdebug) $(cflags) -Icontrib $(cvarsdll) contrib\$*.c
 
-exmpp_expat.obj: $(BUILT_SOURCES) contrib\hashtable.h exmpp_expat.c
+exmpp_xml_expat.obj: $(BUILT_SOURCES) contrib\hashtable.h exmpp_xml_expat.c
 	$(cc) $(cdebug) $(cflags) $(cvarsdll) $(EI_CPPFLAGS) $(EXPAT_CPPFLAGS) $*.c
 
-exmpp_expat.dll: hashtable.obj exmpp_expat.obj
+exmpp_xml_expat.dll: hashtable.obj exmpp_xml_expat.obj
 	$(link) $(ldebug) $(dlllflags) $(conlibsdll) -out:$*.dll $** $(EI_LIBS) $(EXPAT_LIBS)
 
 # Stringprep port driver.
