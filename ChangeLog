@@ -25,6 +25,9 @@
 	get_parser/1 to get it back. start/1 was removed and stop/1 is now a
 	NOOP (but is kept for potential future changes).
 
+	* src/network/exmpp_session.erl: Sync with last exmpp_xmlstream
+	changes.
+
 2008-06-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* testsuite/Makefile.am: Fix th ERL_FILES and BEAM_FILES: it was

@@ -261,6 +261,7 @@ terminate(Reason, _StateName, #state{connection_ref = undefined,
 terminate(Reason, _StateName, #state{connection_ref = undefined,
 				    stream_ref = StreamRef,
 				    from_pid=From}) ->
+    exmpp_xml:stop_parser(exmpp_xmlstream:get_parser(StreamRef)),
     exmpp_xmlstream:stop(StreamRef),
     reply(Reason, From),
     ok;
@@ -276,6 +277,7 @@ terminate(Reason, _StateName, #state{connection_ref = ConnRef,
 				    stream_ref = StreamRef,
 				    receiver_ref = ReceiverRef,
 				    from_pid=From}) ->
+    exmpp_xml:stop_parser(exmpp_xmlstream:get_parser(StreamRef)),
     exmpp_xmlstream:stop(StreamRef),
     Module:close(ConnRef, ReceiverRef),
     reply(Reason, From),
@@ -631,7 +633,7 @@ get_method({basic, Method, _JID, _Password}) when atom(Method) ->
 %% Start parser and return stream reference
 start_parser() ->
     exmpp_xmlstream:start({gen_fsm, self()},
-                          ?PARSER_OPTIONS,
+                          exmpp_xml:start_parser(?PARSER_OPTIONS),
                           [{xmlstreamstart,new}]).
 
 %% Authentication functions
