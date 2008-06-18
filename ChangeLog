@@ -1,5 +1,7 @@
 2008-06-18  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
+	Caution: XML parser options and exmpp_xmlstream API changed!
+
 	* src/core/exmpp_xml.erl, testsuite/check_xml_parser.erl: Options
 	handling was revised a lot:
 	    o  Options are now real "proplists". It means that all options
@@ -14,6 +16,14 @@
 
 	* src/core/exmpp_xml.erl, c_src/exmpp_xml_expat.c: Rename the few
 	remaining occurences of "endelement" to "endtag".
+
+	* src/core/exmpp_xmlstream.erl, testsuite/check_xmlstream.erl: From
+	now on, the XML parser must be created by the caller and passed to
+	exmpp_xmlstream:start/{2,3}. This allow the caller to control the
+	parser; for instance, he can add known names, namespaces or
+	attributes. He is responsible to stop the parser and can use the new
+	get_parser/1 to get it back. start/1 was removed and stop/1 is now a
+	NOOP (but is kept for potential future changes).
 
 2008-06-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 

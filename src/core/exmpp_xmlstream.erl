@@ -24,9 +24,10 @@
 -include("exmpp.hrl").
 
 -export([
-  start/1,
   start/2,
   start/3,
+  reset/1,
+  get_parser/1,
   stop/1,
   parse/2,
   send_events/2,
@@ -38,72 +39,52 @@
   callback,
   parser,
   xmlstreamstart = old,
-  opened = 0
+  opened = false
 }).
 
 % --------------------------------------------------------------------
 % Stream parsing, chunk by chunk.
 % --------------------------------------------------------------------
 
-%% @spec (Callback) -> {ok, Stream} | {error, Reason}
+%% @spec (Callback, Parser) -> {ok, Stream} | {error, Reason}
 %%     Callback = callback()
 %%     Stream = xmlstream()
+%%     Parser = exmpp_xml:xmlparser()
 %% @doc Start a new stream handler.
 %%
-%% The XML parser is created with default options, but the `root_depth'
-%% which is 1 and `endtag' which is set.
-%%
-%% The stream will use the old xmlstreamstart tuple.
-%%
-%% <br/><br/>
-%% This function (or {@link start/2}) must be called before any use of
-%% {@link parse/2}.
-%% @see exmpp_xml:start_parser/0.
-%% @see exmpp_xml:xmlparseroption().
-
-start(Callback) ->
-    start(Callback, []).
-
-%% @spec (Callback, Parser_Options) -> {ok, Stream} | {error, Reason}
-%%     Callback = callback()
-%%     Stream = xmlstream()
-%%     Parser_Options = [exmpp_xml:xmlparseroption()]
-%% @doc Start a new stream handler.
-%%
-%% The XML parser is created with `Parser_Options' options (by default,
-%% `root_depth' is 1 and `endtag' is set). This function (or {@link
-%% start/1}) must be called before any use of {@link parse/2}.
+%% The XML parser is reset and options `{root_depth, 1}' and `endtag'
+%% are set.
 %%
 %% The stream will use the old xmlstreamstart tuple.
 %%
 %% @see exmpp_xml:start_parser/1.
+%% @see exmpp_xml:reset_parser/2.
 
-start(Callback, Parser_Options) ->
-    start(Callback, Parser_Options, []).
+start(Callback, Parser) ->
+    start(Callback, Parser, []).
 
-%% @spec (Callback, Parser_Options, Stream_Options) -> {ok, Stream} | {error, Reason}
+%% @spec (Callback, Parser, Stream_Options) -> {ok, Stream} | {error, Reason}
 %%     Callback = callback()
 %%     Stream = xmlstream()
-%%     Parser_Options = [exmpp_xml:xmlparseroption()]
+%%     Parser = exmpp_xml:xmlparser()
 %%     Stream_Options = [Stream_Option]
 %%     Stream_Option = {xmlstreamstart, old | new}
 %% @doc Start a new stream handler.
 %%
-%% The XML parser is created with `Parser_Options' options (by default,
-%% `root_depth' is 1 and `endtag' is set). This function (or {@link
-%% start/1}) must be called before any use of {@link parse/2}.
+%% The XML parser is reset and options `{root_depth, 1}' and `endtag'
+%% are set.
 %%
 %% The stream will use the old xmlstreamstart tuple by default.
 %%
 %% @see exmpp_xml:start_parser/1.
+%% @see exmpp_xml:reset_parser/2.
 
-start(Callback, Parser_Options, Stream_Options) ->
+start(Callback, Parser, Stream_Options) ->
     Callback2 = case Callback of
         Pid when is_pid(Pid) -> {process, Pid};
         _                    -> Callback
     end,
-    Parser_Options2 = [{root_depth, 1}, endtag | Parser_Options],
-    Parser = exmpp_xml:start_parser(Parser_Options2),
+    New_Parser = exmpp_xml:reset_parser(Parser, [{root_depth, 1}, endtag]),
     Stream_Start = case lists:keysearch(xmlstreamstart, 1, Stream_Options) of
         {value, {_, new}} -> new;
         {value, {_, old}} -> old;
@@ -111,23 +92,42 @@ start(Callback, Parser_Options, Stream_Options) ->
     end,
     #xml_stream{
       callback = Callback2,
-      parser = Parser,
+      parser = New_Parser,
       xmlstreamstart = Stream_Start
     }.
+
+%% @spec (Stream) -> New_Stream
+%%     Stream = xmlstream()
+%%     New_Stream = xmlstream()
+%% @doc Reset stream and the underlying XML parser.
+
+reset(#xml_stream{parser = Parser} = Stream) ->
+    New_Parser = exmpp_xml:reset_parser(Parser),
+    Stream#xml_stream{parser = New_Parser, opened = false}.
+
+%% @spec (Stream) -> Parser
+%%     Stream = xmlstream()
+%%     Parser = exmpp_xml:xmlparser()
+%% @doc Return the XML parser used.
+
+get_parser(#xml_stream{parser = Parser}) ->
+    Parser.
 
 %% @spec (Stream) -> ok | {error, Reason}
 %%     Stream = xmlstream()
 %% @doc Close a stream handler.
 %%
-%% This must be called when `Stream' (returned by {@link start/0} or
-%% {@link start/1} isn't necessary anymore. This will terminate the
-%% parser.
+%% This must be called when `Stream' (returned by {@link start/2} or
+%% {@link start/3} isn't necessary anymore.
 %%
-%% @see start/0.
-%% @see start/1.
+%% Currently this is a NOOP.
+%%
+%% The caller is responsible to terminate the parser.
+%%
+%% @see get_parser/1.
 
-stop(#xml_stream{parser = Parser} = _Stream) ->
-    exmpp_xml:stop_parser(Parser).
+stop(_Stream) ->
+    ok.
 
 %% @spec (Stream, Data) -> {ok, New_Stream} | {ok, New_Stream, Events} | {error, Reason}
 %%     Stream = xmlstream()
@@ -163,9 +163,9 @@ process_elements2(Stream, [XML_Element | Rest], Events) ->
     case XML_Element of
         % With namespace support.
         #xmlel{name = Name, attrs = Attrs}
-          when Stream#xml_stream.opened == 0 ->
+          when Stream#xml_stream.opened == false ->
             % Stream is freshly opened.
-            New_Stream = Stream#xml_stream{opened = 1},
+            New_Stream = Stream#xml_stream{opened = true},
             New_Events = case Stream#xml_stream.xmlstreamstart of
                 old -> [{xmlstreamstart, Name, Attrs} | Events];
                 new -> [#xmlstreamstart{element = XML_Element} | Events]
@@ -179,9 +179,9 @@ process_elements2(Stream, [XML_Element | Rest], Events) ->
 
         % Without namespace support.
         #xmlelement{name = Name, attrs = Attrs}
-          when Stream#xml_stream.opened == 0 ->
+          when Stream#xml_stream.opened == false ->
             % Stream is freshly opened.
-            New_Stream = Stream#xml_stream{opened = 1},
+            New_Stream = Stream#xml_stream{opened = true},
             New_Events = case Stream#xml_stream.xmlstreamstart of
                 old -> [{xmlstreamstart, Name, Attrs} | Events];
                 new -> [#xmlstreamstart{element = XML_Element} | Events]
@@ -196,7 +196,7 @@ process_elements2(Stream, [XML_Element | Rest], Events) ->
         % Common.
         #xmlendtag{} ->
             % Stream is closed.
-            New_Stream = Stream#xml_stream{opened = 0},
+            New_Stream = Stream#xml_stream{opened = false},
             New_Events = [#xmlstreamend{endtag = XML_Element} |
               Events],
             process_elements2(New_Stream, Rest, New_Events)
