@@ -55,7 +55,7 @@ enum {
 	EXPAT_SET_CHECK_ATTRS,
 	EXPAT_SET_MAXSIZE,
 	EXPAT_SET_ROOTDEPTH,
-	EXPAT_SET_ENDELEMENT,
+	EXPAT_SET_ENDTAG,
 	EXPAT_ADD_KNOWN_NS,
 	EXPAT_ADD_KNOWN_NAME,
 	EXPAT_ADD_KNOWN_ATTR,
@@ -97,7 +97,7 @@ struct exmpp_xml_expat_data {
 	int			 check_attrs;
 	long			 max_size;
 	long			 root_depth;
-	int			 send_endelement;
+	int			 send_endtag;
 };
 
 /* Expat handler prototypes */
@@ -292,7 +292,7 @@ exmpp_xml_expat_start(ErlDrvPort port, char *command)
 	ed->max_size = -1;
 
 	/* Do not send end element. */
-	ed->send_endelement = 0;
+	ed->send_endtag = 0;
 
 	/* Initialize lookup tables. */
 	if (initialize_lookup_tables(ed) != 0) {
@@ -374,10 +374,10 @@ exmpp_xml_expat_control(ErlDrvData drv_data, unsigned int command,
 
 		MAKE_ATOM_OK(to_send);
 		break;
-	case EXPAT_SET_ENDELEMENT:
+	case EXPAT_SET_ENDTAG:
 		/* Get the "send end element" flag. */
 		SKIP_VERSION(buf);
-		ei_decode_boolean(buf, &index, &(ed->send_endelement));
+		ei_decode_boolean(buf, &index, &(ed->send_endtag));
 
 		MAKE_ATOM_OK(to_send);
 		break;
@@ -999,7 +999,7 @@ expat_cb_end_element(void *user_data,
 
 	if ((ed->root_depth == -1 ||
 	    ed->depth < (unsigned long)ed->root_depth) &&
-	    ed->send_endelement) {
+	    ed->send_endtag) {
 		/* Initialize a buffer to work on a new tree. */
 		tree = driver_alloc(sizeof(ei_x_buff));
 		if (tree == NULL)
@@ -1008,9 +1008,9 @@ expat_cb_end_element(void *user_data,
 		ed->current_tree = tree;
 
 		/* With namespace support, the tuple will be of the form:
-		 *   {xmlendnselement, URI, Node_Name}
+		 *   {xmlendtag, URI, Node_Name}
 		 * Without namespace support, it will be:
-		 *   {xmlendelement, Node_Name} */
+		 *   {xmlendtag, undefined, undefined, Node_Name} */
 		if (ed->use_ns_parser) {
 			ei_x_encode_tuple_header(tree, 4);
 			ei_x_encode_atom(tree, TUPLE_XML_END_TAG);

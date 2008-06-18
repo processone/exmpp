@@ -30,6 +30,8 @@
 -export([
   start_parser/0,
   start_parser/1,
+  reset_parser/1,
+  reset_parser/2,
   stop_parser/1,
   add_known_nss/2,
   add_known_names/2,
@@ -114,10 +116,6 @@
   internal_escaping_function_name/0
 ]).
 
--record(xml_parser, {
-  port
-}).
-
 -define(DRIVER_NAME, exmpp_xml_expat).
 
 -define(EXPAT_SET_NSPARSER,     1).
@@ -127,7 +125,7 @@
 -define(EXPAT_SET_CHECK_ATTRS,  5).
 -define(EXPAT_SET_MAXSIZE,      6).
 -define(EXPAT_SET_ROOTDEPTH,    7).
--define(EXPAT_SET_ENDELEMENT,   8).
+-define(EXPAT_SET_ENDTAG,       8).
 -define(EXPAT_ADD_KNOWN_NS,     9).
 -define(EXPAT_ADD_KNOWN_NAME,  10).
 -define(EXPAT_ADD_KNOWN_ATTR,  11).
@@ -136,14 +134,14 @@
 -define(EXPAT_SVN_REVISION,    14).
 
 -define(DEFAULT_PARSER_OPTIONS, [
-  % no_namespace, % Handled by start_parser/1.
-  name_as_string,
-  % ns_check,     % By default in the port driver.
-  % names_check,
-  % attrs_check,
-  no_endtag,
+  {namespace, false},
+  {name_as_atom, false},
+  {ns_check, true},
+  {names_check, true},
+  {attrs_check, true},
+  {endtag, false},
   {root_depth, 0},
-  no_maxsize
+  {maxsize, infinity}
 ]).
 
 -define(PREFIXED_NAME(P, N), P ++ ":" ++ N).
@@ -158,6 +156,11 @@
   {?NS_XML, "xml"}
 ]).
 
+-record(xml_parser, {
+  options = [],
+  port
+}).
+
 % --------------------------------------------------------------------
 % Parsing functions (interface to the Expat port driver).
 % --------------------------------------------------------------------
@@ -168,7 +171,7 @@
 %%
 %% Default options are:
 %% ```
-%% [no_namespace, name_as_string, no_endtag, {root_depth, 0}, no_maxsize]
+%% [no_namespace, {name_as_atom, false}, {endtag, false}, {root_depth, 0}, {maxsize, infinity}]
 %% '''
 %%
 %% Activating namespace support enables `ns_check'. Activating
@@ -204,25 +207,15 @@ start_parser(Options) ->
         exmpp_internals:load_driver(?DRIVER_NAME),
         Port = exmpp_internals:open_port(?DRIVER_NAME),
 
-        % `no_namespace' is the default.
-        Options2 = case lists:member(no_namespace, Options) of
-            true ->
-                Options;
-            false ->
-                case lists:member(namespace, Options) of
-                    true  -> Options;
-                    false -> [no_namespace | Options]
-                end
-        end,
-
         % Check options.
-        case handle_options(?DEFAULT_PARSER_OPTIONS ++ Options2,
-          #xml_parser{port = Port}) of
-            {error, Reason, Infos} ->
+        try
+            Parser = #xml_parser{port = Port},
+            New_Options = merge_options(?DEFAULT_PARSER_OPTIONS, Options),
+            reset_parser2(Parser, New_Options)
+        catch
+            throw:Exception1 ->
                 exmpp_internals:close_port(Port),
-                throw({xml_parser, options, Reason, Infos});
-            Parser ->
-                Parser
+                throw(Exception1)
         end
     catch
         throw:{port_driver, load, _, _} = Exception ->
@@ -230,6 +223,30 @@ start_parser(Options) ->
         throw:Exception ->
             exmpp_internals:unload_driver(?DRIVER_NAME),
             throw(Exception)
+    end.
+
+%% @spec (Parser) -> New_Parser
+%%     Parser = xmlparser()
+%% @doc Reset the parser with the same previous options.
+
+reset_parser(Parser) ->
+    reset_parser2(Parser, []).
+
+%% @spec (Parser, Options) -> New_Parser
+%%     Parser = xmlparser()
+%%     Options = [xmlparseroption()]
+%% @doc Reset the parser and update its options.
+
+reset_parser(Parser, Options) ->
+    New_Options = merge_options(Parser#xml_parser.options, Options),
+    reset_parser2(Parser, New_Options).
+
+reset_parser2(Parser, Options) ->
+    case handle_options(Parser, Options) of
+        {error, Reason, Infos} ->
+            throw({xml_parser, options, Reason, Infos});
+        New_Parser ->
+            New_Parser
     end.
 
 %% @spec (Parser) -> ok
@@ -412,8 +429,8 @@ parse_document(Document, Parser_Options) ->
 %% @doc Parse a fragment of an XML document at once.
 %%
 %% Initializing a parser with {@link start_parser/1} isn't necessary,
-%% this function will take care of it. It'll use default options,
-%% but will set `no_root_depth' (which can be overriden); see {@link
+%% this function will take care of it. It'll use default options, but
+%% will set `{root_depth, none}' (which can be overriden); see {@link
 %% start_parser/1} for any related informations.
 
 parse_document_fragment(Fragment) ->
@@ -427,13 +444,13 @@ parse_document_fragment(Fragment) ->
 %%
 %% Initializing a parser with {@link start_parser/1} isn't necessary,
 %% this function will take care of it. `Parser_Options' is passed to the
-%% parser but `no_root_depth' is prepended (this can be overriden); see
-%% {@link start_parser/1} for any related informations.
+%% parser but `{root_depth, none}' is prepended (this can be overriden);
+%% see {@link start_parser/1} for any related informations.
 %%
 %% Return values are the same as {@link parse_final/2}.
 
 parse_document_fragment(Fragment, Parser_Options) ->
-    Parser = start_parser([no_root_depth | Parser_Options]),
+    Parser = start_parser([{root_depth, none} | Parser_Options]),
     try
         parse(Parser, Fragment)
     catch
@@ -2151,81 +2168,75 @@ internal_escaping_function_name() ->
 % Utilities.
 % --------------------------------------------------------------------
 
-handle_options([namespace | Rest], #xml_parser{port = P} = Parser) ->
-    Ret = port_control(P, ?EXPAT_SET_NSPARSER, term_to_binary(true)),
-    case binary_to_term(Ret) of
-        ok              -> handle_options(Rest, Parser);
-        {error, Reason} -> {error, init, Reason}
+% Merge options to avoid duplicates and multiple initialization of the
+% parser.
+merge_options(Options, [{Key, _} = Option | Rest]) ->
+    New_Options = lists:keystore(Key, 1, Options, Option),
+    merge_options(New_Options, Rest);
+merge_options(Options, [Option | Rest]) when is_atom(Option) ->
+    merge_options(Options, [{Option, true} | Rest]);
+merge_options(Options, []) ->
+    Options.
+
+% Update parser options.
+handle_options(#xml_parser{options = Options, port = Port} = Parser,
+  [{Key, _} = Option | Rest]) ->
+    case set_option(Port, Option) of
+        ok ->
+            New_Options = lists:keystore(Key, 1, Options, Option),
+            New_Parser = Parser#xml_parser{options = New_Options},
+            handle_options(New_Parser, Rest);
+        Error ->
+            Error
     end;
-handle_options([no_namespace | Rest], #xml_parser{port = P} = Parser) ->
-    Ret = port_control(P, ?EXPAT_SET_NSPARSER, term_to_binary(false)),
-    case binary_to_term(Ret) of
-        ok              -> handle_options(Rest, Parser);
-        {error, Reason} -> {error, init, Reason}
-    end;
-
-handle_options([name_as_atom | Rest], #xml_parser{port = P} = Parser) ->
-    port_control(P, ?EXPAT_SET_NAMEASATOM, term_to_binary(true)),
-    handle_options(Rest, Parser);
-handle_options([name_as_string | Rest], #xml_parser{port = P} = Parser) ->
-    port_control(P, ?EXPAT_SET_NAMEASATOM, term_to_binary(false)),
-    handle_options(Rest, Parser);
-
-handle_options([ns_check | Rest], #xml_parser{port = P} = Parser) ->
-    port_control(P, ?EXPAT_SET_CHECK_NS, term_to_binary(true)),
-    handle_options(Rest, Parser);
-handle_options([no_ns_check | Rest], #xml_parser{port = P} = Parser) ->
-    port_control(P, ?EXPAT_SET_CHECK_NS, term_to_binary(false)),
-    handle_options(Rest, Parser);
-
-handle_options([names_check | Rest], #xml_parser{port = P} = Parser) ->
-    port_control(P, ?EXPAT_SET_CHECK_NAMES, term_to_binary(true)),
-    handle_options(Rest, Parser);
-handle_options([no_names_check | Rest], #xml_parser{port = P} = Parser) ->
-    port_control(P, ?EXPAT_SET_CHECK_NAMES, term_to_binary(false)),
-    handle_options(Rest, Parser);
-
-handle_options([attrs_check | Rest], #xml_parser{port = P} = Parser) ->
-    port_control(P, ?EXPAT_SET_CHECK_ATTRS, term_to_binary(true)),
-    handle_options(Rest, Parser);
-handle_options([no_attrs_check | Rest], #xml_parser{port = P} = Parser) ->
-    port_control(P, ?EXPAT_SET_CHECK_ATTRS, term_to_binary(false)),
-    handle_options(Rest, Parser);
-
-handle_options([no_maxsize | Rest], #xml_parser{port = P} = Parser) ->
-    port_control(P, ?EXPAT_SET_MAXSIZE, term_to_binary(-1)),
-    handle_options(Rest, Parser);
-handle_options([{maxsize, infinity} | Rest], #xml_parser{port = P} = Parser) ->
-    port_control(P, ?EXPAT_SET_MAXSIZE, term_to_binary(-1)),
-    handle_options(Rest, Parser);
-handle_options([{maxsize, Max} | Rest], #xml_parser{port = P} = Parser)
-  when is_integer(Max), Max >= 0 ->
-    port_control(P, ?EXPAT_SET_MAXSIZE, term_to_binary(Max)),
-    handle_options(Rest, Parser);
-
-handle_options([no_root_depth | Rest], #xml_parser{port = P} = Parser) ->
-    port_control(P, ?EXPAT_SET_ROOTDEPTH, term_to_binary(-1)),
-    handle_options(Rest, Parser);
-handle_options([{root_depth, none} | Rest], #xml_parser{port = P} = Parser) ->
-    port_control(P, ?EXPAT_SET_ROOTDEPTH, term_to_binary(-1)),
-    handle_options(Rest, Parser);
-handle_options([{root_depth, Depth} | Rest], #xml_parser{port = P} = Parser)
-  when is_integer(Depth), Depth >= 0 ->
-    port_control(P, ?EXPAT_SET_ROOTDEPTH, term_to_binary(Depth)),
-    handle_options(Rest, Parser);
-
-handle_options([endtag | Rest], #xml_parser{port = P} = Parser) ->
-    port_control(P, ?EXPAT_SET_ENDELEMENT, term_to_binary(true)),
-    handle_options(Rest, Parser);
-handle_options([no_endtag | Rest], #xml_parser{port = P} = Parser) ->
-    port_control(P, ?EXPAT_SET_ENDELEMENT, term_to_binary(false)),
-    handle_options(Rest, Parser);
-
-handle_options([Invalid_Option | _Rest], _Parser) ->
+handle_options(_Parser, [Invalid_Option | _Rest]) ->
     {error, invalid, Invalid_Option};
-
-handle_options([], Parser) ->
+handle_options(Parser, []) ->
     Parser.
+
+set_option(Port, {namespace, NS}) when is_boolean(NS) ->
+    Ret = port_control(Port, ?EXPAT_SET_NSPARSER, term_to_binary(NS)),
+    case binary_to_term(Ret) of
+        ok              -> ok;
+        {error, Reason} -> {error, init, Reason}
+    end;
+
+set_option(Port, {name_as_atom, As_Atom}) when is_boolean(As_Atom) ->
+    port_control(Port, ?EXPAT_SET_NAMEASATOM, term_to_binary(As_Atom)),
+    ok;
+
+set_option(Port, {ns_check, Check}) when is_boolean(Check) ->
+    port_control(Port, ?EXPAT_SET_CHECK_NS, term_to_binary(Check)),
+    ok;
+
+set_option(Port, {names_check, Check}) when is_boolean(Check) ->
+    port_control(Port, ?EXPAT_SET_CHECK_NAMES, term_to_binary(Check)),
+    ok;
+
+set_option(Port, {attrs_check, Check}) when is_boolean(Check) ->
+    port_control(Port, ?EXPAT_SET_CHECK_ATTRS, term_to_binary(Check)),
+    ok;
+
+set_option(Port, {maxsize, infinity}) ->
+    port_control(Port, ?EXPAT_SET_MAXSIZE, term_to_binary(-1)),
+    ok;
+set_option(Port, {maxsize, Max}) when is_integer(Max), Max >= 0 ->
+    port_control(Port, ?EXPAT_SET_MAXSIZE, term_to_binary(Max)),
+    ok;
+
+set_option(Port, {root_depth, none}) ->
+    port_control(Port, ?EXPAT_SET_ROOTDEPTH, term_to_binary(-1)),
+    ok;
+set_option(Port, {root_depth, Depth}) when is_integer(Depth), Depth >= 0 ->
+    port_control(Port, ?EXPAT_SET_ROOTDEPTH, term_to_binary(Depth)),
+    ok;
+
+set_option(Port, {endtag, Endtag}) when is_boolean(Endtag) ->
+    port_control(Port, ?EXPAT_SET_ENDTAG, term_to_binary(Endtag)),
+    ok;
+
+set_option(_Port, Invalid_Option) ->
+    {error, invalid, Invalid_Option}.
 
 % --------------------------------------------------------------------
 % Documentation / type definitions.
@@ -2236,29 +2247,31 @@ handle_options([], Parser) ->
 %% start_parser/0}.
 
 %% @type xmlparseroption() = Namespace_Option | Names_Format | Checks | Stanza_Max_Size | Root_Depth | Send_End_Element
-%%     Namespace_Option = namespace | no_namespace
-%%     Name_Format = name_as_atom | name_as_string
+%%     Namespace_Option = {namespace, boolean()}
+%%     Name_Format = {name_as_atom, boolean()}
 %%     Checks = NS_Check | Names_Check | Attrs_Check
-%%       NS_Check = ns_check | no_ns_check
-%%       Names_Check = names_check | no_names_check
-%%       Attrs_Check = attrs_check | no_attrs_check
-%%     Stanza_Max_Size  = no_maxsize | {maxsize, infinity} | {maxsize, Size}
-%%     Root_Depth = no_root_depth | {root_depth, none} | {root_depth, Depth}
-%%     Send_End_Element = endtag | no_endtag.
-%% The `namespace' and `no_namespace' flags enable or disable the
-%% support for namespaces respectively. Note that the support is very
-%% experimental. Tag and attribute namespaces are supported.
+%%       NS_Check = {ns_check, boolean()}
+%%       Names_Check = {names_check, boolean()}
+%%       Attrs_Check = {attrs_check, boolean()}
+%%     Stanza_Max_Size  = {maxsize, infinity} | {maxsize, Size}
+%%     Root_Depth = {root_depth, none} | {root_depth, Depth}
+%%     Send_End_Element = {endtag, boolean()}.
+%% Options of the form `{Key, boolean()}' can be specified as `Key'. See
+%% {@link proplists}.
 %%
 %% <br/><br/>
-%% The `name_as_atom' and `name_as_string' options set if element and
-%% attribute names should be encoded as an {@link atom()} or a {@link
-%% string()} respectively. "Should" because if names or attributes
-%% checks fail, a name will be encoded as a `string()' (see next
-%% option).
+%% The `namespace' option enables or disables the support for namespaces
+%% respectively. Tag and attribute namespaces are supported.
 %%
 %% <br/><br/>
-%% The `Checks' flags enable or disable the control of a namespace, an
-%% element name or an attribute name if `name_as_atom' is enabled. This
+%% The `name_as_atom' option sets if element and attribute names should
+%% be encoded as an {@link atom()} or a {@link string()} respectively.
+%% "Should" because if names or attributes checks fail, a name will be
+%% encoded as a `string()' (see next option).
+%%
+%% <br/><br/>
+%% The `Checks' options enable or disable the control of a namespace,
+%% an element name or an attribute name if `name_as_atom' is set. This
 %% is to avoid atom() table pollution and overflow. If a check says
 %% that the verified string is known, it'll be encoded as an atom() in
 %% the tuple; otherwise it'll be encoded as a string(). It's highly
@@ -2274,19 +2287,18 @@ handle_options([], Parser) ->
 %% despite each stanza contains 11 bytes.
 %%
 %% <br/><br/>
-%% The `root_depth' option specicifies at which level the parser stop
+%% The `root_depth' option specicifies at which level the parser stops
 %% to split each node and start to produce trees. For example, if the
 %% root depth is 0, the parser will return a unique tree for the whole
-%% document. If the root depth is 1, then `<stream>' will produce
-%% an element without any children and `<presence>' will produce a
-%% tree with all its children. With `no_root_depth' (or `{root_depth,
-%% none}'), no tree will be made, ie, each opening tag will produce an
-%% element without any children.
+%% document. If the root depth is 1, then `<stream>' will produce an
+%% element without any children and `<presence>' will produce a tree
+%% with all its children. With `{root_depth, none}', no tree will be
+%% made, ie, each opening tag will produce an element without any
+%% children.
 %%
 %% <br/><br/>
-%% The `endtag' and `no_endtag' select if the parser must
-%% produce {@link xmlendtag()} when it encouters an end tag
-%% above `root_depth'.
+%% The `endtag' option selects if the parser must produce {@link
+%% xmlendtag()} when it encouters an end tag above `root_depth'.
 
 %% @type xmlelement() = {xmlelement, Name, Attrs, Children}
 %%     Name = string()

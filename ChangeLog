@@ -1,3 +1,20 @@
+2008-06-18  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_xml.erl, testsuite/check_xml_parser.erl: Options
+	handling was revised a lot:
+	    o  Options are now real "proplists". It means that all options
+	       starting with "no_" doesn't exist anymore. They're almost all
+	       replaced by a tuple '{Key, false}'.
+	    o  Previous options are kept in the #xml_parser record.
+	    o  A new function reset_parser/2 allows one to change parser
+	       options and reset its parsing state.
+	This will be useful to get exmpp_xml:start/1 out of
+	exmpp_xmlstream:start/{1,2,3}. Also, options documentation was
+	updated.
+
+	* src/core/exmpp_xml.erl, c_src/exmpp_xml_expat.c: Rename the few
+	remaining occurences of "endelement" to "endtag".
+
 2008-06-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* testsuite/Makefile.am: Fix th ERL_FILES and BEAM_FILES: it was

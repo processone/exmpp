@@ -196,14 +196,14 @@ test_parser_with_unknown_option() ->
         exmpp_xml:start_parser([bad_option]),
         testsuite:fail()
     catch
-        throw:{xml_parser, options, invalid, bad_option} ->
+        throw:{xml_parser, options, invalid, _Option1} ->
             ok
     end,
     try
         exmpp_xml:parse_document("", [bad_option]),
         testsuite:fail()
     catch
-        throw:{xml_parser, options, invalid, bad_option} ->
+        throw:{xml_parser, options, invalid, _Option2} ->
             ok
     end,
     ok.
@@ -214,26 +214,26 @@ test_parser_without_option() ->
     ok.
 
 test_parser_with_no_namespace() ->
-    testsuite:is(exmpp_xml:parse_document(?SOURCE1, [no_namespace]),
+    testsuite:is(exmpp_xml:parse_document(?SOURCE1, [{namespace, false}]),
       ?TREE1_NO_NS),
     ok.
 
 test_parser_with_atom() ->
     testsuite:is(exmpp_xml:parse_document(?SOURCE1,
-        [name_as_atom, no_names_check, no_attrs_check]),
+        [name_as_atom, {names_check, false}, {attrs_check, false}]),
       ?TREE1_NO_NS_ATOM),
     ok.
 
 test_parser_with_namespace() ->
     testsuite:is(exmpp_xml:parse_document(?SOURCE1,
-        [namespace, no_ns_check]),
+        [namespace, {ns_check, false}]),
       ?TREE1_NS),
     ok.
 
 test_parser_with_namespace_and_atom() ->
     testsuite:is(exmpp_xml:parse_document(?SOURCE1,
         [namespace, name_as_atom,
-          no_ns_check, no_names_check, no_attrs_check]),
+          {ns_check, false}, {names_check, false}, {attrs_check, false}]),
       ?TREE1_NS_ATOM),
     ok.
 
@@ -285,7 +285,7 @@ test_parser_with_root_depth() ->
 
 test_parser_with_ns_root_depth() ->
     testsuite:is(exmpp_xml:parse_document(?SOURCE1,
-        [namespace, {root_depth, 1}, no_ns_check]),
+        [namespace, {root_depth, 1}, {ns_check, false}]),
       ?TREE1_NS_ROOT_DEPTH),
     ok.
 
@@ -297,7 +297,7 @@ test_parser_with_end_element() ->
 
 test_parser_with_ns_end_element() ->
     testsuite:is(exmpp_xml:parse_document(?SOURCE1,
-        [namespace, {root_depth, 1}, endtag, no_ns_check]),
+        [namespace, {root_depth, 1}, endtag, {ns_check, false}]),
       ?TREE1_NS_END_EL),
     ok.
 
