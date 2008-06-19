@@ -10,6 +10,8 @@
         exmpp_internals,
         exmpp_iq,
         exmpp_jid,
+        exmpp_message,
+        exmpp_presence,
         exmpp_stanzas,
         exmpp_stream,
         exmpp_stringprep,

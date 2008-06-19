@@ -10,6 +10,8 @@ BEAM_FILES = exmpp.app							\
 	     exmpp_internals.beam					\
 	     exmpp_iq.beam						\
 	     exmpp_jid.beam						\
+	     exmpp_message.beam						\
+	     exmpp_presence.beam					\
 	     exmpp_stanza.beam						\
 	     exmpp_stream.beam						\
 	     exmpp_stringprep.beam					\

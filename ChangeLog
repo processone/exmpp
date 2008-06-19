@@ -1,3 +1,11 @@
+2008-06-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* include/exmpp.hrl, src/core/exmpp_presence.erl,
+	src/core/exmpp_message.erl, src/Emakefile.in, src/Makefile.am,
+	ebin/Makefile.am, ebin/exmpp.app.in, doc/Makefile.am: Add
+	exmpp_presence and exmpp_message which provides helpers to handle
+	presence and message stanza respectively.
+
 2008-06-18  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Caution: XML parser options and exmpp_xmlstream API changed!

@@ -37,6 +37,8 @@ HTML_FILES = index.html							\
 	     exmpp_internals.html					\
 	     exmpp_iq.html						\
 	     exmpp_jid.html						\
+	     exmpp_message.html						\
+	     exmpp_presence.html					\
 	     exmpp_server_binding.html					\
 	     exmpp_server_compression.html				\
 	     exmpp_server_legacy_auth.html				\
