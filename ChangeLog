@@ -6,6 +6,10 @@
 	exmpp_presence and exmpp_message which provides helpers to handle
 	presence and message stanza respectively.
 
+	* src/core/exmpp_xml.erl (reset_parser/1): This function was calling
+	reset_parser2/2 directly instead of reset_parser/2. Therefore, options
+	were not merged and the parser was not actually reset.
+
 2008-06-18  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Caution: XML parser options and exmpp_xmlstream API changed!

@@ -230,7 +230,7 @@ start_parser(Options) ->
 %% @doc Reset the parser with the same previous options.
 
 reset_parser(Parser) ->
-    reset_parser2(Parser, []).
+    reset_parser(Parser, []).
 
 %% @spec (Parser, Options) -> New_Parser
 %%     Parser = xmlparser()
