@@ -20,6 +20,10 @@
 	* src/server/exmpp_server_legacy_auth.erl: When building the fields
 	list, include the username value if the peer provided one.
 
+	* src/core/exmpp_iq.erl: Add functions 'is_request', 'is_response',
+	'is_result' and 'is_error'. Add function 'get_payload' which returns
+	the request, the response or the error, depending on the IQ type.
+
 2008-06-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl, src/core/exmpp_presence.erl,

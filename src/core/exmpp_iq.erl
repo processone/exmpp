@@ -26,9 +26,19 @@
 % IQ standard attributes.
 -export([
   is_iq/1,
+  is_request/1,
+  is_response/1,
+  is_result/1,
+  is_error/1,
   get_type/1,
   get_request/1,
-  get_result/1
+  get_result/1,
+  get_payload/1
+]).
+
+% Ejabberd old #iq conversion.
+-export([
+  make_iq_record/1
 ]).
 
 % --------------------------------------------------------------------
@@ -161,6 +171,48 @@ get_type(IQ) ->
         _        -> undefined
     end.
 
+%% @spec (IQ) -> boolean()
+%%     IQ = exmpp_xml:xmlel()
+%% @doc Tell if the IQ is a request.
+
+is_request(IQ) ->
+    case get_type(IQ) of
+        'get' -> true;
+        'set' -> true;
+        _     -> false
+    end.
+
+%% @spec (IQ) -> boolean()
+%%     IQ = exmpp_xml:xmlel()
+%% @doc Tell if the IQ is a response.
+
+is_response(IQ) ->
+    case get_type(IQ) of
+        'result' -> true;
+        'error'  -> true;
+        _        -> false
+    end.
+
+%% @spec (IQ) -> boolean()
+%%     IQ = exmpp_xml:xmlel()
+%% @doc Tell if the IQ is a result (response of type `result').
+
+is_result(IQ) ->
+    case get_type(IQ) of
+        'result' -> true;
+        _        -> false
+    end.
+
+%% @spec (IQ) -> boolean()
+%%     IQ = exmpp_xml:xmlel()
+%% @doc Tell if the IQ is an error (response of type `error').
+
+is_error(IQ) ->
+    case get_type(IQ) of
+        'error' -> true;
+        _       -> false
+    end.
+
 %% @spec (IQ) -> Request | undefined
 %%     IQ = exmpp_xml:xmlel()
 %%     Request = exmpp_xml:xmlel()
@@ -174,7 +226,10 @@ get_request(IQ) ->
         undefined ->
             throw({iq, get_result, invalid_iq, IQ});
         Type when Type == 'get' orelse Type == 'set' ->
-            [Request | _] = IQ#xmlel.children,
+            % We take the first child element. Note that the RFC says
+            % that this child element MUST be the only one! This doesn't
+            % take into account text nodes.
+            [Request | _] = exmpp_xml:get_child_elements(IQ),
             Request;
         'result' ->
             throw({iq, get_request, unexpected_iq, IQ});
@@ -210,3 +265,42 @@ get_result(IQ) ->
         _ ->
             throw({iq, get_result, unexpected_iq, IQ})
     end.
+
+%% @spec (IQ) -> Payload
+%%     IQ = exmpp_xml:xmlel()
+%%     Payload = exmpp_xml:xmlel()
+%% @doc Extract the request, the result or the error from `IQ'.
+
+get_payload(IQ) ->
+    case exmpp_iq:get_type(IQ) of
+        'get'    -> exmpp_iq:get_request(IQ);
+        'set'    -> exmpp_iq:get_request(IQ);
+        'result' -> exmpp_iq:get_result(IQ);
+        'error'  -> exmpp_stanza:get_error(IQ);
+        _        -> throw({iq, get_payload, unexpected_iq, IQ})
+    end.
+
+% --------------------------------------------------------------------
+% Ejabberd old #iq conversion.
+% --------------------------------------------------------------------
+
+%% @spec (IQ) -> IQ_Record
+%%     IQ = exmpp_xml:xmlel()
+%%     IQ_Record = {iq, ID, Type, NS, Lang, Payload}
+%%     IQ = string()
+%%     Type = get | set | result | error
+%%     NS = string()
+%%     Lang = string()
+%%     Payload = exmpp_xml:xmlel()
+%% @doc Create the old #iq record from ejabberd.
+
+make_iq_record(IQ) ->
+    ID = exmpp_stanza:get_id(IQ),
+    Type = get_type(IQ),
+    Payload = get_payload(IQ),
+    NS = if
+        is_atom(Payload#xmlel.ns) -> atom_to_list(Payload#xmlel.ns);
+        true                      -> Payload#xmlel.ns
+    end,
+    Lang = exmpp_stanza:get_lang(IQ),
+    {iq, ID, Type, NS, Lang, Payload}.
