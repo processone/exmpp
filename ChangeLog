@@ -10,6 +10,9 @@
 	* src/server/exmpp_server_compression.erl: Add a function
 	'selected_method' to get the method chosen by the peer.
 
+	* src/server/exmpp_server_sasl.erl: The 'success' function was
+	missing.
+
 2008-06-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl, src/core/exmpp_presence.erl,

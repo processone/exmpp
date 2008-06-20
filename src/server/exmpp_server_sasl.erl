@@ -24,6 +24,7 @@
 % SASL exchange.
 -export([
   challenge/1,
+  success/0,
   failure/0,
   failure/1,
   next_step/1
@@ -98,6 +99,16 @@ challenge(Challenge) ->
       name = 'challenge'
     },
     exmpp_xml:set_cdata(El, exmpp_internals:encode_base64(Challenge)).
+
+%% @spec () -> Success_El
+%%     Success_El = exmpp_xml:xmlel()
+%% @doc Prepare a `<success/>' element.
+
+success() ->
+    #xmlel{
+      ns = ?NS_SASL,
+      name = 'success'
+    }.
 
 %% @spec () -> Failure
 %%     Failure = exmpp_xml:xmlel()
