@@ -21,6 +21,7 @@
 
 % Compression negotiation.
 -export([
+  selected_method/1,
   compressed/0,
   failure/1
 ]).
@@ -85,6 +86,21 @@ standard_conditions() ->
       {'unsupported-method'},
       {'setup-failed'}
     ].
+
+%% @spec (El) -> Method
+%%     El = exmpp_xml:xmlel()
+%%     Method = string()
+%% @doc Extract the method chosen by the initiating entity.
+
+selected_method(#xmlel{ns = ?NS_COMPRESS, name = 'compress'} = El) ->
+    case exmpp_xml:get_element_by_name(El, ?NS_COMPRESS, 'method') of
+        undefined ->
+            undefined;
+        Sub_El ->
+            exmpp_xml:get_cdata(Sub_El)
+    end;
+selected_method(El) ->
+    throw({stream_compression, selected_method, unexpected_element, El}).
 
 %% @spec () -> Compressed
 %%     Compressed = exmpp_xml:xmlel()

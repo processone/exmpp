@@ -1,3 +1,15 @@
+2008-06-20  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* include/exmpp.hrl, c_src/xmpp_ns.h.in, c_src/xmpp_names.h.in: Add
+	vCard namespace. I'm not really good at reading DTD so xmpp_*.h.in
+	lists may not be correct. For example, Psi uses attributes 'version'
+	and 'prodid' but as I understand the DTD, those should be elements.
+	For the record, I used the DTD included in XEP-0054. The bottom line
+	is: all this needs a review!
+
+	* src/server/exmpp_server_compression.erl: Add a function
+	'selected_method' to get the method chosen by the peer.
+
 2008-06-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl, src/core/exmpp_presence.erl,
