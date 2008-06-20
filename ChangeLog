@@ -17,6 +17,9 @@
 	documentation: this function always returns 'ok' or throws an
 	exception.
 
+	* src/server/exmpp_server_legacy_auth.erl: When building the fields
+	list, include the username value if the peer provided one.
+
 2008-06-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl, src/core/exmpp_presence.erl,

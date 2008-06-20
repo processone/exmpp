@@ -49,7 +49,14 @@ fields(Request_IQ) ->
 %% @doc Make an `<iq>' for advertising fields.
 
 fields(Request_IQ, Auth) when ?IS_IQ(Request_IQ) ->
-    Username_El = #xmlel{ns = ?NS_JABBER_AUTH, name = 'username'},
+    Request_Username_El = exmpp_xml:get_element_by_name(Request_IQ,
+      ?NS_JABBER_AUTH, 'username'),
+    Username_Children = case exmpp_xml:get_cdata(Request_Username_El) of
+        <<>>     -> [];
+        Username -> [#xmlcdata{cdata = Username}]
+    end,
+    Username_El = #xmlel{ns = ?NS_JABBER_AUTH, name = 'username',
+      children = Username_Children},
     Password_El = #xmlel{ns = ?NS_JABBER_AUTH, name = 'password'},
     Digest_El   = #xmlel{ns = ?NS_JABBER_AUTH, name = 'digest'},
     Resource_El = #xmlel{ns = ?NS_JABBER_AUTH, name = 'resource'},
