@@ -24,6 +24,9 @@
 	'is_result' and 'is_error'. Add function 'get_payload' which returns
 	the request, the response or the error, depending on the IQ type.
 
+	* src/core/exmpp_stream.erl: Typo. The documentation at the top of the
+	module is out-dated.
+
 2008-06-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl, src/core/exmpp_presence.erl,

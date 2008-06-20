@@ -76,7 +76,7 @@
 %% <p>
 %% After serialization, this produces this XML message:
 %% </p>
-%% <pre>&lt;/stream:stream"&gt;</pre>
+%% <pre>&lt;/stream:stream&gt;</pre>
 %% </td>
 %% <td></td>
 %% </tr>
@@ -90,7 +90,7 @@
 %% <p>
 %% After serialization, this produces this XML message:
 %% </p>
-%% <pre>&lt;/stream:stream"&gt;</pre>
+%% <pre>&lt;/stream:stream&gt;</pre>
 %% <p>
 %% The server may use the same function clause than the client but here,
 %% it gives the client closing to the function. This is to be sure to
