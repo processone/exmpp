@@ -124,6 +124,7 @@
 -define(NS_PUBSUB_ERRORS,   'http://jabber.org/protocol/pubsub#errors').
 -define(NS_PUBSUB_EVENT,    'http://jabber.org/protocol/pubsub#event').
 -define(NS_PUBSUB_OWNER,    'http://jabber.org/protocol/pubsub#owner').
+-define(NS_VCARD,           'vcard-temp').
 
 % --------------------------------------------------------------------
 % Presence types and status
