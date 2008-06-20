@@ -30,6 +30,8 @@
 	* src/core/exmpp_internals.erl (random_id): Add clauses to generate an
 	ID without a prefix.
 
+	* src/core/exmpp_xml.erl: Fix a bug with list concatenation. Style.
+
 2008-06-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl, src/core/exmpp_presence.erl,

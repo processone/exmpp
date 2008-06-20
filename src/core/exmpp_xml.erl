@@ -1061,9 +1061,9 @@ get_child_elements2([]) ->
 get_child_elements2(Children) ->
     lists:filter(fun is_element/1, Children).
 
-is_element(#xmlelement{})   -> true;
-is_element(#xmlel{}) -> true;
-is_element(_)               -> false.
+is_element(#xmlelement{}) -> true;
+is_element(#xmlel{})      -> true;
+is_element(_)             -> false.
 
 %% @spec (XML_Element, Child) -> New_XML_Element
 %%     XML_Element = xmlel() | xmlelement()
@@ -1852,7 +1852,7 @@ update_ns_from_xmlattributes2([{Name, Value} = Attr | Rest],
         _ ->
             % Irrelevant attribute.
             update_ns_from_xmlattributes2(Rest,
-              Default_NS, Prefixed_NS, Declared_NS, [Purged_Attrs | Attr])
+              Default_NS, Prefixed_NS, Declared_NS, [Attr | Purged_Attrs])
     end;
 update_ns_from_xmlattributes2([], Default_NS, Prefixed_NS,
   Declared_NS, Purged_Attrs) ->
