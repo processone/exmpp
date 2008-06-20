@@ -32,6 +32,9 @@
 
 	* src/core/exmpp_xml.erl: Fix a bug with list concatenation. Style.
 
+	* src/core/exmpp_stanza.erl: Change API: the get_* functions now
+	return 'undefined' when the corresponding attribute doesn't exist.
+
 2008-06-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl, src/core/exmpp_presence.erl,
