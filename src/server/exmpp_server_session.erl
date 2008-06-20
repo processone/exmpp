@@ -43,7 +43,7 @@ feature() ->
 % Session establishment.
 % --------------------------------------------------------------------
 
-%% @spec (IQ) -> bool()
+%% @spec (IQ) -> ok
 %%     IQ = exmpp_xml:xmlel()
 %% @throws {session, want_establishment, invalid_session, IQ}
 %% @doc Tell if the initiating entity wants to establish a session.

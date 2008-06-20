@@ -13,6 +13,10 @@
 	* src/server/exmpp_server_sasl.erl: The 'success' function was
 	missing.
 
+	* src/server/exmpp_server_session.erl (want_setablishment): Fix
+	documentation: this function always returns 'ok' or throws an
+	exception.
+
 2008-06-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl, src/core/exmpp_presence.erl,
