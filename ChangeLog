@@ -27,6 +27,9 @@
 	* src/core/exmpp_stream.erl: Typo. The documentation at the top of the
 	module is out-dated.
 
+	* src/core/exmpp_internals.erl (random_id): Add clauses to generate an
+	ID without a prefix.
+
 2008-06-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl, src/core/exmpp_presence.erl,

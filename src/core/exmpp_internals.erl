@@ -321,5 +321,9 @@ random_id() ->
 %%
 %% The ID is not guaranted to be unique.
 
+random_id(undefined) ->
+    integer_to_list(random:uniform(65536 * 65536));
+random_id("") ->
+    random_id(undefined);
 random_id(Prefix) ->
-    Prefix ++ "-" ++ integer_to_list(random:uniform(65536 * 65536)).
+    Prefix ++ "-" ++ random_id(undefined).
