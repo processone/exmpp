@@ -43,6 +43,13 @@
   is_jid/1
 ]).
 
+% Ejabberd short JID tuple conversion.
+-export([
+  from_ejabberd_jid/1,
+  to_ejabberd_jid/1,
+  to_ejabberd_short_jid/1
+]).
+
 -define(NODE_MAX_LENGTH,     1023).
 -define(DOMAIN_MAX_LENGTH,   1023).
 -define(RESOURCE_MAX_LENGTH, 1023).
@@ -346,6 +353,64 @@ is_jid(_) ->
     false.
 
 % --------------------------------------------------------------------
+% Ejabberd JID conversion.
+% --------------------------------------------------------------------
+
+%% @spec (JID) -> New_JID
+%%     JID = jid()
+%%     New_JID = jid()
+%% @doc Convert a JID from its ejabberd form to its exmpp form.
+%%
+%% Empty fields are set to `undefined', not the empty string.
+
+from_ejabberd_jid(#jid{node = Node, resource = Resource,
+  lnode = LNode, lresource = LResource} = JID) ->
+    {Node1, LNode1} = case Node of
+        "" -> {undefined, undefined};
+        _  -> {Node, LNode}
+    end,
+    {Resource1, LResource1} = case Resource of
+        "" -> {undefined, undefined};
+        _  -> {Resource, LResource}
+    end,
+    JID#jid{node = Node1, resource = Resource1,
+      lnode = LNode1, lresource = LResource1}.
+
+%% @spec (JID) -> New_JID
+%%     JID = jid()
+%%     New_JID = jid()
+%% @doc Convert a JID from its exmpp form to its ejabberd form.
+%%
+%% Empty fields are set to the empty string, not `undefined'.
+
+to_ejabberd_jid(#jid{node = Node, resource = Resource,
+  lnode = LNode, lresource = LResource} = JID) ->
+    {Node1, LNode1} = case Node of
+        undefined -> {"", ""};
+        _         -> {Node, LNode}
+    end,
+    {Resource1, LResource1} = case Resource of
+        undefined -> {"", ""};
+        _         -> {Resource, LResource}
+    end,
+    JID#jid{node = Node1, resource = Resource1,
+      lnode = LNode1, lresource = LResource1}.
+
+%% @spec (JID) -> Short_JID
+%%     JID = jid()
+%%     Short_JID = {LNode, LDomain, LResource}
+%%     LNode = string() | undefined
+%%     LDomain = string()
+%%     LResource = string() | undefined
+%% @doc Create the short JID tuple from ejabberd.
+%%
+%% Empty fields are set to the empty string, not `undefined'.
+
+to_ejabberd_short_jid(JID) ->
+    JID1 = to_ejabberd_jid(JID),
+    {JID1#jid.lnode, JID1#jid.ldomain, JID1#jid.lresource}.
+
+% --------------------------------------------------------------------
 % Helper functions
 % --------------------------------------------------------------------
 
@@ -364,7 +429,7 @@ generate_resource() ->
 % --------------------------------------------------------------------
 
 %% @type jid() = {jid, Node, Domain, Resource}
-%%     Node = string()
+%%     Node = string() | undefined
 %%     Domain = string()
-%%     Resource = string().
+%%     Resource = string() | undefined.
 %% Represents JID.
