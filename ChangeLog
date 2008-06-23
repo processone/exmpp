@@ -3,6 +3,9 @@
 	* src/core/exmpp_jid.erl: Add functions to convert to and from
 	ejabberd normal and short JID forms.
 
+	* src/core/exmpp_iq.erl: Add functions to convert to the ejabberd #iq
+	record.
+
 2008-06-20  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl, c_src/xmpp_ns.h.in, c_src/xmpp_names.h.in: Add

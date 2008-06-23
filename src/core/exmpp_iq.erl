@@ -38,7 +38,7 @@
 
 % Ejabberd old #iq conversion.
 -export([
-  make_iq_record/1
+  to_ejabberd_iq/1
 ]).
 
 % --------------------------------------------------------------------
@@ -294,7 +294,7 @@ get_payload(IQ) ->
 %%     Payload = exmpp_xml:xmlel()
 %% @doc Create the old #iq record from ejabberd.
 
-make_iq_record(IQ) ->
+to_ejabberd_iq(IQ) ->
     ID = exmpp_stanza:get_id(IQ),
     Type = get_type(IQ),
     Payload = get_payload(IQ),
