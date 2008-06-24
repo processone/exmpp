@@ -112,6 +112,7 @@
   opening_reply/4,
   opening_reply/5,
   opening_reply/2,
+  opening_reply/3,
   closing/0,
   closing/1
 ]).
@@ -268,6 +269,28 @@ opening_reply(#xmlel{attrs = Attrs} = Opening, ID) ->
     Attrs1 = exmpp_stanza:reply_from_attrs(Attrs),
     Attrs2 = set_id_in_attrs(Attrs1, ID),
     Opening#xmlel{attrs = Attrs2}.
+
+%% @spec (Opening, ID, Lang) -> Opening_Reply
+%%     Opening = exmpp_xml:xmlel()
+%%     ID = string() | undefined
+%%     Lang = string() | undefined
+%%     Opening_Reply = exmpp_xml:xmlel()
+%% @doc Make a `<stream>' opening reply tag for the given `Opening' tag.
+%%
+%% This element is supposed to be sent by the receiving entity in reply
+%% to the initiating entity (for the other way around, see {@link
+%% opening/1}).
+%%
+%% If `ID' is `undefined', one will be generated automatically.
+
+opening_reply(#xmlel{attrs = Attrs} = Opening, ID, Lang) ->
+    Attrs1 = exmpp_stanza:reply_from_attrs(Attrs),
+    Attrs2 = set_id_in_attrs(Attrs1, ID),
+    Attrs3 = case Lang of
+        undefined -> Attrs2;
+        _         -> set_lang_in_attrs(Attrs2, Lang)
+    end,
+    Opening#xmlel{attrs = Attrs3}.
 
 %% @spec () -> Closing
 %%     Closing = exmpp_xml:xmlendtag()
