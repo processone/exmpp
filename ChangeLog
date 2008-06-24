@@ -12,6 +12,12 @@
 	* src/core/exmpp_stanza.erl: The functions that set the sender and the
 	recipient now accept #jid as an argument.
 
+	* src/server/exmpp_server_privacy.erl,
+	src/client/exmpp_client_privacy.erl, src/Makefile.am,
+	src/Emakefile.in, ebin/Makefile.am, ebin/exmpp.app.in,
+	doc/Makefile.am: Add modules to read and create IQ for privacy list
+	management.
+
 2008-06-23  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_jid.erl: Add functions to convert to and from

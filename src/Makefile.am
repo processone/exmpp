@@ -22,6 +22,7 @@ EXTRA_DIST = core/exmpp.erl						\
 	     client/exmpp_client_compression.erl			\
 	     client/exmpp_client_legacy_auth.erl			\
 	     client/exmpp_client_presence.erl				\
+	     client/exmpp_client_privacy.erl				\
 	     client/exmpp_client_pubsub.erl				\
 	     client/exmpp_client_register.erl				\
 	     client/exmpp_client_roster.erl				\
@@ -31,6 +32,7 @@ EXTRA_DIST = core/exmpp.erl						\
 	     server/exmpp_server_binding.erl				\
 	     server/exmpp_server_compression.erl			\
 	     server/exmpp_server_legacy_auth.erl			\
+	     server/exmpp_server_privacy.erl				\
 	     server/exmpp_server_sasl.erl				\
 	     server/exmpp_server_session.erl				\
 	     server/exmpp_server_tls.erl				\

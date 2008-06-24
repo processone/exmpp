@@ -27,6 +27,7 @@ HTML_FILES = index.html							\
 	     exmpp_client_compression.html				\
 	     exmpp_client_legacy_auth.html				\
 	     exmpp_client_presence.html					\
+	     exmpp_client_privacy.html					\
 	     exmpp_client_pubsub.html					\
 	     exmpp_client_register.html					\
 	     exmpp_client_roster.html					\
@@ -42,6 +43,7 @@ HTML_FILES = index.html							\
 	     exmpp_server_binding.html					\
 	     exmpp_server_compression.html				\
 	     exmpp_server_legacy_auth.html				\
+	     exmpp_server_privacy.html					\
 	     exmpp_server_sasl.html					\
 	     exmpp_server_session.html					\
 	     exmpp_server_tls.html					\

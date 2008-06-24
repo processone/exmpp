@@ -23,6 +23,7 @@ BEAM_FILES = exmpp.app							\
 	     exmpp_client_compression.beam				\
 	     exmpp_client_legacy_auth.beam				\
 	     exmpp_client_presence.beam					\
+	     exmpp_client_privacy.beam					\
 	     exmpp_client_pubsub.beam					\
 	     exmpp_client_register.beam					\
 	     exmpp_client_roster.beam					\
@@ -32,6 +33,7 @@ BEAM_FILES = exmpp.app							\
 	     exmpp_server_binding.beam					\
 	     exmpp_server_compression.beam				\
 	     exmpp_server_legacy_auth.beam				\
+	     exmpp_server_privacy.beam					\
 	     exmpp_server_sasl.beam					\
 	     exmpp_server_session.beam					\
 	     exmpp_server_tls.beam					\
