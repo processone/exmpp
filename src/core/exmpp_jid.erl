@@ -46,8 +46,7 @@
 % Ejabberd short JID tuple conversion.
 -export([
   from_ejabberd_jid/1,
-  to_ejabberd_jid/1,
-  to_ejabberd_short_jid/1
+  to_ejabberd_jid/1
 ]).
 
 -define(NODE_MAX_LENGTH,     1023).
@@ -346,8 +345,10 @@ compare_domains(_Jid1, _Jid2) ->
 %% @spec (Jid) -> bool()
 %%     Jid = jid()
 %% @doc Tell if the argument is a JID.
+%%
+%% You should probably use the `IS_JID(Jid)' guard expression.
 
-is_jid(JID) when record(JID, jid) ->
+is_jid(JID) when ?IS_JID(JID) ->
     true;
 is_jid(_) ->
     false.
@@ -395,20 +396,6 @@ to_ejabberd_jid(#jid{node = Node, resource = Resource,
     end,
     JID#jid{node = Node1, resource = Resource1,
       lnode = LNode1, lresource = LResource1}.
-
-%% @spec (JID) -> Short_JID
-%%     JID = jid()
-%%     Short_JID = {LNode, LDomain, LResource}
-%%     LNode = string() | undefined
-%%     LDomain = string()
-%%     LResource = string() | undefined
-%% @doc Create the short JID tuple from ejabberd.
-%%
-%% Empty fields are set to the empty string, not `undefined'.
-
-to_ejabberd_short_jid(JID) ->
-    JID1 = to_ejabberd_jid(JID),
-    {JID1#jid.lnode, JID1#jid.ldomain, JID1#jid.lresource}.
 
 % --------------------------------------------------------------------
 % Helper functions
