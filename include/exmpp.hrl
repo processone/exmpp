@@ -88,6 +88,11 @@
   IQ#xmlel.name == 'iq', IQ#xmlel.ns == ?NS_JABBER_SERVER
 ).
 
+% Guard expression to test a JID.
+-define(IS_JID(Jid),
+  record(Jid, jid)
+).
+
 % --------------------------------------------------------------------
 % Records to represent XMPP/Jabber specific structures.
 % --------------------------------------------------------------------
