@@ -109,7 +109,7 @@ get_sender_from_attrs(Attrs) ->
 
 %% @spec (Stanza, Sender) -> New_Stanza
 %%     Stanza = exmpp_xml:xmlel()
-%%     Sender = string()
+%%     Sender = exmpp_jid:jid() | string()
 %%     New_Stanza = exmpp_xml:xmlel()
 %% @doc Set the sender.
 
@@ -119,10 +119,12 @@ set_sender(#xmlel{attrs = Attrs} = Stanza, Sender) ->
 
 %% @spec (Attrs, Sender) -> New_Attrs
 %%     Attrs = [exmpp_xml:xmlnsattribute()]
-%%     Sender = string()
+%%     Sender = exmpp_jid:jid() | string()
 %%     New_Attrs = [exmpp_xml:xmlnsattribute()]
 %% @doc Set the sender.
 
+set_sender_in_attrs(Attrs, Sender) when ?IS_JID(Sender) ->
+    set_sender_in_attrs(Attrs, exmpp_jid:jid_to_string(Sender));
 set_sender_in_attrs(Attrs, Sender) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'from', Sender).
 
@@ -153,7 +155,7 @@ get_recipient_from_attrs(Attrs) ->
 
 %% @spec (Stanza, Recipient) -> New_Stanza
 %%     Stanza = exmpp_xml:xmlel()
-%%     Recipient = string()
+%%     Recipient = exmpp_jid:jid() | string()
 %%     New_Stanza = exmpp_xml:xmlel()
 %% @doc Set the recipient.
 
@@ -163,10 +165,12 @@ set_recipient(#xmlel{attrs = Attrs} = Stanza, Recipient) ->
 
 %% @spec (Attrs, Recipient) -> New_Attrs
 %%     Attrs = [exmpp_xml:xmlnsattribute()]
-%%     Recipient = string()
+%%     Recipient = exmpp_jid:jid() | string()
 %%     New_Attrs = [exmpp_xml:xmlnattribute()]
 %% @doc Set the recipient.
 
+set_recipient_in_attrs(Attrs, Recipient) when ?IS_JID(Recipient) ->
+    set_recipient_in_attrs(Attrs, exmpp_jid:jid_to_string(Recipient));
 set_recipient_in_attrs(Attrs, Recipient) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'to', Recipient).
 

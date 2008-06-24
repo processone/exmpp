@@ -9,6 +9,9 @@
 
 	* include/exmpp.hrl: Add a macro to test JIDs in guard expressions.
 
+	* src/core/exmpp_stanza.erl: The functions that set the sender and the
+	recipient now accept #jid as an argument.
+
 2008-06-23  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_jid.erl: Add functions to convert to and from
