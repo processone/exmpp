@@ -36,11 +36,6 @@
   get_payload/1
 ]).
 
-% Ejabberd old #iq conversion.
--export([
-  to_ejabberd_iq/1
-]).
-
 % --------------------------------------------------------------------
 % IQ creation.
 % --------------------------------------------------------------------
@@ -279,28 +274,3 @@ get_payload(IQ) ->
         'error'  -> exmpp_stanza:get_error(IQ);
         _        -> throw({iq, get_payload, unexpected_iq, IQ})
     end.
-
-% --------------------------------------------------------------------
-% Ejabberd old #iq conversion.
-% --------------------------------------------------------------------
-
-%% @spec (IQ) -> IQ_Record
-%%     IQ = exmpp_xml:xmlel()
-%%     IQ_Record = {iq, ID, Type, NS, Lang, Payload}
-%%     IQ = string()
-%%     Type = get | set | result | error
-%%     NS = string()
-%%     Lang = string()
-%%     Payload = exmpp_xml:xmlel()
-%% @doc Create the old #iq record from ejabberd.
-
-to_ejabberd_iq(IQ) ->
-    ID = exmpp_stanza:get_id(IQ),
-    Type = get_type(IQ),
-    Payload = get_payload(IQ),
-    NS = if
-        is_atom(Payload#xmlel.ns) -> atom_to_list(Payload#xmlel.ns);
-        true                      -> Payload#xmlel.ns
-    end,
-    Lang = exmpp_stanza:get_lang(IQ),
-    {iq, ID, Type, NS, Lang, Payload}.

@@ -3,6 +3,10 @@
 	* src/core/exmpp_jid.erl: Remove the function to_ejabberd_short_jid/1.
 	This is really an internal format and it doesn't belong to exmpp.
 
+	* src/core/exmpp_iq.erl: Remove the function to_ejabberd_iq/1. As for
+	to_ejabberd_short_jid, this is an internal format and ejabberd's jlib
+	module is best suited for this purpose.
+
 2008-06-23  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_jid.erl: Add functions to convert to and from
