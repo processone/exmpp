@@ -121,7 +121,8 @@
 
 % Tools.
 -export([
-  digest/2
+  digest/2,
+  hex/1
 ]).
 
 % --------------------------------------------------------------------
@@ -357,18 +358,10 @@ digest(ID, Passwd) ->
     crypto:start(),
     binary_to_list(crypto:sha(Token)).
 
-% --------------------------------------------------------------------
-% Internal functions.
-% --------------------------------------------------------------------
-
-%% @spec () -> Auth_ID
-%%     Auth_ID = string()
-%% @doc Generate a random authentication iq ID.
-%%
-%% @see exmpp_internals:random_id/1.
-
-auth_id() ->
-    exmpp_internals:random_id("auth").
+%% @spec (Plain) -> Hex
+%%     Plain = string()
+%%     Hex = string()
+%% @doc Encode list to a hexadecimal string.
 
 hex(Plain) ->
     lists:flatten([hex2(I) || I <- Plain]).
@@ -385,3 +378,16 @@ int_to_hexchar(13) -> $d;
 int_to_hexchar(14) -> $e;
 int_to_hexchar(15) -> $f;
 int_to_hexchar(I)  -> $0 + I.
+
+% --------------------------------------------------------------------
+% Internal functions.
+% --------------------------------------------------------------------
+
+%% @spec () -> Auth_ID
+%%     Auth_ID = string()
+%% @doc Generate a random authentication iq ID.
+%%
+%% @see exmpp_internals:random_id/1.
+
+auth_id() ->
+    exmpp_internals:random_id("auth").
