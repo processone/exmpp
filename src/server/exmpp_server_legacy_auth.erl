@@ -25,7 +25,13 @@
 
 % Accessing informations.
 -export([
+  want_fields/1,
   get_credentials/1
+]).
+
+% Tools.
+-export([
+  unhex/1
 ]).
 
 % --------------------------------------------------------------------
@@ -101,6 +107,33 @@ failure(Password_IQ, Condition) when ?IS_IQ(Password_IQ) ->
 % Accessing informations.
 % --------------------------------------------------------------------
 
+%% @spec (Request_IQ) -> bool()
+%%     Request_IQ = exmpp_xml:xmlel()
+%% @doc Tell if the initiating entity asks for the authentication fields.
+
+want_fields(Request_IQ) when ?IS_IQ(Request_IQ) ->
+    case exmpp_iq:get_type(Request_IQ) of
+        'get' ->
+            case exmpp_iq:get_request(Request_IQ) of
+                #xmlel{ns = ?NS_JABBER_AUTH, name = 'query'} -> true;
+                _                                            -> false
+            end;
+        _ ->
+            false
+    end;
+want_fields(_Stanza) ->
+    false.
+
+%% @spec (Password_IQ) -> Credentials
+%%     Password_IQ = exmpp_xml:xmlel()
+%%     Credentials = {Username, Password, Resource}
+%%     Username = string()
+%%     Password = {plain, string()} | {digest, string()}
+%%     Resource = string()
+%% @doc Extract credentials from the `Password_IQ'.
+%%
+%% For digest, hexadecimal content is decoded.
+
 get_credentials(Password_IQ) when ?IS_IQ(Password_IQ) ->
     Request = exmpp_iq:get_request(Password_IQ),
     case Request of
@@ -143,8 +176,13 @@ get_credentials2([], Credentials) ->
     Credentials.
 
 % --------------------------------------------------------------------
-% Internal functions.
+% Tools.
 % --------------------------------------------------------------------
+
+%% @spec (Hex) -> Plain
+%%     Hex = string()
+%%     Plain = list()
+%% @doc Decode hexadecimal string.
 
 unhex("") ->
     [];
