@@ -1292,11 +1292,16 @@ normalize_cdata(#xmlelement{children = Children} = XML_Element) ->
 
 %% @spec (Children, CData) -> New_Children
 %%     Children = [xmlel() | xmlelement() | xmlcdata()] | undefined
-%%     CData = binary() | string()
+%%     CData = binary() | string() | atom() | integer()
 %%     New_Children = [xmlel() | xmlelement() | xmlcdata()]
 %% @doc Replace any character data by `CData' in the list.
 %%
 %% The new `CData' is placed at the end of the children list.
+
+set_cdata_in_list(Children, CData) when is_atom(CData) ->
+    set_cdata_in_list(Children, atom_to_list(CData));
+set_cdata_in_list(Children, CData) when is_integer(CData) ->
+    set_cdata_in_list(Children, integer_to_list(CData));
 
 set_cdata_in_list(undefined, CData) when is_list(CData) ->
     [#xmlcdata{cdata = list_to_binary(CData)}];
@@ -1311,7 +1316,7 @@ set_cdata_in_list(Children, CData) ->
 
 %% @spec (XML_Element, CData) -> New_XML_Element
 %%     XML_Element = xmlel() | xmlelement()
-%%     CData = binary() | string()
+%%     CData = binary() | string() | atom() | integer()
 %%     New_XML_Element = xmlel() | xmlelement()
 %% @doc Replace any character data by `CData'.
 %%
