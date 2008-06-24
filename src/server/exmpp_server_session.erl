@@ -43,25 +43,22 @@ feature() ->
 % Session establishment.
 % --------------------------------------------------------------------
 
-%% @spec (IQ) -> ok
+%% @spec (IQ) -> bool()
 %%     IQ = exmpp_xml:xmlel()
-%% @throws {session, want_establishment, invalid_session, IQ}
 %% @doc Tell if the initiating entity wants to establish a session.
 
 want_establishment(IQ) when ?IS_IQ(IQ) ->
     case exmpp_iq:get_type(IQ) of
         'set' ->
             case exmpp_iq:get_request(IQ) of
-                #xmlel{ns = ?NS_SESSION, name = 'session'} ->
-                    ok;
-                _ ->
-                    throw({session, want_establishment, invalid_session, IQ})
+                #xmlel{ns = ?NS_SESSION, name = 'session'} -> true;
+                _                                          -> false
             end;
         _ ->
-            throw({session, want_establishment, invalid_session, IQ})
+            false
     end;
-want_establishment(Stanza) ->
-    throw({session, want_establishment, invalid_session, Stanza}).
+want_establishment(_Stanza) ->
+    false.
 
 %% @spec (IQ) -> Result_IQ
 %%     IQ = exmpp_xml:xmlel()
