@@ -14,7 +14,8 @@
 % Presence creation.
 -export([
   available/0,
-  unavailable/0
+  unavailable/0,
+  probe/0
 ]).
 
 % Presence standard attributes.
@@ -55,6 +56,18 @@ unavailable() ->
       attrs = Attrs1
     }.
 
+%% @spec () -> Presence
+%%     Presence = exmpp_xml:xmlel()
+%% @doc Create a probe `<presence/>'.
+
+probe() ->
+    Attrs1 = exmpp_stanza:set_type_in_attrs([], "probe"),
+    #xmlel{
+      ns = ?NS_JABBER_CLIENT,
+      name = 'presence',
+      attrs = Attrs1
+    }.
+
 % --------------------------------------------------------------------
 % Presence standard attributes.
 % --------------------------------------------------------------------
@@ -66,7 +79,7 @@ unavailable() ->
 %% You should probably use the `IS_PRESENCE(Presence)' guard expression.
 
 is_presence(Presence) when ?IS_PRESENCE(Presence) -> true;
-is_presence(_El)                               -> false.
+is_presence(_El)                                  -> false.
 
 %% @spec (Presence) -> Type
 %%     Presence = exmpp_xml:xmlel()
