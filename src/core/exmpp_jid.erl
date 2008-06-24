@@ -72,6 +72,9 @@
 make_bare_jid(Node, Domain)
   when length(Domain) > ?DOMAIN_MAX_LENGTH ->
     throw({jid, make, domain_too_long, {Node, Domain, undefined}});
+make_bare_jid("", Domain) ->
+    % This clause is here because ejabberd uses empty string.
+    make_bare_jid(undefined, Domain);
 make_bare_jid(undefined, Domain) ->
     case exmpp_stringprep:nameprep(Domain) of
         error ->
@@ -146,6 +149,9 @@ jid_to_bare_jid(Jid) ->
 %% @doc Convert a bare JID to its full version.
 
 bare_jid_to_jid(Jid, undefined) ->
+    Jid;
+bare_jid_to_jid(Jid, "") ->
+    % This clause is here because ejabberd uses empty string.
     Jid;
 bare_jid_to_jid(Jid, Resource)
   when length(Resource) > ?RESOURCE_MAX_LENGTH ->
