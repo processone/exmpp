@@ -24,10 +24,14 @@
   get_sender_from_attrs/1,
   set_sender/2,
   set_sender_in_attrs/2,
+  remove_sender/1,
+  remove_sender_in_attrs/1,
   get_recipient/1,
   get_recipient_from_attrs/1,
   set_recipient/2,
   set_recipient_in_attrs/2,
+  remove_recipient/1,
+  remove_recipient_in_attrs/1,
   get_id/1,
   get_id_from_attrs/1,
   set_id/2,
@@ -128,6 +132,23 @@ set_sender_in_attrs(Attrs, Sender) when ?IS_JID(Sender) ->
 set_sender_in_attrs(Attrs, Sender) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'from', Sender).
 
+%% @spec (Stanza) -> New_Stanza
+%%     Stanza = exmpp_xml:xmlel()
+%%     New_Stanza = exmpp_xml:xmlel()
+%% @doc Remove the sender.
+
+remove_sender(#xmlel{attrs= Attrs} = Stanza) ->
+    New_Attrs = remove_sender_in_attrs(Attrs),
+    Stanza#xmlel{attrs = New_Attrs}.
+
+%% @spec (Attrs) -> New_Attrs
+%%     Attrs = [exmpp_xml:xmlnsattribute()]
+%%     New_Attrs = [exmpp_xml:xmlnattribute()]
+%% @doc Remove the sender.
+
+remove_sender_in_attrs(Attrs) ->
+    exmpp_xml:remove_attribute_from_list(Attrs, 'from').
+
 %% @spec (Stanza) -> Recipient | undefined
 %%     Stanza = exmpp_xml:xmlel()
 %%     Recipient = string()
@@ -173,6 +194,23 @@ set_recipient_in_attrs(Attrs, Recipient) when ?IS_JID(Recipient) ->
     set_recipient_in_attrs(Attrs, exmpp_jid:jid_to_string(Recipient));
 set_recipient_in_attrs(Attrs, Recipient) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'to', Recipient).
+
+%% @spec (Stanza) -> New_Stanza
+%%     Stanza = exmpp_xml:xmlel()
+%%     New_Stanza = exmpp_xml:xmlel()
+%% @doc Remove the recipient.
+
+remove_recipient(#xmlel{attrs= Attrs} = Stanza) ->
+    New_Attrs = remove_recipient_in_attrs(Attrs),
+    Stanza#xmlel{attrs = New_Attrs}.
+
+%% @spec (Attrs) -> New_Attrs
+%%     Attrs = [exmpp_xml:xmlnsattribute()]
+%%     New_Attrs = [exmpp_xml:xmlnattribute()]
+%% @doc Remove the recipient.
+
+remove_recipient_in_attrs(Attrs) ->
+    exmpp_xml:remove_attribute_from_list(Attrs, 'to').
 
 %% @spec (Stanza) -> ID | undefined
 %%     Stanza = exmpp_xml:xmlel()

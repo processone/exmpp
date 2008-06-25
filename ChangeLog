@@ -1,3 +1,8 @@
+2008-06-25  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_stanza.erl: Add functions to remove the sender and
+	the recipient.
+
 2008-06-24  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_jid.erl: Remove the function to_ejabberd_short_jid/1.
