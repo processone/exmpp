@@ -49,6 +49,7 @@
 % Common operations.
 -export([
   reply/1,
+  reply_without_content/1,
   reply_from_attrs/1,
   reply_with_error/2
 ]).
@@ -347,6 +348,17 @@ reply(#xmlel{attrs = Attrs} = Stanza) ->
     New_Attrs = reply_from_attrs(Attrs),
     Stanza#xmlel{attrs = New_Attrs}.
 
+%% @spec (Stanza) -> Stanza_Reply
+%%     Stanza = exmpp_xml:xmlel()
+%%     Stanza_Reply = exmpp_xml:xmlel()
+%% @doc Prepare a reply to `Stanza' with children removed.
+%%
+%% @see reply_from_attrs/1.
+
+reply_without_content(#xmlel{attrs = Attrs} = Stanza) ->
+    New_Attrs = reply_from_attrs(Attrs),
+    Stanza#xmlel{attrs = New_Attrs, children = []}.
+
 %% @spec (Attrs) -> New_Attrs
 %%     Attrs = [exmpp_xml:xmlnsattribute()]
 %%     New_Attrs = [exmpp_xml:xmlnsattribute()]
@@ -380,15 +392,15 @@ reply_from_attrs(Attrs) ->
             end
     end.
 
-%% @spec (Stanza, Condition) -> Stanza_Reply
+%% @spec (Stanza, Error) -> Stanza_Reply
 %%     Stanza = exmpp_xml:xmlel()
-%%     Condition = atop()
+%%     Error = exmpp_xml:xmlel()
 %%     Stanza_Reply = exmpp_xml:xmlel()
 %% @doc Prepare an error reply to `Stanza'.
 
-reply_with_error(Stanza, Condition) ->
+reply_with_error(Stanza, Error) ->
     Reply = reply(Stanza),
-    stanza_error(Reply, Condition).
+    stanza_error(Reply, Error).
 
 % --------------------------------------------------------------------
 % Stanza-level errors.
