@@ -11,6 +11,7 @@
 		'@srcdir@/core/exmpp_jid',
 		'@srcdir@/core/exmpp_stanza',
 		'@srcdir@/core/exmpp_stream',
+		'@srcdir@/core/exmpp_dialback',
 		'@srcdir@/core/exmpp_iq',
 		'@srcdir@/core/exmpp_message',
 		'@srcdir@/core/exmpp_presence',
