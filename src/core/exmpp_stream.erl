@@ -141,6 +141,7 @@
 
 % Features announcement.
 -export([
+  set_dialback_support/1,
   features/1
 ]).
 
@@ -159,7 +160,7 @@
 % --------------------------------------------------------------------
 
 %% @spec (To, Default_NS, Version) -> Opening
-%%     To = string()
+%%     To = string() | undefined
 %%     Default_NS = atom() | string()
 %%     Version = string() | {Major, Minor}
 %%     Major = integer()
@@ -173,7 +174,7 @@ opening(To, Default_NS, Version) ->
     opening(To, Default_NS, Version, undefined).
 
 %% @spec (To, Default_NS, Version, Lang) -> Opening
-%%     To = string()
+%%     To = string() | undefined
 %%     Default_NS = atom() | string()
 %%     Version = string() | {Major, Minor}
 %%     Major = integer()
@@ -204,7 +205,7 @@ opening(To, Default_NS, Version, Lang) ->
     }.
 
 %% @spec (From, Default_NS, Version, ID) -> Opening_Reply
-%%     From = string()
+%%     From = string() | undefined
 %%     Default_NS = atom() | string()
 %%     Version = string() | {Major, Minor}
 %%     Major = integer()
@@ -219,7 +220,7 @@ opening_reply(From, Default_NS, Version, ID) ->
     opening_reply(From, Default_NS, Version, ID, undefined).
 
 %% @spec (From, Default_NS, Version, ID, Lang) -> Opening_Reply
-%%     From = string()
+%%     From = string() | undefined
 %%     Default_NS = atom() | string()
 %%     Version = string() | {Major, Minor}
 %%     Major = integer()
@@ -335,6 +336,8 @@ set_receiving_entity(#xmlel{attrs = Attrs} = Opening, Hostname) ->
     New_Attrs = set_receiving_entity_in_attrs(Attrs, Hostname),
     Opening#xmlel{attrs = New_Attrs}.
 
+set_receiving_entity_in_attrs(Attrs, undefined) ->
+    Attrs;
 set_receiving_entity_in_attrs(Attrs, Hostname) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'to', Hostname).
 
@@ -356,6 +359,8 @@ set_initiating_entity(#xmlel{attrs = Attrs} = Opening, Hostname) ->
     New_Attrs = set_receiving_entity_in_attrs(Attrs, Hostname),
     Opening#xmlel{attrs = New_Attrs}.
 
+set_initiating_entity_in_attrs(Attrs, undefined) ->
+    Attrs;
 set_initiating_entity_in_attrs(Attrs, Hostname) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'from', Hostname).
 
@@ -501,6 +506,14 @@ serialize_version({Major, Minor}) ->
 % --------------------------------------------------------------------
 % Features announcement.
 % --------------------------------------------------------------------
+
+%% @spec (Opening) -> New_Opening
+%%     Opening = exmpp_xml:xmlel()
+%%     New_Opening = exmpp_xml:xmlel()
+%% @doc Declare server diablack support.
+
+set_dialback_support(Opening) ->
+    exmpp_xml:declare_ns_here(Opening, ?NS_JABBER_DIALBACK, "db").
 
 %% @spec (Features) -> Features_Announcement
 %%     Features = [exmpp_xml:xmlel()]

@@ -2,6 +2,12 @@
 
 	* include/exmpp.hrl: Add server dialback namespace.
 
+	* src/core/exmpp_stream.erl: Add a function set_dialback_support/1 to
+	add server dialback namespace to a stream opening.
+	(opening, opening_reply): Accept 'undefined' as the
+	receiving/initiating entity: no 'to' or 'from' will be added to the
+	opening.
+
 2008-06-25  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_stanza.erl: Add functions to remove the sender and
