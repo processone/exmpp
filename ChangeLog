@@ -2,6 +2,11 @@
 
 	* include/exmpp.hrl: Add server dialback namespace.
 
+	* src/core/exmpp_xml.erl: Add function declare_ns_here/3 to declare
+	additionnal namespaces in an element. Add function
+	is_ns_declared_here/2 to known if a specific namespace is declared an
+	element.
+
 	* src/core/exmpp_stream.erl: Add a function set_dialback_support/1 to
 	add server dialback namespace to a stream opening.
 	(opening, opening_reply): Accept 'undefined' as the

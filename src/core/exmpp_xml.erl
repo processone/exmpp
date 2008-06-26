@@ -45,6 +45,12 @@
   port_revision/1
 ]).
 
+% Namespace handling.
+-export([
+  is_ns_declared_here/2,
+  declare_ns_here/3
+]).
+
 % Attribute handling.
 -export([
   get_attribute_node_from_list/2,
@@ -466,6 +472,30 @@ port_revision(#xml_parser{port = Port} = _Parser) ->
     {ok, Result} = binary_to_term(port_control(Port,
         ?EXPAT_SVN_REVISION, <<>>)),
     Result.
+
+% --------------------------------------------------------------------
+% Functions to handle namespaces in XML elements and attributes.
+% --------------------------------------------------------------------
+
+%% @spec (XML_Element, NS) -> bool()
+%%     XML_Element = xmlel()
+%%     NS = atom() | string()
+%% @doc Tell if `NS' was declared within this element.
+
+is_ns_declared_here(#xmlel{declared_ns = Declared_NS}, NS) ->
+    lists:keymember(NS, 1, Declared_NS).
+
+%% @spec (XML_Element, NS, Prefix) -> New_XML_Element
+%%     XML_Element = xmlel()
+%%     NS = atom() | string()
+%%     Prefix = string()
+%%     New_XML_Element = xmlel()
+%% @doc Declare the given namespace in this element.
+
+declare_ns_here(#xmlel{declared_ns = Declared_NS} = XML_Element,
+  NS, Prefix) ->
+    New_Declared_NS = lists:keystore(NS, 1, Declared_NS, {NS, Prefix}),
+    XML_Element#xmlel{declared_ns = New_Declared_NS}.
 
 % --------------------------------------------------------------------
 % Functions to handle XML attributes (xmlnsattribute() & xmlattribute()).
