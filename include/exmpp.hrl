@@ -114,6 +114,7 @@
 -define(NS_XMPP,            'http://etherx.jabber.org/streams').
 -define(NS_JABBER_CLIENT,   'jabber:client').
 -define(NS_JABBER_SERVER,   'jabber:server').
+-define(NS_JABBER_DIALBACK, 'jabber:server:dialback').
 -define(NS_JABBER_AUTH,     'jabber:iq:auth').
 -define(NS_JABBER_PRIVACY,  'jabber:iq:privacy').
 -define(NS_JABBER_REGISTER, 'jabber:iq:register').
