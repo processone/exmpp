@@ -17,6 +17,10 @@
 	prepare a reply to a stanza without its original content. Fix
 	in the documentation.
 
+	* src/core/exmpp_dialback.erl, src/Makefile.am, src/Emakefile.in,
+	ebin/Makefile.am, ebin/exmpp.app.in, doc/Makefile.am: Add a module
+	exmpp_dialback to create server dialback stanzas.
+
 2008-06-25  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_stanza.erl: Add functions to remove the sender and
