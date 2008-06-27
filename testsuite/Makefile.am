@@ -64,7 +64,7 @@ TESTS_ENVIRONMENT = ERL="$(ERL)"					\
 
 TSCRIPT = $(srcdir)/test.sh
 
-$(BEAM_FILES): $(ERL_FILES)
+$(BEAM_FILES): $(top_srcdir)/include/exmpp.hrl $(ERL_FILES)
 	@$(ERL) -noshell -pa @top_builddir@/ebin			\
 		-eval "case make:all() of				\
 		         up_to_date -> halt(0);				\
