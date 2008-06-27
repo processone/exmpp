@@ -8,8 +8,8 @@
 	src/core/exmpp_stream.erl, src/core/exmpp_stanza.erl,
 	src/core/exmpp_xml.erl, src/client/exmpp_client_roster.erl,
 	src/client/exmpp_client_register.erl,
-	src/client/exmpp_client_legacy_auth.erl: Use new namespace macro
-	names.
+	src/client/exmpp_client_legacy_auth.erl,
+	testsuite/check_legacy_auth.erl: Use new namespace macro names.
 
 	* src/core/exmpp_stream.erl, src/core/exmpp_stanza.erl: Add functions
 	to_list to wrap around exmpp_xml:document_to_list/1 and

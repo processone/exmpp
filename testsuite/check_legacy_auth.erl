@@ -30,7 +30,7 @@ do_check() ->
       {xmlattr, undefined, undefined, 'id', "foobar"},
       {xmlattr, undefined, undefined, 'to', "dest"}
     ], [
-      {xmlel, ?NS_JABBER_AUTH, [], 'query',
+      {xmlel, ?NS_LEGACY_AUTH, [], 'query',
         [], []}
     ]}
 ).
@@ -40,11 +40,11 @@ do_check() ->
       {xmlattr, undefined, undefined, 'type', "result"},
       {xmlattr, undefined, undefined, 'id', "foobar"}
     ], [
-      {xmlel, ?NS_JABBER_AUTH, [], 'query',
+      {xmlel, ?NS_LEGACY_AUTH, [], 'query',
         [], [
-          {xmlel, ?NS_JABBER_AUTH, [], 'username', [], []},
-          {xmlel, ?NS_JABBER_AUTH, [], 'password', [], []},
-          {xmlel, ?NS_JABBER_AUTH, [], 'resource', [], []}
+          {xmlel, ?NS_LEGACY_AUTH, [], 'username', [], []},
+          {xmlel, ?NS_LEGACY_AUTH, [], 'password', [], []},
+          {xmlel, ?NS_LEGACY_AUTH, [], 'resource', [], []}
         ]}
     ]}
 ).
@@ -54,11 +54,11 @@ do_check() ->
       {xmlattr, undefined, undefined, 'type', "result"},
       {xmlattr, undefined, undefined, 'id', "foobar"}
     ], [
-      {xmlel, ?NS_JABBER_AUTH, [], 'query',
+      {xmlel, ?NS_LEGACY_AUTH, [], 'query',
         [], [
-          {xmlel, ?NS_JABBER_AUTH, [], 'username', [], []},
-          {xmlel, ?NS_JABBER_AUTH, [], 'digest', [], []},
-          {xmlel, ?NS_JABBER_AUTH, [], 'resource', [], []}
+          {xmlel, ?NS_LEGACY_AUTH, [], 'username', [], []},
+          {xmlel, ?NS_LEGACY_AUTH, [], 'digest', [], []},
+          {xmlel, ?NS_LEGACY_AUTH, [], 'resource', [], []}
         ]}
     ]}
 ).
@@ -68,12 +68,12 @@ do_check() ->
       {xmlattr, undefined, undefined, 'type', "result"},
       {xmlattr, undefined, undefined, 'id', "foobar"}
     ], [
-      {xmlel, ?NS_JABBER_AUTH, [], 'query',
+      {xmlel, ?NS_LEGACY_AUTH, [], 'query',
         [], [
-          {xmlel, ?NS_JABBER_AUTH, [], 'username', [], []},
-          {xmlel, ?NS_JABBER_AUTH, [], 'password', [], []},
-          {xmlel, ?NS_JABBER_AUTH, [], 'digest', [], []},
-          {xmlel, ?NS_JABBER_AUTH, [], 'resource', [], []}
+          {xmlel, ?NS_LEGACY_AUTH, [], 'username', [], []},
+          {xmlel, ?NS_LEGACY_AUTH, [], 'password', [], []},
+          {xmlel, ?NS_LEGACY_AUTH, [], 'digest', [], []},
+          {xmlel, ?NS_LEGACY_AUTH, [], 'resource', [], []}
         ]}
     ]}
 ).
@@ -83,13 +83,13 @@ do_check() ->
       {xmlattr, undefined, undefined, 'type', "set"},
       {xmlattr, undefined, undefined, 'id', "foobar"}
     ], [
-      {xmlel, ?NS_JABBER_AUTH, [], 'query',
+      {xmlel, ?NS_LEGACY_AUTH, [], 'query',
         [], [
-          {xmlel, ?NS_JABBER_AUTH, [],
+          {xmlel, ?NS_LEGACY_AUTH, [],
             'username', [], [{xmlcdata, <<"User">>}]},
-          {xmlel, ?NS_JABBER_AUTH, [],
+          {xmlel, ?NS_LEGACY_AUTH, [],
             'password', [], [{xmlcdata, <<"Password">>}]},
-          {xmlel, ?NS_JABBER_AUTH, [],
+          {xmlel, ?NS_LEGACY_AUTH, [],
             'resource', [], [{xmlcdata, <<"Resource">>}]}
         ]}
     ]}
@@ -100,13 +100,13 @@ do_check() ->
       {xmlattr, undefined, undefined, 'type', "set"},
       {xmlattr, undefined, undefined, 'id', "foobar"}
     ], [
-      {xmlel, ?NS_JABBER_AUTH, [], 'query', [], [
-          {xmlel, ?NS_JABBER_AUTH, [],
+      {xmlel, ?NS_LEGACY_AUTH, [], 'query', [], [
+          {xmlel, ?NS_LEGACY_AUTH, [],
             'username', [], [{xmlcdata, <<"User">>}]},
-          {xmlel, ?NS_JABBER_AUTH, [],
+          {xmlel, ?NS_LEGACY_AUTH, [],
             'digest', [],
             [{xmlcdata, <<"ab8bb63d7fb73e5b06b325ec1c147945cfac5a77">>}]},
-          {xmlel, ?NS_JABBER_AUTH, [],
+          {xmlel, ?NS_LEGACY_AUTH, [],
             'resource', [], [{xmlcdata, <<"Resource">>}]}
         ]}
     ]}
@@ -129,7 +129,7 @@ do_check() ->
           {xmlattr, undefined, undefined, 'type', "auth"},
           {xmlattr, undefined, undefined, 'code', "401"}
         ], [
-          {xmlel, ?NS_XMPP_STANZAS, [], 'not-authorized', [], []}
+          {xmlel, ?NS_STANZA_ERRORS, [], 'not-authorized', [], []}
         ]}
     ]}
 ).
@@ -144,7 +144,7 @@ do_check() ->
           {xmlattr, undefined, undefined, 'type', "cancel"},
           {xmlattr, undefined, undefined, 'code', "409"}
         ], [
-          {xmlel, ?NS_XMPP_STANZAS, [], 'conflict', [], []}
+          {xmlel, ?NS_STANZA_ERRORS, [], 'conflict', [], []}
         ]}
     ]}
 ).
@@ -159,7 +159,7 @@ do_check() ->
           {xmlattr, undefined, undefined, 'type', "modify"},
           {xmlattr, undefined, undefined, 'code', "406"}
         ], [
-          {xmlel, ?NS_XMPP_STANZAS, [], 'not-acceptable', [], []}
+          {xmlel, ?NS_STANZA_ERRORS, [], 'not-acceptable', [], []}
         ]}
     ]}
 ).
