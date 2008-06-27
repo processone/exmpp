@@ -147,7 +147,7 @@ request(To) ->
 
 request(To, ID) ->
     Query = #xmlel{
-      ns = ?NS_JABBER_AUTH,
+      ns = ?NS_LEGACY_AUTH,
       name = 'query'
     },
     IQ = exmpp_iq:get(?NS_JABBER_CLIENT, Query, ID),
@@ -173,10 +173,10 @@ request_with_user(To, Username) ->
 
 request_with_user(To, Username, ID) ->
     Username_El = exmpp_xml:set_cdata(
-      #xmlel{ns = ?NS_JABBER_AUTH, name = 'username'},
+      #xmlel{ns = ?NS_LEGACY_AUTH, name = 'username'},
       Username),
     Query = #xmlel{
-      ns = ?NS_JABBER_AUTH,
+      ns = ?NS_LEGACY_AUTH,
       name = 'query',
       children = [Username_El]
     },
@@ -237,16 +237,16 @@ password_plain(Username, Password, Resource) ->
 
 password_plain(Username, Password, Resource, ID) ->
     Username_El = exmpp_xml:set_cdata(
-      #xmlel{ns = ?NS_JABBER_AUTH, name = 'username'},
+      #xmlel{ns = ?NS_LEGACY_AUTH, name = 'username'},
       Username),
     Password_El = exmpp_xml:set_cdata(
-      #xmlel{ns = ?NS_JABBER_AUTH, name = 'password'},
+      #xmlel{ns = ?NS_LEGACY_AUTH, name = 'password'},
       Password),
     Resource_El = exmpp_xml:set_cdata(
-      #xmlel{ns = ?NS_JABBER_AUTH, name = 'resource'},
+      #xmlel{ns = ?NS_LEGACY_AUTH, name = 'resource'},
       Resource),
     Query = #xmlel{
-      ns = ?NS_JABBER_AUTH,
+      ns = ?NS_LEGACY_AUTH,
       name = 'query',
       children = [Username_El, Password_El, Resource_El]
     },
@@ -276,16 +276,16 @@ password_digest(Username, Password, Resource) ->
 
 password_digest(Username, Password, Resource, ID) ->
     Username_El = exmpp_xml:set_cdata(
-      #xmlel{ns = ?NS_JABBER_AUTH, name = 'username'},
+      #xmlel{ns = ?NS_LEGACY_AUTH, name = 'username'},
       Username),
     Digest_El = exmpp_xml:set_cdata(
-      #xmlel{ns = ?NS_JABBER_AUTH, name = 'digest'},
+      #xmlel{ns = ?NS_LEGACY_AUTH, name = 'digest'},
       hex(digest(ID, Password))),
     Resource_El = exmpp_xml:set_cdata(
-      #xmlel{ns = ?NS_JABBER_AUTH, name = 'resource'},
+      #xmlel{ns = ?NS_LEGACY_AUTH, name = 'resource'},
       Resource),
     Query = #xmlel{
-      ns = ?NS_JABBER_AUTH,
+      ns = ?NS_LEGACY_AUTH,
       name = 'query',
       children = [Username_El, Digest_El, Resource_El]
     },
@@ -306,14 +306,14 @@ get_fields(Fields_IQ) when ?IS_IQ(Fields_IQ) ->
     case exmpp_iq:get_result(Fields_IQ) of
         undefined ->
             throw({legacy_auth, get_fields, invalid_iq, Fields_IQ});
-        #xmlel{ns = ?NS_JABBER_AUTH, name = 'query', children = Children}
+        #xmlel{ns = ?NS_LEGACY_AUTH, name = 'query', children = Children}
           when length(Children) == 3 orelse length(Children) == 4 ->
             get_fields2(Children, []);
         _ ->
             throw({legacy_auth, get_fields, invalid_iq, Fields_IQ})
     end.
 
-get_fields2([#xmlel{ns = ?NS_JABBER_AUTH, name = Field} | Rest],
+get_fields2([#xmlel{ns = ?NS_LEGACY_AUTH, name = Field} | Rest],
   Fields) ->
     get_fields2(Rest, [Field | Fields]);
 get_fields2([Field | _Rest], _Fields) ->

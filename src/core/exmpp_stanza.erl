@@ -68,6 +68,12 @@
   get_text/1
 ]).
 
+% Serialization wrappers.
+-export([
+  to_list/2,
+  to_list/3
+]).
+
 % --------------------------------------------------------------------
 % Stanza common components.
 % --------------------------------------------------------------------
@@ -460,7 +466,7 @@ error(NS, Condition) ->
 
 error(NS, Condition, {Lang, Text}) ->
     Condition_El = #xmlel{
-      ns = ?NS_XMPP_STANZAS,
+      ns = ?NS_STANZA_ERRORS,
       name = Condition
     },
     Error_El0 = #xmlel{
@@ -473,7 +479,7 @@ error(NS, Condition, {Lang, Text}) ->
             Error_El0;
         _ ->
             Text_El0 = #xmlel{
-              ns = ?NS_XMPP_STANZAS,
+              ns = ?NS_STANZA_ERRORS,
               name = 'text'
             },
             Text_El = case Lang of
@@ -620,7 +626,7 @@ get_condition(Stanza) ->
 
 get_condition_in_error(#xmlel{ns = NS} = Error)
   when NS == ?NS_JABBER_CLIENT; NS == ?NS_JABBER_SERVER ->
-    case exmpp_xml:get_element_by_ns(Error, ?NS_XMPP_STANZAS) of
+    case exmpp_xml:get_element_by_ns(Error, ?NS_STANZA_ERRORS) of
         undefined ->
             % This <error/> element is invalid because the condition must be
             % present (and first).
@@ -654,7 +660,7 @@ get_text(Stanza) ->
 
 get_text_in_error(#xmlel{ns = NS} = Error)
   when NS == ?NS_JABBER_CLIENT; NS == ?NS_JABBER_SERVER ->
-    case exmpp_xml:get_element_by_name(Error, ?NS_XMPP_STANZAS, 'text') of
+    case exmpp_xml:get_element_by_name(Error, ?NS_STANZA_ERRORS, 'text') of
         undefined -> undefined;
         Text      -> exmpp_xml:get_cdata_as_list(Text)
     end;
@@ -663,3 +669,32 @@ get_text_in_error(Error) ->
         undefined -> undefined;
         Text      -> exmpp_xml:get_cdata_as_list(Text)
     end.
+
+% --------------------------------------------------------------------
+% Serialization wrappers.
+% --------------------------------------------------------------------
+
+%% @spec (El, Default_NS) -> XML_Text
+%%     El = exmpp_xml:xmlel()
+%%     Default_NS = NS
+%%     NS = atom() | string()
+%%     XML_Text = string()
+%% @doc Serialize a stanza using the given default namespace.
+%%
+%% The XMPP namespace `http://etherx.jabber.org/streams' is included as
+%% a prefixd namespace, with the `stream' prefix.
+
+to_list(El, Default_NS) ->
+    to_list(El, Default_NS, [{?NS_XMPP, ?NS_XMPP_pfx}]).
+
+%% @spec (El, Default_NS, Prefix) -> XML_Text
+%%     El = exmpp_xml:xmlel()
+%%     Default_NS = NS
+%%     Prefixed_NS = [{NS, Prefix}]
+%%     NS = atom() | string()
+%%     Prefix = string()
+%%     XML_Text = string()
+%% @doc Serialize a stanza using the given namespaces.
+
+to_list(El, Default_NS, Prefixed_NS) ->
+    exmpp_xml:document_fragment_to_list(El, [Default_NS], Prefixed_NS).

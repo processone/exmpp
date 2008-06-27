@@ -29,7 +29,7 @@ get_roster() ->
 %%     Roster_Iq = exmpp_xml:xmlel()
 %% @doc Make an `<iq>' to retrieve user roster.
 get_roster(Id) ->
-    Query = #xmlel{ns = ?NS_JABBER_ROSTER, name = 'query'},
+    Query = #xmlel{ns = ?NS_ROSTER, name = 'query'},
     Iq = exmpp_xml:set_attributes(
 	   #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
 	   [{'type', "get"}, {'id', Id}]),
@@ -58,7 +58,7 @@ set_item(Id, ContactJID, _Groups, Nick) ->
     Item = exmpp_xml:set_attributes(
 	     #xmlel{name = 'item'},
 	     [{'name', Nick}, {'jid', ContactJID}]),
-    Query = #xmlel{ns = ?NS_JABBER_ROSTER, name = 'query'},
+    Query = #xmlel{ns = ?NS_ROSTER, name = 'query'},
     Query2 = exmpp_xml:append_child(Query, Item),
     Iq = exmpp_xml:set_attributes(
 	   #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},

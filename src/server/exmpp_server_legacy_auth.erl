@@ -56,23 +56,23 @@ fields(Request_IQ) ->
 
 fields(Request_IQ, Auth) when ?IS_IQ(Request_IQ) ->
     Request_Username_El = exmpp_xml:get_element_by_name(Request_IQ,
-      ?NS_JABBER_AUTH, 'username'),
+      ?NS_LEGACY_AUTH, 'username'),
     Username_Children = case exmpp_xml:get_cdata(Request_Username_El) of
         <<>>     -> [];
         Username -> [#xmlcdata{cdata = Username}]
     end,
-    Username_El = #xmlel{ns = ?NS_JABBER_AUTH, name = 'username',
+    Username_El = #xmlel{ns = ?NS_LEGACY_AUTH, name = 'username',
       children = Username_Children},
-    Password_El = #xmlel{ns = ?NS_JABBER_AUTH, name = 'password'},
-    Digest_El   = #xmlel{ns = ?NS_JABBER_AUTH, name = 'digest'},
-    Resource_El = #xmlel{ns = ?NS_JABBER_AUTH, name = 'resource'},
+    Password_El = #xmlel{ns = ?NS_LEGACY_AUTH, name = 'password'},
+    Digest_El   = #xmlel{ns = ?NS_LEGACY_AUTH, name = 'digest'},
+    Resource_El = #xmlel{ns = ?NS_LEGACY_AUTH, name = 'resource'},
     Children = case Auth of
         plain  -> [Username_El, Password_El, Resource_El];
         digest -> [Username_El, Digest_El, Resource_El];
         both   -> [Username_El, Password_El, Digest_El, Resource_El]
     end,
     Query = #xmlel{
-      ns = ?NS_JABBER_AUTH,
+      ns = ?NS_LEGACY_AUTH,
       name = 'query',
       children = Children
     },
@@ -115,7 +115,7 @@ want_fields(Request_IQ) when ?IS_IQ(Request_IQ) ->
     case exmpp_iq:get_type(Request_IQ) of
         'get' ->
             case exmpp_iq:get_request(Request_IQ) of
-                #xmlel{ns = ?NS_JABBER_AUTH, name = 'query'} -> true;
+                #xmlel{ns = ?NS_LEGACY_AUTH, name = 'query'} -> true;
                 _                                            -> false
             end;
         _ ->
@@ -137,7 +137,7 @@ want_fields(_Stanza) ->
 get_credentials(Password_IQ) when ?IS_IQ(Password_IQ) ->
     Request = exmpp_iq:get_request(Password_IQ),
     case Request of
-        #xmlel{ns = ?NS_JABBER_AUTH, name = 'query', children = Children}
+        #xmlel{ns = ?NS_LEGACY_AUTH, name = 'query', children = Children}
           when length(Children) == 3 ->
             get_credentials2(Children, {undefined, undefined, undefined});
         _ ->
@@ -145,22 +145,22 @@ get_credentials(Password_IQ) when ?IS_IQ(Password_IQ) ->
     end.
 
 get_credentials2(
-  [#xmlel{ns = ?NS_JABBER_AUTH, name = 'username'} = Field | Rest],
+  [#xmlel{ns = ?NS_LEGACY_AUTH, name = 'username'} = Field | Rest],
   {_Username, Password, Resource}) ->
     Username = exmpp_xml:get_cdata_as_list(Field),
     get_credentials2(Rest, {Username, Password, Resource});
 get_credentials2(
-  [#xmlel{ns = ?NS_JABBER_AUTH, name = 'password'} = Field | Rest],
+  [#xmlel{ns = ?NS_LEGACY_AUTH, name = 'password'} = Field | Rest],
   {Username, _Password, Resource}) ->
     Password = exmpp_xml:get_cdata_as_list(Field),
     get_credentials2(Rest, {Username, {plain, Password}, Resource});
 get_credentials2(
-  [#xmlel{ns = ?NS_JABBER_AUTH, name = 'digest'} = Field | Rest],
+  [#xmlel{ns = ?NS_LEGACY_AUTH, name = 'digest'} = Field | Rest],
   {Username, _Password, Resource}) ->
     Password = unhex(exmpp_xml:get_cdata_as_list(Field)),
     get_credentials2(Rest, {Username, {digest, Password}, Resource});
 get_credentials2(
-  [#xmlel{ns = ?NS_JABBER_AUTH, name = 'resource'} = Field | Rest],
+  [#xmlel{ns = ?NS_LEGACY_AUTH, name = 'resource'} = Field | Rest],
   {Username, Password, _Resource}) ->
     Resource = exmpp_xml:get_cdata_as_list(Field),
     get_credentials2(Rest, {Username, Password, Resource});

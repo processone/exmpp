@@ -153,6 +153,11 @@
   get_text/1
 ]).
 
+% Serialization wrappers.
+-export([
+  to_list/1
+]).
+
 -define(STREAM_NS_PREFIX, "stream").
 
 % --------------------------------------------------------------------
@@ -513,7 +518,7 @@ serialize_version({Major, Minor}) ->
 %% @doc Declare server diablack support.
 
 set_dialback_support(Opening) ->
-    exmpp_xml:declare_ns_here(Opening, ?NS_JABBER_DIALBACK, "db").
+    exmpp_xml:declare_ns_here(Opening, ?NS_DIALBACK, ?NS_DIALBACK_pfx).
 
 %% @spec (Features) -> Features_Announcement
 %%     Features = [exmpp_xml:xmlel()]
@@ -575,7 +580,7 @@ error(Condition, {Lang, Text}) ->
         false -> throw({stream_error, condition, invalid, Condition})
     end,
     Condition_El = #xmlel{
-      ns = ?NS_XMPP_STREAMS,
+      ns = ?NS_STREAM_ERRORS,
       name = Condition
     },
     Error_El0 = #xmlel{
@@ -589,7 +594,7 @@ error(Condition, {Lang, Text}) ->
             Error_El0;
         _ ->
             Text_El0 = #xmlel{
-              ns = ?NS_XMPP_STREAMS,
+              ns = ?NS_STREAM_ERRORS,
               name = 'text'
             },
             Text_El = case Lang of
@@ -617,7 +622,7 @@ is_error(_) ->
 %% condition.
 
 get_condition(#xmlel{ns = ?NS_XMPP, name = 'error'} = El) ->
-    case exmpp_xml:get_element_by_ns(El, ?NS_XMPP_STREAMS) of
+    case exmpp_xml:get_element_by_ns(El, ?NS_STREAM_ERRORS) of
         undefined ->
             % This <stream:error/> element is invalid because the
             % condition must be present (and first).
@@ -635,7 +640,19 @@ get_condition(#xmlel{ns = ?NS_XMPP, name = 'error'} = El) ->
 %% @doc Return the text that describes the error.
 
 get_text(#xmlel{ns = ?NS_XMPP, name = 'error'} = El) ->
-    case exmpp_xml:get_element_by_name(El, ?NS_XMPP_STREAMS, 'text') of
+    case exmpp_xml:get_element_by_name(El, ?NS_STREAM_ERRORS, 'text') of
         undefined -> undefined;
         Text      -> exmpp_xml:get_cdata_as_list(Text)
     end.
+
+% --------------------------------------------------------------------
+% Serialization wrappers.
+% --------------------------------------------------------------------
+
+%% @spec (El) -> XML_Text
+%%     El = exmpp_xml:xmlel()
+%%     XML_Text = string()
+%% @doc Serialize a stream opening/closing.
+
+to_list(El) ->
+    exmpp_xml:document_to_list(El).

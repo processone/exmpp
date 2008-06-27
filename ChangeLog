@@ -1,3 +1,20 @@
+2008-06-27  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* include/exmpp.hrl: Add a IS_IM_STANZA guard expression. Clean up
+	namespaces list and add their prefix if any.
+
+	* src/server/exmpp_server_legacy_auth.erl,
+	src/server/exmpp_server_privacy.erl, src/core/exmpp_dialback.erl,
+	src/core/exmpp_stream.erl, src/core/exmpp_stanza.erl,
+	src/core/exmpp_xml.erl, src/client/exmpp_client_roster.erl,
+	src/client/exmpp_client_register.erl,
+	src/client/exmpp_client_legacy_auth.erl: Use new namespace macro
+	names.
+
+	* src/core/exmpp_stream.erl, src/core/exmpp_stanza.erl: Add functions
+	to_list to wrap around exmpp_xml:document_to_list/1 and
+	exmpp_xml:document_fragment_to_list/3.
+
 2008-06-26  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl: Add server dialback namespace.

@@ -159,7 +159,7 @@
 -endif.
 
 -define(IMPLICIT_PREFIXED_NS, [
-  {?NS_XML, "xml"}
+  {?NS_XML, ?NS_XML_pfx}
 ]).
 
 -record(xml_parser, {

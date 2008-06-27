@@ -67,8 +67,28 @@
 }).
 
 % --------------------------------------------------------------------
+% Records to represent XMPP/Jabber specific structures.
+% --------------------------------------------------------------------
+
+% JID.
+-record(jid, {
+  node,
+  domain,
+  resource,
+  lnode,
+  ldomain,
+  lresource
+}).
+
+% --------------------------------------------------------------------
 % Macros for common tests.
 % --------------------------------------------------------------------
+
+% Guard expression to test a stanza as defined by XMPP-IM.
+-define(IS_IM_STANZA(Stanza),
+  Stanza#xmlel.ns == ?NS_JABBER_CLIENT;
+  Stanza#xmlel.ns == ?NS_JABBER_SERVER
+).
 
 % Guard expression to test a message.
 -define(IS_MESSAGE(Message),
@@ -94,43 +114,48 @@
 ).
 
 % --------------------------------------------------------------------
-% Records to represent XMPP/Jabber specific structures.
+% Namespace and prefix macros.
 % --------------------------------------------------------------------
 
--record(jid, {
-  node,
-  domain,
-  resource,
-  lnode,
-  ldomain,
-  lresource
-}).
+% Defined by XML.
+-define(NS_XML,                 'http://www.w3.org/XML/1998/namespace').
+-define(NS_XML_pfx,             "xml").
 
-% --------------------------------------------------------------------
-% Namespaces used in exmpp_factory.
-% --------------------------------------------------------------------
+% Defined by XMPP Core (RFC 3920).
+-define(NS_XMPP,                'http://etherx.jabber.org/streams').
+-define(NS_XMPP_pfx,            "stream").
+-define(NS_STREAM_ERRORS,       'urn:ietf:params:xml:ns:xmpp-streams').
+-define(NS_TLS,                 'urn:ietf:params:xml:ns:xmpp-tls').
+-define(NS_SASL,                'urn:ietf:params:xml:ns:xmpp-sasl').
+-define(NS_BIND,                'urn:ietf:params:xml:ns:xmpp-bind').
+-define(NS_DIALBACK,            'jabber:server:dialback').
+-define(NS_DIALBACK_pfx,        "db").
+-define(NS_STANZA_ERRORS,       'urn:ietf:params:xml:ns:xmpp-stanzas').
 
--define(NS_XML,             'http://www.w3.org/XML/1998/namespace').
--define(NS_XMPP,            'http://etherx.jabber.org/streams').
--define(NS_JABBER_CLIENT,   'jabber:client').
--define(NS_JABBER_SERVER,   'jabber:server').
--define(NS_JABBER_DIALBACK, 'jabber:server:dialback').
--define(NS_JABBER_AUTH,     'jabber:iq:auth').
--define(NS_JABBER_PRIVACY,  'jabber:iq:privacy').
--define(NS_JABBER_REGISTER, 'jabber:iq:register').
--define(NS_JABBER_ROSTER,   'jabber:iq:roster').
--define(NS_BIND,            'urn:ietf:params:xml:ns:xmpp-bind').
--define(NS_SESSION,         'urn:ietf:params:xml:ns:xmpp-session').
--define(NS_XMPP_STREAMS,    'urn:ietf:params:xml:ns:xmpp-streams').
--define(NS_XMPP_STANZAS,    'urn:ietf:params:xml:ns:xmpp-stanzas').
--define(NS_TLS,             'urn:ietf:params:xml:ns:xmpp-tls').
--define(NS_SASL,            'urn:ietf:params:xml:ns:xmpp-sasl').
--define(NS_COMPRESS,        'http://jabber.org/features/compress').
--define(NS_PUBSUB,          'http://jabber.org/protocol/pubsub').
--define(NS_PUBSUB_ERRORS,   'http://jabber.org/protocol/pubsub#errors').
--define(NS_PUBSUB_EVENT,    'http://jabber.org/protocol/pubsub#event').
--define(NS_PUBSUB_OWNER,    'http://jabber.org/protocol/pubsub#owner').
--define(NS_VCARD,           'vcard-temp').
+% Defined by XMPP-IM (RFC 3921).
+-define(NS_JABBER_CLIENT,       'jabber:client').
+-define(NS_JABBER_SERVER,       'jabber:server').
+-define(NS_SESSION,             'urn:ietf:params:xml:ns:xmpp-session').
+-define(NS_PRIVACY,             'jabber:iq:privacy').
+-define(NS_ROSTER,              'jabber:iq:roster').
+
+% Defined by XEP-0054: vcard-temp.
+-define(NS_VCARD,               'vcard-temp').
+
+% Defined by XEP-0060: Publish-Subscribe.
+-define(NS_PUBSUB,              'http://jabber.org/protocol/pubsub').
+-define(NS_PUBSUB_ERRORS,       'http://jabber.org/protocol/pubsub#errors').
+-define(NS_PUBSUB_EVENT,        'http://jabber.org/protocol/pubsub#event').
+-define(NS_PUBSUB_OWNER,        'http://jabber.org/protocol/pubsub#owner').
+
+% Defined by XEP-0077: In-Band Registration.
+-define(NS_INBAND_REGISTER,     'jabber:iq:register').
+
+% Defined by XEP-0078: Non-SASL Authentication.
+-define(NS_LEGACY_AUTH,         'jabber:iq:auth').
+
+% Defined by XEP-0138: Stream Compression.
+-define(NS_COMPRESS,            'http://jabber.org/features/compress').
 
 % --------------------------------------------------------------------
 % Presence types and status

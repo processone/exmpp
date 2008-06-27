@@ -40,7 +40,7 @@ get_registration_fields() ->
 
 get_registration_fields(Id) ->
     %% Make empty query
-    Query = #xmlel{ns = ?NS_JABBER_REGISTER, name = 'query'},
+    Query = #xmlel{ns = ?NS_INBAND_REGISTER, name = 'query'},
     Iq = exmpp_xml:set_attributes(
 	   #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
 	   [{'type', "get"}, {'id', Id}]),
@@ -66,7 +66,7 @@ register_account(Fields) ->
 %% @doc Make an `<iq>' that prepare a registration packet for the user.
 register_account(Id, Fields) ->
     %% Make query tag
-    Query =  #xmlel{ns = ?NS_JABBER_REGISTER, name = 'query'},
+    Query =  #xmlel{ns = ?NS_INBAND_REGISTER, name = 'query'},
     %% Add fields to the query tag
     PreparedQuery = append_fields(Query, Fields),
     %% Put the prepared query in IQ
@@ -89,8 +89,8 @@ remove_account() ->
 %% user is supposed to be already logged in.
 remove_account(Id) ->
     %% Make query tag
-    Query  = #xmlel{ns = ?NS_JABBER_REGISTER, name = 'query'},
-    Remove = #xmlel{ns = ?NS_JABBER_REGISTER, name = 'remove'},
+    Query  = #xmlel{ns = ?NS_INBAND_REGISTER, name = 'query'},
+    Remove = #xmlel{ns = ?NS_INBAND_REGISTER, name = 'remove'},
     PreparedQuery = exmpp_xml:append_child(Query, Remove),
     %% Put the prepared query in IQ
     Iq = exmpp_xml:set_attributes(
@@ -107,7 +107,7 @@ append_fields(Query, [{Field, Value}|Fields])
   when atom(Field),
        list(Value) -> 
     FieldElement = exmpp_xml:set_cdata(
-		     #xmlel{ns = ?NS_JABBER_REGISTER, name = Field},
+		     #xmlel{ns = ?NS_INBAND_REGISTER, name = Field},
 		     Value),
     UpdatedQuery = exmpp_xml:append_child(Query, FieldElement),
     append_fields(UpdatedQuery, Fields).

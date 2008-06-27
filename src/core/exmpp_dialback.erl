@@ -36,8 +36,8 @@ key(From, To, Key) ->
     Attrs1 = exmpp_stanza:set_sender_in_attrs([], From),
     Attrs2 = exmpp_stanza:set_recipient_in_attrs(Attrs1, To),
     Result = #xmlel{
-      ns = ?NS_JABBER_DIALBACK,
-      declared_ns = [{?NS_JABBER_DIALBACK, "db"}],
+      ns = ?NS_DIALBACK,
+      declared_ns = [{?NS_DIALBACK, ?NS_DIALBACK_pfx}],
       name = 'result',
       attrs = Attrs2
     },
@@ -57,8 +57,8 @@ verify_request(From, To, ID, Key) ->
     Attrs2 = exmpp_stanza:set_recipient_in_attrs(Attrs1, To),
     Attrs3 = exmpp_stanza:set_id_in_attrs(Attrs2, ID),
     Request = #xmlel{
-      ns = ?NS_JABBER_DIALBACK,
-      declared_ns = [{?NS_JABBER_DIALBACK, "db"}],
+      ns = ?NS_DIALBACK,
+      declared_ns = [{?NS_DIALBACK, ?NS_DIALBACK_pfx}],
       name = 'verify',
       attrs = Attrs3
     },
@@ -100,8 +100,8 @@ validate(From, To) ->
     Attrs2 = exmpp_stanza:set_recipient_in_attrs(Attrs1, To),
     Attrs3 = exmpp_stanza:set_type_in_attrs(Attrs2, "valid"),
     #xmlel{
-      ns = ?NS_JABBER_DIALBACK,
-      declared_ns = [{?NS_JABBER_DIALBACK, "db"}],
+      ns = ?NS_DIALBACK,
+      declared_ns = [{?NS_DIALBACK, ?NS_DIALBACK_pfx}],
       name = 'result',
       attrs = Attrs3
     }.
