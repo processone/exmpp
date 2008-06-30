@@ -4,8 +4,8 @@
 
 @doc
 <p>
-This library is composed of <strong>modules providing</strong>
-utilities to ease the <strong>development</strong> of an <strong>XMPP
+This library is composed of modules providing <strong>utilities to
+ease</strong> the <strong>development</strong> of an <strong>XMPP
 entity</strong> (a client or a server for instance).
 </p>
 
@@ -13,8 +13,8 @@ entity</strong> (a client or a server for instance).
 <p>
 The code was derivated from
 <a href="http://www.process-one.net/en/ejabberd/">ejabberd</a> 1.1.1. The
-reason was that several new projects (such as Jabberlang) were based on
-ejabberd directly, resulting in a lot of code duplication.
+reason was that several new projects were based on ejabberd directly,
+resulting in a lot of code duplication.
 </p>
 <p>
 The need for an independant library was clear. <strong>exmpp</strong>
@@ -31,4 +31,22 @@ To be clear, modules found in this toolkit will only provide functions
 to build and interpret XML stanzas. They won't take care of neither the
 communication with a remote entity, nor the logical stanzas flow.
 </p>
+
+<h2>TODO</h2>
+<h3>Possible bugs</h3>
+<ul>
+  <li>Fix `maxsize' handling in the parser.</li>
+  <li>Fix character data handling above `root_depth'.</li>
+</ul>
+<h3>Improvements</h3>
+<ul>
+  <li>Use escript(1) for the testsuite.</li>
+</ul>
+<h3>New features</h3>
+<ul>
+  <li>Add exmpp_xml:has_element/{2,3} (see {@link
+  exmpp_xml:has_attribute/2})</li>
+  <li>Add equivalents to lists:filter/2 and lists:foldl/3 to {@link
+  exmpp_xml}</li>
+</ul>
 <!-- vim:set ft=xhtml: -->

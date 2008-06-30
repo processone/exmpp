@@ -20,6 +20,8 @@
 
 	* TODO: Refreshed (but not exhaustive).
 
+	* doc/overview.edoc: Add TODO to the overview.
+
 2008-06-27  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl: Add a IS_IM_STANZA guard expression. Clean up
