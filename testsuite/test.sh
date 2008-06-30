@@ -156,7 +156,7 @@ flags="$flags -top_builddir ${TOP_BUILDDIR:-.}"
 
 IFS=" 	" # To avoid newline strip
 
-ret=`$ERL -pa ${TOP_BUILDDIR}/ebin -noshell -eval "${script}:check(), init:stop()." $flags`
+ret=`$ERL +B -pa ${TOP_BUILDDIR}/ebin -noshell -eval "${script}:check(), halt()." $flags 2> /dev/null`
 linecount=`echo "$ret" | wc -l`
 if test $linecount -gt 1; then
 	output=`echo "$ret" | head -n $((linecount - 1))`
@@ -186,6 +186,15 @@ case $exit_code in
 		;;
 	SKIP)
 		exit 77
+		;;
+	FAIL)
+		if test "$output"; then
+			echo
+			echo $output
+			echo
+		fi
+
+		exit 1
 		;;
 	*)
 		echo $ret

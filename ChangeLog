@@ -1,3 +1,10 @@
+2008-06-30  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* testsuite/test.sh: erl(1) is called with the +B flags so that ^C
+	interrupts the process immediately. To terminate the Erlang process,
+	we use halt() instead of init:stop(); this is a lot faster and
+	acceptable for a testsuite. Add a new 'FAIL' case for $exit_code.
+
 2008-06-27  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl: Add a IS_IM_STANZA guard expression. Clean up
