@@ -8,8 +8,7 @@
 -export([check/0, do_check/0]).
 
 check() ->
-    do_check(),
-    testsuite:pass().
+    testsuite:run(fun do_check/0).
 
 do_check() ->
     test_get_element_by_name2(),

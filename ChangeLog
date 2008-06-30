@@ -5,6 +5,19 @@
 	we use halt() instead of init:stop(); this is a lot faster and
 	acceptable for a testsuite. Add a new 'FAIL' case for $exit_code.
 
+	* testsuite/testsuite.erl: Test modules now use the new
+	testsuite:run/1 function. It handles more cleanly the failed tests by
+	pretty printing a stack trace and the exception.
+
+	* testsuite/check_xml_attribute_handlers.erl,
+	testsuite/check_coverity.erl, testsuite/check_jid.erl,
+	testsuite/check_xml_converters.erl, testsuite/check_xmlstream.erl,
+	testsuite/check_xml_path.erl, testsuite/check_xml_parser.erl,
+	testsuite/check_xml_cdata_handlers.erl,
+	testsuite/check_legacy_auth.erl,
+	testsuite/check_xml_element_handlers.erl, testsuite/check_stream.erl:
+	Use the new testsuite:run/1 function.
+
 2008-06-27  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl: Add a IS_IM_STANZA guard expression. Clean up

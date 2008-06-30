@@ -6,8 +6,7 @@
 -export([check/0, do_check/0]).
 
 check() ->
-    do_check(),
-    testsuite:pass().
+    testsuite:run(fun do_check/0).
 
 do_check() ->
     {ok, [[Top_Srcdir]]} = init:get_argument(top_srcdir),
@@ -20,10 +19,15 @@ do_check() ->
         {i, filename:join(Top_Srcdir, "include")}]),
     cover:compile_directory(filename:join([Top_Srcdir, "src", "client"]), [
         {i, filename:join(Top_Srcdir, "include")}]),
-    run_tests(Tests),
-    print_coverage(Covered_Modules),
-    cover:stop(),
-    ok.
+    try
+        run_tests(Tests),
+        print_coverage(Covered_Modules),
+        cover:stop(),
+        ok
+    catch
+        throw:_Exception ->
+            testsuite:skip()
+    end.
 
 run_tests([Test | Rest]) ->
     Mod = list_to_atom(Test),
