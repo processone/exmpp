@@ -1,13 +1,20 @@
-Évolutions possibles
-¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+Possible bugs
+-------------
 
-o  Utiliser des records pour les structures de données et les
-   évènements. Voir include/exmpp.hrl pour une proposition.
+o  Fix maxsize handling in the parser.
+o  Fix character data handling above 'root_depth'.
 
-o  Corriger le contrôle fait au niveau de `maxsize'.
 
-o  Corriger la gestion des CDATA qui sont au dessus de `root_depth'.
 
-o  Améliorer la compatibilité avec les modules d'origine.
+Improvements
+------------
 
-o  Modifier l'API pour la rendre plus cohérente.
+o  Use escript(1) for the testsuite.
+
+
+
+New features
+------------
+
+o  Add exmpp_xml:has_element/{2,3} (see exmpp_xml:has_attribute/{2,3})
+o  Add equivalents to lists:filter/2 and lists:foldl/3 to exmpp_xml

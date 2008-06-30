@@ -18,6 +18,8 @@
 	testsuite/check_xml_element_handlers.erl, testsuite/check_stream.erl:
 	Use the new testsuite:run/1 function.
 
+	* TODO: Refreshed (but not exhaustive).
+
 2008-06-27  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl: Add a IS_IM_STANZA guard expression. Clean up
