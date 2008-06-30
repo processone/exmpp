@@ -697,4 +697,4 @@ to_list(El, Default_NS) ->
 %% @doc Serialize a stanza using the given namespaces.
 
 to_list(El, Default_NS, Prefixed_NS) ->
-    exmpp_xml:document_fragment_to_list(El, [Default_NS], Prefixed_NS).
+    exmpp_xml:node_to_list(El, [Default_NS], Prefixed_NS).

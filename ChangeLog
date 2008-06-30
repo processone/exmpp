@@ -27,6 +27,12 @@
 
 	* TODO, doc/overview.edoc: Update TODO.
 
+	* src/core/exmpp_xml.erl: Rename document_fragment_to_list/3 to
+	node_to_list/3 because the first argument is either an XML element or
+	an XML text node.
+
+	* src/core/exmpp_stanza.erl: Use the new node_to_list/3.
+
 2008-06-27  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl: Add a IS_IM_STANZA guard expression. Clean up

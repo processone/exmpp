@@ -117,7 +117,7 @@
   xmlelement_to_xmlel/1,
   xmlelement_to_xmlel/3,
   xmlelement_to_xmlel_and_ns_tables/3,
-  document_fragment_to_list/3,
+  node_to_list/3,
   document_to_list/1,
   clear_endtag_tuples/1,
   escape_using_entities/1,
@@ -2010,20 +2010,20 @@ search_prefix_in_prefixed_ns(Prefix, Prefixed_NS) ->
     end.
 
 %% @spec (XML_Element, Default_NS, Prefixed_NS) -> XML_Text
-%%     XML_Element = xmlel() | xmlelement()
+%%     XML_Element = xmlel() | xmlelement() | xmlendtag() | xmlcdata()
 %%     Default_NS = [NS]
 %%     Prefixed_NS = [{NS, Prefix}]
 %%     NS = atom()
 %%     Prefix = string()
 %%     XML_Text = string()
-%% @doc Serialize an XML document fragment to text.
+%% @doc Serialize an XML node to text.
 %%
 %% `Default_NS' and `Prefixed_NS' contain namespace declaration which
-%% occured above this fragment in the tree. The order in the fist list
-%% is important : declarations are sorted from the most recent one to
-%% the oldest one.
+%% occured above this node in the tree. The order in the first list is
+%% important: declarations are sorted from the most recent one to the
+%% oldest one.
 
-document_fragment_to_list(El, Default_NS, Prefixed_NS) ->
+node_to_list(El, Default_NS, Prefixed_NS) ->
     case El of
         #xmlel{} ->
             document_to_list(
@@ -2042,13 +2042,12 @@ document_fragment_to_list(El, Default_NS, Prefixed_NS) ->
                 [] ->
                     [$<, Name_S, attrs_to_list(Attrs), $/, $>];
                 _ ->
-                    % NS stacks are passed to
-                    % document_fragment_to_list/3
+                    % NS stacks are passed to node_to_list/3
                     % again, but this isn't relevant
                     % without namespace support.
                     Norm = normalize_cdata_in_list(Els),
                     [$<, Name_S, attrs_to_list(Attrs), $>,
-                      [document_fragment_to_list(E, Default_NS, Prefixed_NS) ||
+                      [node_to_list(E, Default_NS, Prefixed_NS) ||
                         E <- Norm],
                       $<, $/, Name_S, $>]
             end;
@@ -2084,7 +2083,7 @@ attr_to_list({Name, Value}) ->
 %% @doc Serialize an XML document to text.
 
 document_to_list(El) ->
-    document_fragment_to_list(El, [], []).
+    node_to_list(El, [], []).
 
 %% @spec (XML_Elements) -> Cleaned_XML_Elements
 %%     XML_Elements = [xmlel() | xmlelement() | xmlcdata() |
