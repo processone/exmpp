@@ -33,6 +33,10 @@
 
 	* src/core/exmpp_stanza.erl: Use the new node_to_list/3.
 
+	* src/core/exmpp_jid.erl: Add a function make_bare_jid/1 to make a JID
+	with just a domain. Remove the Ejabberd compat functions; they are
+	moved to Ejabberd itself.
+
 2008-06-27  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl: Add a IS_IM_STANZA guard expression. Clean up

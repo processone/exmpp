@@ -14,6 +14,7 @@
 % Conversion.
 -export([
   make_jid/3,
+  make_bare_jid/1,
   make_bare_jid/2,
   jid_to_bare_jid/1,
   bare_jid_to_jid/2
@@ -43,12 +44,6 @@
   is_jid/1
 ]).
 
-% Ejabberd short JID tuple conversion.
--export([
-  from_ejabberd_jid/1,
-  to_ejabberd_jid/1
-]).
-
 -define(NODE_MAX_LENGTH,     1023).
 -define(DOMAIN_MAX_LENGTH,   1023).
 -define(RESOURCE_MAX_LENGTH, 1023).
@@ -58,6 +53,16 @@
 % --------------------------------------------------------------------
 % JID creation & conversion.
 % --------------------------------------------------------------------
+
+%% @spec (Domain) -> Bare_Jid
+%%     Domain = string()
+%%     Bare_Jid = jid()
+%% @throws {jid, make, domain_too_long, {Node, Domain, undefined}} |
+%%         {jid, make, invalid_domain,  {Node, Domain, undefined}}
+%% @doc Create a bare JID.
+
+make_bare_jid(Domain) ->
+    make_bare_jid(undefined, Domain).
 
 %% @spec (Node, Domain) -> Bare_Jid
 %%     Node = string()
@@ -358,50 +363,6 @@ is_jid(JID) when ?IS_JID(JID) ->
     true;
 is_jid(_) ->
     false.
-
-% --------------------------------------------------------------------
-% Ejabberd JID conversion.
-% --------------------------------------------------------------------
-
-%% @spec (JID) -> New_JID
-%%     JID = jid()
-%%     New_JID = jid()
-%% @doc Convert a JID from its ejabberd form to its exmpp form.
-%%
-%% Empty fields are set to `undefined', not the empty string.
-
-from_ejabberd_jid(#jid{node = Node, resource = Resource,
-  lnode = LNode, lresource = LResource} = JID) ->
-    {Node1, LNode1} = case Node of
-        "" -> {undefined, undefined};
-        _  -> {Node, LNode}
-    end,
-    {Resource1, LResource1} = case Resource of
-        "" -> {undefined, undefined};
-        _  -> {Resource, LResource}
-    end,
-    JID#jid{node = Node1, resource = Resource1,
-      lnode = LNode1, lresource = LResource1}.
-
-%% @spec (JID) -> New_JID
-%%     JID = jid()
-%%     New_JID = jid()
-%% @doc Convert a JID from its exmpp form to its ejabberd form.
-%%
-%% Empty fields are set to the empty string, not `undefined'.
-
-to_ejabberd_jid(#jid{node = Node, resource = Resource,
-  lnode = LNode, lresource = LResource} = JID) ->
-    {Node1, LNode1} = case Node of
-        undefined -> {"", ""};
-        _         -> {Node, LNode}
-    end,
-    {Resource1, LResource1} = case Resource of
-        undefined -> {"", ""};
-        _         -> {Resource, LResource}
-    end,
-    JID#jid{node = Node1, resource = Resource1,
-      lnode = LNode1, lresource = LResource1}.
 
 % --------------------------------------------------------------------
 % Helper functions
