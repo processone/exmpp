@@ -44,8 +44,6 @@ communication with a remote entity, nor the logical stanzas flow.
 </ul>
 <h3>New features</h3>
 <ul>
-  <li>Add exmpp_xml:has_element/{2,3} (see {@link
-  exmpp_xml:has_attribute/2})</li>
   <li>Add equivalents to lists:filter/2 and lists:foldl/3 to {@link
   exmpp_xml}</li>
 </ul>

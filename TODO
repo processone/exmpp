@@ -16,5 +16,4 @@ o  Use escript(1) for the testsuite.
 New features
 ------------
 
-o  Add exmpp_xml:has_element/{2,3} (see exmpp_xml:has_attribute/{2,3})
 o  Add equivalents to lists:filter/2 and lists:foldl/3 to exmpp_xml

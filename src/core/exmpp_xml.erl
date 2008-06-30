@@ -80,9 +80,12 @@
 -export([
   get_element_by_name/2,
   get_element_by_name/3,
-  get_element_by_ns/2,
   get_elements_by_name/3,
   get_elements_by_name/2,
+  get_element_by_ns/2,
+  has_element_by_name/2,
+  has_element_by_name/3,
+  has_element_by_ns/2,
   get_child_elements/1,
   prepend_child/2,
   prepend_children/2,
@@ -640,7 +643,7 @@ get_attribute(undefined, _NS, _Name) ->
 %% @spec (Attrs, Attr_Name) -> bool()
 %%     Attrs = [xmlattribute() | xmlattribute()]
 %%     Attr_Name = atom() | string()
-%% @doc Check the presence of attribute `Attr_Name' in the list.
+%% @doc Check the presence for attribute `Attr_Name' in the list.
 
 has_attribute_in_list(Attrs, Name) ->
     case get_attribute_node_from_list(Attrs, Name) of
@@ -652,7 +655,7 @@ has_attribute_in_list(Attrs, Name) ->
 %%     Attrs = [xmlattribute() | xmlattribute()]
 %%     NS = atom() | string()
 %%     Attr_Name = atom() | string()
-%% @doc Check the presence of attribute `Attr_Name' with namespace `NS'
+%% @doc Check the presence for attribute `Attr_Name' with namespace `NS'
 %% in the list.
 
 has_attribute_in_list(Attrs, NS, Name) ->
@@ -664,7 +667,7 @@ has_attribute_in_list(Attrs, NS, Name) ->
 %% @spec (XML_Element, Attr_Name) -> bool()
 %%     XML_Element = xmlel() | xmlelement() | undefined
 %%     Attr_Name = atom() | string()
-%% @doc Check the presence of attribute `Attr_Name' in the XML element.
+%% @doc Check the presence for attribute `Attr_Name' in the XML element.
 
 has_attribute(#xmlel{attrs = Attrs} = _XML_Element, Name) ->
     has_attribute_in_list(Attrs, Name);
@@ -677,7 +680,7 @@ has_attribute(undefined, _Name) ->
 %%     XML_Element = xmlel() | xmlelement() | undefined
 %%     NS = atom() | string()
 %%     Attr_Name = atom() | string()
-%% @doc Check the presence of attribute `Attr_Name' with namespace `NS'
+%% @doc Check the presence for attribute `Attr_Name' with namespace `NS'
 %% in the XML element.
 
 has_attribute(#xmlel{attrs = Attrs} = _XML_Element, NS, Name) ->
@@ -1006,9 +1009,9 @@ get_elements_by_name2(Children, Name) ->
 
 filter_by_name(Searched_Name) ->
     fun
-    (#xmlelement{name = Name}) when Name == Searched_Name   -> true;
-    (#xmlel{name = Name}) when Name == Searched_Name -> true;
-    (_)                                                     -> false
+    (#xmlelement{name = Name}) when Name == Searched_Name -> true;
+    (#xmlel{name = Name}) when Name == Searched_Name      -> true;
+    (_)                                                   -> false
     end.
 
 %% @spec (XML_Element, NS, Name) -> [XML_Subelement]
@@ -1070,6 +1073,42 @@ get_element_by_ns2([], _NS) ->
     undefined;
 get_element_by_ns2(undefined, _NS) ->
     undefined.
+
+%% @spec (XML_Element, Name) -> bool()
+%%     XML_Element = xmlel() | xmlelement() | undefined
+%%     Name = atom() | string()
+%% @doc Check the presence for element `Name' in the children.
+
+has_element_by_name(XML_Element, Name) ->
+    case get_element_by_name(XML_Element, Name) of
+        undefined -> false;
+        _         -> true
+    end.
+
+%% @spec (XML_Element, NS, Name) -> bool()
+%%     XML_Element = xmlel() | undefined
+%%     NS = atom() | string()
+%%     Name = atom() | string()
+%% @doc Check the presence for element `Name' with `NS' namespace URI in
+%% the children.
+
+has_element_by_name(XML_Element, NS, Name) ->
+    case get_element_by_name(XML_Element, NS, Name) of
+        undefined -> false;
+        _         -> true
+    end.
+
+%% @spec (XML_Element, NS) -> bool()
+%%     XML_Element = xmlel() | undefined
+%%     NS = atom() | string()
+%% @doc Check the presence for any elements with `NS' namespace URI in
+%% the children.
+
+has_element_by_ns(XML_Element, NS) ->
+    case get_element_by_ns(XML_Element, NS) of
+        undefined -> false;
+        _         -> true
+    end.
 
 %% @spec (XML_Element) -> [XML_Subelement]
 %%     XML_Element = xmlel() | xmlelement() | undefined

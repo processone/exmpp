@@ -22,6 +22,11 @@
 
 	* doc/overview.edoc: Add TODO to the overview.
 
+	* src/core/exmpp_xml.erl: Add functions has_element_by_name/{2,3} and
+	has_element_by_ns/2. Fix documentation.
+
+	* TODO, doc/overview.edoc: Update TODO.
+
 2008-06-27  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl: Add a IS_IM_STANZA guard expression. Clean up
