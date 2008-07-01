@@ -14,6 +14,10 @@
 	copy&paste error: use exmpp_stanza:error/2, not exmpp_iq:error/2 to
 	build the <error/> element.
 
+	* src/core/exmpp_stanza.erl (set_type/2, set_type_in_attrs/2): Accept
+	an atom() as Type. It's more consistent with exmpp_iq:get_type/1 &
+	friends return values.
+
 2008-06-30  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* testsuite/test.sh: erl(1) is called with the +B flags so that ^C
