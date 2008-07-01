@@ -17,8 +17,8 @@ do_check() ->
         escape_using_entities ->
             test_document_to_list_without_namespace(),
             test_document_to_list_with_namespace(),
-            test_document_fragment_to_list_with_namespace(),
-            test_document_fragment_to_list_with_namespace2();
+            test_node_to_list_with_namespace(),
+            test_node_to_list_with_namespace2();
         escape_using_cdata ->
             ok
     end,
@@ -268,16 +268,16 @@ test_document_to_list_with_namespace() ->
       ?SOURCE6),
     ok.
 
-test_document_fragment_to_list_with_namespace() ->
+test_node_to_list_with_namespace() ->
     testsuite:is(
-      lists:flatten(exmpp_xml:document_fragment_to_list(?TREE3_NS,
+      lists:flatten(exmpp_xml:node_to_list(?TREE3_NS,
           ?TREE3_DEFAULT_NS, ?TREE3_PREFIXED_NS)),
       ?SOURCE3),
     ok.
 
-test_document_fragment_to_list_with_namespace2() ->
+test_node_to_list_with_namespace2() ->
     testsuite:is(
-      lists:flatten(exmpp_xml:document_fragment_to_list(?TREE3_NS,
+      lists:flatten(exmpp_xml:node_to_list(?TREE3_NS,
           ?TREE3_DEFAULT_NS_2, ?TREE3_PREFIXED_NS_2)),
       ?SOURCE3_2),
     ok.
