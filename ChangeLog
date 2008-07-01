@@ -18,6 +18,9 @@
 	an atom() as Type. It's more consistent with exmpp_iq:get_type/1 &
 	friends return values.
 
+	* src/core/exmpp_iq.erl: Add a function get_kind/1 which tells if an
+	<iq/> is a request or a response.
+
 2008-06-30  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* testsuite/test.sh: erl(1) is called with the +B flags so that ^C

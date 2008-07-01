@@ -31,6 +31,7 @@
   is_result/1,
   is_error/1,
   get_type/1,
+  get_kind/1,
   get_request/1,
   get_result/1,
   get_payload/1
@@ -178,15 +179,28 @@ get_type(IQ) ->
         _        -> undefined
     end.
 
+%% @spec (IQ) -> Kind
+%%     IQ = exmpp_xml:xmlel()
+%%     Kind = request | response | undefined
+%% @doc Tell if an IQ is a request or a response.
+
+get_kind(IQ) ->
+    case get_type(IQ) of
+        'get'    -> request;
+        'set'    -> request;
+        'result' -> response;
+        'error'  -> response;
+        _        -> undefined
+    end.
+
 %% @spec (IQ) -> boolean()
 %%     IQ = exmpp_xml:xmlel()
 %% @doc Tell if the IQ is a request.
 
 is_request(IQ) ->
-    case get_type(IQ) of
-        'get' -> true;
-        'set' -> true;
-        _     -> false
+    case get_kind(IQ) of
+        request -> true;
+        _       -> false
     end.
 
 %% @spec (IQ) -> boolean()
@@ -194,9 +208,8 @@ is_request(IQ) ->
 %% @doc Tell if the IQ is a response.
 
 is_response(IQ) ->
-    case get_type(IQ) of
-        'result' -> true;
-        'error'  -> true;
+    case get_kind(IQ) of
+        response -> true;
         _        -> false
     end.
 
