@@ -48,7 +48,9 @@
 % Namespace handling.
 -export([
   is_ns_declared_here/2,
-  declare_ns_here/3
+  declare_ns_here/3,
+  get_ns_as_list/1,
+  get_ns_as_atom/1
 ]).
 
 % Attribute handling.
@@ -499,6 +501,32 @@ declare_ns_here(#xmlel{declared_ns = Declared_NS} = XML_Element,
   NS, Prefix) ->
     New_Declared_NS = lists:keystore(NS, 1, Declared_NS, {NS, Prefix}),
     XML_Element#xmlel{declared_ns = New_Declared_NS}.
+
+%% @spec (XML_Element) -> NS
+%%     XML_Element = xmlel()
+%%     NS = string()
+%% @doc Return the namespace as a string, regardless of the original
+%% encoding.
+
+get_ns_as_list(XML_Element) ->
+    case XML_Element#xmlel.ns of
+        undefined           -> "";
+        NS when is_atom(NS) -> atom_to_list(NS);
+        NS                  -> NS
+    end.
+
+%% @spec (XML_Element) -> NS
+%%     XML_Element = xmlel()
+%%     NS = atom()
+%% @doc Return the namespace as an atom, regardless of the original
+%% encoding.
+
+get_ns_as_atom(XML_Element) ->
+    case XML_Element#xmlel.ns of
+        undefined           -> undefined;
+        NS when is_atom(NS) -> NS;
+        NS                  -> list_to_atom(NS)
+    end.
 
 % --------------------------------------------------------------------
 % Functions to handle XML attributes (xmlnsattribute() & xmlattribute()).

@@ -21,6 +21,10 @@
 	* src/core/exmpp_iq.erl: Add a function get_kind/1 which tells if an
 	<iq/> is a request or a response.
 
+	* src/core/exmpp_xml.erl: Add functions get_ns_as_list/1 and
+	get_ns_as_atom/1 to get the namespace of an XML element in an expected
+	encoding.
+
 2008-06-30  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* testsuite/test.sh: erl(1) is called with the +B flags so that ^C
