@@ -134,12 +134,18 @@ error(IQ, Error) ->
 
 %% @spec (Request_IQ, Error) -> Response_IQ
 %%     Request_IQ = exmpp_xml:xmlel()
-%%     Error = exmpp_xml:xmlel()
+%%     Error = exmpp_xml:xmlel() | atom()
 %%     Response_IQ = exmpp_xml:xmlel()
 %% @doc Prepare an `<iq/>' to notify an error.
 %%
 %% Child elements from `Request_IQ' are not kept.
+%%
+%% If `Error' is an atom, it must be a standard condition defined by
+%% XMPP Core.
 
+error_without_original(IQ, Condition) when is_atom(Condition) ->
+    Error = error(IQ#xmlel.ns, Condition),
+    error_without_original(IQ, Error);
 error_without_original(IQ, Error) ->
     Attrs1 = exmpp_stanza:set_id_in_attrs([], exmpp_stanza:get_id(IQ)),
     exmpp_stanza:stanza_error_without_original(IQ#xmlel{attrs = Attrs1},
