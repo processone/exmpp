@@ -126,7 +126,7 @@ result(Request_IQ, Result) ->
 %% XMPP Core.
 
 error(IQ, Condition) when is_atom(Condition) ->
-    Error = error(IQ#xmlel.ns, Condition),
+    Error = exmpp_stanza:error(IQ#xmlel.ns, Condition),
     error(IQ, Error);
 error(IQ, Error) ->
     Attrs1 = exmpp_stanza:set_id_in_attrs([], exmpp_stanza:get_id(IQ)),
@@ -144,7 +144,7 @@ error(IQ, Error) ->
 %% XMPP Core.
 
 error_without_original(IQ, Condition) when is_atom(Condition) ->
-    Error = error(IQ#xmlel.ns, Condition),
+    Error = exmpp_stanza:error(IQ#xmlel.ns, Condition),
     error_without_original(IQ, Error);
 error_without_original(IQ, Error) ->
     Attrs1 = exmpp_stanza:set_id_in_attrs([], exmpp_stanza:get_id(IQ)),

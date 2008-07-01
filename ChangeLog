@@ -10,6 +10,10 @@
 	* testsuite/check_xml_converters.erl: Fix testsuite after
 	exmpp_xml:document_fragment_to_list/3 was renamed.
 
+	* src/core/exmpp_iq.erl (error/2, error_without_original/2): Fix
+	copy&paste error: use exmpp_stanza:error/2, not exmpp_iq:error/2 to
+	build the <error/> element.
+
 2008-06-30  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* testsuite/test.sh: erl(1) is called with the +B flags so that ^C
