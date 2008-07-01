@@ -1,3 +1,12 @@
+2008-07-01  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_stanza.erl, src/core/exmpp_iq.erl: Accept a standard
+	condition as 'Error'. It's much easier to make error stanza with this.
+
+	* src/core/exmpp_iq.erl (error): Fix a bug while setting ID: the
+	function to call is exmpp_stanza:set_id_in_attrs/2, not
+	exmpp_stanza:set_id/2.
+
 2008-06-30  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* testsuite/test.sh: erl(1) is called with the +B flags so that ^C

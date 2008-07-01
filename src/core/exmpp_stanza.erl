@@ -400,10 +400,16 @@ reply_from_attrs(Attrs) ->
 
 %% @spec (Stanza, Error) -> Stanza_Reply
 %%     Stanza = exmpp_xml:xmlel()
-%%     Error = exmpp_xml:xmlel()
+%%     Error = exmpp_xml:xmlel() | atom()
 %%     Stanza_Reply = exmpp_xml:xmlel()
 %% @doc Prepare an error reply to `Stanza'.
+%%
+%% If `Error' is an atom, it must be a standard condition defined by
+%% XMPP Core.
 
+reply_with_error(Stanza, Condition) when is_atom(Condition) ->
+    Error = error(Stanza#xmlel.ns, Condition),
+    reply_with_error(Stanza, Error);
 reply_with_error(Stanza, Error) ->
     Reply = reply(Stanza),
     stanza_error(Reply, Error).

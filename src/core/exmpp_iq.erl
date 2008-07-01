@@ -118,12 +118,18 @@ result(Request_IQ, Result) ->
 
 %% @spec (Request_IQ, Error) -> Response_IQ
 %%     Request_IQ = exmpp_xml:xmlel()
-%%     Error = exmpp_xml:xmlel()
+%%     Error = exmpp_xml:xmlel() | atom()
 %%     Response_IQ = exmpp_xml:xmlel()
 %% @doc Prepare an `<iq/>' to notify an error.
+%%
+%% If `Error' is an atom, it must be a standard condition defined by
+%% XMPP Core.
 
+error(IQ, Condition) when is_atom(Condition) ->
+    Error = error(IQ#xmlel.ns, Condition),
+    error(IQ, Error);
 error(IQ, Error) ->
-    Attrs1 = exmpp_stanza:set_id([], exmpp_stanza:get_id(IQ)),
+    Attrs1 = exmpp_stanza:set_id_in_attrs([], exmpp_stanza:get_id(IQ)),
     exmpp_stanza:stanza_error(IQ#xmlel{attrs = Attrs1}, Error).
 
 %% @spec (Request_IQ, Error) -> Response_IQ
