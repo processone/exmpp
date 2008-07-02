@@ -382,8 +382,20 @@ generate_resource() ->
 % Documentation / type definitions.
 % --------------------------------------------------------------------
 
-%% @type jid() = {jid, Node, Domain, Resource}
+%% @type jid() = {jid, Node, Domain, Resource, Prepd_Node, Prepd_Domain, Prepd_Resource}
 %%     Node = string() | undefined
-%%     Domain = string()
-%%     Resource = string() | undefined.
+%%     Domain = string() | undefined
+%%     Resource = string() | undefined
+%%     Prepd_Node = string() | undefined
+%%     Prepd_Domain = string() | undefined
+%%     Prepd_Resource = string() | undefined.
 %% Represents JID.
+%%
+%% `Prepd_Node' is set to the value of `Node' passed through the
+%% NODEPREP stringprep profile.
+%%
+%% `Prepd_Domain' is set to the value of `Domain' passed through the
+%% NAMEPREP stringprep profile.
+%%
+%% `Prepd_Resource' is set to the value of `Resource' passed through the
+%% RESOURCEPREP stringprep profile.
