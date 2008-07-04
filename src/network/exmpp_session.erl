@@ -623,12 +623,14 @@ get_method({basic, Method, _JID, _Password}) when atom(Method) ->
 %% Define parser options
 %% No compatibility mode: We use all the nice optimisation of exmpp:
 -define(PARSER_OPTIONS,
-	[namespace,
-	 name_as_atom,
-	 ns_check,                        
-	 names_check,                                                          
-	 attrs_check,                                                          
-	 no_maxsize]).
+	[{namespace, true},
+	 {name_as_atom, true},
+	 {ns_check, true},
+	 {names_check, true},
+	 {attrs_check, true},
+	 {endtag, false},
+	 {root_depth, 0},
+	 {maxsize, infinity}]).
 
 %% Start parser and return stream reference
 start_parser() ->
