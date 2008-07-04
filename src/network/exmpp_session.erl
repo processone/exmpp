@@ -266,17 +266,17 @@ terminate(Reason, _StateName, #state{connection_ref = undefined,
     reply(Reason, From),
     ok;
 terminate(Reason, _StateName, #state{connection_ref = ConnRef,
-				    connection = Module,
-				    stream_ref = undefined,
-				    from_pid=From}) ->
+				     connection = Module,
+				     stream_ref = undefined,
+				     from_pid=From}) ->
     Module:close(ConnRef),
     reply(Reason, From),
     ok;
 terminate(Reason, _StateName, #state{connection_ref = ConnRef,
-				    connection = Module,
-				    stream_ref = StreamRef,
-				    receiver_ref = ReceiverRef,
-				    from_pid=From}) ->
+				     connection = Module,
+				     stream_ref = StreamRef,
+				     receiver_ref = ReceiverRef,
+				     from_pid=From}) ->
     exmpp_xml:stop_parser(exmpp_xmlstream:get_parser(StreamRef)),
     exmpp_xmlstream:stop(StreamRef),
     Module:close(ConnRef, ReceiverRef),
@@ -370,7 +370,7 @@ setup(_UnknownMessage, _From, State) ->
 %% Used to match a message packet in stream
 -define(message,
 	#xmlstreamelement{
-	  element=#xmlel{name=message, attrs=Attrs}=MessageElement}). 
+	  element=#xmlel{name=message, attrs=Attrs}=MessageElement}).
 %% To match an XMLNSElement of type Iq:
 -define(iqattrs, #xmlel{name=iq, attrs=Attrs}=IQElement).
 %% To match either presence or message
@@ -451,6 +451,9 @@ stream_opened(?message, State = #state{connection = _Module,
 stream_opened(?iq, State) ->
     process_iq(State#state.client_pid, Attrs, IQElement),
     {next_state, stream_opened, State};
+%% Handle stream error
+stream_opened(?streamerror, State) ->
+    {stop, {error, Reason}, State};
 %% Handle end of stream
 stream_opened(?streamend, State) ->
     {stop, normal, State}.
