@@ -76,6 +76,9 @@
 	  from_pid           %% Use by gen_fsm to handle postponed replies
 	 }).
 
+%% This timeout should match the connect timeout
+-define(TIMEOUT, 30000).
+
 %%====================================================================
 %% API
 %%====================================================================
@@ -141,7 +144,8 @@ connect_TCP(Session, Server, Port)
   when pid(Session),
        list(Server),
        integer(Port) ->
-    case gen_fsm:sync_send_event(Session, {connect_tcp, Server, Port}) of
+    case gen_fsm:sync_send_event(Session, {connect_tcp, Server, Port},
+				 ?TIMEOUT) of
 	Error when tuple(Error) -> erlang:throw(Error);
 	StreamId -> StreamId
     end.
@@ -154,7 +158,8 @@ connect_TCP(Session, Server, Port, Domain)
        integer(Port),
        list(Domain) ->
     case gen_fsm:sync_send_event(Session,
-				 {connect_tcp, Server, Port, Domain}) of
+				 {connect_tcp, Server, Port, Domain},
+				 ?TIMEOUT) of
 	Error when tuple(Error) -> erlang:throw(Error);
 	StreamId -> StreamId
     end.
@@ -167,7 +172,8 @@ connect_SSL(Session, Server, Port)
   when pid(Session),
        list(Server),
        integer(Port) ->
-    case gen_fsm:sync_send_event(Session, {connect_ssl, Server, Port}) of
+    case gen_fsm:sync_send_event(Session, {connect_ssl, Server, Port},
+				 ?TIMEOUT) of
 	Error when tuple(Error) -> erlang:throw(Error);
 	StreamId -> StreamId
     end.
@@ -180,7 +186,8 @@ connect_SSL(Session, Server, Port, Domain)
        integer(Port),
        list(Domain) ->
     case gen_fsm:sync_send_event(Session,
-				 {connect_ssl, Server, Port, Domain}) of
+				 {connect_ssl, Server, Port, Domain},
+				 ?TIMEOUT) of
 	Error when tuple(Error) -> erlang:throw(Error);
 	StreamId -> StreamId
     end.
