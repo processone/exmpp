@@ -512,7 +512,7 @@ wait_for_register_result(?iq, State = #state{from_pid=From}) ->
             gen_fsm:reply(From, ok),	     
             {next_state, stream_opened, State#state{from_pid=undefined}};
         "error" ->
-            Reason = exmpp_error:get_reason(IQElement),
+            Reason = exmpp_stanza:get_error_type(IQElement),
             gen_fsm:reply(From, {register_error, Reason}),
             {next_state, stream_opened, State#state{from_pid=undefined}}
     end;
