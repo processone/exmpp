@@ -1562,7 +1562,8 @@ xmlel_to_xmlelement(XML_Element) ->
 %% default namespace declaration in this same element.
 
 xmlel_to_xmlelement(#xmlel{ns = NS, name = Name, attrs = Attrs,
-  declared_ns = Declared_NS, children = Children}, Default_NS, Prefixed_NS) ->
+			   declared_ns = Declared_NS, children = Children},
+		    Default_NS, Prefixed_NS) ->
     % First, we add namespace declarations to element attributes.
     {Prefix, Attrs1, Default_NS1, Prefixed_NS1} = forward_declare_ns(NS,
       lists:reverse(Declared_NS), Attrs, Default_NS, Prefixed_NS),
@@ -1583,8 +1584,8 @@ xmlel_to_xmlelement(#xmlel{ns = NS, name = Name, attrs = Attrs,
       Default_NS1, Prefixed_NS2),
     % Now, create the final #xmlelement.
     #xmlelement{name = New_Name, attrs = New_Attrs, children = New_Children};
-xmlel_to_xmlelement(#xmlendtag{ns = NS, name = Name,
-  prefix = Wanted_Prefix}, Default_NS, Prefixed_NS) ->
+xmlel_to_xmlelement(#xmlendtag{ns = NS, name = Name, prefix = Wanted_Prefix},
+		    Default_NS, Prefixed_NS) ->
     Name_S = if
         is_atom(Name) -> atom_to_list(Name);
         true          -> Name
