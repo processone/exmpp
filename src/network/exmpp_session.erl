@@ -247,19 +247,16 @@ handle_sync_event(tcp_closed, _From, _StateName, State) ->
     Reply = ok,
     {stop, normal, Reply, State};
 handle_sync_event(stop, _From, _StateName, State) ->
-    io:format("MREMOND stop~n", []),
     Reply = ok,
     {stop, normal, Reply, State};
 handle_sync_event({set_controlling_process,Client}, _From, StateName, State) ->
     Reply = ok,
     {reply,Reply,StateName,State#state{client_pid=Client}};
 handle_sync_event(Event, _From, StateName, State) ->
-    io:format("MREMOND sync event: ~p~n", [Event]),
     Reply = ok,
     {reply, Reply, StateName, State}.
 
 handle_info(Info, StateName, State) ->
-    io:format("MREMOND info: ~p~n", [Info]),
     {next_state, StateName, State}.
 
 
