@@ -718,7 +718,7 @@ check_id(Attrs) ->
 %% Return default value if attribute is not found
 get_attribute_value(Attrs, Attr, Default) ->
     case exmpp_xml:get_attribute_node_from_list(Attrs, Attr) of
-        false -> Default;
+        undefined -> Default;
         #xmlattr{value=Value} -> Value
     end.
 
