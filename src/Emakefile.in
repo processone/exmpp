@@ -17,7 +17,6 @@
 		'@srcdir@/core/exmpp_presence',
 		'@srcdir@/core/exmpp_tls',
 		'@srcdir@/core/exmpp_compress',
-		'@srcdir@/network/exmpp_callbacks',
 		'@srcdir@/network/exmpp_session',
 		'@srcdir@/network/exmpp_ssl',
 		'@srcdir@/network/exmpp_tcp',

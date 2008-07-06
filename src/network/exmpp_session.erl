@@ -77,7 +77,7 @@
 	 }).
 
 %% This timeout should match the connect timeout
--define(TIMEOUT, 30000).
+-define(TIMEOUT, 5000).
 
 %%====================================================================
 %% API
@@ -247,16 +247,19 @@ handle_sync_event(tcp_closed, _From, _StateName, State) ->
     Reply = ok,
     {stop, normal, Reply, State};
 handle_sync_event(stop, _From, _StateName, State) ->
+    io:format("MREMOND stop~n", []),
     Reply = ok,
     {stop, normal, Reply, State};
 handle_sync_event({set_controlling_process,Client}, _From, StateName, State) ->
     Reply = ok,
     {reply,Reply,StateName,State#state{client_pid=Client}};
-handle_sync_event(_Event, _From, StateName, State) ->
+handle_sync_event(Event, _From, StateName, State) ->
+    io:format("MREMOND sync event: ~p~n", [Event]),
     Reply = ok,
     {reply, Reply, StateName, State}.
 
-handle_info(_Info, StateName, State) ->
+handle_info(Info, StateName, State) ->
+    io:format("MREMOND info: ~p~n", [Info]),
     {next_state, StateName, State}.
 
 
@@ -512,7 +515,7 @@ wait_for_register_result(?iq, State = #state{from_pid=From}) ->
             gen_fsm:reply(From, ok),	     
             {next_state, stream_opened, State#state{from_pid=undefined}};
         "error" ->
-            Reason = exmpp_stanza:get_error_type(IQElement),
+            Reason = exmpp_stanza:get_condition(IQElement),
             gen_fsm:reply(From, {register_error, Reason}),
             {next_state, stream_opened, State#state{from_pid=undefined}}
     end;
@@ -600,7 +603,7 @@ connect(Module, Host, Port, Domain, From, #state{client_pid=Pid} = State) ->
 %% digest auth will fail if we do not have streamid
 do_auth(password, ConnRef, Module, Username, Password, Resource, _StreamId) ->
     Module:send(ConnRef,
-		exmpp_client_legacy_auth:password(Username, Password, 
+		exmpp_client_legacy_auth:password_plain(Username, Password, 
 						  Resource));
 do_auth(digest, ConnRef, Module, Username, Password, Resource, StreamId) 
 when list(StreamId) ->

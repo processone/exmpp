@@ -35,17 +35,29 @@ connect(ClientPid, StreamRef, {Host, Port}) ->
 	    ReceiverPid = spawn_link(?MODULE, receiver,
 				     [ClientPid, Socket, StreamRef]),
 	    gen_tcp:controlling_process(Socket, ReceiverPid),
+	    activate(ReceiverPid),
 	    {Socket, ReceiverPid};
 	{error, Reason} ->
 	    erlang:throw({socket_error, Reason})
     end.
+
+activate(ReceiverPid) ->
+    Ref=make_ref(),
+    ReceiverPid ! {activate,self(),Ref},
+    receive
+	{Ref, ok} ->
+	    ok
+    after 5000 ->
+	    ReceiverPid ! stop,
+	    erlang:throw({socket_error, cannot_activate_socket})
+    end.
+
 % if we use active-once before spawning the receiver process,
 % we can receive some data in the original process rather than 
-% in the receiver process. So {active.once} is is set explicitly
+% in the receiver process. So {active,once} is is set explicitly
 % in the receiver process. NOTE: in this case this wouldn't make 
 % a big difference, as the connecting client should send the
 % stream header before receiving anything
-
 
 close(Socket, ReceiverPid) ->
     ReceiverPid ! stop,
@@ -56,7 +68,7 @@ send(Socket, XMLPacket) ->
     String = exmpp_xml:document_to_list(XMLPacket),
     case gen_tcp:send(Socket, String) of
 	ok -> ok;
-	_Other -> {error, send_failed}
+	{error, Reason} -> {error, Reason}
     end.
 
 %%--------------------------------------------------------------------
@@ -66,11 +78,15 @@ receiver(ClientPid, Socket, StreamRef) ->
     receiver_loop(ClientPid, Socket, StreamRef).
     
 receiver_loop(ClientPid, Socket, StreamRef) ->
-	inet:setopts(Socket, [{active, once}]),
     receive
+	{activate, Pid, Ref} ->
+	    inet:setopts(Socket, [{active, once}]),
+	    Pid ! {Ref, ok},
+	    receiver_loop(ClientPid, Socket, StreamRef);
 	stop ->
 	    ok;
 	{tcp, Socket, Data} ->
+	    inet:setopts(Socket, [{active, once}]),
 	    {ok, NewStreamRef} = exmpp_xmlstream:parse(StreamRef, Data),
 	    receiver_loop(ClientPid, Socket, NewStreamRef);
 	{tcp_closed, Socket} ->

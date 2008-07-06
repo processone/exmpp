@@ -12,6 +12,7 @@ urn:ietf:params:xml:ns:xmpp-stanzas
 urn:ietf:params:xml:ns:xmpp-streams
 urn:ietf:params:xml:ns:xmpp-tls
 jabber:iq:privacy
+jabber:iq:register
 jabber:iq:roster
 jabber:iq:auth
 http://jabber.org/protocol/pubsub
