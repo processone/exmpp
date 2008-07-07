@@ -147,11 +147,12 @@
 
 % Error handling.
 -export([
-  error/1,
-  is_error/1,
-  get_condition/1,
-  get_text/1
-]).
+	 error/1,
+	 error/2,
+	 is_error/1,
+	 get_condition/1,
+	 get_text/1
+	]).
 
 % Serialization wrappers.
 -export([
