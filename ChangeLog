@@ -5,6 +5,10 @@
 
 	* src/core/exmpp_stream.erl, src/core/exmpp_compress.erl: Style.
 
+	* src/core/exmpp_xml.erl: Accept atoms and integers as attribute
+	value. They're converted to binary internally and it's not possible to
+	get them back in their original type.
+
 2008-07-02  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_jid.erl: Update jid() documentation.

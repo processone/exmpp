@@ -719,7 +719,7 @@ has_attribute(undefined, _NS, _Name) ->
 %% @spec (Attrs, Attr_Name, Attr_Value) -> New_Attrs
 %%     Attrs = [xmlnsattribute() | xmlattribute()]
 %%     Attr_Name = atom() | string()
-%%     Attr_Value = string()
+%%     Attr_Value = string() | atom() | integer()
 %%     New_Attrs = [xmlnsattribute() | xmlattribute()]
 %% @doc Add a new attribute or change the value of an existing attribute
 %% with the same name.
@@ -727,6 +727,11 @@ has_attribute(undefined, _NS, _Name) ->
 %% If the attribute is to be added, this function use the {@link
 %% xmlnsattribute()} record if it can't determine the type from the
 %% other attributes.
+
+set_attribute_in_list(Attrs, Name, Value) when is_atom(Value) ->
+    set_attribute_in_list(Attrs, Name, atom_to_list(Value));
+set_attribute_in_list(Attrs, Name, Value) when is_integer(Value) ->
+    set_attribute_in_list(Attrs, Name, integer_to_list(Value));
 
 set_attribute_in_list(Attrs, Name, Value) ->
     set_attribute_in_list2(Attrs, Name, Value, []).
@@ -758,13 +763,18 @@ set_attribute_in_list2([], Name, Value, New_Attrs) ->
 %%     Attrs = [xmlnsattribute()]
 %%     NS = atom() | string()
 %%     Attr_Name = atom() | string()
-%%     Attr_Value = string()
+%%     Attr_Value = string() | atom() | integer()
 %%     New_Attrs = [xmlnsattribute()]
 %% @doc Add a new attribute or change the value of an existing attribute
 %% with the same name and the `NS' namespace URI.
 %%
 %% If the attribute is to be added, this function use the {@link
 %% xmlnsattribute()} record.
+
+set_attribute_in_list(Attrs, NS, Name, Value) when is_atom(Value) ->
+    set_attribute_in_list(Attrs, NS, Name, atom_to_list(Value));
+set_attribute_in_list(Attrs, NS, Name, Value) when is_integer(Value) ->
+    set_attribute_in_list(Attrs, NS, Name, integer_to_list(Value));
 
 set_attribute_in_list(Attrs, NS, Name, Value) ->
     set_attribute_in_list2(Attrs, NS, Name, Value, []).
@@ -784,9 +794,14 @@ set_attribute_in_list2([], NS, Name, Value, New_Attrs) ->
 %% @spec (XML_Element, Attr_Name, Attr_Value) -> New_XML_Element
 %%     XML_Element = xmlel() | xmlelement()
 %%     Attr_Name = atom() | string()
-%%     Attr_Value = string()
+%%     Attr_Value = string() | atom() | integer()
 %%     New_XML_Element = xmlel() | xmlelement()
 %% @doc Add a new attribute or change the value of an existing attribute.
+
+set_attribute(XML_Element, Name, Value) when is_atom(Value) ->
+    set_attribute(XML_Element, Name, atom_to_list(Value));
+set_attribute(XML_Element, Name, Value) when is_integer(Value) ->
+    set_attribute(XML_Element, Name, integer_to_list(Value));
 
 set_attribute(#xmlel{attrs = Attrs} = XML_Element, Name, Value) ->
     New_Attrs = set_attribute_ns2(Attrs, Name, Value, []),
@@ -824,10 +839,15 @@ set_attribute2([], Name, Value, New_Attrs) ->
 %%     XML_Element = xmlel() | xmlelement()
 %%     NS = atom() | string()
 %%     Attr_Name = atom() | string()
-%%     Attr_Value = string()
+%%     Attr_Value = string() | atom() | integer()
 %%     New_XML_Element = xmlel() | xmlelement()
 %% @doc Add a new attribute or change the value of an existing attribute
 %% with the same name and the `NS' namespace URI.
+
+set_attribute(XML_Element, NS, Name, Value) when is_atom(Value) ->
+    set_attribute(XML_Element, NS, Name, atom_to_list(Value));
+set_attribute(XML_Element, NS, Name, Value) when is_integer(Value) ->
+    set_attribute(XML_Element, NS, Name, integer_to_list(Value));
 
 set_attribute(#xmlel{attrs = Attrs} = XML_Element, NS, Name, Value) ->
     New_Attrs = set_attribute_ns2(Attrs, NS, Name, Value, []),
@@ -1562,8 +1582,8 @@ xmlel_to_xmlelement(XML_Element) ->
 %% default namespace declaration in this same element.
 
 xmlel_to_xmlelement(#xmlel{ns = NS, name = Name, attrs = Attrs,
-			   declared_ns = Declared_NS, children = Children},
-		    Default_NS, Prefixed_NS) ->
+  declared_ns = Declared_NS, children = Children},
+  Default_NS, Prefixed_NS) ->
     % First, we add namespace declarations to element attributes.
     {Prefix, Attrs1, Default_NS1, Prefixed_NS1} = forward_declare_ns(NS,
       lists:reverse(Declared_NS), Attrs, Default_NS, Prefixed_NS),
@@ -1585,7 +1605,7 @@ xmlel_to_xmlelement(#xmlel{ns = NS, name = Name, attrs = Attrs,
     % Now, create the final #xmlelement.
     #xmlelement{name = New_Name, attrs = New_Attrs, children = New_Children};
 xmlel_to_xmlelement(#xmlendtag{ns = NS, name = Name, prefix = Wanted_Prefix},
-		    Default_NS, Prefixed_NS) ->
+  Default_NS, Prefixed_NS) ->
     Name_S = if
         is_atom(Name) -> atom_to_list(Name);
         true          -> Name
@@ -2103,6 +2123,7 @@ node_to_list(El, Default_NS, Prefixed_NS) ->
 attrs_to_list(Attrs) ->
     [attr_to_list(A) || A <- Attrs].
 
+% XXX Do not add an attribute with no value.
 attr_to_list({Name, Value}) ->
     [$\s, Name, $=, $", escape_using_entities(Value), $"].
 
