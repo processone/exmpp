@@ -3,17 +3,21 @@ Possible bugs
 
 o  Fix maxsize handling in the parser.
 o  Fix character data handling above 'root_depth'.
+o  lists:keystore/4 appeared with Erlang R12B.
 
 
 
 Improvements
 ------------
 
-o  Use escript(1) for the testsuite.
-
+None.
 
 
 New features
 ------------
 
 o  Add equivalents to lists:filter/2 and lists:foldl/3 to exmpp_xml
+o  exmpp_xml should feed its namespaces/names/attributes tables from the
+   application environment. When a process/module doesn't have access
+   to all the parser instances, this is the only way to declare its own
+   names. A new option should enable/disable this behavious.
