@@ -121,6 +121,9 @@ strip(Stream) ->
 %%
 %% Blanks characters are `\s', `\t', `\n' and `\r'.
 %%
+%% The binary version was made by Christopher Faulet in his
+%% <a href="http://www.capflam.org/?p=9">stream module</a>.
+%%
 %% @see strip/3.
 
 strip(Stream, left) ->

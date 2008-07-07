@@ -47,6 +47,9 @@
 	decode_base64/1, keystore/4, random_id/0, and random_id/1 have moved
 	to exmpp_utils.
 
+	* src/core/exmpp_utils.erl (strip/1, strip/2): Credits Christopher
+	Faulet.
+
 2008-07-02  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_jid.erl: Update jid() documentation.
