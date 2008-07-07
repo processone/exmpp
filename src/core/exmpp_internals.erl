@@ -1,6 +1,6 @@
 % $Id$
 
-%% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
+%% @author Jean-Sebastien Pedron <js.pedron@meetic-corp.com>
 
 %% @doc
 %% The module <strong>{@module}</strong> provides internal functions for

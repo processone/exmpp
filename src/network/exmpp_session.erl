@@ -664,7 +664,7 @@ check_auth_method2(Method, IQElement) ->
     case exmpp_xml:get_element_by_name(QueryElement,
 				       'jabber:iq:auth',
 				       Method) of
-	false ->
+	undefined ->
 	    {error, no_supported_auth_method};
 	_ ->
 	    ok
