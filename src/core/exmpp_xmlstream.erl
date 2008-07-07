@@ -262,7 +262,7 @@ send_events(Stream, []) ->
 parse_element(Data) ->
     parse_element(Data, []).
 
-%% @spec (Data, Parser_Options) -> XML_Element | {error, Reason}
+%% @spec (Data, Parser_Options) -> XML_Element
 %%     Data = string() | binary()
 %%     Parser_Options = [exmpp_xml:xmlparseroption()]
 %%     XML_Element = exmpp_xml:xmlelement()
@@ -275,16 +275,12 @@ parse_element(Data) ->
 
 parse_element(Data, Parser_Options) ->
     case exmpp_xml:parse_document(Data, Parser_Options) of
-        {ok, done} ->
-            {error, parse_error};
-        {ok, []} ->
-            {error, parse_error};
-        {ok, [XML_Element | _]} ->
-            XML_Element;
-        {xmlerror, Reason} ->
-            {error, Reason};
-        {error, Reason} ->
-            {error, Reason}
+        done ->
+            throw({xmlstream, parse_element, parse_error, done});
+        [] ->
+            throw({xmlstream, parse_element, parse_error, []});
+        XML_Element ->
+            XML_Element
     end.
 
 % --------------------------------------------------------------------
