@@ -38,7 +38,6 @@
         exmpp_server_sasl,
         exmpp_server_session,
         exmpp_server_tls,
-        exmpp_callbacks,
         exmpp_session,
         exmpp_ssl,
         exmpp_tcp@COMPAT_MODULES_START@
