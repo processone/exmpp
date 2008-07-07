@@ -248,10 +248,8 @@ enable_compression(Socket_Desc, Options) ->
         end,
 
         % Set compression level.
-        case get_compress_level_from_options(Options) of
-            undefined -> ok;
-            Level     -> engine_set_compress_level(Port, Level)
-        end,
+        Level = get_compress_level_from_options(Options),
+	engine_set_compress_level(Port, Level),
 
         % Packet mode.
         Packet_Mode = get_packet_mode_from_options(Options),
