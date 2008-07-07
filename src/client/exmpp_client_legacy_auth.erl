@@ -387,7 +387,7 @@ int_to_hexchar(I)  -> $0 + I.
 %%     Auth_ID = string()
 %% @doc Generate a random authentication iq ID.
 %%
-%% @see exmpp_internals:random_id/1.
+%% @see exmpp_utils:random_id/1.
 
 auth_id() ->
-    exmpp_internals:random_id("auth").
+    exmpp_utils:random_id("auth").

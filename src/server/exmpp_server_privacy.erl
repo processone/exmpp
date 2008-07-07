@@ -39,5 +39,5 @@ list_push(To, List_Name) ->
       children = [List]
     },
     IQ = exmpp_iq:set(?NS_JABBER_CLIENT, Query,
-      exmpp_internals:random_id("push")),
+      exmpp_utils:random_id("push")),
     exmpp_stanza:set_recipient(IQ, To).

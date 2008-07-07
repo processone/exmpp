@@ -56,7 +56,7 @@ establish() ->
       name = 'session'
     },
     exmpp_iq:set(?NS_JABBER_CLIENT, Session,
-      exmpp_internals:random_id("session")).
+      exmpp_utils:random_id("session")).
 
 %% @spec (IQ) -> ok
 %%     IQ = exmpp_xml:xmlel()

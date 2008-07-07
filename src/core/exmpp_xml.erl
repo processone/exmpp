@@ -499,7 +499,7 @@ is_ns_declared_here(#xmlel{declared_ns = Declared_NS}, NS) ->
 
 declare_ns_here(#xmlel{declared_ns = Declared_NS} = XML_Element,
   NS, Prefix) ->
-    New_Declared_NS = exmpp_internals:keystore(NS, 1,
+    New_Declared_NS = exmpp_utils:keystore(NS, 1,
       Declared_NS, {NS, Prefix}),
     XML_Element#xmlel{declared_ns = New_Declared_NS}.
 
@@ -2295,7 +2295,7 @@ internal_escaping_function_name() ->
 % Merge options to avoid duplicates and multiple initialization of the
 % parser.
 merge_options(Options, [{Key, _} = Option | Rest]) ->
-    New_Options = exmpp_internals:keystore(Key, 1, Options, Option),
+    New_Options = exmpp_utils:keystore(Key, 1, Options, Option),
     merge_options(New_Options, Rest);
 merge_options(Options, [Option | Rest]) when is_atom(Option) ->
     merge_options(Options, [{Option, true} | Rest]);
@@ -2307,7 +2307,7 @@ handle_options(#xml_parser{options = Options, port = Port} = Parser,
   [{Key, _} = Option | Rest]) ->
     case set_option(Port, Option) of
         ok ->
-            New_Options = exmpp_internals:keystore(Key, 1, Options, Option),
+            New_Options = exmpp_utils:keystore(Key, 1, Options, Option),
             New_Parser = Parser#xml_parser{options = New_Options},
             handle_options(New_Parser, Rest);
         Error ->

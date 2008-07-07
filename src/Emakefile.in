@@ -5,6 +5,7 @@
 		'@srcdir@/core/exmpp',
 		'@srcdir@/core/exmpp_sup',
 		'@srcdir@/core/exmpp_internals',
+		'@srcdir@/core/exmpp_utils',
 		'@srcdir@/core/exmpp_xml',
 		'@srcdir@/core/exmpp_xmlstream',
 		'@srcdir@/core/exmpp_stringprep',

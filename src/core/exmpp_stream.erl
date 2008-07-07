@@ -444,7 +444,7 @@ set_id(#xmlel{attrs = Attrs} = Opening, ID) ->
     Opening#xmlel{attrs = New_Attrs}.
 
 set_id_in_attrs(Attrs, ID) when ID == undefined; ID == "" ->
-    set_id_in_attrs(Attrs, exmpp_internals:random_id("stream"));
+    set_id_in_attrs(Attrs, exmpp_utils:random_id("stream"));
 set_id_in_attrs(Attrs, ID) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'id', ID).
 

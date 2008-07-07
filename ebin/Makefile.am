@@ -9,6 +9,7 @@ BEAM_FILES = exmpp.app							\
 	     exmpp_compress.beam					\
 	     exmpp_dialback.beam					\
 	     exmpp_internals.beam					\
+	     exmpp_utils.beam						\
 	     exmpp_iq.beam						\
 	     exmpp_jid.beam						\
 	     exmpp_message.beam						\

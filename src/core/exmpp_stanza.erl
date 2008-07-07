@@ -246,7 +246,7 @@ get_id_from_attrs(Attrs) ->
 
 set_id(#xmlel{attrs = Attrs, name = Name} = Stanza, ID)
   when ID == undefined; ID == "" ->
-    New_Attrs = set_id_in_attrs(Attrs, exmpp_internals:random_id(Name)),
+    New_Attrs = set_id_in_attrs(Attrs, exmpp_utils:random_id(Name)),
     Stanza#xmlel{attrs = New_Attrs};
 set_id(#xmlel{attrs = Attrs} = Stanza, ID) ->
     New_Attrs = set_id_in_attrs(Attrs, ID),
@@ -259,7 +259,7 @@ set_id(#xmlel{attrs = Attrs} = Stanza, ID) ->
 %% @doc Set the id.
 
 set_id_in_attrs(Attrs, ID) when ID == undefined; ID == "" ->
-    set_id_in_attrs(Attrs, exmpp_internals:random_id("stanza"));
+    set_id_in_attrs(Attrs, exmpp_utils:random_id("stanza"));
 set_id_in_attrs(Attrs, ID) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'id', ID).
 

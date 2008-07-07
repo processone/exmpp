@@ -34,6 +34,19 @@
 	* src/core/exmpp_internals.erl, src/core/exmpp_xml.erl:
 	lists:keystore/4 appeared only in R12B. Use a replacement function.
 
+	* src/core/exmpp_utils.erl, src/Makefile.am, src/Emakefile.in,
+	ebin/Makefile.am, ebin/exmpp.app.in, doc/Makefile.am: Add a new module
+	to receive misc. functions.
+
+	* src/core/exmpp_internals.erl, src/server/exmpp_server_sasl.erl,
+	src/server/exmpp_server_privacy.erl, src/core/exmpp_stream.erl,
+	src/core/exmpp_xml.erl, src/core/exmpp_stanza.erl,
+	src/core/exmpp_presence.erl, src/client/exmpp_client_binding.erl,
+	src/client/exmpp_client_sasl.erl, src/client/exmpp_client_session.erl,
+	src/client/exmpp_client_legacy_auth.erl: encode_base64/1,
+	decode_base64/1, keystore/4, random_id/0, and random_id/1 have moved
+	to exmpp_utils.
+
 2008-07-02  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_jid.erl: Update jid() documentation.

@@ -76,7 +76,7 @@ bind(Resource) ->
       name = 'bind',
       children = Children
     },
-    exmpp_iq:set(?NS_JABBER_CLIENT, Bind, exmpp_internals:random_id("bind")).
+    exmpp_iq:set(?NS_JABBER_CLIENT, Bind, exmpp_utils:random_id("bind")).
 
 %% @spec (Bind) -> Jid
 %%     Bind = exmpp_xml:xmlel()

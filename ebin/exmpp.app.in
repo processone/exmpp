@@ -9,6 +9,7 @@
         exmpp_compress,
         exmpp_dialback,
         exmpp_internals,
+        exmpp_utils,
         exmpp_iq,
         exmpp_jid,
         exmpp_message,

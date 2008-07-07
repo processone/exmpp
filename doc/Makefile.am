@@ -53,6 +53,7 @@ HTML_FILES = index.html							\
 	     exmpp_sup.html						\
 	     exmpp_tcp.html						\
 	     exmpp_tls.html						\
+	     exmpp_utils.html						\
 	     exmpp_xml.html						\
 	     exmpp_xmlstream.html					\
 	     echo_client.html						\

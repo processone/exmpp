@@ -3,6 +3,7 @@
 EXTRA_DIST = core/exmpp.erl						\
 	     core/exmpp_sup.erl						\
 	     core/exmpp_internals.erl					\
+	     core/exmpp_utils.erl					\
 	     core/exmpp_xml.erl						\
 	     core/exmpp_xmlstream.erl					\
 	     core/exmpp_stringprep.erl					\
