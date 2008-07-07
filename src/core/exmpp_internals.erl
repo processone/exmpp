@@ -27,7 +27,7 @@
   gen_setopts/2,
   gen_peername/1,
   gen_sockname/1,
-  gen_controlling_process/1,
+  gen_controlling_process/2,
   gen_close/1
 ]).
 
@@ -237,16 +237,17 @@ gen_sockname({gen_tcp, Socket}) ->
 gen_sockname({Mod, Socket}) ->
     Mod:sockname(Socket).
 
-%% @spec (Socket_Desc) -> ok | {error, Reason}
+%% @spec (Socket_Desc, Pid) -> ok | {error, Reason}
 %%     Socket_Desc = {Mod, Socket}
+%%     Pid = pid()
 %%     Mod = atom()
 %%     Socket = term()
 %%     Reason = close | not_owner | posix()
 %% @doc Wrapper to abstract the `controlling_process' function of
 %% multiple communication modules.
 
-gen_controlling_process({Mod, Socket}) ->
-    Mod:controlling_process(Socket).
+gen_controlling_process({Mod, Socket}, Pid) ->
+    Mod:controlling_process(Socket, Pid).
 
 %% @spec (Socket_Desc) -> ok | {error, posix()}
 %%     Socket_Desc = {Mod, Socket}
