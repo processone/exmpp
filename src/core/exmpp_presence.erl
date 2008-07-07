@@ -109,9 +109,9 @@ get_show(#xmlel{ns = NS} = Presence) when ?IS_PRESENCE(Presence) ->
         undefined ->
             'online';
         Show_El ->
-	    %% TODO: Fix me: We should not need to convert back to
-	    %% list just to strip the data.
-            case string:strip(binary_to_list(exmpp_xml:get_cdata(Show_El))) of
+            % TODO: Fix me: we should not need to convert back to list
+            % just to strip the data.
+            case string:strip(exmpp_xml:get_cdata_as_list(Show_El)) of
                 "away" -> 'away';
                 "chat" -> 'chat';
                 "dnd"  -> 'dnd';

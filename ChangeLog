@@ -9,6 +9,9 @@
 	value. They're converted to binary internally and it's not possible to
 	get them back in their original type.
 
+	* src/core/exmpp_presence.erl: Use exmpp_xml:get_cdata_as_list/1
+	instead of binary_to_list/1.
+
 2008-07-02  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_jid.erl: Update jid() documentation.
