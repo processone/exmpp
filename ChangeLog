@@ -15,7 +15,21 @@
 	* src/core/exmpp_xmlstream.erl: A function was left behind: it now
 	uses exceptions too.
 
-	* ebin/exmpp.app.in: exmpp_callbacks was removed.
+	* ebin/exmpp.app.in, doc/Makefile.am: exmpp_callbacks was removed.
+
+	* Makefile.am, testsuite/Makefile.am, testsuite/etest.in,
+	testsuite/eunit_tty.erl: New testsuite based on EUnit.
+
+	* testsuite/jid.erl: First test; more to come. Old tests are still
+	there for this.
+
+	* testsuite/Emakefile.in, testsuite/test.sh, testsuite/testsuite.erl:
+	Remove old tools.
+
+	* configure.ac: Check for EUnit and escript(1).
+
+	* configure.ac, Makefile.am, doc/Makefile.am: Rename
+	BUILD_DOCUMENTATION to ENABLE_DOCUMENTATION for consistency's sake.
 
 2008-07-02  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 

@@ -188,7 +188,7 @@ AC_ARG_ENABLE([documentation],
 	AC_HELP_STRING([--enable-documentation],
 	    [build documentation [[default=yes]]]),,
 	enable_documentation="yes")
-AM_CONDITIONAL(BUILD_DOCUMENTATION, test "x${enable_documentation}" = "xyes")
+AM_CONDITIONAL(ENABLE_DOCUMENTATION, test "x${enable_documentation}" = "xyes")
 
 dnl Internal escaping function to use.
 AC_ARG_ENABLE([escaping-using-cdata],
@@ -236,6 +236,9 @@ if test "x${with_erlang}" = "x"; then
 			dnl Check for inets (to verify if http_base_64 is
 			dnl present).
 			AC_ERLANG_CHECK_LIB([inets],,)
+
+			dnl Check for EUnit (used for the testsuite).
+			AC_ERLANG_CHECK_LIB([eunit],,)
 		else
 			AC_MSG_ERROR(
 [Erlang not found. Fill the ERL variable with erl(1) path or provide
@@ -378,6 +381,24 @@ else
 	fi
 fi
 
+dnl escript(1) is used by the testsuite.
+AC_ARG_VAR([ESCRIPT], [Erlang/OTP interpreter command [autodetected]])
+
+dnl Check for escript(1).
+dnl Should we look first In Erlang's ROOT directory?
+dnl     Eg: [${ERLANG_ROOT_DIR}/bin${PATH_SEPARATOR}${PATH}]
+if test "x${ESCRIPT}" = "x"; then
+        AC_PATH_PROG([ESCRIPT], [escript],,)
+fi
+
+dnl Do we have all the tools for the testsuite to be used.
+if test "x${ERLANG_LIB_DIR_eunit}" != "x" -a "x${ESCRIPT}" != "x"; then
+	enable_testsuite="yes"
+else
+	enable_testsuite="no"
+fi
+AM_CONDITIONAL([ENABLE_TESTSUITE], [test "x${enable_testsuite}" = "xyes"])
+
 dnl ------------------------------------------------------------------
 dnl Plateform-specific cases.
 dnl ------------------------------------------------------------------
@@ -468,9 +489,11 @@ AC_CONFIG_FILES([
 	ebin/exmpp.appup
 	doc/Makefile
 	testsuite/Makefile
-	testsuite/Emakefile
 	Makefile
 ])
+AC_CONFIG_FILES([
+	testsuite/etest
+], [chmod +x testsuite/etest])
 AC_OUTPUT
 
 dnl --------------------------------------------------
@@ -486,9 +509,12 @@ echo "    Application dir.:   ${exp_ERLANG_INSTALL_LIB_DIR_exmpp}"
 echo
 echo "    C compiler:         ${CC} ${CFLAGS}"
 echo "    Erlang emulator:    ${ERL}"
+echo "    Erlang compiler:    ${ERLC}"
+echo "    Erlang interpreter: ${ESCRIPT}"
 echo
 echo "    Debug/warnings:     ${enable_debug}/${enable_warnings}"
 echo "    Compat modules:     ${enable_compat}"
+echo "    Testsuite:          ${enable_testsuite}"
 echo "    Documentation:      ${enable_documentation}"
 echo
 echo "    XML engines:"

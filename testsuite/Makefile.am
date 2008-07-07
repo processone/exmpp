@@ -1,82 +1,36 @@
 # $Id$
-	     
-ERL_FILES = testsuite.erl						\
-	    check_xml_parser.erl					\
-	    check_xml_attribute_handlers.erl				\
-	    check_xml_element_handlers.erl				\
-	    check_xml_cdata_handlers.erl				\
-	    check_xml_path.erl						\
-	    check_xml_converters.erl					\
-	    check_xmlstream.erl						\
-	    check_jid.erl						\
-	    check_stream.erl						\
-	    check_legacy_auth.erl					\
-	    check_coverity.erl
 
-BEAM_FILES = testsuite.beam						\
-	     check_xml_parser.beam					\
-	     check_xml_attribute_handlers.beam				\
-	     check_xml_element_handlers.beam				\
-	     check_xml_cdata_handlers.beam				\
-	     check_xml_path.beam					\
-	     check_xml_converters.beam					\
-	     check_xmlstream.beam					\
-	     check_jid.beam						\
-	     check_stream.beam						\
-	     check_legacy_auth.beam					\
-	     check_coverity.beam
+ETEST = $(builddir)/etest
+EUNIT_REPORTER = eunit_tty
 
-EXTRA_DIST = $(ERL_FILES) test.sh
+ERL_FILES = $(EUNIT_REPORTER).erl					\
+	    jid.erl
 
-CLEANFILES = $(BEAM_FILES) *.html $(TESTS) erl_crash.dump
+JUNIT_REPORTS = exmpp-junit-*.xml
 
 REAL_TESTS =
 
 if WITH_EXPAT
-REAL_TESTS += check_xml_parser						\
-	      check_xmlstream
 endif
 
-REAL_TESTS += check_xml_attribute_handlers				\
-	      check_xml_element_handlers				\
-	      check_xml_cdata_handlers					\
-	      check_xml_path						\
-	      check_xml_converters					\
-	      check_jid							\
-	      check_stream						\
-	      check_legacy_auth
+REAL_TESTS += jid
 
-COVERED_MODULES = exmpp_xml						\
-		  exmpp_xmlstream					\
-		  exmpp_stringprep					\
-		  exmpp_jid						\
-		  exmpp_stream						\
-		  exmpp_client_legacy_auth				\
-		  exmpp_server_legacy_auth
+TESTS = $(REAL_TESTS)
 
-TESTS = $(REAL_TESTS) check_coverity
+EXTRA_DIST = $(ERL_FILES)
 
-TESTS_ENVIRONMENT = ERL="$(ERL)"					\
-	TOP_SRCDIR="$(top_srcdir)"					\
-	TOP_BUILDDIR="$(top_builddir)"					\
-	TESTS="$(REAL_TESTS)"						\
-	COVERED_MODULES="$(COVERED_MODULES)"
+CLEANFILES = $(EUNIT_REPORTER).beam $(TESTS) $(JUNIT_REPORTS) erl_crash.dump
 
-TSCRIPT = $(srcdir)/test.sh
+$(EUNIT_REPORTER).beam: $(srcdir)/$(EUNIT_REPORTER).erl $(top_srcdir)/include/exmpp.hrl
+	@(echo "Recompile: $(srcdir)/$(EUNIT_REPORTER)" &&		\
+	  $(ERLC) -Wall +debug_info +report +warn_export_vars		\
+	  +warn_shadow_vars +warn_unused_import				\
+	  -I $(top_srcdir)/include $(srcdir)/$(EUNIT_REPORTER).erl) || :
 
-$(BEAM_FILES): $(top_srcdir)/include/exmpp.hrl $(ERL_FILES)
-	@$(ERL) -noshell -pa @top_builddir@/ebin			\
-		-eval "case make:all() of				\
-		         up_to_date -> halt(0);				\
-		         Err ->						\
-		           io:format(\"~p~n\", [Err]),			\
-		           halt(1)					\
-		       end"
+$(TESTS): $(EUNIT_REPORTER).beam $(ETEST)
+	@(test ! -e $@ -o $(ETEST) -nt $@ && echo "Create: $@" &&	\
+	  cp $(ETEST) $@ && chmod 755 $@) || :
 
-
-all-local:
-	@rm -f index.html
-
-$(TESTS): $(BEAM_FILES) $(TSCRIPT)
-	@(test ! -e $@ -o $(TSCRIPT) -nt $@ && echo "Create: $@" &&	\
-	 cp $(TSCRIPT) $@ && chmod 755 $@) || :
+check-junit: $(EUNIT_REPORTER).beam
+	-rm -f $(JUNIT_REPORTS)
+	$(ETEST) -junit $(TESTS)

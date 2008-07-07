@@ -2,8 +2,6 @@
 
 EXTRA_DIST = overview.edoc stylesheet.css
 
-if BUILD_DOCUMENTATION
-
 stylesheet.css:
 	(test "$(srcdir)" != "." &&\
 	 (test ! -e "$@" || test "$(srcdir)/$@" -nt "$@") &&\
@@ -22,7 +20,6 @@ HTML_FILES = index.html							\
 	     overview-summary.html					\
 	     packages-frame.html					\
 	     exmpp.html							\
-	     exmpp_callbacks.html					\
 	     exmpp_client_binding.html					\
 	     exmpp_client_compression.html				\
 	     exmpp_client_legacy_auth.html				\
@@ -89,5 +86,3 @@ htmldocdir = $(ERLANG_INSTALL_LIB_DIR_exmpp)/doc/html
 htmldoc_DATA = $(HTML_FILES) stylesheet.css erlang.png
 
 CLEANFILES = $(HTML_FILES) edoc-info erlang.png
-
-endif
