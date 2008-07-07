@@ -37,6 +37,11 @@
   decode_base64/1
 ]).
 
+% List helpers.
+-export([
+  keystore/4
+]).
+
 % Utils.
 -export([
   random_id/0,
@@ -296,6 +301,35 @@ decode_base64(Base64) ->
 decode_base64(Base64) ->
     base64:decode_to_string(Base64).
 -endif.
+
+% --------------------------------------------------------------------
+% List helpers.
+% --------------------------------------------------------------------
+
+%% @spec (Key, N, Tuples_List, New_Tuple) -> New_Tuples_List
+%%     Key = term()
+%%     N = integer()
+%%     Tuples_List = [Tuple]
+%%     New_Tuple = Tuple
+%%     New_Tuples_List = Tuple
+%%     Tuple = tuple()
+%% @doc Returns a copy of `Tuple_List' where the first occurrence of a
+%% tuple T whose `N'th element compares equal to `Key' is replaced with
+%% `New_Tuple', if there is such a tuple T.
+%%
+%% This feature appeared in Erlang R12B.
+%%
+%% @see lists:keystore/4.
+
+keystore(Key, N, List, New) when is_integer(N), N > 0, is_tuple(New) ->
+    keystore2(Key, N, List, New).
+
+keystore2(Key, N, [Tuple | Rest], New) when element(N, Tuple) == Key ->
+    [New | Rest];
+keystore2(Key, N, [Tuple | Rest], New) ->
+    [Tuple | keystore2(Key, N, Rest, New)];
+keystore2(_Key, _N, [], New) ->
+    [New].
 
 % --------------------------------------------------------------------
 % Utils.

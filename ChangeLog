@@ -31,6 +31,9 @@
 	* configure.ac, Makefile.am, doc/Makefile.am: Rename
 	BUILD_DOCUMENTATION to ENABLE_DOCUMENTATION for consistency's sake.
 
+	* src/core/exmpp_internals.erl, src/core/exmpp_xml.erl:
+	lists:keystore/4 appeared only in R12B. Use a replacement function.
+
 2008-07-02  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_jid.erl: Update jid() documentation.
