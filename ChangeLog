@@ -3,6 +3,8 @@
 	* src/core/exmpp_internals.erl (gen_controlling_process): Fix API: the
 	second argument (Pid) was missing!
 
+	* src/core/exmpp_stream.erl, src/core/exmpp_compress.erl: Style.
+
 2008-07-02  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_jid.erl: Update jid() documentation.

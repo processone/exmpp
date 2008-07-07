@@ -249,7 +249,7 @@ enable_compression(Socket_Desc, Options) ->
 
         % Set compression level.
         Level = get_compress_level_from_options(Options),
-	engine_set_compress_level(Port, Level),
+        engine_set_compress_level(Port, Level),
 
         % Packet mode.
         Packet_Mode = get_packet_mode_from_options(Options),
