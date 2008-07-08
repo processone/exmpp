@@ -16,7 +16,6 @@ EXTRA_DIST = core/exmpp.erl						\
 	     core/exmpp_presence.erl					\
 	     core/exmpp_tls.erl						\
 	     core/exmpp_compress.erl					\
-	     network/exmpp_callbacks.erl				\
 	     network/exmpp_session.erl					\
 	     network/exmpp_ssl.erl					\
 	     network/exmpp_tcp.erl					\

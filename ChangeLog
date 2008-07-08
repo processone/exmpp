@@ -17,6 +17,8 @@
 
 	* TODO, doc/overview.edoc: Update TODO.
 
+	* src/Makefile.am: exmpp_callbacks was removed.
+
 2008-07-07  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_internals.erl (gen_controlling_process): Fix API: the
