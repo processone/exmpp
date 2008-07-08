@@ -1,3 +1,14 @@
+2008-07-08  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_xml.erl: Add functions to remove text nodes
+	containing only whitespaces (indentation usually). Add function to
+	indent an XML tree (for debugging purpose mostly). Add support to load
+	automatically known namespaces/names/attributes lists from exmpp
+	application environment; this is disabled by default and can be
+	enabled with the 'autoload_known' flag. Add function filter/3, fold/3,
+	foreach/2 and map/2 which are equivalent to their counterpart in
+	'lists'.
+
 2008-07-07  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_internals.erl (gen_controlling_process): Fix API: the

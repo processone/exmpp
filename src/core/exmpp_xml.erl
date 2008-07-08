@@ -94,7 +94,11 @@
   append_child/2,
   append_children/2,
   replace_child/3,
-  set_children/2
+  set_children/2,
+  filter/2,
+  fold/3,
+  foreach/2,
+  map/2
 ]).
 
 % Character data handling.
@@ -108,7 +112,10 @@
   set_cdata_in_list/2,
   set_cdata/2,
   remove_cdata_from_list/1,
-  remove_cdata/1
+  remove_cdata/1,
+  is_whitespace/1,
+  remove_whitespaces_from_list/1,
+  remove_whitespaces/1
 ]).
 
 % Misc. functions on the whole XML tree.
@@ -121,6 +128,9 @@
   xmlelement_to_xmlel_and_ns_tables/3,
   node_to_list/3,
   document_to_list/1,
+  deindent_document/1,
+  indent_document/2,
+  indent_document/3,
   clear_endtag_tuples/1,
   escape_using_entities/1,
   escape_using_cdata/1,
@@ -257,6 +267,11 @@ reset_parser2(Parser, Options) ->
         {error, Reason, Infos} ->
             throw({xml_parser, options, Reason, Infos});
         New_Parser ->
+            % We can now autoload known namespaces/names/attrs.
+            case proplists:get_bool(autoload_known, Options) of
+                true  -> autoload_known(New_Parser);
+                false -> ok
+            end,
             New_Parser
     end.
 
@@ -292,8 +307,9 @@ add_known_nss(_Parser, []) ->
 
 add_known_ns(Parser, NS) when is_atom(NS) ->
     add_known_ns(Parser, atom_to_list(NS));
-add_known_ns(#xml_parser{port = Port} = _Parser, NS) ->
-    port_control(Port, ?EXPAT_ADD_KNOWN_NS, term_to_binary(NS)).
+add_known_ns(#xml_parser{port = Port} = _Parser, NS) when is_list(NS) ->
+    binary_to_term(port_control(Port, ?EXPAT_ADD_KNOWN_NS,
+      term_to_binary(NS))).
 
 %% @spec (Parser, Names_List) -> ok
 %%     Parser = xmlparser()
@@ -312,8 +328,9 @@ add_known_names(_Parser, []) ->
 
 add_known_name(Parser, Name) when is_atom(Name) ->
     add_known_name(Parser, atom_to_list(Name));
-add_known_name(#xml_parser{port = Port} = _Parser, Name) ->
-    port_control(Port, ?EXPAT_ADD_KNOWN_NAME, term_to_binary(Name)).
+add_known_name(#xml_parser{port = Port} = _Parser, Name) when is_list(Name) ->
+    binary_to_term(port_control(Port, ?EXPAT_ADD_KNOWN_NAME,
+      term_to_binary(Name))).
 
 %% @spec (Parser, Attrs_List) -> ok
 %%     Parser = xmlparser()
@@ -332,9 +349,39 @@ add_known_attrs(_Parser, []) ->
 
 add_known_attr(Parser, Attr) when is_atom(Attr) ->
     add_known_attr(Parser, atom_to_list(Attr));
-add_known_attr(#xml_parser{port = Port} = _Parser, Attr) ->
+add_known_attr(#xml_parser{port = Port} = _Parser, Attr) when is_list(Attr) ->
     binary_to_term(port_control(Port, ?EXPAT_ADD_KNOWN_ATTR,
       term_to_binary(Attr))).
+
+%% @spec (Parser) -> ok
+%%     Parser = xmlparser()
+%% @doc Autoload known namespaces/names/attributes.
+
+autoload_known(Parser) ->
+    case application:get_env(exmpp, xml_known_nss) of
+        undefined ->
+            ok;
+        {ok, NSs} when is_list(NSs) ->
+            add_known_nss(Parser, NSs);
+        {ok, Bad_NSs} ->
+            throw({xml, autoload_known, invalid_known_nss, Bad_NSs})
+    end,
+    case application:get_env(exmpp, xml_known_names) of
+        undefined ->
+            ok;
+        {ok, Names} when is_list(Names) ->
+            add_known_names(Parser, Names);
+        {ok, Bad_Names} ->
+            throw({xml, autoload_known, invalid_known_names, Bad_Names})
+    end,
+    case application:get_env(exmpp, xml_known_attrs) of
+        undefined ->
+            ok;
+        {ok, Attrs} when is_list(Attrs) ->
+            add_known_attrs(Parser, Attrs);
+        {ok, Bad_Attrs} ->
+            throw({xml, autoload_known, invalid_known_attrs, Bad_Attrs})
+    end.
 
 %% @spec (Parser, Data) -> [XML_Element] | continue
 %%     Parser = xmlparser()
@@ -1303,6 +1350,124 @@ set_children(#xmlel{} = XML_Element, New_Children) ->
 set_children(#xmlelement{} = XML_Element, New_Children) ->
     XML_Element#xmlelement{children = New_Children}.
 
+%% @spec (Pred, XML_Element) -> New_XML_Element
+%%     Pred = function()
+%%     Child = xmlel() | xmlelement()
+%%     XML_Element = xmlel() | xmlelement()
+%%     New_XML_Element = xmlel() | xmlelement()
+%% @doc Remove any children for which `Pred(Child)' doesn't return `true'.
+%%
+%% `Pred' has the following prototype:
+%% ```
+%% fun(XML_Element, Child) -> boolean()
+%% '''
+%%
+%% If `children' is `undefined', the function isn't called.
+
+filter(Pred, #xmlel{children = Children} = XML_Element)
+  when is_function(Pred, 2) ->
+    New_Children = filter2(Pred, XML_Element, Children),
+    XML_Element#xmlel{children = New_Children};
+filter(Pred, #xmlelement{children = Children} = XML_Element)
+  when is_function(Pred, 2) ->
+    New_Children = filter2(Pred, XML_Element, Children),
+    XML_Element#xmlelement{children = New_Children}.
+
+filter2(_Pred, _XML_Element, undefined) ->
+    undefined;
+filter2(Pred, XML_Element, Children) ->
+    [C || C <- Children, Pred(XML_Element, C)].
+
+%% @spec (Fun, Acc0, XML_Element) -> Acc1
+%%     Fun = function()
+%%     Acc_In = term()
+%%     Child = xmlel() | xmlelement() | undefined
+%%     Acc_Out = term()
+%%     Acc0 = term()
+%%     XML_Element = xmlel() | xmlelement()
+%%     Acc1 = term()
+%% @doc Call `Fun' for each `XML_Element''s children and return the last
+%% accumulator.
+%%
+%% `Fun' has the following prototype:
+%% ```
+%% fun(Acc_In, XML_Element, Child) -> Acc_Out
+%% '''
+
+fold(Fun, Acc0, #xmlel{children = Children} = XML_Element)
+  when is_function(Fun, 3) ->
+    fold2(Fun, Acc0, XML_Element, Children);
+fold(Fun, Acc0, #xmlelement{children = Children} = XML_Element)
+  when is_function(Fun, 3) ->
+    fold2(Fun, Acc0, XML_Element, Children).
+
+fold2(Fun, Acc_In, XML_Element, undefined) ->
+    Fun(Acc_In, XML_Element, undefined);
+fold2(Fun, Acc_In, XML_Element, [Child | Rest]) ->
+    fold2(Fun, Fun(Acc_In, XML_Element, Child), XML_Element, Rest);
+fold2(_Fun, Acc_Out, _XML_Element, []) ->
+    Acc_Out.
+
+%% @spec (Fun, XML_Element) -> ok
+%%     Fun = function()
+%%     Child = xmlel() | xmlelement() | undefined
+%%     XML_Element = xmlel() | xmlelement()
+%% @doc Call `Fun' for each `XML_Element''s children.
+%%
+%% `Fun' return value is ignored.
+%%
+%% `Fun' has the following prototype:
+%% ```
+%% fun(XML_Element, Child) -> Acc_Out
+%% '''
+
+foreach(Fun, #xmlel{children = Children} = XML_Element)
+  when is_function(Fun, 2) ->
+    foreach2(Fun, XML_Element, Children);
+foreach(Fun, #xmlelement{children = Children} = XML_Element)
+  when is_function(Fun, 2) ->
+    foreach2(Fun, XML_Element, Children).
+
+foreach2(Fun, XML_Element, undefined) ->
+    Fun(XML_Element, undefined);
+foreach2(Fun, XML_Element, [Child | Rest]) ->
+    Fun(XML_Element, Child),
+    foreach2(Fun, XML_Element, Rest);
+foreach2(_Fun, _XML_Element, []) ->
+    ok.
+
+%% @spec(Fun, XML_Element) -> New_XML_Element
+%%     Fun = function()
+%%     Child = xmlel() | xmlelement()
+%%     New_Child = xmlel() | xmlelement()
+%%     XML_Element = xmlel() | xmlelement()
+%%     New_XML_Element = xmlel() | xmlelement()
+%% @doc Apply `Fun' on each child and replace the original one with the
+%% function return value.
+%%
+%% `Fun' has the following prototype:
+%% ```
+%% fun(XML_Element, Child) -> New_Child
+%% '''
+%%
+%% If `children' is `undefined', the function isn't called.
+
+map(Fun, #xmlel{children = Children} = XML_Element)
+  when is_function(Fun, 2) ->
+    New_Children = map2(Fun, XML_Element, Children),
+    XML_Element#xmlel{children = New_Children};
+map(Fun, #xmlelement{children = Children} = XML_Element)
+  when is_function(Fun, 2) ->
+    New_Children = map2(Fun, XML_Element, Children),
+    XML_Element#xmlelement{children = New_Children}.
+
+map2(_Fun, _XML_Element, undefined) ->
+    undefined;
+map2(Fun, XML_Element, [Child | Rest]) ->
+    [Fun(XML_Element, Child) | map2(Fun, XML_Element, Rest)];
+map2(_Fun, _XML_Element, []) ->
+    [].
+
 % --------------------------------------------------------------------
 % Functions to handle XML text nodes.
 % This is similar to the DOM interface but NOT compliant.
@@ -1458,8 +1623,8 @@ remove_cdata_from_list(undefined) ->
 remove_cdata_from_list(Children) ->
     [Child || Child <- Children, remove_cdata_from_list2(Child)].
 
-remove_cdata_from_list2({xmlcdata, _CData}) -> false;
-remove_cdata_from_list2(_)                  -> true.
+remove_cdata_from_list2(#xmlcdata{}) -> false;
+remove_cdata_from_list2(_)           -> true.
 
 %% @spec (XML_Element) -> New_XML_Element
 %%     XML_Element = xmlel() | xmlelement()
@@ -1475,6 +1640,51 @@ remove_cdata(#xmlel{children = Children} = XML_Element) ->
     XML_Element#xmlel{children = New_Children};
 remove_cdata(#xmlelement{children = Children} = XML_Element) ->
     New_Children = remove_cdata_from_list(Children),
+    XML_Element#xmlelement{children = New_Children}.
+
+%% @spec (CData) -> bool()
+%%     CData = xmlcdata()
+%% @doc Tell if this text node contains only whitespaces.
+%%
+%% Whitespaces are `\s', `\t', `\n' and `\r'.
+
+is_whitespace(#xmlcdata{cdata = CData}) ->
+    is_whitespace2(CData);
+is_whitespace(_) ->
+    false.
+
+is_whitespace2(<<C:8, Rest/binary>>)
+  when C == $\s; C == $\t; C == $\n; C == $\r ->
+    is_whitespace2(Rest);
+is_whitespace2(<<>>) ->
+    true;
+is_whitespace2(_CData) ->
+    false.
+
+%% @spec (Children) -> New_Children
+%%     Children = [xmlel() | xmlelement() | xmlcdata()] | undefined
+%%     New_Children = [xmlel() | xmlelement() | xmlcdata()] | undefined
+%% @doc Remove text nodes containing only whitespaces.
+%%
+%% @see is_whitespace/1.
+
+remove_whitespaces_from_list(undefined) ->
+    undefined;
+remove_whitespaces_from_list(Children) ->
+    [Child || Child <- Children, not is_whitespace(Child)].
+
+%% @spec (XML_Element) -> New_XML_Element
+%%     XML_Element = xmlel() | xmlelement()
+%%     New_XML_Element = xmlel() | xmlelement()
+%% @doc Remove text nodes containing only whitespaces.
+%%
+%% @see is_whitespace/1.
+
+remove_whitespaces(#xmlel{children = Children} = XML_Element) ->
+    New_Children = remove_whitespaces_from_list(Children),
+    XML_Element#xmlel{children = New_Children};
+remove_whitespaces(#xmlelement{children = Children} = XML_Element) ->
+    New_Children = remove_whitespaces_from_list(Children),
     XML_Element#xmlelement{children = New_Children}.
 
 % --------------------------------------------------------------------
@@ -2136,6 +2346,93 @@ attr_to_list({Name, Value}) ->
 document_to_list(El) ->
     node_to_list(El, [], []).
 
+%% @spec (XML_Element) -> New_XML_Element
+%%     XML_Element = xmlel() | xmlelement()
+%%     New_XML_Element = xmlel() | xmlelement()
+%% @doc Recursively remove text nodes containing only whitespaces.
+%%
+%% @see is_whitespace/1.
+
+deindent_document(#xmlel{children = Children} = El) ->
+    New_Children = deindent_children(remove_whitespaces_from_list(Children)),
+    El#xmlel{children = New_Children};
+deindent_document(#xmlelement{children = Children} = El) ->
+    New_Children = deindent_children(remove_whitespaces_from_list(Children)),
+    El#xmlelement{children = New_Children}.
+
+deindent_children(Children) ->
+    deindent_children2(Children, []).
+
+deindent_children2([Child | Rest], Result)
+  when is_record(Child, xmlel); is_record(Child, xmlelement) ->
+    New_Child = deindent_document(Child),
+    deindent_children2(Rest, [New_Child | Result]);
+deindent_children2([#xmlcdata{cdata = CData} | Rest], Result) ->
+    New_Child = #xmlcdata{cdata = exmpp_utils:strip(CData)},
+    deindent_children2(Rest, [New_Child | Result]);
+deindent_children2([], Result) ->
+    lists:reverse(Result).
+
+%% @spec (XML_Element, Indent) -> New_XML_Element
+%%     XML_Element = xmlel() | xmlelement()
+%%     Indent = binary()
+%%     New_XML_Element = xmlel() | xmlelement()
+%% @doc Add whitespaces text nodes to indent the document.
+%%
+%% Indentation of {@link xmlendtag()} isn't supported yet.
+
+indent_document(El, Indent) ->
+    indent_document(El, Indent, <<>>).
+
+%% @spec (XML_Element, Indent, Previous_Total) -> New_XML_Element
+%%     XML_Element = xmlel() | xmlelement()
+%%     Indent = binary()
+%%     Previous_Total = binary()
+%%     New_XML_Element = xmlel() | xmlelement()
+%% @doc Add whitespaces text nodes to indent the document.
+%%
+%% Indentation of {@link xmlendtag()} isn't supported yet.
+
+indent_document(El, Indent, Previous_Total) ->
+    % First, we remove previous indentation.
+    New_El = deindent_document(El),
+    indent_document2(New_El, Indent, Previous_Total).
+
+indent_document2(#xmlel{children = Children} = El,
+  Indent, Previous_Total) ->
+    New_Children = indent_children(Children, Indent, Previous_Total),
+    El#xmlel{children = New_Children};
+indent_document2(#xmlelement{children = Children} = El,
+  Indent, Previous_Total) ->
+    New_Children = indent_children(Children, Indent, Previous_Total),
+    El#xmlelement{children = New_Children}.
+
+indent_children(undefined, _Indent, _Previous_Total) ->
+    undefined;
+indent_children(Children, Indent, Previous_Total) ->
+    New_Previous_Total = list_to_binary([Previous_Total, Indent]),
+    Before = #xmlcdata{cdata = list_to_binary([<<"\n">>, New_Previous_Total])},
+    End = #xmlcdata{cdata = list_to_binary([<<"\n">>, Previous_Total])},
+    indent_children2(Children, Indent, New_Previous_Total, Before, End, []).
+
+indent_children2([], _Indent, _Previous_Total, _Before, _End, []) ->
+    [];
+indent_children2([#xmlcdata{cdata = CData}], _Indent, _Previous_Total,
+  _Before, _End, []) ->
+    [#xmlcdata{cdata = exmpp_utils:strip(CData)}];
+indent_children2([Child | Rest], Indent, Previous_Total, Before, End, Result)
+  when is_record(Child, xmlel); is_record(Child, xmlelement) ->
+    New_Child = indent_document2(Child, Indent, Previous_Total),
+    New_Result = [New_Child, Before | Result],
+    indent_children2(Rest, Indent, Previous_Total, Before, End, New_Result);
+indent_children2([#xmlcdata{cdata = CData} | Rest], Indent, Previous_Total,
+  Before, End, Result) ->
+    New_Child = #xmlcdata{cdata = exmpp_utils:strip(CData)},
+    New_Result = [New_Child, Before | Result],
+    indent_children2(Rest, Indent, Previous_Total, Before, End, New_Result);
+indent_children2([], _Indent, _Previous_Total, _Before, End, Result) ->
+    lists:reverse([End | Result]).
+
 %% @spec (XML_Elements) -> Cleaned_XML_Elements
 %%     XML_Elements = [xmlel() | xmlelement() | xmlcdata() |
 %%         xmlendtag()]
@@ -2359,6 +2656,9 @@ set_option(Port, {endtag, Endtag}) when is_boolean(Endtag) ->
     port_control(Port, ?EXPAT_SET_ENDTAG, term_to_binary(Endtag)),
     ok;
 
+set_option(_Port, {autoload_known, Autoload}) when is_boolean(Autoload) ->
+    ok;
+
 set_option(_Port, Invalid_Option) ->
     {error, invalid, Invalid_Option}.
 
@@ -2370,7 +2670,7 @@ set_option(_Port, Invalid_Option) ->
 %% Handler for the Expat parser, initialized with a call to {@link
 %% start_parser/0}.
 
-%% @type xmlparseroption() = Namespace_Option | Names_Format | Checks | Stanza_Max_Size | Root_Depth | Send_End_Element
+%% @type xmlparseroption() = Namespace_Option | Names_Format | Checks | Stanza_Max_Size | Root_Depth | Send_End_Element | Autoload_Known
 %%     Namespace_Option = {namespace, boolean()}
 %%     Name_Format = {name_as_atom, boolean()}
 %%     Checks = NS_Check | Names_Check | Attrs_Check
@@ -2379,7 +2679,8 @@ set_option(_Port, Invalid_Option) ->
 %%       Attrs_Check = {attrs_check, boolean()}
 %%     Stanza_Max_Size  = {maxsize, infinity} | {maxsize, Size}
 %%     Root_Depth = {root_depth, none} | {root_depth, Depth}
-%%     Send_End_Element = {endtag, boolean()}.
+%%     Send_End_Element = {endtag, boolean()}
+%%     Autoload_Known = {autoload_known, boolean()}.
 %% Options of the form `{Key, boolean()}' can be specified as `Key'. See
 %% {@link proplists}.
 %%
@@ -2423,6 +2724,13 @@ set_option(_Port, Invalid_Option) ->
 %% <br/><br/>
 %% The `endtag' option selects if the parser must produce {@link
 %% xmlendtag()} when it encouters an end tag above `root_depth'.
+%%
+%% <br/><br/>
+%% The `autoload_known' option selects if namespaces/names/attributes
+%% known tables are filled with the ones from the `exmpp' application
+%% environment. The parameters are `xml_known_nss', `xml_known_names'
+%% and `xml_known_attrs'. If they're present, they must be set to a list
+%% of atoms or strings.
 
 %% @type xmlelement() = {xmlelement, Name, Attrs, Children}
 %%     Name = string()
