@@ -187,7 +187,8 @@ print_group_end(#state{mode = junit} = St, Id, Desc, _Count, Time, _Output) ->
     ),
     % Write XML file.
     Filename = junit_report_filename(Id, Desc),
-    Content = exmpp_xml:document_to_list(Testsuite),
+    Content = exmpp_xml:document_to_list(
+      exmpp_xml:indent_document(Testsuite, <<"  ">>)),
     file:write_file(Filename, Content),
     St;
 print_group_end(St, _Id, _Desc, _Count, _Time, _Output) ->
@@ -221,7 +222,8 @@ print_build_errors(#state{mode = junit} = St, _Id, Desc,
     ),
     % Write XML file.
     Filename = junit_report_filename(build, Desc),
-    Content = exmpp_xml:document_to_list(Testsuite),
+    Content = exmpp_xml:document_to_list(
+      exmpp_xml:indent_document(Testsuite, <<"  ">>)),
     file:write_file(Filename, Content),
     St;
 print_build_errors(St, _Id, _Desc, _Count, _Time, _Output) ->
