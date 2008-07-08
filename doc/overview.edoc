@@ -39,12 +39,5 @@ communication with a remote entity, nor the logical stanzas flow.
   <li>Fix character data handling above `root_depth'.</li>
 </ul>
 <h3>Improvements</h3>
-<ul>
-  <li>Use escript(1) for the testsuite.</li>
-</ul>
 <h3>New features</h3>
-<ul>
-  <li>Add equivalents to lists:filter/2 and lists:foldl/3 to {@link
-  exmpp_xml}</li>
-</ul>
 <!-- vim:set ft=xhtml: -->
