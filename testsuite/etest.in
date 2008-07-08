@@ -19,6 +19,7 @@ main([]) ->
 %% XML file is written by our eunit_tty. This always exits with 0.
 
 main(["-junit" | Tests]) ->
+    code:add_patha(filename:join(["@top_builddir@", "ebin"])),
     Test_Set = make_junit_testset(Tests, [@EMKOPTS@]),
     Ret = eunit:test(Test_Set, [{mode, junit}]),
     stop(Ret);
@@ -27,6 +28,7 @@ main(["-junit" | Tests]) ->
 %% A single argument is considered as the test name. See main([]).
 
 main([Test]) ->
+    code:add_patha(filename:join(["@top_builddir@", "ebin"])),
     Ret = run_test(Test, [@EMKOPTS@]),
     stop(Ret);
 

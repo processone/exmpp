@@ -9,6 +9,9 @@
 	foreach/2 and map/2 which are equivalent to their counterpart in
 	'lists'.
 
+	* testsuite/etest.in: Don't forgot to add $top_builddir/ebin to the
+	code path or the testsuite will check the installed exmpp.
+
 2008-07-07  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_internals.erl (gen_controlling_process): Fix API: the
