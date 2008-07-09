@@ -154,6 +154,10 @@
 % Defined by XEP-0078: Non-SASL Authentication.
 -define(NS_LEGACY_AUTH,         'jabber:iq:auth').
 
+% Defined by XEP-0114: Jabber Component Protocol.
+-define(NS_COMPONENT_ACCEPT,    'jabber:component:accept').
+-define(NS_COMPONENT_CONNECT,   'jabber:component:connect').
+
 % Defined by XEP-0138: Stream Compression.
 -define(NS_COMPRESS,            'http://jabber.org/features/compress').
 

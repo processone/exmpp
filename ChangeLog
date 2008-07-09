@@ -17,6 +17,8 @@
 	'Default_NS' will be set to [[?NS_JABBER_CLIENT, ?NS_JABBER_SERVER,
 	?NS_COMPONENT_ACCEPT], ...].
 
+	* include/exmpp.hrl: Add Jabber Component Protocol namespaces macros.
+
 2008-07-08  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_xml.erl: Add functions to remove text nodes
