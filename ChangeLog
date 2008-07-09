@@ -19,6 +19,12 @@
 
 	* include/exmpp.hrl: Add Jabber Component Protocol namespaces macros.
 
+	* src/core/exmpp_stanza.erl (to_list/2, to_list/3): Add a note about
+	equivalent namespaces in exmpp_xml:xmlel_to_xmlelemen/3. Add Server
+	Dialback to default prefixed namespace.
+	(to_list/1): Add a function which calls to_list/2 with common XMPP
+	default namespaces.
+
 2008-07-08  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_xml.erl: Add functions to remove text nodes
