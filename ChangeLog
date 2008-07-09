@@ -25,6 +25,13 @@
 	(to_list/1): Add a function which calls to_list/2 with common XMPP
 	default namespaces.
 
+	* src/core/exmpp_xml.erl: Fix an old annoyance with 'name_as_atom':
+	when functions need to match an attribute/element name or namespace,
+	new matching functions will take care of comparison between strings
+	and atoms. So now, the user doesn't have to know if a name or a
+	namespace is encoded as an atom or a string. But of course, it will be
+	faster if he knows the type.
+
 2008-07-08  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_xml.erl: Add functions to remove text nodes

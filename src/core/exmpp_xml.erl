@@ -55,6 +55,8 @@
 
 % Attribute handling.
 -export([
+  attribute_matches/2,
+  attribute_matches/3,
   get_attribute_node_from_list/2,
   get_attribute_node_from_list/3,
   get_attribute_node/2,
@@ -80,6 +82,9 @@
 
 % Element handling.
 -export([
+  element_matches/2,
+  element_matches/3,
+  element_ns_matches/2,
   get_element_by_name/2,
   get_element_by_name/3,
   get_elements_by_name/3,
@@ -581,6 +586,70 @@ get_ns_as_atom(XML_Element) ->
 % This is similar to the DOM interface but NOT compliant.
 % --------------------------------------------------------------------
 
+%% @spec (Attr, Name) -> boolean()
+%%     Attr = xmlnsattribute() | xmlattribute()
+%%     Name = atom() | string()
+%% @doc Tell if `Attr' is named `Name'.
+%%
+%% It takes care of comparison between string and atom.
+
+attribute_matches(#xmlattr{name = Name}, Name) ->
+    true;
+attribute_matches({Name, _Value}, Name) ->
+    true;
+
+attribute_matches(#xmlattr{name = Name_A}, Name)
+  when is_atom(Name_A), is_list(Name) ->
+    Name_A == list_to_atom(Name);
+attribute_matches(#xmlattr{name = Name}, Name_A)
+  when is_atom(Name_A), is_list(Name) ->
+    Name_A == list_to_atom(Name);
+
+attribute_matches({Name_A, _Value}, Name)
+  when is_atom(Name_A), is_list(Name) ->
+    Name_A == list_to_atom(Name);
+attribute_matches({Name, _Value}, Name_A)
+  when is_atom(Name_A), is_list(Name) ->
+    Name_A == list_to_atom(Name);
+
+attribute_matches(_Attr, _Name) ->
+    false.
+
+%% @spec (Attr, NS, Name) -> boolean()
+%%     Attr = xmlnsattribute()
+%%     NS = atom() | string()
+%%     Name = atom() | string()
+%% @doc Tell if `Attr' has the namespace `NS' and is named `Name'.
+%%
+%% It takes care of comparison between string and atom.
+
+attribute_matches(#xmlattr{ns = NS, name = Name}, NS, Name) ->
+    true;
+
+attribute_matches(#xmlattr{ns = NS_A, name = Name_A}, NS, Name)
+  when is_atom(NS_A), is_list(NS), is_atom(Name_A), is_list(Name) ->
+    NS_A == list_to_atom(NS) andalso Name_A == list_to_atom(Name);
+attribute_matches(#xmlattr{ns = NS, name = Name}, NS_A, Name_A)
+  when is_atom(NS_A), is_list(NS), is_atom(Name_A), is_list(Name) ->
+    NS_A == list_to_atom(NS) andalso Name_A == list_to_atom(Name);
+
+attribute_matches(#xmlattr{ns = NS_A, name = Name}, NS, Name)
+  when is_atom(NS_A), is_list(NS) ->
+    NS_A == list_to_atom(NS);
+attribute_matches(#xmlattr{ns = NS, name = Name}, NS_A, Name)
+  when is_atom(NS_A), is_list(NS) ->
+    NS_A == list_to_atom(NS);
+
+attribute_matches(#xmlattr{ns = NS, name = Name_A}, NS, Name)
+  when is_atom(Name_A), is_list(Name) ->
+    Name_A == list_to_atom(Name);
+attribute_matches(#xmlattr{ns = NS, name = Name}, NS, Name_A)
+  when is_atom(Name_A), is_list(Name) ->
+    Name_A == list_to_atom(Name);
+
+attribute_matches(_Attr, _NS, _Name) ->
+    false.
+
 %% @spec (Attrs, Attr_Name) -> Attr | undefined
 %%     Attrs = [xmlnsattribute() | xmlattribute()]
 %%     Attr_Name = atom() | string()
@@ -590,13 +659,9 @@ get_ns_as_atom(XML_Element) ->
 %% Return `undefined' if the attribute isn't found.
 
 get_attribute_node_from_list([Attr | Rest], Name) ->
-    case Attr of
-        #xmlattr{name = Name} ->
-            Attr;
-        {Name, _Value} ->
-            Attr;
-        _ ->
-            get_attribute_node_from_list(Rest, Name)
+    case attribute_matches(Attr, Name) of
+        true  -> Attr;
+        false -> get_attribute_node_from_list(Rest, Name)
     end;
 get_attribute_node_from_list([], _Name) ->
     undefined.
@@ -612,11 +677,9 @@ get_attribute_node_from_list([], _Name) ->
 %% Return `undefined' if the attribute isn't found.
 
 get_attribute_node_from_list([Attr | Rest], NS, Name) ->
-    case Attr of
-        #xmlattr{ns = NS, name = Name} ->
-            Attr;
-        _ ->
-            get_attribute_node_from_list(Rest, NS, Name)
+    case attribute_matches(Attr, NS, Name) of
+        true  -> Attr;
+        false -> get_attribute_node_from_list(Rest, NS, Name)
     end;
 get_attribute_node_from_list([], _NS, _Name) ->
     undefined.
@@ -785,14 +848,14 @@ set_attribute_in_list(Attrs, Name, Value) ->
     set_attribute_in_list2(Attrs, Name, Value, []).
 
 set_attribute_in_list2([Attr | Rest], Name, Value, New_Attrs) ->
-    case Attr of
-        #xmlattr{name = Name} ->
+    case attribute_matches(Attr, Name) of
+        true when is_record(Attr, xmlattr) ->
             New_Attr = Attr#xmlattr{value = Value},
             New_Attrs ++ [New_Attr] ++ Rest;
-        {Name, _Value} ->
+        true when is_tuple(Attr), size(Attr) == 2 ->
             New_Attr = {Name, Value},
             New_Attrs ++ [New_Attr] ++ Rest;
-        _ ->
+        false ->
             set_attribute_in_list2(Rest, Name, Value,
               New_Attrs ++ [Attr])
     end;
@@ -828,13 +891,12 @@ set_attribute_in_list(Attrs, NS, Name, Value) ->
     set_attribute_in_list2(Attrs, NS, Name, Value, []).
 
 set_attribute_in_list2([Attr | Rest], NS, Name, Value, New_Attrs) ->
-    case Attr of
-        #xmlattr{ns = NS, name = Name} ->
+    case attribute_matches(Attr, NS, Name) of
+        true when is_record(Attr, xmlattr) ->
             New_Attr = Attr#xmlattr{value = Value},
             New_Attrs ++ [New_Attr] ++ Rest;
-        _ ->
-            set_attribute_in_list2(Rest, NS, Name, Value,
-              New_Attrs ++ [Attr])
+        false ->
+            set_attribute_in_list2(Rest, NS, Name, Value, New_Attrs ++ [Attr])
     end;
 set_attribute_in_list2([], NS, Name, Value, New_Attrs) ->
     New_Attrs ++ [#xmlattr{ns = NS, name = Name, value = Value}].
@@ -860,25 +922,23 @@ set_attribute(#xmlelement{attrs = Attrs} = XML_Element, Name, Value) ->
     XML_Element#xmlelement{attrs = New_Attrs}.
 
 set_attribute_ns2([Attr | Rest], Name, Value, New_Attrs) ->
-    case Attr of
-        #xmlattr{name = Name} ->
+    case attribute_matches(Attr, Name) of
+        true when is_record(Attr, xmlattr) ->
             New_Attr = Attr#xmlattr{value = Value},
             New_Attrs ++ [New_Attr] ++ Rest;
-        _ ->
-            set_attribute_ns2(Rest, Name, Value,
-              New_Attrs ++ [Attr])
+        false ->
+            set_attribute_ns2(Rest, Name, Value, New_Attrs ++ [Attr])
     end;
 set_attribute_ns2([], Name, Value, New_Attrs) ->
     New_Attrs ++ [#xmlattr{name = Name, value = Value}].
 
 set_attribute2([Attr | Rest], Name, Value, New_Attrs) ->
-    case Attr of
-        {Name, _Value} ->
+    case attribute_matches(Attr, Name) of
+        true when is_tuple(Attr), size(Attr) == 2 ->
             New_Attr = {Name, Value},
             New_Attrs ++ [New_Attr] ++ Rest;
-        _ ->
-            set_attribute2(Rest, Name, Value,
-              New_Attrs ++ [Attr])
+        false ->
+            set_attribute2(Rest, Name, Value, New_Attrs ++ [Attr])
     end;
 set_attribute2([], Name, Value, New_Attrs) ->
     New_Attrs ++ [{Name, Value}].
@@ -902,13 +962,12 @@ set_attribute(#xmlel{attrs = Attrs} = XML_Element, NS, Name, Value) ->
     XML_Element#xmlel{attrs = New_Attrs}.
 
 set_attribute_ns2([Attr | Rest], NS, Name, Value, New_Attrs) ->
-    case Attr of
-        #xmlattr{ns = NS, name = Name} ->
+    case attribute_matches(Attr, NS, Name) of
+        true when is_record(Attr, xmlattr) ->
             New_Attr = Attr#xmlattr{value = Value},
             New_Attrs ++ [New_Attr] ++ Rest;
-        _ ->
-            set_attribute_ns2(Rest, NS, Name, Value,
-              New_Attrs ++ [Attr])
+        false ->
+            set_attribute_ns2(Rest, NS, Name, Value, New_Attrs ++ [Attr])
     end;
 set_attribute_ns2([], NS, Name, Value, New_Attrs) ->
     New_Attrs ++ [#xmlattr{ns = NS, name = Name, value = Value}].
@@ -949,12 +1008,12 @@ remove_attribute_from_list(Attrs, Name) ->
     remove_attribute_from_list2(Attrs, Name, []).
 
 remove_attribute_from_list2([Attr | Rest], Name, New_Attrs) ->
-    case Attr of
-        #xmlattr{name = Name} ->
+    case attribute_matches(Attr, Name) of
+        true when is_record(Attr, xmlattr) ->
             lists:reverse(New_Attrs) ++ Rest;
-        {Name, _Value} ->
+        true when is_tuple(Attr), size(Attr) == 2 ->
             lists:reverse(New_Attrs) ++ Rest;
-        _ ->
+        false ->
             remove_attribute_from_list2(Rest, Name,
               [Attr | New_Attrs])
     end;
@@ -975,10 +1034,10 @@ remove_attribute_from_list(Attrs, NS, Name) ->
     remove_attribute_from_list2(Attrs, NS, Name, []).
 
 remove_attribute_from_list2([Attr | Rest], NS, Name, New_Attrs) ->
-    case Attr of
-        #xmlattr{ns = NS, name = Name} ->
+    case attribute_matches(Attr, NS, Name) of
+        true when is_record(Attr, xmlattr) ->
             lists:reverse(New_Attrs) ++ Rest;
-        _ ->
+        false ->
             remove_attribute_from_list2(Rest, NS, Name,
               [Attr | New_Attrs])
     end;
@@ -1022,6 +1081,90 @@ remove_attribute(#xmlel{attrs = Attrs} = XML_Element, NS, Name) ->
 % This is similar to the DOM interface but NOT compliant.
 % --------------------------------------------------------------------
 
+%% @spec (XML_Element, Name) -> boolean()
+%%     XML_Element = xmlel() | xmlelement() | undefined
+%%     Name = atom() | string()
+%% @doc Tell if `XML_Element' is named `Name'.
+%%
+%% It takes care of comparison between string and atom.
+
+element_matches(#xmlel{name = Name}, Name) ->
+    true;
+element_matches(#xmlelement{name = Name}, Name) ->
+    true;
+
+element_matches(#xmlel{name = Name_A}, Name)
+  when is_atom(Name_A), is_list(Name) ->
+    Name_A == list_to_atom(Name);
+element_matches(#xmlel{name = Name}, Name_A)
+  when is_atom(Name_A), is_list(Name) ->
+    Name_A == list_to_atom(Name);
+
+element_matches(#xmlelement{name = Name_A}, Name)
+  when is_atom(Name_A), is_list(Name) ->
+    Name_A == list_to_atom(Name);
+element_matches(#xmlelement{name = Name}, Name_A)
+  when is_atom(Name_A), is_list(Name) ->
+    Name_A == list_to_atom(Name);
+
+element_matches(_XML_Element, _Name) ->
+    false.
+
+%% @spec (XML_Element, NS, Name) -> boolean()
+%%     XML_Element = xmlel() | xmlelement() | undefined
+%%     NS = atom() | string()
+%%     Name = atom() | string()
+%% @doc Tell if `XML_Element' has the namespace `NS' and is named `Name'.
+%%
+%% It takes care of comparison between string and atom.
+
+element_matches(#xmlel{ns = NS, name = Name}, NS, Name) ->
+    true;
+
+element_matches(#xmlel{ns = NS_A, name = Name_A}, NS, Name)
+  when is_atom(NS_A), is_list(NS), is_atom(Name_A), is_list(Name) ->
+    NS_A == list_to_atom(NS) andalso Name_A == list_to_atom(Name);
+element_matches(#xmlel{ns = NS, name = Name}, NS_A, Name_A)
+  when is_atom(NS_A), is_list(NS), is_atom(Name_A), is_list(Name) ->
+    NS_A == list_to_atom(NS) andalso Name_A == list_to_atom(Name);
+
+element_matches(#xmlel{ns = NS_A, name = Name}, NS, Name)
+  when is_atom(NS_A), is_list(NS) ->
+    NS_A == list_to_atom(NS);
+element_matches(#xmlel{ns = NS, name = Name}, NS_A, Name)
+  when is_atom(NS_A), is_list(NS) ->
+    NS_A == list_to_atom(NS);
+
+element_matches(#xmlel{ns = NS, name = Name_A}, NS, Name)
+  when is_atom(Name_A), is_list(Name) ->
+    Name_A == list_to_atom(Name);
+element_matches(#xmlel{ns = NS, name = Name}, NS, Name_A)
+  when is_atom(Name_A), is_list(Name) ->
+    Name_A == list_to_atom(Name);
+
+element_matches(_XML_Element, _NS, _Name) ->
+    false.
+
+%% @spec (XML_Element, NS) -> boolean()
+%%     XML_Element = xmlel() | xmlelement() | undefined
+%%     NS = atom() | string()
+%% @doc Tell if `XML_Element' has the namespace `NS'.
+%%
+%% It takes care of comparison between string and atom.
+
+element_ns_matches(#xmlel{ns = NS}, NS) ->
+    true;
+
+element_ns_matches(#xmlel{ns = NS_A}, NS)
+  when is_atom(NS_A), is_list(NS) ->
+    NS_A == list_to_atom(NS);
+element_ns_matches(#xmlel{ns = NS}, NS_A)
+  when is_atom(NS_A), is_list(NS) ->
+    NS_A == list_to_atom(NS);
+
+element_ns_matches(_XML_Element, _NS) ->
+    false.
+
 %% @spec (XML_Element, Name) -> XML_Subelement | undefined
 %%     XML_Element = xmlel() | xmlelement() | undefined
 %%     Name = atom() | string()
@@ -1039,13 +1182,9 @@ get_element_by_name(undefined, _Name) ->
     undefined.
 
 get_element_by_name2([Node | Rest], Name) ->
-    case Node of
-        #xmlel{name = Name} ->
-            Node;
-        #xmlelement{name = Name} ->
-            Node;
-        _ ->
-            get_element_by_name2(Rest, Name)
+    case element_matches(Node, Name) of
+        true  -> Node;
+        false -> get_element_by_name2(Rest, Name)
     end;
 get_element_by_name2([], _Name) ->
     undefined;
@@ -1069,11 +1208,9 @@ get_element_by_name(undefined, _NS, _Name) ->
     undefined.
 
 get_element_by_name2([Node | Rest], NS, Name) ->
-    case Node of
-        #xmlel{ns = NS, name = Name} ->
-            Node;
-        _ ->
-            get_element_by_name2(Rest, NS, Name)
+    case element_matches(Node, NS, Name) of
+        true  -> Node;
+        false -> get_element_by_name2(Rest, NS, Name)
     end;
 get_element_by_name2([], _NS, _Name) ->
     undefined;
@@ -1104,10 +1241,8 @@ get_elements_by_name2(Children, Name) ->
     lists:filter(filter_by_name(Name), Children).
 
 filter_by_name(Searched_Name) ->
-    fun
-    (#xmlelement{name = Name}) when Name == Searched_Name -> true;
-    (#xmlel{name = Name}) when Name == Searched_Name      -> true;
-    (_)                                                   -> false
+    fun(XML_Element) ->
+        element_matches(XML_Element, Searched_Name)
     end.
 
 %% @spec (XML_Element, NS, Name) -> [XML_Subelement]
@@ -1133,12 +1268,8 @@ get_elements_by_name2(Children, NS, Name) ->
     lists:filter(filter_by_name(NS, Name), Children).
 
 filter_by_name(Searched_NS, Searched_Name) ->
-    fun
-    (#xmlel{name = Name, ns = NS})
-      when NS == Searched_NS, Name == Searched_Name ->
-        true;
-    (_) ->
-        false
+    fun(XML_Element) ->
+        element_matches(XML_Element, Searched_NS, Searched_Name)
     end.
 
 %% @spec (XML_Element, NS) -> XML_Subelement | undefined
@@ -1159,11 +1290,9 @@ get_element_by_ns(undefined, _NS) ->
     undefined.
 
 get_element_by_ns2([Node | Rest], NS) ->
-    case Node of
-        #xmlel{ns = NS} ->
-            Node;
-        _ ->
-            get_element_by_ns2(Rest, NS)
+    case element_ns_matches(Node, NS) of
+        true  -> Node;
+        false -> get_element_by_ns2(Rest, NS)
     end;
 get_element_by_ns2([], _NS) ->
     undefined;
@@ -1332,10 +1461,12 @@ replace_child2(undefined, _Old_Child, _New_Child) ->
 replace_child2([], _Old_Child, _New_Child) ->
     [];
 replace_child2(Children, Old_Child, New_Child) ->
-    [case C of
-      Old_Child -> New_Child;
-      _         -> C
-      end || C <- Children].
+    [
+      case C of
+          Old_Child -> New_Child;
+          _         -> C
+      end || C <- Children
+    ].
 
 %% @spec (XML_Element, Children) -> New_XML_Element
 %%     XML_Element = xmlel() | xmlelement()
