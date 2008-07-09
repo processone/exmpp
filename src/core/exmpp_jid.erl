@@ -81,41 +81,44 @@ make_bare_jid("", Domain) ->
     % This clause is here because ejabberd uses empty string.
     make_bare_jid(undefined, Domain);
 make_bare_jid(undefined, Domain) ->
-    case exmpp_stringprep:nameprep(Domain) of
-        error ->
-            throw({jid, make, invalid_domain, {undefined, Domain, undefined}});
-        LDomain ->
-            #jid{
-              node = undefined,
-              domain = Domain,
-              resource = undefined,
-              lnode = undefined,
-              ldomain = LDomain,
-              lresource = undefined
-            }
+    try
+        LDomain = exmpp_stringprep:nameprep(Domain),
+        #jid{
+          node = undefined,
+          domain = Domain,
+          resource = undefined,
+          lnode = undefined,
+          ldomain = LDomain,
+          lresource = undefined
+        }
+    catch
+        throw:{stringprep, _, exmpp_not_started, _} = E ->
+            throw(E);
+        throw:{stringprep, nameprep, invalid_string, _} ->
+            throw({jid, make, invalid_domain, {undefined, Domain, undefined}})
     end;
 make_bare_jid(Node, Domain)
   when length(Node) > ?NODE_MAX_LENGTH ->
     throw({jid, make, node_too_long, {Node, Domain, undefined}});
 make_bare_jid(Node, Domain) ->
-    case exmpp_stringprep:nodeprep(Node) of
-        error ->
+    try
+        LNode = exmpp_stringprep:nodeprep(Node),
+        LDomain = exmpp_stringprep:nameprep(Domain),
+        #jid{
+          node = Node,
+          domain = Domain,
+          resource = undefined,
+          lnode = LNode,
+          ldomain = LDomain,
+          lresource = undefined
+        }
+    catch
+        throw:{stringprep, _, exmpp_not_started, _} = E ->
+            throw(E);
+        throw:{stringprep, nodeprep, invalid_string, _} ->
             throw({jid, make, invalid_node, {Node, Domain, undefined}});
-        LNode ->
-            case exmpp_stringprep:nameprep(Domain) of
-                error ->
-                    throw({jid, make, invalid_domain,
-                        {Node, Domain, undefined}});
-                LDomain ->
-                    #jid{
-                      node = Node,
-                      domain = Domain,
-                      resource = undefined,
-                      lnode = LNode,
-                      ldomain = LDomain,
-                      lresource = undefined
-                    }
-            end
+        throw:{stringprep, nameprep, invalid_string, _} ->
+            throw({jid, make, invalid_domain, {Node, Domain, undefined}})
     end.
 
 %% @spec (Node, Domain, Resource) -> Jid
@@ -132,7 +135,14 @@ make_jid(Node, Domain, random) ->
     make_jid(Node, Domain, Resource);
 make_jid(Node, Domain, Resource) ->
     Jid = make_bare_jid(Node, Domain),
-    bare_jid_to_jid(Jid, Resource).
+    try
+        bare_jid_to_jid(Jid, Resource)
+    catch
+        throw:{stringprep, _, exmpp_not_started, _} = E ->
+            throw(E);
+        throw:{jid, convert, Reason, Infos} ->
+            throw({jid, make, Reason, Infos})
+    end.
 
 %% @spec (Jid) -> Bare_Jid
 %%     Jid = jid()
@@ -163,15 +173,18 @@ bare_jid_to_jid(Jid, Resource)
     throw({jid, convert, resource_too_long,
         {Jid#jid.node, Jid#jid.domain, Resource}});
 bare_jid_to_jid(Jid, Resource) ->
-    case exmpp_stringprep:resourceprep(Resource) of
-        error ->
+    try
+        LResource = exmpp_stringprep:resourceprep(Resource),
+        Jid#jid{
+          resource = Resource,
+          lresource = LResource
+        }
+    catch
+        throw:{stringprep, _, exmpp_not_started, _} = E ->
+            throw(E);
+        throw:{stringprep, resourceprep, invalid_string, _} ->
             throw({jid, convert, invalid_resource,
-                {Jid#jid.node, Jid#jid.domain, Resource}});
-        LResource ->
-            Jid#jid{
-              resource = Resource,
-              lresource = LResource
-            }
+                {Jid#jid.node, Jid#jid.domain, Resource}})
     end.
 
 % --------------------------------------------------------------------

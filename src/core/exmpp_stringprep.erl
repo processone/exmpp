@@ -82,7 +82,8 @@ start_link() ->
 %% @spec (String) -> Prepd_String
 %%     String = string()
 %%     Prepd_String = string()
-%% @throws {stringprep, nodeprep, Reason, String}
+%% @throws {stringprep, nodeprep, exmpp_not_started, String} |
+%%         {stringprep, nodeprep, invalid_string, String}
 %% @doc Apply the NODEPREP stringprep profile to `String'.
 
 nodeprep(String) ->
@@ -96,7 +97,8 @@ nodeprep(String) ->
 %% @spec (String) -> Prepd_String
 %%     String = string()
 %%     Prepd_String = string()
-%% @throws {stringprep, nameprep, Reason, String}
+%% @throws {stringprep, nameprep, exmpp_not_started, String} |
+%%         {stringprep, nameprep, invalid_string, String}
 %% @doc Apply the NAMEPREP stringprep profile to `String'.
 
 nameprep(String) ->
@@ -110,7 +112,8 @@ nameprep(String) ->
 %% @spec (String) -> Prepd_String
 %%     String = string()
 %%     Prepd_String = string()
-%% @throws {stringprep, resourceprep, Reason, String}
+%% @throws {stringprep, resourceprep, exmpp_not_started, String} |
+%%         {stringprep, resourceprep, invalid_string, String}
 %% @doc Apply the RESOURCEPREP stringprep profile to `String'.
 
 resourceprep(String) ->
@@ -127,6 +130,7 @@ resourceprep(String) ->
 
 %% @spec (String) -> bool()
 %%     String = string()
+%% @throws {stringprep, nodeprep, exmpp_not_started, String}
 %% @doc Tell if `String' conforms the NODEPREP stringprep profile.
 
 is_node("") ->
@@ -142,6 +146,7 @@ is_node(String) ->
 
 %% @spec (String) -> bool()
 %%     String = string()
+%% @throws {stringprep, nameprep, exmpp_not_started, String}
 %% @doc Tell if `String' conforms the NAMEPREP stringprep profile.
 
 is_name("") ->
@@ -157,6 +162,7 @@ is_name(String) ->
 
 %% @spec (String) -> bool()
 %%     String = string()
+%% @throws {stringprep, resourceprep, exmpp_not_started, String}
 %% @doc Tell if `String' conforms the RESOURCEPREP stringprep profile.
 
 is_resource("") ->
@@ -170,9 +176,11 @@ is_resource(String) ->
             false
     end.
 
-%% @spec (String) -> bool()
+%% @spec (String) -> Lowered_String
 %%     String = string()
-%% @throws {stringprep, lowercase, Reason, String}
+%%     Lowered_String = string()
+%% @throws {stringprep, lowercase, exmpp_not_started, String} |
+%%         {stringprep, lowercase, invalid_string, String}
 %% @doc Convert `String' to lowercase.
 
 to_lower(String) ->
@@ -186,16 +194,31 @@ to_lower(String) ->
 %% @hidden
 
 port_revision() ->
-    control(?COMMAND_SVN_REVISION, "").
+    case control(?COMMAND_SVN_REVISION, "") of
+        {error, Reason} ->
+            throw({stringprep, port_revision, Reason, ""});
+        Result ->
+            Result
+    end.
 
 % --------------------------------------------------------------------
 % Internal functions.
 % --------------------------------------------------------------------
 
 control(Command, String) ->
-    case port_control(?PORT_REGISTERED_NAME, Command, String) of
-        [0 | _]      -> {error, undefined};
-        [1 | Result] -> Result
+    try
+        case port_control(?PORT_REGISTERED_NAME, Command, String) of
+            [0 | _]      -> {error, invalid_string};
+            [1 | Result] -> Result
+        end
+    catch
+        error:badarg ->
+            case erlang:port_info(?PORT_REGISTERED_NAME, registered_name) of
+                {registered_name, ?PORT_REGISTERED_NAME} ->
+                    {error, invalid_string};
+                undefined ->
+                    {error, exmpp_not_started}
+            end
     end.
 
 % --------------------------------------------------------------------

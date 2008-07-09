@@ -1,3 +1,14 @@
+2008-07-09  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_stringprep.erl: Improved exception handling. An
+	exception is raised when exmpp isn't started. When a string isn't
+	valid, a meaningful exception is raised. Update documentation.
+
+	* src/core/exmpp_jid.erl: Handle exceptions from exmpp_stringprep
+	correctly; this was left broken.
+
+	* testsuite/jid.erl: Update testsuite.
+
 2008-07-08  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_xml.erl: Add functions to remove text nodes

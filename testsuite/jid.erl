@@ -83,7 +83,7 @@ too_long_identifiers_test_() ->
         exmpp_jid:make_jid(?NODE_TOO_LONG, ?DOMAIN, ?RESOURCE)
       ),
       ?_assertThrow(
-        {jid, convert, resource_too_long, {?NODE, ?DOMAIN, _RESOURCE_TOO_LONG}},
+        {jid, make, resource_too_long, {?NODE, ?DOMAIN, _RESOURCE_TOO_LONG}},
         exmpp_jid:make_jid(?NODE, ?DOMAIN, ?RESOURCE_TOO_LONG)
       ),
       ?_assertThrow(
