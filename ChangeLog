@@ -9,6 +9,14 @@
 
 	* testsuite/jid.erl: Update testsuite.
 
+	* src/core/exmpp_xml.erl (xmlel_to_xmlement/3, node_to_list/3): It's
+	now possible to specify a list of equivalent namespaces in the default
+	namespace stack. This is useful for stanzas going from and to
+	compatible but different namespaces such as 'jabber:client',
+	'jabber:server' and 'jabber:component:accept'. In this example,
+	'Default_NS' will be set to [[?NS_JABBER_CLIENT, ?NS_JABBER_SERVER,
+	?NS_COMPONENT_ACCEPT], ...].
+
 2008-07-08  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_xml.erl: Add functions to remove text nodes

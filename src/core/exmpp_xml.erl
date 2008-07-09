@@ -1774,9 +1774,10 @@ xmlel_to_xmlelement(XML_Element) ->
 
 %% @spec (XML_NS_Element, Default_NS, Prefixed_NS) -> XML_Element
 %%     XML_NS_Element = xmlel() | xmlelement() | xmlcdata()
-%%     Default_NS = [NS]
+%%     Default_NS = [NS | Equivalent_NSs]
 %%     Prefixed_NS = [{NS, Prefix}]
 %%     NS = atom() | string()
+%%     Equivalent_NSs = [NS]
 %%     Prefix = string()
 %%     XML_Element = xmlelement() | xmlcdata()
 %% @doc Convert an {@link xmlel()} to an {@link xmlelement()} tuple.
@@ -1791,6 +1792,15 @@ xmlel_to_xmlelement(XML_Element) ->
 %% This may be useful in XMPP context where a majority of clients or
 %% servers expects a `stream' prefix for the `<stream>' tag and the
 %% default namespace declaration in this same element.
+%%
+%% `Default_NS' may be a list of equivalent namespaces. This is useful
+%% when stanzas go to and from streams with compatible but different
+%% namespaces. Here is an example with `jabber:client', `jabber:server'
+%% and `jabber:component:accept':
+%% ```
+%% exmpp_stanza:to_list(El,
+%%   [?NS_JABBER_CLIENT, ?NS_JABBER_SERVER, ?NS_COMPONENT_ACCEPT]).
+%% '''
 
 xmlel_to_xmlelement(#xmlel{ns = NS, name = Name, attrs = Attrs,
   declared_ns = Declared_NS, children = Children},
@@ -1821,11 +1831,12 @@ xmlel_to_xmlelement(#xmlendtag{ns = NS, name = Name, prefix = Wanted_Prefix},
         is_atom(Name) -> atom_to_list(Name);
         true          -> Name
     end,
-    New_Name = case Default_NS of
-        [NS | _] ->
+    Use_Default_NS = use_default_ns(NS, Default_NS),
+    New_Name = case Use_Default_NS of
+        true ->
             % This end tag uses the default namespace.
             Name_S;
-        _ ->
+        false ->
             % Search a prefix in already declared namespaces.
             case search_in_prefixed_ns(NS, Prefixed_NS) of
                 undefined  when Wanted_Prefix /= undefined ->
@@ -1869,7 +1880,6 @@ xmlnsattributes_to_xmlattributes2([#xmlattr{ns = NS, name = Name,
                     Prefix = case Wanted_Prefix of
                         undefined ->
                             % Doesn't provide a prefix, it must be generated.
-                            % FIXME Generate a random prefix.
                             new_auto_prefix(Prefixed_NS);
                         _ ->
                             % Use the desired prefix.
@@ -1917,6 +1927,16 @@ xmlels_to_xmlelements2([], XML_Elements, _Default_NS, _Prefixed_NS) ->
     lists:reverse(XML_Elements).
 
 % Helpers.
+use_default_ns(NS, Default_NS) ->
+    case Default_NS of
+        [NS | _] ->
+            true;
+        [[X | _] = Default_NS1 | _] when is_atom(X); is_list(X) ->
+            lists:member(NS, Default_NS1);
+        _ ->
+            false
+    end.
+
 search_in_prefixed_ns(NS, Prefixed_NS) ->
     case lists:keysearch(NS, 1, Prefixed_NS) of
         {value, {_NS, Prefix}} ->
@@ -1965,12 +1985,13 @@ forward_declare_ns(undefined, [], Attrs, Default_NS, Prefixed_NS) ->
     {none, Attrs, Default_NS, Prefixed_NS};
 forward_declare_ns(Curr_NS, [], Attrs, Default_NS, Prefixed_NS) ->
     % We finish with the current namespace of the element.
-    case Default_NS of
-        [Curr_NS | _] ->
+    Use_Default_NS = use_default_ns(Curr_NS, Default_NS),
+    case Use_Default_NS of
+        true ->
             % The element belongs to the current default namespace.
             % There's nothing to do.
             {none, Attrs, Default_NS, Prefixed_NS};
-        _ ->
+        false ->
             % We look for a prefixed namespace.
             case search_in_prefixed_ns(Curr_NS, Prefixed_NS) of
                 undefined ->
@@ -2271,9 +2292,10 @@ search_prefix_in_prefixed_ns(Prefix, Prefixed_NS) ->
 
 %% @spec (XML_Element, Default_NS, Prefixed_NS) -> XML_Text
 %%     XML_Element = xmlel() | xmlelement() | xmlendtag() | xmlcdata()
-%%     Default_NS = [NS]
+%%     Default_NS = [NS | Equivalent_NSs]
 %%     Prefixed_NS = [{NS, Prefix}]
 %%     NS = atom()
+%%     Equivalent_NSs = [NS]
 %%     Prefix = string()
 %%     XML_Text = string()
 %% @doc Serialize an XML node to text.
