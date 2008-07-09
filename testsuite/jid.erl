@@ -180,35 +180,35 @@ jid_creation_with_bad_syntax_test_() ->
 jid_creation_with_bad_chars_test_() ->
     Tests = [
       ?_assertThrow(
-        {stringprep, nodeprep, undefined, _},
+        {jid, make, invalid_node, _},
         exmpp_jid:string_to_jid(?FJ1_S_BAD1)
       ),
       ?_assertThrow(
-        {stringprep, nameprep, undefined, _},
+        {jid, make, invalid_domain, _},
         exmpp_jid:string_to_jid(?FJ1_S_BAD2)
       ),
       ?_assertThrow(
-        {stringprep, resourceprep, undefined, _},
+        {jid, make, invalid_resource, _},
         exmpp_jid:string_to_jid(?FJ1_S_BAD3)
       ),
       ?_assertThrow(
-        {stringprep, nameprep, undefined, _},
+        {jid, make, invalid_domain, _},
         exmpp_jid:string_to_jid(?FJ2_S_BAD1)
       ),
       ?_assertThrow(
-        {stringprep, resourceprep, undefined, _},
+        {jid, make, invalid_resource, _},
         exmpp_jid:string_to_jid(?FJ2_S_BAD2)
       ),
       ?_assertThrow(
-        {stringprep, nodeprep, undefined, _},
+        {jid, make, invalid_node, _},
         exmpp_jid:string_to_jid(?BJ1_S_BAD1)
       ),
       ?_assertThrow(
-        {stringprep, nameprep, undefined, _},
+        {jid, make, invalid_domain, _},
         exmpp_jid:string_to_jid(?BJ1_S_BAD2)
       ),
       ?_assertThrow(
-        {stringprep, nameprep, undefined, _},
+        {jid, make, invalid_domain, _},
         exmpp_jid:string_to_jid(?BJ2_S_BAD1)
       )
     ],
@@ -226,29 +226,29 @@ good_jid_creation_test_() ->
 bare_jid_creation_with_bad_chars_test_() ->
     Tests = [
       ?_assertThrow(
-        {stringprep, nodeprep, undefined, _},
+        {jid, make, invalid_node, _},
         exmpp_jid:string_to_bare_jid(?FJ1_S_BAD1)
       ),
       ?_assertThrow(
-        {stringprep, nameprep, undefined, _},
+        {jid, make, invalid_domain, _},
         exmpp_jid:string_to_bare_jid(?FJ1_S_BAD2)
       ),
       ?_assertMatch(?BJ1, exmpp_jid:string_to_bare_jid(?FJ1_S_BAD3)),
       ?_assertThrow(
-        {stringprep, nameprep, undefined, _},
+        {jid, make, invalid_domain, _},
         exmpp_jid:string_to_bare_jid(?FJ2_S_BAD1)
       ),
       ?_assertMatch(?BJ2, exmpp_jid:string_to_bare_jid(?FJ2_S_BAD2)),
       ?_assertThrow(
-        {stringprep, nodeprep, undefined, _},
+        {jid, make, invalid_node, _},
         exmpp_jid:string_to_bare_jid(?BJ1_S_BAD1)
       ),
       ?_assertThrow(
-        {stringprep, nameprep, undefined, _},
+        {jid, make, invalid_domain, _},
         exmpp_jid:string_to_bare_jid(?BJ1_S_BAD2)
       ),
       ?_assertThrow(
-        {stringprep, nameprep, undefined, _},
+        {jid, make, invalid_domain, _},
         exmpp_jid:string_to_bare_jid(?BJ2_S_BAD1)
       )
     ],
@@ -292,7 +292,7 @@ bare_jid_conversion_test_() ->
 bare_jid_conversion_with_bad_resource_test_() ->
     Tests = [
       ?_assertThrow(
-        {stringprep, resourceprep, undefined, _},
+        {jid, convert, invalid_resource, _},
         exmpp_jid:bare_jid_to_jid(?FJ1, ?RES_BAD)
       ),
       ?_assertThrow(
@@ -300,7 +300,7 @@ bare_jid_conversion_with_bad_resource_test_() ->
         exmpp_jid:bare_jid_to_jid(?FJ1, ?RESOURCE_TOO_LONG)
       ),
       ?_assertThrow(
-        {stringprep, resourceprep, undefined, _},
+        {jid, convert, invalid_resource, _},
         exmpp_jid:bare_jid_to_jid(?BJ1, ?RES_BAD)
       ),
       ?_assertThrow(
@@ -308,7 +308,7 @@ bare_jid_conversion_with_bad_resource_test_() ->
         exmpp_jid:bare_jid_to_jid(?BJ1, ?RESOURCE_TOO_LONG)
       ),
       ?_assertThrow(
-        {stringprep, resourceprep, undefined, _},
+        {jid, convert, invalid_resource, _},
         exmpp_jid:bare_jid_to_jid(?FJ2, ?RES_BAD)
       ),
       ?_assertThrow(
@@ -316,7 +316,7 @@ bare_jid_conversion_with_bad_resource_test_() ->
         exmpp_jid:bare_jid_to_jid(?FJ2, ?RESOURCE_TOO_LONG)
       ),
       ?_assertThrow(
-        {stringprep, resourceprep, undefined, _},
+        {jid, convert, invalid_resource, _},
         exmpp_jid:bare_jid_to_jid(?BJ2, ?RES_BAD)
       ),
       ?_assertThrow(
