@@ -13,6 +13,10 @@
 	* c_src/xmpp_ns.h.in, c_src/xmpp_attrs.h.in, c_src/xmpp_names.h.in:
 	Update known lists using the new scripts.
 
+	* c_src/Makefile.am: Distribute the new scripts and local known lists.
+	Split the lines containing Vim modelines so that they are not
+	interpreted when editing this Makefile.am.
+
 2008-07-09  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_stringprep.erl: Improved exception handling. An
