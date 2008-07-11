@@ -10,6 +10,9 @@
 	* c_src/extract-known-from-schemas: Fix the known namespaces list
 	layout.
 
+	* c_src/xmpp_ns.h.in, c_src/xmpp_attrs.h.in, c_src/xmpp_names.h.in:
+	Update known lists using the new scripts.
+
 2008-07-09  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_stringprep.erl: Improved exception handling. An

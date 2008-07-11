@@ -1,43 +1,398 @@
 # $Id$
-# vim:ft=conf
+# 2008-07-11T09:01:11Z
 
-# In the `http://etherx.jabber.org/streams' namespace
+# --------------------------------------------------------------------
+# XEP: RFC 3920
+# HOME: http://www.xmpp.org/rfcs/rfc3920.html
+# NS: http://etherx.jabber.org/streams
+# SCHEMA: http://www.xmpp.org/schemas/streams.xsd
+
 from
-to
 id
+to
 version
 
-# In the `jabber:client' and `jabber:server' namespace
-from
-to
-id
-type
+# --------------------------------------------------------------------
+# XEP: RFC 3920
+# HOME: http://www.xmpp.org/rfcs/rfc3920.html
+# NS: jabber:client
+# SCHEMA: http://www.xmpp.org/schemas/jabber-client.xsd
+
 code
-
-# In the `jabber:server:dialback' namespace
 from
-to
 id
+to
 type
 
-# In the `urn:ietf:params:xml:ns:xmpp-sasl' namespace
+# --------------------------------------------------------------------
+# XEP: RFC 3920
+# HOME: http://www.xmpp.org/rfcs/rfc3920.html
+# NS: jabber:server
+# SCHEMA: http://www.xmpp.org/schemas/jabber-server.xsd
+
+code
+from
+id
+to
+type
+
+# --------------------------------------------------------------------
+# XEP: RFC 3920
+# HOME: http://www.xmpp.org/rfcs/rfc3920.html
+# NS: jabber:server:dialback
+# SCHEMA: http://www.xmpp.org/schemas/dialback.xsd
+
+from
+id
+to
+type
+
+# --------------------------------------------------------------------
+# XEP: RFC 3920
+# HOME: http://www.xmpp.org/rfcs/rfc3920.html
+# NS: urn:ietf:params:xml:ns:xmpp-bind
+# SCHEMA: http://www.xmpp.org/schemas/bind.xsd
+
+# --------------------------------------------------------------------
+# XEP: RFC 3920
+# HOME: http://www.xmpp.org/rfcs/rfc3920.html
+# NS: urn:ietf:params:xml:ns:xmpp-sasl
+# SCHEMA: http://www.xmpp.org/schemas/sasl.xsd
+
 mechanism
 
-# In the `jabber:iq:privacy' namespace
-name
-action
-order
-type
-value
+# --------------------------------------------------------------------
+# XEP: RFC 3920
+# HOME: http://www.xmpp.org/rfcs/rfc3920.html
+# NS: urn:ietf:params:xml:ns:xmpp-stanzas
+# SCHEMA: http://www.xmpp.org/schemas/stanzaerror.xsd
 
-# In the `jabber:iq:privacy' namespace
+# --------------------------------------------------------------------
+# XEP: RFC 3920
+# HOME: http://www.xmpp.org/rfcs/rfc3920.html
+# NS: urn:ietf:params:xml:ns:xmpp-streams
+# SCHEMA: http://www.xmpp.org/schemas/streamerror.xsd
+
+# --------------------------------------------------------------------
+# XEP: RFC 3920
+# HOME: http://www.xmpp.org/rfcs/rfc3920.html
+# NS: urn:ietf:params:xml:ns:xmpp-tls
+# SCHEMA: http://www.xmpp.org/schemas/tls.xsd
+
+# --------------------------------------------------------------------
+# XEP: RFC 3921
+# HOME: http://www.xmpp.org/rfcs/rfc3921.html
+# NS: jabber:iq:roster
+# SCHEMA: http://www.xmpp.org/schemas/roster.xsd
+
 ask
 jid
 name
 subscription
 
-# In the `http://jabber.org/protocol/pubsub' namespace
+# --------------------------------------------------------------------
+# XEP: RFC 3921
+# HOME: http://www.xmpp.org/rfcs/rfc3921.html
+# NS: urn:ietf:params:xml:ns:xmpp-session
+# SCHEMA: http://www.xmpp.org/schemas/session.xsd
+
+# --------------------------------------------------------------------
+# XEP: RFC 3923
+# HOME: http://www.xmpp.org/rfcs/rfc3923.html
+# NS: urn:ietf:params:xml:ns:xmpp-e2e
+# SCHEMA: http://www.xmpp.org/schemas/e2e.xsd
+# Last-Modified: 2008-03-05T03:48:59Z
+
+# --------------------------------------------------------------------
+# XEP: XEP-0003
+# HOME: http://www.xmpp.org/extensions/xep-0003.html
+# NS: jabber:iq:pass
+# SCHEMA: http://www.xmpp.org/schemas/iq-pass.xsd
+# Last-Modified: 2008-01-28T17:55:19Z
+
+port
+
+# --------------------------------------------------------------------
+# XEP: XEP-0004
+# HOME: http://www.xmpp.org/extensions/xep-0004.html
+# NS: jabber:x:data
+# SCHEMA: http://www.xmpp.org/schemas/x-data.xsd
+# Last-Modified: 2008-01-28T17:55:23Z
+
+label
+type
+var
+
+# --------------------------------------------------------------------
+# XEP: XEP-0009
+# HOME: http://www.xmpp.org/extensions/xep-0009.html
+# NS: jabber:iq:rpc
+# SCHEMA: http://www.xmpp.org/schemas/jabber-rpc.xsd
+# Last-Modified: 2008-01-28T17:55:30Z
+
+# --------------------------------------------------------------------
+# XEP: XEP-0012
+# HOME: http://www.xmpp.org/extensions/xep-0012.html
+# NS: jabber:iq:last
+# SCHEMA: http://www.xmpp.org/schemas/iq-last.xsd
+# Last-Modified: 2008-01-28T17:55:37Z
+
+# --------------------------------------------------------------------
+# XEP: XEP-0013
+# HOME: http://www.xmpp.org/extensions/xep-0013.html
+# NS: http://jabber.org/protocol/offline
+# SCHEMA: http://www.xmpp.org/schemas/offline.xsd
+# Last-Modified: 2008-01-28T17:55:38Z
+
+action
+jid
+node
+
+# --------------------------------------------------------------------
+# XEP: XEP-0016
+# HOME: http://www.xmpp.org/extensions/xep-0016.html
+# NS: jabber:iq:privacy
+# SCHEMA: http://www.xmpp.org/schemas/privacy.xsd
+# Last-Modified: 2008-01-28T17:55:44Z
+
+action
+name
+order
+type
+value
+
+# --------------------------------------------------------------------
+# XEP: XEP-0020
+# HOME: http://www.xmpp.org/extensions/xep-0020.html
+# NS: http://jabber.org/protocol/feature-neg
+# SCHEMA: http://www.xmpp.org/schemas/feature-neg.xsd
+# Last-Modified: 2008-01-28T17:55:57Z
+
+# --------------------------------------------------------------------
+# XEP: XEP-0022
+# HOME: http://www.xmpp.org/extensions/xep-0022.html
+# NS: jabber:x:event
+# SCHEMA: http://www.xmpp.org/schemas/x-event.xsd
+# Last-Modified: 2008-01-28T17:56:01Z
+
+# --------------------------------------------------------------------
+# XEP: XEP-0023
+# HOME: http://www.xmpp.org/extensions/xep-0023.html
+# NS: jabber:x:expire
+# SCHEMA: http://www.xmpp.org/schemas/x-expire.xsd
+# Last-Modified: 2008-01-28T17:56:03Z
+
+seconds
+stored
+
+# --------------------------------------------------------------------
+# XEP: XEP-0027
+# HOME: http://www.xmpp.org/extensions/xep-0027.html
+# NS: jabber:x:encrypted
+# SCHEMA: http://www.xmpp.org/schemas/x-encrypted.xsd
+# Last-Modified: 2008-01-28T17:56:10Z
+
+# --------------------------------------------------------------------
+# XEP: XEP-0027
+# HOME: http://www.xmpp.org/extensions/xep-0027.html
+# NS: jabber:x:signed
+# SCHEMA: http://www.xmpp.org/schemas/x-signed.xsd
+# Last-Modified: 2008-01-28T17:56:10Z
+
+# --------------------------------------------------------------------
+# XEP: XEP-0030
+# HOME: http://www.xmpp.org/extensions/xep-0030.html
+# NS: http://jabber.org/protocol/disco#info
+# SCHEMA: http://www.xmpp.org/schemas/disco-info.xsd
+# Last-Modified: 2008-06-24T17:05:39Z
+
+category
+jid
+name
+node
+type
+var
+
+# --------------------------------------------------------------------
+# XEP: XEP-0030
+# HOME: http://www.xmpp.org/extensions/xep-0030.html
+# NS: http://jabber.org/protocol/disco#items
+# SCHEMA: http://www.xmpp.org/schemas/disco-items.xsd
+# Last-Modified: 2008-06-24T17:05:39Z
+
+category
+jid
+name
+node
+type
+var
+
+# --------------------------------------------------------------------
+# XEP: XEP-0033
+# HOME: http://www.xmpp.org/extensions/xep-0033.html
+# NS: http://jabber.org/protocol/address
+# SCHEMA: http://www.xmpp.org/schemas/address.xsd
+# Last-Modified: 2008-01-28T17:56:48Z
+
+delivered
+desc
+jid
+node
+type
+uri
+
+# --------------------------------------------------------------------
+# XEP: XEP-0045
+# HOME: http://www.xmpp.org/extensions/xep-0045.html
+# NS: http://jabber.org/protocol/muc
+# SCHEMA: http://www.xmpp.org/schemas/muc.xsd
+# Last-Modified: 2008-04-18T18:54:16Z
+
 affiliation
+code
+from
+jid
+maxchars
+maxstanzas
+nick
+role
+seconds
+since
+thread
+to
+
+# --------------------------------------------------------------------
+# XEP: XEP-0045
+# HOME: http://www.xmpp.org/extensions/xep-0045.html
+# NS: http://jabber.org/protocol/muc#admin
+# SCHEMA: http://www.xmpp.org/schemas/muc-admin.xsd
+# Last-Modified: 2008-04-18T18:54:16Z
+
+affiliation
+code
+from
+jid
+maxchars
+maxstanzas
+nick
+role
+seconds
+since
+thread
+to
+
+# --------------------------------------------------------------------
+# XEP: XEP-0045
+# HOME: http://www.xmpp.org/extensions/xep-0045.html
+# NS: http://jabber.org/protocol/muc#owner
+# SCHEMA: http://www.xmpp.org/schemas/muc-owner.xsd
+# Last-Modified: 2008-04-18T18:54:16Z
+
+affiliation
+code
+from
+jid
+maxchars
+maxstanzas
+nick
+role
+seconds
+since
+thread
+to
+
+# --------------------------------------------------------------------
+# XEP: XEP-0045
+# HOME: http://www.xmpp.org/extensions/xep-0045.html
+# NS: http://jabber.org/protocol/muc#user
+# SCHEMA: http://www.xmpp.org/schemas/muc-user.xsd
+# Last-Modified: 2008-04-18T18:54:16Z
+
+affiliation
+code
+from
+jid
+maxchars
+maxstanzas
+nick
+role
+seconds
+since
+thread
+to
+
+# --------------------------------------------------------------------
+# XEP: XEP-0047
+# HOME: http://www.xmpp.org/extensions/xep-0047.html
+# NS: http://jabber.org/protocol/ibb
+# SCHEMA: http://www.xmpp.org/schemas/ibb.xsd
+# Last-Modified: 2008-01-28T17:57:10Z
+
+block-size
+seq
+sid
+
+# --------------------------------------------------------------------
+# XEP: XEP-0048
+# HOME: http://www.xmpp.org/extensions/xep-0048.html
+# NS: storage:bookmarks
+# SCHEMA: http://www.xmpp.org/schemas/bookmarks.xsd
+# Last-Modified: 2008-01-28T17:57:12Z
+
+autojoin
+jid
+name
+url
+
+# --------------------------------------------------------------------
+# XEP: XEP-0049
+# HOME: http://www.xmpp.org/extensions/xep-0049.html
+# NS: jabber:iq:private
+# SCHEMA: http://www.xmpp.org/schemas/iq-private.xsd
+# Last-Modified: 2008-01-28T17:57:13Z
+
+# --------------------------------------------------------------------
+# XEP: XEP-0050
+# HOME: http://www.xmpp.org/extensions/xep-0050.html
+# NS: http://jabber.org/protocol/commands
+# SCHEMA: http://www.xmpp.org/schemas/commands.xsd
+# Last-Modified: 2008-01-28T17:57:16Z
+
+action
+execute
+node
+sessionid
+status
+type
+
+# --------------------------------------------------------------------
+# XEP: XEP-0055
+# HOME: http://www.xmpp.org/extensions/xep-0055.html
+# NS: jabber:iq:search
+# SCHEMA: http://www.xmpp.org/schemas/iq-search.xsd
+# Last-Modified: 2008-01-28T17:57:22Z
+
+jid
+
+# --------------------------------------------------------------------
+# XEP: XEP-0059
+# HOME: http://www.xmpp.org/extensions/xep-0059.html
+# NS: http://jabber.org/protocol/rsm
+# SCHEMA: http://www.xmpp.org/schemas/rsm.xsd
+# Last-Modified: 2008-01-28T17:57:27Z
+
+index
+
+# --------------------------------------------------------------------
+# XEP: XEP-0060
+# HOME: http://www.xmpp.org/extensions/xep-0060.html
+# NS: http://jabber.org/protocol/pubsub
+# SCHEMA: http://www.xmpp.org/schemas/pubsub.xsd
+# Last-Modified: 2008-05-09T22:13:36Z
+
+affiliation
+expiry
+feature
 id
 jid
 max_items
@@ -46,18 +401,552 @@ notify
 subid
 subscription
 
-# In the `http://jabber.org/protocol/pubsub#errors' namespace
-feature
+# --------------------------------------------------------------------
+# XEP: XEP-0060
+# HOME: http://www.xmpp.org/extensions/xep-0060.html
+# NS: http://jabber.org/protocol/pubsub#errors
+# SCHEMA: http://www.xmpp.org/schemas/pubsub-errors.xsd
+# Last-Modified: 2008-05-09T22:13:36Z
 
-# In the `http://jabber.org/protocol/pubsub#event' namespace
+affiliation
+expiry
+feature
 id
 jid
+max_items
 node
+notify
 subid
 subscription
 
-# In the `http://jabber.org/protocol/pubsub#owner' namespace
+# --------------------------------------------------------------------
+# XEP: XEP-0060
+# HOME: http://www.xmpp.org/extensions/xep-0060.html
+# NS: http://jabber.org/protocol/pubsub#event
+# SCHEMA: http://www.xmpp.org/schemas/pubsub-event.xsd
+# Last-Modified: 2008-05-09T22:13:36Z
+
 affiliation
+expiry
+feature
+id
 jid
+max_items
 node
+notify
+subid
 subscription
+
+# --------------------------------------------------------------------
+# XEP: XEP-0060
+# HOME: http://www.xmpp.org/extensions/xep-0060.html
+# NS: http://jabber.org/protocol/pubsub#owner
+# SCHEMA: http://www.xmpp.org/schemas/pubsub-owner.xsd
+# Last-Modified: 2008-05-09T22:13:36Z
+
+affiliation
+expiry
+feature
+id
+jid
+max_items
+node
+notify
+subid
+subscription
+
+# --------------------------------------------------------------------
+# XEP: XEP-0065
+# HOME: http://www.xmpp.org/extensions/xep-0065.html
+# NS: http://jabber.org/protocol/bytestreams
+# SCHEMA: http://www.xmpp.org/schemas/bytestreams.xsd
+# Last-Modified: 2008-06-05T18:40:01Z
+
+dstaddr
+host
+jid
+mode
+port
+sid
+zeroconf
+
+# --------------------------------------------------------------------
+# XEP: XEP-0066
+# HOME: http://www.xmpp.org/extensions/xep-0066.html
+# NS: jabber:iq:oob
+# SCHEMA: http://www.xmpp.org/schemas/iq-oob.xsd
+# Last-Modified: 2008-01-28T17:57:38Z
+
+sid
+
+# --------------------------------------------------------------------
+# XEP: XEP-0066
+# HOME: http://www.xmpp.org/extensions/xep-0066.html
+# NS: jabber:x:oob
+# SCHEMA: http://www.xmpp.org/schemas/x-oob.xsd
+# Last-Modified: 2008-01-28T17:57:38Z
+
+sid
+
+# --------------------------------------------------------------------
+# XEP: XEP-0070
+# HOME: http://www.xmpp.org/extensions/xep-0070.html
+# NS: http://jabber.org/protocol/http-auth
+# SCHEMA: http://www.xmpp.org/schemas/http-auth.xsd
+# Last-Modified: 2008-01-28T17:57:44Z
+
+id
+method
+url
+
+# --------------------------------------------------------------------
+# XEP: XEP-0071
+# HOME: http://www.xmpp.org/extensions/xep-0071.html
+# NS: http://jabber.org/protocol/xhtml-im
+# SCHEMA: http://www.xmpp.org/schemas/xhtml-im-driver.xsd
+# Last-Modified: 2008-03-05T16:06:34Z
+
+# --------------------------------------------------------------------
+# XEP: XEP-0071
+# HOME: http://www.xmpp.org/extensions/xep-0071.html
+# NS: http://jabber.org/protocol/xhtml-im
+# SCHEMA: http://www.xmpp.org/schemas/xhtml-im-model.xsd
+# Last-Modified: 2008-03-05T16:06:34Z
+
+# --------------------------------------------------------------------
+# XEP: XEP-0071
+# HOME: http://www.xmpp.org/extensions/xep-0071.html
+# NS: http://jabber.org/protocol/xhtml-im
+# SCHEMA: http://www.xmpp.org/schemas/xhtml-im-wrapper.xsd
+# Last-Modified: 2008-03-05T16:06:34Z
+
+# --------------------------------------------------------------------
+# XEP: XEP-0072
+# HOME: http://www.xmpp.org/extensions/xep-0072.html
+# NS: http://jabber.org/protocol/soap#fault
+# SCHEMA: http://www.xmpp.org/schemas/soap-fault.xsd
+# Last-Modified: 2008-04-18T16:36:55Z
+
+# --------------------------------------------------------------------
+# XEP: XEP-0077
+# HOME: http://www.xmpp.org/extensions/xep-0077.html
+# NS: jabber:iq:register
+# SCHEMA: http://www.xmpp.org/schemas/iq-register.xsd
+# Last-Modified: 2008-01-28T17:58:06Z
+
+# --------------------------------------------------------------------
+# XEP: XEP-0078
+# HOME: http://www.xmpp.org/extensions/xep-0078.html
+# NS: jabber:iq:auth
+# SCHEMA: http://www.xmpp.org/schemas/iq-auth.xsd
+# Last-Modified: 2008-01-30T20:37:24Z
+
+# --------------------------------------------------------------------
+# XEP: XEP-0079
+# HOME: http://www.xmpp.org/extensions/xep-0079.html
+# NS: http://jabber.org/protocol/amp
+# SCHEMA: http://www.xmpp.org/schemas/amp.xsd
+# Last-Modified: 2008-01-28T17:58:08Z
+
+action
+condition
+from
+per-hop
+status
+to
+value
+
+# --------------------------------------------------------------------
+# XEP: XEP-0079
+# HOME: http://www.xmpp.org/extensions/xep-0079.html
+# NS: http://jabber.org/protocol/amp#errors
+# SCHEMA: http://www.xmpp.org/schemas/amp-errors.xsd
+# Last-Modified: 2008-01-28T17:58:08Z
+
+action
+condition
+from
+per-hop
+status
+to
+value
+
+# --------------------------------------------------------------------
+# XEP: XEP-0080
+# HOME: http://www.xmpp.org/extensions/xep-0080.html
+# NS: http://jabber.org/protocol/geoloc
+# SCHEMA: http://www.xmpp.org/schemas/geoloc.xsd
+# Last-Modified: 2008-03-06T16:35:50Z
+
+# --------------------------------------------------------------------
+# XEP: XEP-0083
+# HOME: http://www.xmpp.org/extensions/xep-0083.html
+# NS: roster:delimiter
+# SCHEMA: http://www.xmpp.org/schemas/delimiter.xsd
+# Last-Modified: 2008-01-28T17:58:25Z
+
+# --------------------------------------------------------------------
+# XEP: XEP-0084
+# HOME: http://www.xmpp.org/extensions/xep-0084.html
+# NS: urn:xmpp:avatar:data
+# SCHEMA: http://www.xmpp.org/schemas/avatar-data.xsd
+# Last-Modified: 2008-04-18T18:54:20Z
+
+bytes
+height
+id
+type
+url
+width
+
+# --------------------------------------------------------------------
+# XEP: XEP-0084
+# HOME: http://www.xmpp.org/extensions/xep-0084.html
+# NS: urn:xmpp:avatar:metadata
+# SCHEMA: http://www.xmpp.org/schemas/avatar-metadata.xsd
+# Last-Modified: 2008-04-18T18:54:20Z
+
+bytes
+height
+id
+type
+url
+width
+
+# --------------------------------------------------------------------
+# XEP: XEP-0085
+# HOME: http://www.xmpp.org/extensions/xep-0085.html
+# NS: http://jabber.org/protocol/chatstates
+# SCHEMA: http://www.xmpp.org/schemas/chatstates.xsd
+# Last-Modified: 2008-01-28T17:58:27Z
+
+# --------------------------------------------------------------------
+# XEP: XEP-0092
+# HOME: http://www.xmpp.org/extensions/xep-0092.html
+# NS: jabber:iq:version
+# SCHEMA: http://www.xmpp.org/schemas/iq-version.xsd
+# Last-Modified: 2008-01-28T17:58:38Z
+
+# --------------------------------------------------------------------
+# XEP: XEP-0095
+# HOME: http://www.xmpp.org/extensions/xep-0095.html
+# NS: http://jabber.org/protocol/si
+# SCHEMA: http://www.xmpp.org/schemas/si.xsd
+# Last-Modified: 2008-05-23T14:41:08Z
+
+id
+mime-type
+profile
+
+# --------------------------------------------------------------------
+# XEP: XEP-0096
+# HOME: http://www.xmpp.org/extensions/xep-0096.html
+# NS: http://jabber.org/protocol/si/profile/file-transfer
+# SCHEMA: http://www.xmpp.org/schemas/file-transfer.xsd
+# Last-Modified: 2008-01-28T17:58:44Z
+
+date
+hash
+length
+name
+offset
+size
+
+# --------------------------------------------------------------------
+# XEP: XEP-0100
+# HOME: http://www.xmpp.org/extensions/xep-0100.html
+# NS: jabber:iq:gateway
+# SCHEMA: http://www.xmpp.org/schemas/iq-gateway.xsd
+# Last-Modified: 2008-01-28T17:58:56Z
+
+# --------------------------------------------------------------------
+# XEP: XEP-0107
+# HOME: http://www.xmpp.org/extensions/xep-0107.html
+# NS: http://jabber.org/protocol/mood
+# SCHEMA: http://www.xmpp.org/schemas/mood.xsd
+# Last-Modified: 2008-01-28T17:59:05Z
+
+# --------------------------------------------------------------------
+# XEP: XEP-0108
+# HOME: http://www.xmpp.org/extensions/xep-0108.html
+# NS: http://jabber.org/protocol/activity
+# SCHEMA: http://www.xmpp.org/schemas/activity.xsd
+# Last-Modified: 2008-01-28T17:59:06Z
+
+# --------------------------------------------------------------------
+# XEP: XEP-0114
+# HOME: http://www.xmpp.org/extensions/xep-0114.html
+# NS: jabber:component:accept
+# SCHEMA: http://www.xmpp.org/schemas/component-accept.xsd
+# Last-Modified: 2008-01-28T17:59:17Z
+
+code
+from
+id
+to
+type
+
+# --------------------------------------------------------------------
+# XEP: XEP-0114
+# HOME: http://www.xmpp.org/extensions/xep-0114.html
+# NS: jabber:component:connect
+# SCHEMA: http://www.xmpp.org/schemas/component-connect.xsd
+# Last-Modified: 2008-01-28T17:59:17Z
+
+code
+from
+id
+to
+type
+
+# --------------------------------------------------------------------
+# XEP: XEP-0115
+# HOME: http://www.xmpp.org/extensions/xep-0115.html
+# NS: http://jabber.org/protocol/caps
+# SCHEMA: http://www.xmpp.org/schemas/caps.xsd
+# Last-Modified: 2008-07-01T21:46:10Z
+
+ext
+hash
+node
+ver
+
+# --------------------------------------------------------------------
+# XEP: XEP-0118
+# HOME: http://www.xmpp.org/extensions/xep-0118.html
+# NS: http://jabber.org/protocol/tune
+# SCHEMA: http://www.xmpp.org/schemas/tune.xsd
+# Last-Modified: 2008-02-04T16:07:19Z
+
+# --------------------------------------------------------------------
+# XEP: XEP-0122
+# HOME: http://www.xmpp.org/extensions/xep-0122.html
+# NS: http://jabber.org/protocol/xdata-validate
+# SCHEMA: http://www.xmpp.org/schemas/xdata-validate.xsd
+# Last-Modified: 2008-01-28T17:59:36Z
+
+datatype
+max
+min
+
+# --------------------------------------------------------------------
+# XEP: XEP-0124
+# HOME: http://www.xmpp.org/extensions/xep-0124.html
+# NS: http://jabber.org/protocol/httpbind
+# SCHEMA: http://www.xmpp.org/schemas/httpbind.xsd
+# Last-Modified: 2008-01-28T17:59:38Z
+
+accept
+ack
+authid
+charsets
+condition
+content
+from
+hold
+inactivity
+key
+maxpause
+newkey
+pause
+polling
+report
+requests
+rid
+route
+secure
+sid
+stream
+time
+to
+type
+ver
+wait
+
+# --------------------------------------------------------------------
+# XEP: XEP-0130
+# HOME: http://www.xmpp.org/extensions/xep-0130.html
+# NS: http://jabber.org/protocol/waitinglist
+# SCHEMA: http://www.xmpp.org/schemas/waitinglist.xsd
+# Last-Modified: 2008-01-28T17:59:50Z
+
+id
+jid
+scheme
+type
+
+# --------------------------------------------------------------------
+# XEP: XEP-0137
+# HOME: http://www.xmpp.org/extensions/xep-0137.html
+# NS: http://jabber.org/protocol/sipub
+# SCHEMA: http://www.xmpp.org/schemas/sipub.xsd
+# Last-Modified: 2008-01-28T18:00:01Z
+
+from
+id
+mime-type
+profile
+sid
+
+# --------------------------------------------------------------------
+# XEP: XEP-0138
+# HOME: http://www.xmpp.org/extensions/xep-0138.html
+# NS: http://jabber.org/protocol/compress
+# SCHEMA: http://www.xmpp.org/schemas/compress.xsd
+# Last-Modified: 2008-01-28T18:00:02Z
+
+# --------------------------------------------------------------------
+# XEP: XEP-0138
+# HOME: http://www.xmpp.org/extensions/xep-0138.html
+# NS: http://jabber.org/features/compress
+# SCHEMA: http://www.xmpp.org/schemas/compress-feature.xsd
+# Last-Modified: 2008-01-28T18:00:02Z
+
+# --------------------------------------------------------------------
+# XEP: XEP-0141
+# HOME: http://www.xmpp.org/extensions/xep-0141.html
+# NS: http://jabber.org/protocol/xdata-layout
+# SCHEMA: http://www.xmpp.org/schemas/xdata-layout.xsd
+# Last-Modified: 2008-06-06T23:14:23Z
+
+label
+var
+
+# --------------------------------------------------------------------
+# XEP: XEP-0144
+# HOME: http://www.xmpp.org/extensions/xep-0144.html
+# NS: http://jabber.org/protocol/rosterx
+# SCHEMA: http://www.xmpp.org/schemas/rosterx.xsd
+# Last-Modified: 2008-01-28T18:01:04Z
+
+action
+jid
+name
+
+# --------------------------------------------------------------------
+# XEP: XEP-0145
+# HOME: http://www.xmpp.org/extensions/xep-0145.html
+# NS: storage:rosternotes
+# SCHEMA: http://www.xmpp.org/schemas/rosternotes.xsd
+# Last-Modified: 2008-01-28T18:01:05Z
+
+cdate
+jid
+mdate
+
+# --------------------------------------------------------------------
+# XEP: XEP-0153
+# HOME: http://www.xmpp.org/extensions/xep-0153.html
+# NS: vcard-temp:x:update
+# SCHEMA: http://www.xmpp.org/schemas/vcard-avatar.xsd
+# Last-Modified: 2008-01-28T18:01:17Z
+
+# --------------------------------------------------------------------
+# XEP: XEP-0171
+# HOME: http://www.xmpp.org/extensions/xep-0171.html
+# NS: urn:xmpp:langtrans
+# SCHEMA: http://www.xmpp.org/schemas/langtrans.xsd
+# Last-Modified: 2008-05-09T22:13:40Z
+
+charset
+destination_lang
+dictionary
+engine
+jid
+name
+pivotable
+reviewed
+source_lang
+
+# --------------------------------------------------------------------
+# XEP: XEP-0171
+# HOME: http://www.xmpp.org/extensions/xep-0171.html
+# NS: urn:xmpp:langtrans#items
+# SCHEMA: http://www.xmpp.org/schemas/langtrans-items.xsd
+# Last-Modified: 2008-05-09T22:13:40Z
+
+charset
+destination_lang
+dictionary
+engine
+jid
+name
+pivotable
+reviewed
+source_lang
+
+# --------------------------------------------------------------------
+# XEP: XEP-0172
+# HOME: http://www.xmpp.org/extensions/xep-0172.html
+# NS: http://jabber.org/protocol/nick
+# SCHEMA: http://www.xmpp.org/schemas/nick.xsd
+# Last-Modified: 2008-01-28T18:01:48Z
+
+# --------------------------------------------------------------------
+# XEP: XEP-0184
+# HOME: http://www.xmpp.org/extensions/xep-0184.html
+# NS: urn:xmpp:receipts
+# SCHEMA: http://www.xmpp.org/schemas/receipts.xsd
+# Last-Modified: 2008-06-06T23:14:27Z
+
+# --------------------------------------------------------------------
+# XEP: XEP-0191
+# HOME: http://www.xmpp.org/extensions/xep-0191.html
+# NS: urn:xmpp:blocking
+# SCHEMA: http://www.xmpp.org/schemas/blocking.xsd
+# Last-Modified: 2008-01-28T18:03:00Z
+
+jid
+
+# --------------------------------------------------------------------
+# XEP: XEP-0191
+# HOME: http://www.xmpp.org/extensions/xep-0191.html
+# NS: urn:xmpp:blocking:errors
+# SCHEMA: http://www.xmpp.org/schemas/blocking-errors.xsd
+# Last-Modified: 2008-01-28T18:03:00Z
+
+jid
+
+# --------------------------------------------------------------------
+# XEP: XEP-0199
+# HOME: http://www.xmpp.org/extensions/xep-0199.html
+# NS: urn:xmpp:ping
+# SCHEMA: http://www.xmpp.org/schemas/ping.xsd
+# Last-Modified: 2008-04-18T18:53:05Z
+
+# --------------------------------------------------------------------
+# XEP: XEP-0202
+# HOME: http://www.xmpp.org/extensions/xep-0202.html
+# NS: urn:xmpp:time
+# SCHEMA: http://www.xmpp.org/schemas/time.xsd
+# Last-Modified: 2008-01-28T18:03:16Z
+
+# --------------------------------------------------------------------
+# XEP: XEP-0203
+# HOME: http://www.xmpp.org/extensions/xep-0203.html
+# NS: urn:xmpp:delay
+# SCHEMA: http://www.xmpp.org/schemas/delay.xsd
+# Last-Modified: 2008-02-23T18:53:14Z
+
+from
+stamp
+
+# --------------------------------------------------------------------
+# XEP: XEP-0206
+# HOME: http://www.xmpp.org/extensions/xep-0206.html
+# NS: urn:xmpp:xbosh
+# SCHEMA: http://www.xmpp.org/schemas/xbosh.xsd
+# Last-Modified: 2008-01-28T18:03:21Z
+
+restart
+version
+
+# FROM: ../../../SVN/trunk/c_src/xmpp_attrs.h.in-local
+
+# $Id$
+
+# --------------------------------------------------------------------
+# XEP: XEP-0054
+# NS: vcard-temp
+
+# vim:ft=conf:
