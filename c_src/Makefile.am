@@ -41,14 +41,19 @@ execdriversdir = $(ERLANG_INSTALL_LIB_DIR_exmpp)/priv/lib
 # --------------------------------------------------------------------
 
 # Expat port driver.
-xmpp_ns.h: $(srcdir)/xmpp_ns.h.awk $(srcdir)/xmpp_ns.h.in
-	$(AWK) -f $(srcdir)/xmpp_ns.h.awk $(srcdir)/xmpp_ns.h.in > $@
 
-xmpp_names.h: $(srcdir)/xmpp_names.h.awk $(srcdir)/xmpp_names.h.in
-	$(AWK) -f $(srcdir)/xmpp_names.h.awk $(srcdir)/xmpp_names.h.in > $@
+KNOWN_NSS_SOURCE ?= $(srcdir)/xmpp_ns.h.in
+KNOWN_NAMES_SOURCE ?= $(srcdir)/xmpp_names.h.in
+KNOWN_ATTRS_SOURCE ?= $(srcdir)/xmpp_attrs.h.in
 
-xmpp_attrs.h: $(srcdir)/xmpp_attrs.h.awk $(srcdir)/xmpp_attrs.h.in
-	$(AWK) -f $(srcdir)/xmpp_attrs.h.awk $(srcdir)/xmpp_attrs.h.in > $@
+xmpp_ns.h: $(srcdir)/xmpp_ns.h.awk $(KNOWN_NSS_SOURCE)
+	$(AWK) -f $(srcdir)/xmpp_ns.h.awk $(KNOWN_NSS_SOURCE) > $@
+
+xmpp_names.h: $(srcdir)/xmpp_names.h.awk $(KNOWN_NAMES_SOURCE)
+	$(AWK) -f $(srcdir)/xmpp_names.h.awk $(KNOWN_NAMES_SOURCE) > $@
+
+xmpp_attrs.h: $(srcdir)/xmpp_attrs.h.awk $(KNOWN_ATTRS_SOURCE)
+	$(AWK) -f $(srcdir)/xmpp_attrs.h.awk $(KNOWN_ATTRS_SOURCE) > $@
 
 exmpp_xml_expat_la_CPPFLAGS = -I$(srcdir)/contrib			\
 			      $(EI_CPPFLAGS) -DEI_ENCODE_STRING_BUG	\
@@ -86,3 +91,31 @@ exmpp_compress_zlib_la_LDFLAGS = -module -avoid-version			\
 				 $(ZLIB_LDFLAGS) $(ZLIB_LIBS)
 exmpp_compress_zlib_la_SOURCES = exmpp_compress.h			\
 				 exmpp_compress_zlib.c
+
+# --------------------------------------------------------------------
+# Known namespaces/names/attributes updates.
+# --------------------------------------------------------------------
+
+MAKE_SCHEMAS_LIST = $(srcdir)/make-schemas-urls-list
+EXTRACT_KNOWN = $(srcdir)/extract-known-from-schemas
+
+updateknown: $(MAKE_SCHEMAS_LIST) $(EXTRACT_KNOWN)
+	$(MAKE_SCHEMAS_LIST) | $(EXTRACT_KNOWN) $(KNOWN_NSS_SOURCE) $(KNOWN_NAMES_SOURCE) $(KNOWN_ATTRS_SOURCE)
+	@echo >> $(KNOWN_NSS_SOURCE)
+	@echo "# FROM: $(KNOWN_NSS_SOURCE)-local" >> $(KNOWN_NSS_SOURCE)
+	@echo >> $(KNOWN_NSS_SOURCE)
+	cat $(KNOWN_NSS_SOURCE)-local >> $(KNOWN_NSS_SOURCE)
+	@echo >> $(KNOWN_NSS_SOURCE)
+	@echo "# vim:ft=conf:" >> $(KNOWN_NSS_SOURCE)
+	@echo >> $(KNOWN_NAMES_SOURCE)
+	@echo "# FROM: $(KNOWN_NAMES_SOURCE)-local" >> $(KNOWN_NAMES_SOURCE)
+	@echo >> $(KNOWN_NAMES_SOURCE)
+	cat $(KNOWN_NAMES_SOURCE)-local >> $(KNOWN_NAMES_SOURCE)
+	@echo >> $(KNOWN_NAMES_SOURCE)
+	@echo "# vim:ft=conf:" >> $(KNOWN_NAMES_SOURCE)
+	@echo >> $(KNOWN_ATTRS_SOURCE)
+	@echo "# FROM: $(KNOWN_ATTRS_SOURCE)-local" >> $(KNOWN_ATTRS_SOURCE)
+	@echo >> $(KNOWN_ATTRS_SOURCE)
+	cat $(KNOWN_ATTRS_SOURCE)-local >> $(KNOWN_ATTRS_SOURCE)
+	@echo >> $(KNOWN_ATTRS_SOURCE)
+	@echo "# vim:ft=conf:" >> $(KNOWN_ATTRS_SOURCE)

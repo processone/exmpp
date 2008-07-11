@@ -17,3 +17,6 @@ check-junit: all
 else
 check-junit:
 endif
+
+updateknown:
+	cd c_src && $(MAKE) $(AM_MAKEFLAGS) $@

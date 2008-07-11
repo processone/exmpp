@@ -1,3 +1,12 @@
+2008-07-11  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* c_src/make-schemas-urls-list, c_src/extract-known-from-schemas,
+	c_src/xmpp_ns.h.in-local, c_src/xmpp_names.h.in-local,
+	c_src/xmpp_attrs.h.in-local, c_src/Makefile.am, Makefile.am: Add Perl
+	scripts to automatically fetch XEP schemas and extract namespaces,
+	names and attributes and create the known lists used by
+	exmpp_xml_expat.
+
 2008-07-09  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_stringprep.erl: Improved exception handling. An
