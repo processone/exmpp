@@ -363,7 +363,8 @@ junit_report_filename2([], Suffix) ->
 escape_desc([C | Rest], Result, _Sep_Added) when
   C >= $a, C =< $z;
   C >= $A, C =< $Z;
-  C >= $0, C =< $9 ->
+  C >= $0, C =< $9;
+  C == $_; C == $- ->
     escape_desc(Rest, [C | Result], false);
 escape_desc([_C], Result, Sep_Added) ->
     escape_desc([], Result, Sep_Added);

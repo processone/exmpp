@@ -1,3 +1,8 @@
+2008-07-15  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* testsuite/eunit_tty.erl (escape_desc): Characters '_' and '-' are
+	kept in filenames.
+
 2008-07-11  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* c_src/make-schemas-urls-list, c_src/extract-known-from-schemas,
