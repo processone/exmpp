@@ -50,7 +50,7 @@
 
 feature(Methods) ->
     #xmlel{
-      ns = ?NS_COMPRESS,
+      ns = ?NS_COMPRESS_FEAT,
       name = 'compression',
       children = methods_list(Methods)
     }.

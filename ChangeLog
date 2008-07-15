@@ -15,6 +15,10 @@
 	* include/exmpp.hrl: Update namespace macros to include all new
 	namespaces from xmpp_ns.h.in.
 
+	* src/server/exmpp_server_compression.erl,
+	src/client/exmpp_client_compression.erl: Use the correct namespace
+	during features negotiation.
+
 2008-07-11  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* c_src/make-schemas-urls-list, c_src/extract-known-from-schemas,
