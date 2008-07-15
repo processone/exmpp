@@ -4,6 +4,7 @@ ETEST = $(builddir)/etest
 EUNIT_REPORTER = eunit_tty
 
 ERL_FILES = $(EUNIT_REPORTER).erl					\
+	    xml_parser.erl						\
 	    jid.erl
 
 JUNIT_REPORTS = exmpp-junit-*.xml
@@ -13,7 +14,7 @@ REAL_TESTS =
 if WITH_EXPAT
 endif
 
-REAL_TESTS += jid
+REAL_TESTS += xml_parser jid
 
 TESTS = $(REAL_TESTS)
 

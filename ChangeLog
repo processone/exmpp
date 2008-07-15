@@ -3,7 +3,8 @@
 	* testsuite/eunit_tty.erl (escape_desc): Characters '_' and '-' are
 	kept in filenames.
 
-	* testsuite/xml_parser.erl: Convert XML parser test to EUnit.
+	* testsuite/xml_parser.erl, testsuite/Makefile.am: Convert XML parser
+	test to EUnit.
 
 	* testsuite/check_jid.erl, testsuite/check_xml_parser.erl: Remove
 	converted tests.
