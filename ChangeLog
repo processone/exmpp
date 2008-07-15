@@ -5,6 +5,9 @@
 
 	* testsuite/xml_parser.erl: Convert XML parser test to EUnit.
 
+	* testsuite/check_jid.erl, testsuite/check_xml_parser.erl: Remove
+	converted tests.
+
 2008-07-11  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* c_src/make-schemas-urls-list, c_src/extract-known-from-schemas,
