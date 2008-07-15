@@ -9,6 +9,9 @@
 	* testsuite/check_jid.erl, testsuite/check_xml_parser.erl: Remove
 	converted tests.
 
+	* c_src/xmpp_ns.h.in: Remove a namespace used in an example in
+	XEP-0072.
+
 2008-07-11  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* c_src/make-schemas-urls-list, c_src/extract-known-from-schemas,

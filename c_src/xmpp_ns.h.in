@@ -458,7 +458,6 @@ http://www.w3.org/1999/xhtml
 # Last-Modified: 2008-04-18T16:36:55Z
 
 http://jabber.org/protocol/soap#fault
-http://www.example.org/services/BabelFishService.wsdl
 
 # --------------------------------------------------------------------
 # XEP: XEP-0077
