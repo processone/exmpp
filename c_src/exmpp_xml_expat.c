@@ -664,10 +664,16 @@ expat_cb_start_namespace(void *user_data,
 		if (entry == NULL)
 			return;
 
-		uri_len = strlen(uri);
+		/* We store an empty default namespace too, because the
+		 * end_namespace callback will want to pop it from the
+		 * stack. The element using this empty namespace won't
+		 * use it because it won't be associated to any
+		 * namespace. */
+		uri_len = uri != NULL ? strlen(uri) : 0;
 		entry->ns = driver_alloc(uri_len + 1);
 		if (entry->ns != NULL) {
-			memcpy(entry->ns, uri, uri_len);
+			if (uri_len > 0)
+				memcpy(entry->ns, uri, uri_len);
 			entry->ns[uri_len] = '\0';
 		}
 		entry->parent = ed->default_ns_stack;
@@ -676,6 +682,10 @@ expat_cb_start_namespace(void *user_data,
 		/* Store the namespace and its prefix in the lookup table.
 		 * We make a copy of `uri' because hashtable_remove and
 		 * hashtable_destroy will free it. */
+		if (uri == NULL)
+			/* An empty prefixed namespace is illegal. */
+			return;
+
 		hashtable_insert(ed->prefixes, strdup(uri), strdup(prefix));
 	}
 
@@ -690,7 +700,9 @@ expat_cb_start_namespace(void *user_data,
 
 	ei_x_encode_list_header(ed->declared_ns, 1);
 	ei_x_encode_tuple_header(ed->declared_ns, 2);
-	if (is_a_known_ns(ed, uri))
+	if (uri == NULL)
+		ei_x_encode_atom(ed->declared_ns, "undefined");
+	else if (is_a_known_ns(ed, uri))
 		ei_x_encode_atom(ed->declared_ns, uri);
 	else
 		ei_x_encode_string_fixed(ed->declared_ns, uri);
@@ -701,7 +713,8 @@ expat_cb_start_namespace(void *user_data,
 		ei_x_encode_string_fixed(ed->declared_ns, prefix);
 
 	/* Store the new namespace in the new_ns table. */
-	hashtable_insert(ed->new_ns, strdup(uri), "");
+	if (uri != NULL)
+		hashtable_insert(ed->new_ns, strdup(uri), "");
 }
 
 static void

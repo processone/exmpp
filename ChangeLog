@@ -6,6 +6,17 @@
 	list is flat. To achieve this, lists:append/1 is used to concatenate
 	lists.
 
+	* c_src/exmpp_xml_expat.c, src/core/exmpp_xml.erl
+	(forward_declare_ns/3): Elements with xmlns="" (empty default
+	namespace) are legal. After reading "XML 1.0" and "Namespaces for XML
+	1.0" (which I'm not sure I understand very well), it means that the
+	element declaring this and child elements doesn't belong to any
+	namespace.  Informations returned by Expat sort of confirm this. The
+	port driver and node_to_list/3 were fixed accordingly: such elements
+	will have their namespace set to the atom "undefined" and serialized
+	properly. FYI, JSJaC sends elements with empty xmlns. Note that empty
+	prefixed namespace are illegal.
+
 2008-07-15  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* testsuite/eunit_tty.erl (escape_desc): Characters '_' and '-' are

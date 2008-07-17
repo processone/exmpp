@@ -2081,12 +2081,23 @@ search_in_prefixed_ns(NS, Prefixed_NS) ->
             end
     end.
 
+forward_declare_ns(Curr_NS, [{undefined = NS, none} | Rest],
+  Attrs, [], Prefixed_NS) ->
+    New_Default_NS = [NS],
+    forward_declare_ns(Curr_NS, Rest,
+      Attrs, New_Default_NS, Prefixed_NS);
+forward_declare_ns(undefined = Curr_NS, Declared_NS,
+  Attrs, [], Prefixed_NS) ->
+    New_Default_NS = [Curr_NS],
+    forward_declare_ns(Curr_NS, Declared_NS,
+      Attrs, New_Default_NS, Prefixed_NS);
 forward_declare_ns(Curr_NS, [{NS, none} | Rest],
   Attrs, Default_NS, Prefixed_NS) ->
     % Forward-declare a default namespace.
     NS_S = if
-        is_atom(NS) -> atom_to_list(NS);
-        true        -> NS
+        NS == undefined -> "";
+        is_atom(NS)     -> atom_to_list(NS);
+        true            -> NS
     end,
     NS_Decl = #xmlattr{name = "xmlns", value = NS_S},
     New_Attrs = [NS_Decl | Attrs],
@@ -2129,8 +2140,9 @@ forward_declare_ns(Curr_NS, [], Attrs, Default_NS, Prefixed_NS) ->
                     % This element uses a new namespace: it'll become
                     % the new default one.
                     Curr_NS_S = if
-                        is_atom(Curr_NS) -> atom_to_list(Curr_NS);
-                        true             -> Curr_NS
+                        Curr_NS == undefined -> "";
+                        is_atom(Curr_NS)     -> atom_to_list(Curr_NS);
+                        true                 -> Curr_NS
                     end,
                     NS_Decl = #xmlattr{name = "xmlns", value = Curr_NS_S},
                     New_Attrs = [NS_Decl | Attrs],
@@ -2488,7 +2500,6 @@ node_to_list(El, Default_NS, Prefixed_NS) ->
 attrs_to_list(Attrs) ->
     lists:append([attr_to_list(A) || A <- Attrs]).
 
-% XXX Do not add an attribute with no value?
 attr_to_list({Name, Value}) ->
     lists:append([" ", Name, "=\"", escape_using_entities(Value), "\""]).
 
