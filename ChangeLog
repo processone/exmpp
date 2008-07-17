@@ -2,6 +2,10 @@
 
 	* include/exmpp.hrl: Add XBOSH common prefix.
 
+	* src/core/exmpp_xml.erl (node_to_list): Guarantee that the returned
+	list is flat. To achieve this, lists:append/1 is used to concatenate
+	lists.
+
 2008-07-15  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* testsuite/eunit_tty.erl (escape_desc): Characters '_' and '-' are

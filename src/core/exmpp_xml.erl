@@ -2451,25 +2451,26 @@ node_to_list(El, Default_NS, Prefixed_NS) ->
                 undefined ->
                     % Children may come later, we don't
                     % close the tag.
-                    [$<, Name_S, attrs_to_list(Attrs), $>];
+                    lists:append(["<", Name_S, attrs_to_list(Attrs), ">"]);
                 [] ->
-                    [$<, Name_S, attrs_to_list(Attrs), $/, $>];
+                    lists:append(["<", Name_S, attrs_to_list(Attrs), "/>"]);
                 _ ->
                     % NS stacks are passed to node_to_list/3
                     % again, but this isn't relevant
                     % without namespace support.
                     Norm = normalize_cdata_in_list(Els),
-                    [$<, Name_S, attrs_to_list(Attrs), $>,
-                      [node_to_list(E, Default_NS, Prefixed_NS) ||
-                        E <- Norm],
-                      $<, $/, Name_S, $>]
+                    Content = lists:append(
+                      [node_to_list(E, Default_NS, Prefixed_NS) || E <- Norm]),
+                    lists:append(
+                      ["<", Name_S, attrs_to_list(Attrs), ">", Content,
+                       "</", Name_S, ">"])
             end;
         #xmlendtag{ns = undefined, name = Name} ->
             Name_S = if
                 is_atom(Name) -> atom_to_list(Name);
                 true          -> Name
             end,
-            [$<, $/, Name_S, $>];
+            lists:append(["</", Name_S, ">"]);
         #xmlendtag{} ->
             document_to_list(
               xmlel_to_xmlelement(El,
@@ -2479,17 +2480,17 @@ node_to_list(El, Default_NS, Prefixed_NS) ->
                 is_atom(Target) -> atom_to_list(Target);
                 true            -> Target
             end,
-            [$<, $?, Target_S, $\s, Value, $?, $>];
+            lists:append(["<?", Target_S, " ", Value, "?>"]);
         #xmlcdata{cdata = CData} ->
             binary_to_list(?ESCAPE(CData))
     end.
 
 attrs_to_list(Attrs) ->
-    [attr_to_list(A) || A <- Attrs].
+    lists:append([attr_to_list(A) || A <- Attrs]).
 
-% XXX Do not add an attribute with no value.
+% XXX Do not add an attribute with no value?
 attr_to_list({Name, Value}) ->
-    [$\s, Name, $=, $", escape_using_entities(Value), $"].
+    lists:append([" ", Name, "=\"", escape_using_entities(Value), "\""]).
 
 %% @spec (XML_Element) -> XML_Text
 %%     XML_Element = xmlel() | xmlelement()
