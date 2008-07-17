@@ -334,6 +334,7 @@
 
 % Defined by XEP-0206: XMPP Over BOSH.
 -define(NS_XBOSH,                    'urn:xmpp:xbosh').
+-define(NS_XBOSH_pfx,                "xmpp").
 
 % --------------------------------------------------------------------
 % Presence types and status

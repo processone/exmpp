@@ -1,3 +1,7 @@
+2008-07-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* include/exmpp.hrl: Add XBOSH common prefix.
+
 2008-07-15  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* testsuite/eunit_tty.erl (escape_desc): Characters '_' and '-' are
