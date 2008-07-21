@@ -29,7 +29,9 @@
 % Serialization.
 -export([
   jid_to_string/1,
-  bare_jid_to_string/1
+  jid_to_string/3,
+  bare_jid_to_string/1,
+  bare_jid_to_string/2
 ]).
 
 % Comparison.
@@ -124,7 +126,7 @@ make_bare_jid(Node, Domain) ->
 %% @spec (Node, Domain, Resource) -> Jid
 %%     Node = string()
 %%     Domain = string()
-%%     Resource = string()
+%%     Resource = string() | random
 %%     Jid = jid()
 %% @doc Create a full JID.
 
@@ -298,6 +300,13 @@ parse_jid(full, [], Node, Domain) ->
 jid_to_string(#jid{node = Node, domain = Domain, resource = Resource}) ->
     jid_to_string(Node, Domain, Resource).
 
+%% @spec (Node, Domain, Resource) -> String
+%%     Node = string() | undefined
+%%     Domain = string()
+%%     Resource = string() | undefined
+%%     String = string()
+%% @doc Stringify a full JID.
+
 jid_to_string(Node, Domain, Resource) ->
     S1 = bare_jid_to_string(Node, Domain),
     case Resource of
@@ -313,6 +322,12 @@ jid_to_string(Node, Domain, Resource) ->
 
 bare_jid_to_string(#jid{node = Node, domain = Domain}) ->
     bare_jid_to_string(Node, Domain).
+
+%% @spec (Node, Domain) -> String
+%%     Node = string() | undefined
+%%     Domain = string()
+%%     String = string()
+%% @doc Stringify a full JID.
 
 bare_jid_to_string(Node, Domain) ->
     S1 = case Node of

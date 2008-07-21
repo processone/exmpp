@@ -8,6 +8,9 @@
 	subscribed, unsubscribe, unsubscribed and error presence stanzas. Add
 	a function to set the type of a presence stanza.
 
+	* src/core/exmpp_jid.erl: Export functions to make a JID string from
+	given node, domain and resource arguments.
+
 2008-07-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl: Add XBOSH common prefix.
