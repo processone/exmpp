@@ -1863,11 +1863,15 @@ get_path(XML_Element, [{attribute, NS, Name}]) ->
     get_attribute(XML_Element, NS, Name);
 get_path(XML_Element, [cdata]) ->
     get_cdata(XML_Element);
+get_path(XML_Element, [cdata_as_list]) ->
+    get_cdata_as_list(XML_Element);
 get_path(XML_Element, []) ->
     XML_Element;
 get_path(_XML_Element, [{attribute, _Name} | _Rest] = Path) ->
     throw({xml, path, ending_component_not_at_the_end, Path});
 get_path(_XML_Element, [cdata | _Rest] = Path) ->
+    throw({xml, path, ending_component_not_at_the_end, Path});
+get_path(_XML_Element, [cdata_as_list | _Rest] = Path) ->
     throw({xml, path, ending_component_not_at_the_end, Path});
 get_path(_XML_Element, Path) ->
     throw({xml, path, invalid_component, Path}).
@@ -1880,11 +1884,15 @@ get_path_not_found([{attribute, _NS, _Name}]) ->
     "";
 get_path_not_found([cdata]) ->
     <<>>;
+get_path_not_found([cdata_as_list]) ->
+    "";
 get_path_not_found([]) ->
     undefined;
 get_path_not_found([{attribute, _Name} | _Rest] = Path) ->
     throw({xml, path, ending_component_not_at_the_end, Path});
 get_path_not_found([cdata | _Rest] = Path) ->
+    throw({xml, path, ending_component_not_at_the_end, Path});
+get_path_not_found([cdata_as_list | _Rest] = Path) ->
     throw({xml, path, ending_component_not_at_the_end, Path});
 get_path_not_found(Path) ->
     throw({xml, path, invalid_component, Path}).
@@ -2936,7 +2944,7 @@ set_option(_Port, Invalid_Option) ->
 %% enabled, for nodes above the configured `root_depth' (see {@link
 %% xmlparseroption()}).
 
-%% @type pathcomponent() = {element, Elem_Name} | {element, NS, Elem_Name} | {attribute, Attr_Name} | {attribute, NS, Attr_Name} | cdata
+%% @type pathcomponent() = {element, Elem_Name} | {element, NS, Elem_Name} | {attribute, Attr_Name} | {attribute, NS, Attr_Name} | cdata | cdata_as_list
 %%     NS = atom() | string()
 %%     Elem_Name = atom() | string()
 %%     Attr_Name = atom() | string().
