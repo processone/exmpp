@@ -110,10 +110,12 @@ result(Request_IQ) ->
 
 %% @spec (Request_IQ, Result) -> Response_IQ
 %%     Request_IQ = exmpp_xml:xmlel()
-%%     Result = exmpp_xml:xmlel()
+%%     Result = exmpp_xml:xmlel() | [exmpp_xml:xmlel()]
 %%     Response_IQ = exmpp_xml:xmlel()
 %% @doc Prepare an `<iq/>' to answer to the given request with `Result'.
 
+result(Request_IQ, Result) when is_list(Result) ->
+    exmpp_xml:set_children(result(Request_IQ), Result);
 result(Request_IQ, Result) ->
     exmpp_xml:set_children(result(Request_IQ), [Result]).
 

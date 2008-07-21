@@ -11,6 +11,9 @@
 	* src/core/exmpp_jid.erl: Export functions to make a JID string from
 	given node, domain and resource arguments.
 
+	* src/core/exmpp_iq.erl (result): Accept a list of results to put in
+	an IQ.
+
 2008-07-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl: Add XBOSH common prefix.
