@@ -15,7 +15,12 @@
 -export([
   available/0,
   unavailable/0,
-  probe/0
+  subscribe/0,
+  subscribed/0,
+  unsubscribe/0,
+  unsubscribed/0,
+  probe/0,
+  error/0
 ]).
 
 % Presence standard attributes.
@@ -49,24 +54,53 @@ available() ->
 %% @doc Create a `<presence/>' to tell that the sender is not available.
 
 unavailable() ->
-    Attrs1 = exmpp_stanza:set_type_in_attrs([], "unavailable"),
-    #xmlel{
-      ns = ?NS_JABBER_CLIENT,
-      name = 'presence',
-      attrs = Attrs1
-    }.
+    set_type(available(), "unavailable").
+
+%% @spec () -> Presence
+%%     Presence = exmpp_xml:xmlel()
+%% @doc Create a `<presence/>' to tell that the sender wants to
+%% subscribe to the receiver's presence.
+
+subscribe() ->
+    set_type(available(), "subscribe").
+
+%% @spec () -> Presence
+%%     Presence = exmpp_xml:xmlel()
+%% @doc Create a `<presence/>' to tell that the receiver was
+%% subscribed from the sender's presence.
+
+subscribed() ->
+    set_type(available(), "subscribed").
+
+%% @spec () -> Presence
+%%     Presence = exmpp_xml:xmlel()
+%% @doc Create a `<presence/>' to tell that the sender wants to
+%% unsubscribe to the receiver's presence.
+
+unsubscribe() ->
+    set_type(available(), "unsubscribe").
+
+%% @spec () -> Presence
+%%     Presence = exmpp_xml:xmlel()
+%% @doc Create a `<presence/>' to tell that the receiver was
+%% unsubscribed from the sender's presence.
+
+unsubscribed() ->
+    set_type(available(), "unsubscribed").
 
 %% @spec () -> Presence
 %%     Presence = exmpp_xml:xmlel()
 %% @doc Create a probe `<presence/>'.
 
 probe() ->
-    Attrs1 = exmpp_stanza:set_type_in_attrs([], "probe"),
-    #xmlel{
-      ns = ?NS_JABBER_CLIENT,
-      name = 'presence',
-      attrs = Attrs1
-    }.
+    set_type(available(), "probe").
+
+%% @spec () -> Presence
+%%     Presence = exmpp_xml:xmlel()
+%% @doc Create an error `<presence/>'.
+
+error() ->
+    set_type(available(), "error").
 
 % --------------------------------------------------------------------
 % Presence standard attributes.
@@ -86,7 +120,7 @@ is_presence(_El)                                  -> false.
 %%     Type = availale | unavailable | subscribe | subscribed | unsubscribe | unsubscribed | probe | error | undefined
 %% @doc Return the type of the given `<presence/>'.
 
-get_type(Presence) ->
+get_type(Presence) when ?IS_PRESENCE(Presence) ->
     case exmpp_stanza:get_type(Presence) of
         ""             -> 'available';
         "unavailable"  -> 'unavailable';
@@ -98,6 +132,24 @@ get_type(Presence) ->
         "error"        -> 'error';
         _              -> undefined
     end.
+
+%% @spec (Presence, Type) -> New_Presence
+%%     Presence = exmpp_xml:xmlel()
+%%     Type = availale | unavailable | subscribe | subscribed | unsubscribe | unsubscribed | probe | error
+%%     New_Presence = exmpp_xml:xmlel()
+%% @doc Set the type of the given `<presence/>'.
+
+set_type(Presence, "") when ?IS_PRESENCE(Presence) ->
+    exmpp_xml:remove_attribute(Presence, 'type');
+set_type(Presence, 'available') when ?IS_PRESENCE(Presence) ->
+    exmpp_xml:remove_attribute(Presence, 'type');
+set_type(Presence, "available") when ?IS_PRESENCE(Presence) ->
+    exmpp_xml:remove_attribute(Presence, 'type');
+
+set_type(Presence, Type) when is_atom(Type) ->
+    set_type(Presence, atom_to_list(Type));
+set_type(Presence, Type) when ?IS_PRESENCE(Presence) ->
+    exmpp_stanza:set_type(Presence, Type).
 
 %% @spec (Presence) -> Show | undefined
 %%     Presence = exmpp_xml:xmlel()
@@ -120,10 +172,17 @@ get_show(#xmlel{ns = NS} = Presence) when ?IS_PRESENCE(Presence) ->
 
 %% @spec (Presence, Show) -> New_Presence
 %%     Presence = exmpp_xml:xmlel()
-%%     Show = atom()
+%%     Show = nil() | online | away | chat | dnd | xa
 %%     New_Presence = exmpp_xml:xmlel()
 %% @doc Set the `<show/>' field of a presence stanza.
+%%
+%% If `Type' is an empty string or the atom `online', the `<show/>'
+%% element is removed.
 
+set_show(#xmlel{ns = NS} = Presence, "") ->
+    exmpp_xml:remove_child(Presence, NS, 'show');
+set_show(#xmlel{ns = NS} = Presence, 'online') ->
+    exmpp_xml:remove_child(Presence, NS, 'show');
 set_show(#xmlel{ns = NS} = Presence, Show) when ?IS_PRESENCE(Presence) ->
     case Show of
         'away' -> ok;

@@ -4,6 +4,10 @@
 	component. Character data are returned as list (instead of binary)
 	obsviously.
 
+	* src/core/exmpp_presence.erl: Add functions to create subscribe,
+	subscribed, unsubscribe, unsubscribed and error presence stanzas. Add
+	a function to set the type of a presence stanza.
+
 2008-07-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl: Add XBOSH common prefix.
