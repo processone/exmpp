@@ -1,8 +1,13 @@
+2008-07-23  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* include/exmpp.hrl: Add a string version of the Ad-Hoc commands
+	namespace. Other namespaces will follow as needed.
+
 2008-07-21  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_xml.erl (get_path): Accept 'cdata_as_list' as a path
 	component. Character data are returned as list (instead of binary)
-	obsviously.
+	obviously.
 
 	* src/core/exmpp_presence.erl: Add functions to create subscribe,
 	subscribed, unsubscribe, unsubscribed and error presence stanzas. Add
