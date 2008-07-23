@@ -15,6 +15,9 @@
 	c_src/xmpp_attrs.h.in-local: Removed obsolete templates, now that the
 	new scripts understand DTDs.
 
+	* c_src/xmpp_ns.h.in, c_src/xmpp_names.h.in, c_src/xmpp_attrs.h.in:
+	Update known lists using the new scripts.
+
 2008-07-21  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_xml.erl (get_path): Accept 'cdata_as_list' as a path
