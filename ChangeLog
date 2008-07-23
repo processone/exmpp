@@ -3,6 +3,18 @@
 	* include/exmpp.hrl: Add a string version of the Ad-Hoc commands
 	namespace. Other namespaces will follow as needed.
 
+	* c_src/extract-known-from-specs, c_src/make-specs-list,
+	c_src/extract-known-from-schemas, c_src/make-schemas-urls-list,
+	c_src/Makefile.am: Rewrite scripts that fetch and extract official
+	namespaces and their element and attribute names. The new scripts are
+	now based on the HTML XEP list available here:
+	http://www.xmpp.org/extensions/all.shtml
+	This list is a lot more up-to-date.
+
+	* c_src/xmpp_ns.h.in-local, c_src/xmpp_names.h.in-local,
+	c_src/xmpp_attrs.h.in-local: Removed obsolete templates, now that the
+	new scripts understand DTDs.
+
 2008-07-21  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_xml.erl (get_path): Accept 'cdata_as_list' as a path
