@@ -18,13 +18,10 @@ KNOWN_NSS_SOURCE   ?= $(srcdir)/xmpp_ns.h.in
 KNOWN_NAMES_SOURCE ?= $(srcdir)/xmpp_names.h.in
 KNOWN_ATTRS_SOURCE ?= $(srcdir)/xmpp_attrs.h.in
 
-MAKE_SCHEMAS_LIST = $(srcdir)/make-schemas-urls-list
-EXTRACT_KNOWN = $(srcdir)/extract-known-from-schemas
+MAKE_SPECS_LIST = $(srcdir)/make-specs-list
+EXTRACT_KNOWN = $(srcdir)/extract-known-from-specs
 
-EXTRA_DIST = $(MAKE_SCHEMAS_LIST) $(EXTRACT_KNOWN)			\
-	     $(KNOWN_NSS_SOURCE)-local					\
-	     $(KNOWN_NAMES_SOURCE)-local				\
-	     $(KNOWN_ATTRS_SOURCE)-local				\
+EXTRA_DIST = $(MAKE_SPECS_LIST) $(EXTRACT_KNOWN)			\
 	     contrib/hashtable.h contrib/hashtable_private.h		\
 	     xmpp_ns.h.awk xmpp_ns.h.in					\
 	     xmpp_names.h.awk xmpp_names.h.in				\
@@ -102,26 +99,8 @@ exmpp_compress_zlib_la_SOURCES = exmpp_compress.h			\
 # Known namespaces/names/attributes updates.
 # --------------------------------------------------------------------
 
-updateknown: $(MAKE_SCHEMAS_LIST) $(EXTRACT_KNOWN)
-	$(MAKE_SCHEMAS_LIST) | $(EXTRACT_KNOWN) $(KNOWN_NSS_SOURCE) $(KNOWN_NAMES_SOURCE) $(KNOWN_ATTRS_SOURCE)
-	@echo >> $(KNOWN_NSS_SOURCE)
-	@echo "# FROM: $(KNOWN_NSS_SOURCE)-local" >> $(KNOWN_NSS_SOURCE)
-	@echo >> $(KNOWN_NSS_SOURCE)
-	cat $(KNOWN_NSS_SOURCE)-local >> $(KNOWN_NSS_SOURCE)
-	@echo >> $(KNOWN_NSS_SOURCE)
-	@echo -n "# vim" >> $(KNOWN_NSS_SOURCE)
-	@echo ":ft=conf:" >> $(KNOWN_NSS_SOURCE)
-	@echo >> $(KNOWN_NAMES_SOURCE)
-	@echo "# FROM: $(KNOWN_NAMES_SOURCE)-local" >> $(KNOWN_NAMES_SOURCE)
-	@echo >> $(KNOWN_NAMES_SOURCE)
-	cat $(KNOWN_NAMES_SOURCE)-local >> $(KNOWN_NAMES_SOURCE)
-	@echo >> $(KNOWN_NAMES_SOURCE)
-	@echo -n "# vim" >> $(KNOWN_NAMES_SOURCE)
-	@echo ":ft=conf:" >> $(KNOWN_NAMES_SOURCE)
-	@echo >> $(KNOWN_ATTRS_SOURCE)
-	@echo "# FROM: $(KNOWN_ATTRS_SOURCE)-local" >> $(KNOWN_ATTRS_SOURCE)
-	@echo >> $(KNOWN_ATTRS_SOURCE)
-	cat $(KNOWN_ATTRS_SOURCE)-local >> $(KNOWN_ATTRS_SOURCE)
-	@echo >> $(KNOWN_ATTRS_SOURCE)
-	@echo -n "# vim" >> $(KNOWN_ATTRS_SOURCE)
-	@echo ":ft=conf:" >> $(KNOWN_ATTRS_SOURCE)
+updateknown: $(MAKE_SPECS_LIST) $(EXTRACT_KNOWN)
+	@$(MAKE_SPECS_LIST) | $(EXTRACT_KNOWN)				\
+		$(KNOWN_NSS_SOURCE)					\
+		$(KNOWN_NAMES_SOURCE)					\
+		$(KNOWN_ATTRS_SOURCE)
