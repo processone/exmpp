@@ -170,6 +170,9 @@
 % Defined by XEP-0033: Extended Stanza Addressing.
 -define(NS_ADDRESS,                  'http://jabber.org/protocol/address').
 
+% Defined by XEP-0039: Statistics Gathering.
+-define(NS_STATS_s,                  "http://jabber.org/protocol/stats").
+
 % Defined by XEP-0045: Multi-User Chat.
 -define(NS_MUC,                      'http://jabber.org/protocol/muc').
 -define(NS_MUC_ADMIN,                'http://jabber.org/protocol/muc#admin').

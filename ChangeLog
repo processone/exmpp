@@ -4,6 +4,9 @@
 	clauses that do the same thing as make_bare_jid and
 	bare_jid_to_string.
 
+	* include/exmpp.hrl: Add a macro for the namespace
+	'http://jabber.org/protocol/stats'.
+
 2008-07-23  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl: Add a string version of the Ad-Hoc commands
