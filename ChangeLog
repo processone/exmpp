@@ -1,3 +1,9 @@
+2008-07-25  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_jid.erl (make_jid, jid_to_string): Add function
+	clauses that do the same thing as make_bare_jid and
+	bare_jid_to_string.
+
 2008-07-23  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp.hrl: Add a string version of the Ad-Hoc commands

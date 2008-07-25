@@ -13,6 +13,8 @@
 
 % Conversion.
 -export([
+  make_jid/1,
+  make_jid/2,
   make_jid/3,
   make_bare_jid/1,
   make_bare_jid/2,
@@ -29,6 +31,7 @@
 % Serialization.
 -export([
   jid_to_string/1,
+  jid_to_string/2,
   jid_to_string/3,
   bare_jid_to_string/1,
   bare_jid_to_string/2
@@ -123,10 +126,27 @@ make_bare_jid(Node, Domain) ->
             throw({jid, make, invalid_domain, {Node, Domain, undefined}})
     end.
 
-%% @spec (Node, Domain, Resource) -> Jid
-%%     Node = string()
+%% @spec (Domain) -> Jid
 %%     Domain = string()
-%%     Resource = string() | random
+%%     Jid = jid()
+%% @doc Create a bare JID.
+
+make_jid(Domain) ->
+    make_bare_jid(Domain).
+
+%% @spec (Node, Domain) -> Jid
+%%     Node = string() | undefined
+%%     Domain = string()
+%%     Jid = jid()
+%% @doc Create a bare JID.
+
+make_jid(Node, Domain) ->
+    make_bare_jid(Node, Domain).
+
+%% @spec (Node, Domain, Resource) -> Jid
+%%     Node = string() | undefined
+%%     Domain = string()
+%%     Resource = string() | random | undefined
 %%     Jid = jid()
 %% @doc Create a full JID.
 
@@ -299,6 +319,15 @@ parse_jid(full, [], Node, Domain) ->
 
 jid_to_string(#jid{node = Node, domain = Domain, resource = Resource}) ->
     jid_to_string(Node, Domain, Resource).
+
+%% @spec (Node, Domain) -> String
+%%     Node = string() | undefined
+%%     Domain = string()
+%%     String = string()
+%% @doc Stringify a bare JID.
+
+jid_to_string(Node, Domain) ->
+    bare_jid_to_string(Node, Domain).
 
 %% @spec (Node, Domain, Resource) -> String
 %%     Node = string() | undefined
