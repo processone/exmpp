@@ -252,11 +252,11 @@ handle_sync_event(stop, _From, _StateName, State) ->
 handle_sync_event({set_controlling_process,Client}, _From, StateName, State) ->
     Reply = ok,
     {reply,Reply,StateName,State#state{client_pid=Client}};
-handle_sync_event(Event, _From, StateName, State) ->
+handle_sync_event(_Event, _From, StateName, State) ->
     Reply = ok,
     {reply, Reply, StateName, State}.
 
-handle_info(Info, StateName, State) ->
+handle_info(_Info, StateName, State) ->
     {next_state, StateName, State}.
 
 
@@ -369,6 +369,9 @@ setup(_UnknownMessage, _From, State) ->
 -define(iq,
 	#xmlstreamelement{
 	  element=#xmlel{name=iq, attrs=Attrs}=IQElement}).
+-define(iq_no_attrs,
+	#xmlstreamelement{
+	  element=#xmlel{name=iq}=IQElement}).
 
 %% Used to match a presence packet in stream.
 -define(presence,
@@ -466,7 +469,7 @@ stream_opened(?streamend, State) ->
     {stop, normal, State}.
 
 %% Reason comes from streamerror macro
-wait_for_legacy_auth_method(?iq, State = #state{connection = Module,
+wait_for_legacy_auth_method(?iq_no_attrs, State = #state{connection = Module,
 						connection_ref = ConnRef,
 						auth_method = Auth,
 						stream_id = StreamId}) ->
@@ -491,7 +494,7 @@ wait_for_legacy_auth_method(?streamerror, State) ->
 
 %% TODO: We should be able to match on iq type directly on the first
 %% level record
-wait_for_auth_result(?iq, State = #state{from_pid=From}) ->
+wait_for_auth_result(?iq_no_attrs, State = #state{from_pid=From}) ->
     case exmpp_xml:get_attribute(IQElement, type) of
  	"result" ->
             gen_fsm:reply(From, ok),	     
@@ -506,7 +509,7 @@ wait_for_auth_result(?iq, State = #state{from_pid=From}) ->
 %% TODO: The API should be flexible to adapt to server
 %% requirements. Check that a client can get the list of fields and
 %% override this simple method of registration.
-wait_for_register_result(?iq, State = #state{from_pid=From}) ->
+wait_for_register_result(?iq_no_attrs, State = #state{from_pid=From}) ->
     case exmpp_xml:get_attribute(IQElement, type) of
  	"result" ->
             gen_fsm:reply(From, ok),	     

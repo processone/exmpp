@@ -1,3 +1,7 @@
+2008-07-29  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/network/exmpp_session.erl: Fix compilation warnings.
+
 2008-07-25  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_jid.erl (make_jid, jid_to_string): Add function
