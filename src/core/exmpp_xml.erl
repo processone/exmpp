@@ -2442,7 +2442,7 @@ search_prefix_in_prefixed_ns(Prefix, Prefixed_NS) ->
     end.
 
 %% @spec (XML_Element, Default_NS, Prefixed_NS) -> XML_Text
-%%     XML_Element = xmlel() | xmlelement() | xmlendtag() | xmlcdata()
+%%     XML_Element = xmlel() | xmlelement() | xmlendtag() | xmlcdata() | list()
 %%     Default_NS = [NS | Equivalent_NSs]
 %%     Prefixed_NS = [{NS, Prefix}]
 %%     NS = atom()
@@ -2455,6 +2455,9 @@ search_prefix_in_prefixed_ns(Prefix, Prefixed_NS) ->
 %% occured above this node in the tree. The order in the first list is
 %% important: declarations are sorted from the most recent one to the
 %% oldest one.
+
+node_to_list(El, Default_NS, Prefixed_NS) when is_list(El) ->
+    lists:append([node_to_list(E, Default_NS, Prefixed_NS) || E <- El]);
 
 node_to_list(El, Default_NS, Prefixed_NS) ->
     case El of
@@ -2512,7 +2515,7 @@ attr_to_list({Name, Value}) ->
     lists:append([" ", Name, "=\"", escape_using_entities(Value), "\""]).
 
 %% @spec (XML_Element) -> XML_Text
-%%     XML_Element = xmlel() | xmlelement()
+%%     XML_Element = xmlel() | xmlelement() | list()
 %%     XML_Text = string()
 %% @doc Serialize an XML document to text.
 
