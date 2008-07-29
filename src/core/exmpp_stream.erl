@@ -651,7 +651,7 @@ get_text(#xmlel{ns = ?NS_XMPP, name = 'error'} = El) ->
 % --------------------------------------------------------------------
 
 %% @spec (El) -> XML_Text
-%%     El = exmpp_xml:xmlel()
+%%     El = exmpp_xml:xmlel() | list()
 %%     XML_Text = string()
 %% @doc Serialize a stream opening/closing.
 

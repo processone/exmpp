@@ -8,6 +8,9 @@
 	also possible to combine an XML process instruction and an XML
 	document, or an XMPP stanza and a stream closing.
 
+	* src/core/exmpp_stream.erl (to_list), src/core/exmpp_stanza.erl
+	(to_list): Update documentation.
+
 	* src/client/exmpp_client_presence.erl, src/Makefile.am,
 	src/Emakefile.in, ebin/Makefile.am, ebin/exmpp.app.in,
 	doc/Makefile.am: Remove exmpp_client_presence. exmpp_presence is the

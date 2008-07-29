@@ -684,7 +684,7 @@ get_text_in_error(Error) ->
 % --------------------------------------------------------------------
 
 %% @spec (El, Default_NS) -> XML_Text
-%%     El = exmpp_xml:xmlel()
+%%     El = exmpp_xml:xmlel() | list()
 %%     Default_NS = NS | Equivalent_NSs
 %%     NS = atom() | string()
 %%     Equivalent_NSs = [NS]
@@ -700,7 +700,7 @@ to_list(El, Default_NS) ->
       [{?NS_XMPP, ?NS_XMPP_pfx}, {?NS_DIALBACK, ?NS_DIALBACK_pfx}]).
 
 %% @spec (El, Default_NS, Prefix) -> XML_Text
-%%     El = exmpp_xml:xmlel()
+%%     El = exmpp_xml:xmlel() | list()
 %%     Default_NS = NS | [NS]
 %%     Prefixed_NS = [{NS, Prefix}]
 %%     NS = atom() | string()
@@ -714,7 +714,7 @@ to_list(El, Default_NS, Prefixed_NS) ->
     exmpp_xml:node_to_list(El, [Default_NS], Prefixed_NS).
 
 %% @spec (El) -> XML_Text
-%%     El = exmpp_xml:xmlel()
+%%     El = exmpp_xml:xmlel() | list()
 %%     XML_Text = string()
 %% @doc Serialize a stanza using common XMPP default namespaces.
 %%
