@@ -149,6 +149,7 @@
 
 % Defined by XEP-0012: Last Activity.
 -define(NS_LAST_ACTIVITY,            'jabber:iq:last').
+-define(NS_LAST_ACTIVITY_s,          "jabber:iq:last").
 
 % Defined by XEP-0013: Flexible Offline Message Retrieval.
 -define(NS_OFFLINE,                  'http://jabber.org/protocol/offline').
@@ -339,23 +340,3 @@
 % Defined by XEP-0206: XMPP Over BOSH.
 -define(NS_XBOSH,                    'urn:xmpp:xbosh').
 -define(NS_XBOSH_pfx,                "xmpp").
-
-% --------------------------------------------------------------------
-% Presence types and status
-% --------------------------------------------------------------------
-
--define(P_AVAILABLE, available).
--define(P_UNAVAILABLE, unavailable).
--define(P_INVISIBLE, invisible).
--define(P_AWAY, away).
--define(P_CHAT, chat).
--define(P_DND, dnd).
--define(P_XA, xa).
-
-% --------------------------------------------------------------------
-% Special case value
-% --------------------------------------------------------------------
-
--define(NO_ELEMENT, no_element).
-
-% vim:ft=erlang:

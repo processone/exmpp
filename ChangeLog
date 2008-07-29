@@ -8,6 +8,16 @@
 	also possible to combine an XML process instruction and an XML
 	document, or an XMPP stanza and a stream closing.
 
+	* src/client/exmpp_client_presence.erl, src/Makefile.am,
+	src/Emakefile.in, ebin/Makefile.am, ebin/exmpp.app.in,
+	doc/Makefile.am: Remove exmpp_client_presence. exmpp_presence is the
+	module to use.
+
+	* include/exmpp.hrl: Remove definitions used by exmpp_client_presence.
+
+	* src/examples/echo_client.erl: Use exmpp_presence instead of
+	exmpp_client_presence.
+
 2008-07-25  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_jid.erl (make_jid, jid_to_string): Add function

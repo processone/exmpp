@@ -62,8 +62,8 @@ session(MySession, _MyJID) ->
     end,
     %% We explicitely send presence:
     exmpp_session:send_packet(MySession,
-			      exmpp_client_presence:presence(?P_AVAILABLE,
-							     "Echo Ready")),
+			      exmpp_presence:set_status(
+				exmpp_presence:available(), "Echo Ready")),
     loop(MySession).
 
 %% Process exmpp packet:
