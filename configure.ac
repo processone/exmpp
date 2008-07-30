@@ -77,7 +77,7 @@ dnl Versionning
 dnl ------------------------------------------------------------------
 
 dnl Release date.
-EXMPP_RELEASE_DATE="today"
+dnl EXMPP_RELEASE_DATE=
 
 dnl Is this a final release?
 is_release=0
