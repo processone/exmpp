@@ -36,6 +36,9 @@
 	* configure.ac: Do not set EXMPP_RELEASE_DATE; it must be set in a
 	release branch. This was only for testing purpose.
 
+	* configure.ac, Makefile.am: Fix make distcheck when EXMPP_SVNREV and
+	EXMPP_DISTSUFFIX are used.
+
 2008-07-29  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/network/exmpp_session.erl: Fix compilation warnings.

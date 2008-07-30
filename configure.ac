@@ -89,11 +89,13 @@ dnl Subversion revision.
 if test $is_release -eq 0; then
 	EXMPP_SVNREV=`svnversion $srcdir | sed 's/^[[^:]]*://'`
 	which svnversion > /dev/null; \
-	if test $? -eq 0 -a "x$EXMPP_SVNREV" != "xexported"; then
-		EXMPP_DISTSUFFIX="-r$EXMPP_SVNREV"
+	if test $? -ne 0 -o "x$EXMPP_SVNREV" = "xexported"; then
+		EXMPP_SVNREV=`cat $srcdir/SVNREV`
 	else
-		EXMPP_SVNREV=""
-		EXMPP_DISTSUFFIX=""
+		echo $EXMPP_SVNREV > $srcdir/SVNREV
+	fi
+	if test $EXMPP_SVNREV; then
+		EXMPP_DISTSUFFIX="-r$EXMPP_SVNREV"
 	fi
 fi
 
