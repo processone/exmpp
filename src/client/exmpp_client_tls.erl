@@ -37,7 +37,7 @@
 %% @doc Return the kind of TLS negotiation the receiving entity asks for.
 
 announced_support(#xmlel{ns = ?NS_XMPP, name = 'features'} = El) ->
-    case exmpp_xml:get_element_by_name(El, ?NS_TLS, 'starttls') of
+    case exmpp_xml:get_element(El, ?NS_TLS, 'starttls') of
         undefined -> none;
         Child     -> announced_support2(Child)
     end.

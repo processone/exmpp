@@ -661,10 +661,10 @@ check_auth_method(Method, IQElement) ->
 	    {error, not_auth_method_result}
     end.
 check_auth_method2(Method, IQElement) ->
-    QueryElement = exmpp_xml:get_element_by_name(IQElement,
+    QueryElement = exmpp_xml:get_element(IQElement,
 						 'jabber:iq:auth',
 						 'query'),
-    case exmpp_xml:get_element_by_name(QueryElement,
+    case exmpp_xml:get_element(QueryElement,
 				       'jabber:iq:auth',
 				       Method) of
 	undefined ->

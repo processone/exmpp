@@ -32,7 +32,7 @@
 %% @doc Tell if the Session Establishment feature is supported.
 
 announced_support(#xmlel{ns = ?NS_XMPP, name = 'features'} = El) ->
-    case exmpp_xml:get_element_by_name(El, ?NS_SESSION, 'session') of
+    case exmpp_xml:get_element(El, ?NS_SESSION, 'session') of
         undefined -> false;
         Child     -> announced_support2(Child)
     end.    

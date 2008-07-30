@@ -88,7 +88,7 @@
 %% namespace as the stanza.
 
 get_error(#xmlel{ns = NS} = Stanza) ->
-    exmpp_xml:get_element_by_name(Stanza, NS, 'error').
+    exmpp_xml:get_element(Stanza, NS, 'error').
 
 % --------------------------------------------------------------------
 % Stanza standard attributes.
@@ -669,12 +669,12 @@ get_text(Stanza) ->
 
 get_text_in_error(#xmlel{ns = NS} = Error)
   when NS == ?NS_JABBER_CLIENT; NS == ?NS_JABBER_SERVER ->
-    case exmpp_xml:get_element_by_name(Error, ?NS_STANZA_ERRORS, 'text') of
+    case exmpp_xml:get_element(Error, ?NS_STANZA_ERRORS, 'text') of
         undefined -> undefined;
         Text      -> exmpp_xml:get_cdata_as_list(Text)
     end;
 get_text_in_error(Error) ->
-    case exmpp_xml:get_element_by_name(Error, 'text') of
+    case exmpp_xml:get_element(Error, 'text') of
         undefined -> undefined;
         Text      -> exmpp_xml:get_cdata_as_list(Text)
     end.

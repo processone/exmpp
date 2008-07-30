@@ -641,7 +641,7 @@ get_condition(#xmlel{ns = ?NS_XMPP, name = 'error'} = El) ->
 %% @doc Return the text that describes the error.
 
 get_text(#xmlel{ns = ?NS_XMPP, name = 'error'} = El) ->
-    case exmpp_xml:get_element_by_name(El, ?NS_STREAM_ERRORS, 'text') of
+    case exmpp_xml:get_element(El, ?NS_STREAM_ERRORS, 'text') of
         undefined -> undefined;
         Text      -> exmpp_xml:get_cdata_as_list(Text)
     end.

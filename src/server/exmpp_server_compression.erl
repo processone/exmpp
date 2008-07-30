@@ -93,7 +93,7 @@ standard_conditions() ->
 %% @doc Extract the method chosen by the initiating entity.
 
 selected_method(#xmlel{ns = ?NS_COMPRESS, name = 'compress'} = El) ->
-    case exmpp_xml:get_element_by_name(El, ?NS_COMPRESS, 'method') of
+    case exmpp_xml:get_element(El, ?NS_COMPRESS, 'method') of
         undefined ->
             undefined;
         Sub_El ->

@@ -33,7 +33,7 @@
 %% @doc Tell if the Resource Binding feature is supported.
 
 announced_support(#xmlel{ns = ?NS_XMPP, name = 'features'} = El) ->
-    case exmpp_xml:get_element_by_name(El, ?NS_BIND, 'bind') of
+    case exmpp_xml:get_element(El, ?NS_BIND, 'bind') of
         undefined -> false;
         Child     -> announced_support2(Child)
     end.
@@ -91,7 +91,7 @@ bounded_jid(IQ) when ?IS_IQ(IQ) ->
         'result' ->
             case exmpp_iq:get_result(IQ) of
                 #xmlel{ns = ?NS_BIND, name = 'bind'} = Bind ->
-                    case exmpp_xml:get_element_by_name(Bind,
+                    case exmpp_xml:get_element(Bind,
                       ?NS_BIND, 'jid') of
                         #xmlel{} = Jid_El ->
                             Jid_S = exmpp_xml:get_cdata_as_list(Jid_El),

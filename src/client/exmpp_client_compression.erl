@@ -36,7 +36,7 @@
 %% @doc Return the list of supported compression methods.
 
 announced_methods(#xmlel{ns = ?NS_XMPP, name = 'features'} = El) ->
-    case exmpp_xml:get_element_by_name(El, ?NS_COMPRESS_FEAT, 'compression') of
+    case exmpp_xml:get_element(El, ?NS_COMPRESS_FEAT, 'compression') of
         undefined -> [];
         Methods   -> announced_methods2(Methods)
     end.

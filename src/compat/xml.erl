@@ -91,7 +91,7 @@ get_tag_attr_s(AttrName, El) ->
 
 
 get_subtag(El, Name) ->
-    case exmpp_xml:get_element_by_name(El, Name) of
+    case exmpp_xml:get_element(El, Name) of
 	undefined -> false;
 	Sub_El    -> Sub_El
     end.

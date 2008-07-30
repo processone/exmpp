@@ -54,7 +54,7 @@ get_type(Message) ->
 %% @doc Return the subject of the message.
 
 get_subject(#xmlel{ns = NS} = Message) when ?IS_MESSAGE(Message) ->
-    case exmpp_xml:get_element_by_name(Message, NS, 'subject') of
+    case exmpp_xml:get_element(Message, NS, 'subject') of
         undefined ->
             undefined;
         Subject_El ->
@@ -67,7 +67,7 @@ get_subject(#xmlel{ns = NS} = Message) when ?IS_MESSAGE(Message) ->
 %% @doc Return the body of the message.
 
 get_body(#xmlel{ns = NS} = Message) when ?IS_MESSAGE(Message) ->
-    case exmpp_xml:get_element_by_name(Message, NS, 'body') of
+    case exmpp_xml:get_element(Message, NS, 'body') of
         undefined ->
             undefined;
         Body_El ->
@@ -80,7 +80,7 @@ get_body(#xmlel{ns = NS} = Message) when ?IS_MESSAGE(Message) ->
 %% @doc Return the thread of the message.
 
 get_thread(#xmlel{ns = NS} = Message) when ?IS_MESSAGE(Message) ->
-    case exmpp_xml:get_element_by_name(Message, NS, 'thread') of
+    case exmpp_xml:get_element(Message, NS, 'thread') of
         undefined ->
             undefined;
         Thread_El ->

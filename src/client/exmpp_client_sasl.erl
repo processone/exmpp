@@ -41,7 +41,7 @@
 %% @doc Return the list of SASL mechanisms announced by the receiving entity.
 
 announced_mechanisms(#xmlel{ns = ?NS_XMPP, name = 'features'} = El) ->
-    case exmpp_xml:get_element_by_name(El, ?NS_SASL, 'mechanisms') of
+    case exmpp_xml:get_element(El, ?NS_SASL, 'mechanisms') of
         undefined  -> [];
         Mechanisms -> announced_mechanisms2(Mechanisms)
     end.

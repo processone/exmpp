@@ -23,6 +23,16 @@
 	is set to "-r$EXMPP_SVNREV" when this is not a release (the release
 	isn't set).
 
+	* src/compat/xml.erl, src/server/exmpp_server_compression.erl,
+	src/server/exmpp_server_legacy_auth.erl,
+	src/server/exmpp_server_binding.erl, src/core/exmpp_stream.erl,
+	src/core/exmpp_stanza.erl, src/core/exmpp_message.erl,
+	src/network/exmpp_session.erl, src/client/exmpp_client_binding.erl,
+	src/client/exmpp_client_compression.erl,
+	src/client/exmpp_client_tls.erl, src/client/exmpp_client_sasl.erl,
+	src/client/exmpp_client_session.erl: Update to use the new get_element
+	and get_elements functions from exmpp_xml.
+
 2008-07-29  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/network/exmpp_session.erl: Fix compilation warnings.

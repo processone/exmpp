@@ -55,7 +55,7 @@ wished_resource(IQ) when ?IS_IQ(IQ) ->
         'set' ->
             case exmpp_iq:get_request(IQ) of
                 #xmlel{ns = ?NS_BIND, name = 'bind'} = Bind ->
-                    case exmpp_xml:get_element_by_name(Bind,
+                    case exmpp_xml:get_element(Bind,
                       ?NS_BIND, 'resource') of
                         #xmlel{} = Resource ->
                             exmpp_xml:get_cdata_as_list(Resource);
