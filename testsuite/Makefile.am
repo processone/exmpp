@@ -35,3 +35,5 @@ $(TESTS): $(EUNIT_REPORTER).beam $(ETEST)
 check-junit: $(EUNIT_REPORTER).beam
 	-rm -f $(JUNIT_REPORTS)
 	$(ETEST) -junit $(TESTS)
+
+.PHONY: check-junit

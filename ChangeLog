@@ -12,6 +12,11 @@
 	remove_element function instead of the non-existing remove_child
 	function.
 
+	* Makefile.am, c_src/Makefile.am, testsuite/Makefile.am: updateknown
+	and check-junit are PHONY targets.
+
+	* Makefile.am: The distdir and any tarball may take a suffix.
+
 2008-07-29  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/network/exmpp_session.erl: Fix compilation warnings.

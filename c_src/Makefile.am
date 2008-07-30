@@ -104,3 +104,5 @@ updateknown: $(MAKE_SPECS_LIST) $(EXTRACT_KNOWN)
 		$(KNOWN_NSS_SOURCE)					\
 		$(KNOWN_NAMES_SOURCE)					\
 		$(KNOWN_ATTRS_SOURCE)
+
+.PHONY: updateknown
