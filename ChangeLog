@@ -17,6 +17,12 @@
 
 	* Makefile.am: The distdir and any tarball may take a suffix.
 
+	* configure.ac: Remove EXMPP_VERSION and relatives; they're not used
+	anywhere. Add EXMPP_SVNREV which contains the Subversion revision of
+	the checkout used by the configure script. Add EXMPP_DISTSUFFIX which
+	is set to "-r$EXMPP_SVNREV" when this is not a release (the release
+	isn't set).
+
 2008-07-29  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/network/exmpp_session.erl: Fix compilation warnings.

@@ -76,10 +76,26 @@ dnl ------------------------------------------------------------------
 dnl Versionning
 dnl ------------------------------------------------------------------
 
-EXMPP_MAJOR=0
-EXMPP_MINOR=9
-EXMPP_MICRO=0
-EXMPP_VERSION="$EXMPP_MAJOR.$EXMPP_MINOR.$EXMPP_MICRO"
+dnl Release date.
+EXMPP_RELEASE_DATE="today"
+
+dnl Is this a final release?
+is_release=0
+if test "x${EXMPP_RELEASE_DATE}" != "x"; then
+	is_release=1
+fi
+
+dnl Subversion revision.
+if test $is_release -eq 0; then
+	EXMPP_SVNREV=`svnversion $srcdir | sed 's/^[[^:]]*://'`
+	which svnversion > /dev/null; \
+	if test $? -eq 0 -a "x$EXMPP_SVNREV" != "xexported"; then
+		EXMPP_DISTSUFFIX="-r$EXMPP_SVNREV"
+	else
+		EXMPP_SVNREV=""
+		EXMPP_DISTSUFFIX=""
+	fi
+fi
 
 dnl Compile environment and parameters.
 EXMPP_BUILD_ARCH="$build"
@@ -133,7 +149,7 @@ expand_var () {
 }
 
 dnl Debugging option.
-if test "x${EXMPP_RELEASE_DATE}" = "x"; then
+if test $is_release -eq 0; then
 	default_enable_debug="yes"
 else
 	default_enable_debug="no"
@@ -459,11 +475,10 @@ LDFLAGS="${LDFLAGS% }"
 
 AC_SUBST(EMKOPTS)
 
-AC_SUBST(EXMPP_MAJOR)
-AC_SUBST(EXMPP_MINOR)
-AC_SUBST(EXMPP_MICRO)
-AC_SUBST(EXMPP_VERSION)
 AC_SUBST(EXMPP_RELEASE_DATE)
+
+AC_SUBST(EXMPP_SVNREV)
+AC_SUBST(EXMPP_DISTSUFFIX)
 
 AC_SUBST(EXMPP_BUILD_ARCH)
 AC_SUBST(EXMPP_HOST_ARCH)
