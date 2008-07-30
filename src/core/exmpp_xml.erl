@@ -26,6 +26,12 @@
 
 -include("exmpp.hrl").
 
+% Deprecated functions list.
+-deprecated({get_element_by_name, 2, next_major_release}).
+-deprecated({get_element_by_name, 3, next_major_release}).
+-deprecated({get_elements_by_name, 2, next_major_release}).
+-deprecated({get_elements_by_name, 3, next_major_release}).
+
 % Parser.
 -export([
   start_parser/0,
@@ -84,16 +90,28 @@
 -export([
   element_matches/2,
   element_matches/3,
-  element_ns_matches/2,
-  get_element_by_name/2,
-  get_element_by_name/3,
-  get_elements_by_name/3,
-  get_elements_by_name/2,
+  element_matches_by_ns/2,
+  get_element/2,
+  get_element/3,
+  get_elements/3,
+  get_elements/2,
+  get_element_by_name/2,  % Deprecated
+  get_element_by_name/3,  % Deprecated
+  get_elements_by_name/3, % Deprecated
+  get_elements_by_name/2, % Deprecated
   get_element_by_ns/2,
-  has_element_by_name/2,
-  has_element_by_name/3,
+  has_element/2,
+  has_element/3,
   has_element_by_ns/2,
   get_child_elements/1,
+  remove_element/2,
+  remove_element/3,
+  remove_element_by_ns/2,
+  remove_elements/2,
+  remove_elements/3,
+  remove_elements_by_ns/2
+]).
+-export([
   prepend_child/2,
   prepend_children/2,
   append_child/2,
@@ -1152,17 +1170,17 @@ element_matches(_XML_Element, _NS, _Name) ->
 %%
 %% It takes care of comparison between string and atom.
 
-element_ns_matches(#xmlel{ns = NS}, NS) ->
+element_matches_by_ns(#xmlel{ns = NS}, NS) ->
     true;
 
-element_ns_matches(#xmlel{ns = NS_A}, NS)
+element_matches_by_ns(#xmlel{ns = NS_A}, NS)
   when is_atom(NS_A), is_list(NS) ->
     NS_A == list_to_atom(NS);
-element_ns_matches(#xmlel{ns = NS}, NS_A)
+element_matches_by_ns(#xmlel{ns = NS}, NS_A)
   when is_atom(NS_A), is_list(NS) ->
     NS_A == list_to_atom(NS);
 
-element_ns_matches(_XML_Element, _NS) ->
+element_matches_by_ns(_XML_Element, _NS) ->
     false.
 
 %% @spec (XML_Element, Name) -> XML_Subelement | undefined
@@ -1174,22 +1192,32 @@ element_ns_matches(_XML_Element, _NS) ->
 %% If no element with the given name is found, it returns `undefined'.
 %% This will only search among direct children.
 
-get_element_by_name(#xmlel{children = Children}, Name) ->
-    get_element_by_name2(Children, Name);
-get_element_by_name(#xmlelement{children = Children}, Name) ->
-    get_element_by_name2(Children, Name);
-get_element_by_name(undefined, _Name) ->
+get_element(#xmlel{children = Children}, Name) ->
+    get_element2(Children, Name);
+get_element(#xmlelement{children = Children}, Name) ->
+    get_element2(Children, Name);
+get_element(undefined, _Name) ->
     undefined.
 
-get_element_by_name2([Node | Rest], Name) ->
+get_element2([Node | Rest], Name) ->
     case element_matches(Node, Name) of
         true  -> Node;
-        false -> get_element_by_name2(Rest, Name)
+        false -> get_element2(Rest, Name)
     end;
-get_element_by_name2([], _Name) ->
+get_element2([], _Name) ->
     undefined;
-get_element_by_name2(undefined, _Name) ->
+get_element2(undefined, _Name) ->
     undefined.
+
+%% @spec (XML_Element, Name) -> XML_Subelement | undefined
+%%     XML_Element = xmlel() | xmlelement() | undefined
+%%     Name = atom() | string()
+%%     XML_Subelement = xmlel() | xmlelement()
+%% @deprecated Please use {@link get_element/2} instead.
+%% @doc Search in the children of `XML_Element' an element named `Name'.
+
+get_element_by_name(XML_Element, Name) ->
+    get_element(XML_Element, Name).
 
 %% @spec (XML_Element, NS, Name) -> XML_Subelement | undefined
 %%     XML_Element = xmlel() | undefined
@@ -1202,20 +1230,32 @@ get_element_by_name2(undefined, _Name) ->
 %% If no element with the given name is found, it returns `undefined'.
 %% This will only search among direct children.
 
-get_element_by_name(#xmlel{children = Children}, NS, Name) ->
-    get_element_by_name2(Children, NS, Name);
-get_element_by_name(undefined, _NS, _Name) ->
+get_element(#xmlel{children = Children}, NS, Name) ->
+    get_element2(Children, NS, Name);
+get_element(undefined, _NS, _Name) ->
     undefined.
 
-get_element_by_name2([Node | Rest], NS, Name) ->
+get_element2([Node | Rest], NS, Name) ->
     case element_matches(Node, NS, Name) of
         true  -> Node;
-        false -> get_element_by_name2(Rest, NS, Name)
+        false -> get_element2(Rest, NS, Name)
     end;
-get_element_by_name2([], _NS, _Name) ->
+get_element2([], _NS, _Name) ->
     undefined;
-get_element_by_name2(undefined, _NS, _Name) ->
+get_element2(undefined, _NS, _Name) ->
     undefined.
+
+%% @spec (XML_Element, NS, Name) -> XML_Subelement | undefined
+%%     XML_Element = xmlel() | undefined
+%%     NS = atom() | string()
+%%     Name = atom() | string()
+%%     XML_Subelement = xmlel()
+%% @deprecated Please use {@link get_element/3} instead.
+%% @doc Search in the children of `XML_Element' an element named `Name'
+%% with `NS' namespace URI.
+
+get_element_by_name(XML_Element, NS, Name) ->
+    get_element(XML_Element, NS, Name).
 
 %% @spec (XML_Element, Name) -> [XML_Subelement]
 %%     XML_Element = xmlel() | xmlelement() | undefined
@@ -1226,24 +1266,35 @@ get_element_by_name2(undefined, _NS, _Name) ->
 %%
 %% This will only search among direct children.
 
-get_elements_by_name(#xmlel{children = Children}, Name) ->
-    get_elements_by_name2(Children, Name);
-get_elements_by_name(#xmlelement{children = Children}, Name) ->
-    get_elements_by_name2(Children, Name);
-get_elements_by_name(undefined, _Name) ->
+get_elements(#xmlel{children = Children}, Name) ->
+    get_elements2(Children, Name);
+get_elements(#xmlelement{children = Children}, Name) ->
+    get_elements2(Children, Name);
+get_elements(undefined, _Name) ->
     [].
 
-get_elements_by_name2(undefined, _Name) ->
+get_elements2(undefined, _Name) ->
     [];
-get_elements_by_name2([], _Name) ->
+get_elements2([], _Name) ->
     [];
-get_elements_by_name2(Children, Name) ->
+get_elements2(Children, Name) ->
     lists:filter(filter_by_name(Name), Children).
 
 filter_by_name(Searched_Name) ->
     fun(XML_Element) ->
         element_matches(XML_Element, Searched_Name)
     end.
+
+%% @spec (XML_Element, Name) -> [XML_Subelement]
+%%     XML_Element = xmlel() | xmlelement() | undefined
+%%     Name = atom() | string()
+%%     XML_Subelement = xmlel() | xmlelement()
+%% @deprecated Please use {@link get_elements/2} instead.
+%% @doc Search in the children of `XML_Element' for all the elements
+%% named `Name'
+
+get_elements_by_name(XML_Element, Name) ->
+    get_elements(XML_Element, Name).
 
 %% @spec (XML_Element, NS, Name) -> [XML_Subelement]
 %%     XML_Element = xmlel() | undefined
@@ -1255,22 +1306,34 @@ filter_by_name(Searched_Name) ->
 %%
 %% This will only search among direct children.
 
-get_elements_by_name(#xmlel{children = Children}, NS, Name) ->
-    get_elements_by_name2(Children, NS, Name);
-get_elements_by_name(undefined, _NS, _Name) ->
+get_elements(#xmlel{children = Children}, NS, Name) ->
+    get_elements2(Children, NS, Name);
+get_elements(undefined, _NS, _Name) ->
     [].
 
-get_elements_by_name2(undefined, _NS, _Name) ->
+get_elements2(undefined, _NS, _Name) ->
     [];
-get_elements_by_name2([], _NS, _Name) ->
+get_elements2([], _NS, _Name) ->
     [];
-get_elements_by_name2(Children, NS, Name) ->
+get_elements2(Children, NS, Name) ->
     lists:filter(filter_by_name(NS, Name), Children).
 
 filter_by_name(Searched_NS, Searched_Name) ->
     fun(XML_Element) ->
         element_matches(XML_Element, Searched_NS, Searched_Name)
     end.
+
+%% @spec (XML_Element, NS, Name) -> [XML_Subelement]
+%%     XML_Element = xmlel() | undefined
+%%     NS = atom() | string()
+%%     Name = atom() | string()
+%%     XML_Subelement = xmlel()
+%% @deprecated Please use {@link get_elements_by_name/3} instead.
+%% @doc Search in the children of `XML_Element' for all the elements
+%% named `Name' with `NS' namespace URI.
+
+get_elements_by_name(XML_Element, NS, Name) ->
+    get_elements(XML_Element, NS, Name).
 
 %% @spec (XML_Element, NS) -> XML_Subelement | undefined
 %%     XML_Element = xmlel() | undefined
@@ -1290,7 +1353,7 @@ get_element_by_ns(undefined, _NS) ->
     undefined.
 
 get_element_by_ns2([Node | Rest], NS) ->
-    case element_ns_matches(Node, NS) of
+    case element_matches_by_ns(Node, NS) of
         true  -> Node;
         false -> get_element_by_ns2(Rest, NS)
     end;
@@ -1304,8 +1367,8 @@ get_element_by_ns2(undefined, _NS) ->
 %%     Name = atom() | string()
 %% @doc Check the presence for element `Name' in the children.
 
-has_element_by_name(XML_Element, Name) ->
-    case get_element_by_name(XML_Element, Name) of
+has_element(XML_Element, Name) ->
+    case get_element(XML_Element, Name) of
         undefined -> false;
         _         -> true
     end.
@@ -1317,8 +1380,8 @@ has_element_by_name(XML_Element, Name) ->
 %% @doc Check the presence for element `Name' with `NS' namespace URI in
 %% the children.
 
-has_element_by_name(XML_Element, NS, Name) ->
-    case get_element_by_name(XML_Element, NS, Name) of
+has_element(XML_Element, NS, Name) ->
+    case get_element(XML_Element, NS, Name) of
         undefined -> false;
         _         -> true
     end.
@@ -1358,6 +1421,152 @@ get_child_elements2(Children) ->
 is_element(#xmlelement{}) -> true;
 is_element(#xmlel{})      -> true;
 is_element(_)             -> false.
+
+%% @spec (XML_Element, Name) -> New_XML_Element
+%%     XML_Element = xmlel() | xmlelement() | undefined
+%%     Name = atom() | string()
+%%     New_XML_Element = xmlel() | xmlelement()
+%% @doc Remove the first child with the name `Name'.
+
+remove_element(#xmlel{children = Children} = XML_Element, Name) ->
+    New_Children = remove_element2(Children, Name),
+    XML_Element#xmlel{children = New_Children};
+remove_element(#xmlelement{children = Children} = XML_Element, Name) ->
+    New_Children = remove_element2(Children, Name),
+    XML_Element#xmlelement{children = New_Children}.
+
+remove_element2(undefined, _Name) ->
+    undefined;
+remove_element2(Children, Name) ->
+    remove_element3(Children, Name, []).
+
+remove_element3([El | Rest], Name, Result) ->
+    case element_matches(El, Name) of
+        true  -> lists:append(lists:reverse(Result), Rest);
+        false -> remove_element3(Rest, Name, [El | Result])
+    end;
+remove_element3([], _Name, Result) ->
+    lists:reverse(Result).
+
+%% @spec (XML_Element, NS, Name) -> New_XML_Element
+%%     XML_Element = xmlel() | undefined
+%%     NS = atom() | string()
+%%     Name = atom() | string()
+%%     New_XML_Element = xmlel()
+%% @doc Remove the first child with the name `Name' in the namespace `NS'.
+
+remove_element(#xmlel{children = Children} = XML_Element, NS, Name) ->
+    New_Children = remove_element2(Children, NS, Name),
+    XML_Element#xmlel{children = New_Children}.
+
+remove_element2(undefined, _NS, _Name) ->
+    undefined;
+remove_element2(Children, NS, Name) ->
+    remove_element3(Children, NS, Name, []).
+
+remove_element3([El | Rest], NS, Name, Result) ->
+    case element_matches(El, NS, Name) of
+        true  -> lists:append(lists:reverse(Result), Rest);
+        false -> remove_element3(Rest, NS, Name, [El | Result])
+    end;
+remove_element3([], _NS, _Name, Result) ->
+    lists:reverse(Result).
+
+%% @spec (XML_Element, NS) -> New_XML_Element
+%%     XML_Element = xmlel() | undefined
+%%     NS = atom() | string()
+%%     New_XML_Element = xmlel()
+%% @doc Remove the first child in the namespace `NS'.
+
+remove_element_by_ns(#xmlel{children = Children} = XML_Element, NS) ->
+    New_Children = remove_element_by_ns2(Children, NS),
+    XML_Element#xmlel{children = New_Children}.
+
+remove_element_by_ns2(undefined, _NS) ->
+    undefined;
+remove_element_by_ns2(Children, NS) ->
+    remove_element_by_ns3(Children, NS, []).
+
+remove_element_by_ns3([El | Rest], NS, Result) ->
+    case element_matches_by_ns(El, NS) of
+        true  -> lists:append(lists:reverse(Result), Rest);
+        false -> remove_element_by_ns3(Rest, NS, [El | Result])
+    end;
+remove_element_by_ns3([], _NS, Result) ->
+    lists:reverse(Result).
+
+%% @spec (XML_Element, Name) -> New_XML_Element
+%%     XML_Element = xmlel() | xmlelement() | undefined
+%%     Name = atom() | string()
+%%     New_XML_Element = xmlel() | xmlelement()
+%% @doc Remove all children with the name `Name'.
+
+remove_elements(#xmlel{children = Children} = XML_Element, Name) ->
+    New_Children = remove_elements2(Children, Name),
+    XML_Element#xmlel{children = New_Children};
+remove_elements(#xmlelement{children = Children} = XML_Element, Name) ->
+    New_Children = remove_elements2(Children, Name),
+    XML_Element#xmlelement{children = New_Children}.
+
+remove_elements2(undefined, _Name) ->
+    undefined;
+remove_elements2(Children, Name) ->
+    remove_elements3(Children, Name, []).
+
+remove_elements3([El | Rest], Name, Result) ->
+    case element_matches(El, Name) of
+        true  -> remove_elements3(Rest, Name, Result);
+        false -> remove_elements3(Rest, Name, [El | Result])
+    end;
+remove_elements3([], _Name, Result) ->
+    lists:reverse(Result).
+
+%% @spec (XML_Element, NS, Name) -> New_XML_Element
+%%     XML_Element = xmlel() | undefined
+%%     NS = atom() | string()
+%%     Name = atom() | string()
+%%     New_XML_Element = xmlel()
+%% @doc Remove all children with the name `Name' in the namespace `NS'.
+
+remove_elements(#xmlel{children = Children} = XML_Element, NS, Name) ->
+    New_Children = remove_elements2(Children, NS, Name),
+    XML_Element#xmlel{children = New_Children}.
+
+remove_elements2(undefined, _NS, _Name) ->
+    undefined;
+remove_elements2(Children, NS, Name) ->
+    remove_elements3(Children, NS, Name, []).
+
+remove_elements3([El | Rest], NS, Name, Result) ->
+    case element_matches(El, NS, Name) of
+        true  -> remove_elements3(Rest, NS, Name, Result);
+        false -> remove_elements3(Rest, NS, Name, [El | Result])
+    end;
+remove_elements3([], _NS, _Name, Result) ->
+    lists:reverse(Result).
+
+%% @spec (XML_Element, NS) -> New_XML_Element
+%%     XML_Element = xmlel() | undefined
+%%     NS = atom() | string()
+%%     New_XML_Element = xmlel()
+%% @doc Remove all children in the namespace `NS'.
+
+remove_elements_by_ns(#xmlel{children = Children} = XML_Element, NS) ->
+    New_Children = remove_elements_by_ns2(Children, NS),
+    XML_Element#xmlel{children = New_Children}.
+
+remove_elements_by_ns2(undefined, _NS) ->
+    undefined;
+remove_elements_by_ns2(Children, NS) ->
+    remove_elements_by_ns3(Children, NS, []).
+
+remove_elements_by_ns3([El | Rest], NS, Result) ->
+    case element_matches_by_ns(El, NS) of
+        true  -> remove_elements_by_ns3(Rest, NS, Result);
+        false -> remove_elements_by_ns3(Rest, NS, [El | Result])
+    end;
+remove_elements_by_ns3([], _NS, Result) ->
+    lists:reverse(Result).
 
 %% @spec (XML_Element, Child) -> New_XML_Element
 %%     XML_Element = xmlel() | xmlelement()
@@ -1649,7 +1858,7 @@ get_cdata(#xmlelement{children = Children}) ->
     get_cdata_from_list(Children);
 get_cdata(undefined) ->
     % This clause makes it possible to write code like:
-    % exmpp_xml:get_cdata(exmpp_xml:get_element_by_name(XML_El, body))
+    % exmpp_xml:get_cdata(exmpp_xml:get_element(XML_El, body))
     <<>>.
 
 %% @spec (XML_Element) -> CData
@@ -1848,12 +2057,12 @@ remove_whitespaces(#xmlelement{children = Children} = XML_Element) ->
 %% returned.
 
 get_path(XML_Element, [{element, Name} | Path]) ->
-    case get_element_by_name(XML_Element, Name) of
+    case get_element(XML_Element, Name) of
         undefined      -> get_path_not_found(Path);
         XML_Subelement -> get_path(XML_Subelement, Path)
     end;
 get_path(XML_Element, [{element, NS, Name} | Path]) ->
-    case get_element_by_name(XML_Element, NS, Name) of
+    case get_element(XML_Element, NS, Name) of
         undefined      -> get_path_not_found(Path);
         XML_Subelement -> get_path(XML_Subelement, Path)
     end;

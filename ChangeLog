@@ -1,3 +1,13 @@
+2008-07-30  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_xml.erl: Remove *_by_name suffix from function names.
+	For example, get_element_by_name/2 is now get_element/2. For
+	get_element/{2,3} and get_elements/{2,3}, aliases are still provided
+	for backward compatibility, though they're marked as deprecated.
+	element_ns_matches/2 was renamed to element_matches_by_ns/2 for
+	consistency. Add remove_element/{2,3}, remove_elements/{2,3},
+	remove_element_by_ns/2 and remove_elements_by_ns/2 functions.
+
 2008-07-29  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/network/exmpp_session.erl: Fix compilation warnings.
