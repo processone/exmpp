@@ -8,6 +8,10 @@
 	consistency. Add remove_element/{2,3}, remove_elements/{2,3},
 	remove_element_by_ns/2 and remove_elements_by_ns/2 functions.
 
+	* src/core/exmpp_presence.erl (set_show): Fix by using the new
+	remove_element function instead of the non-existing remove_child
+	function.
+
 2008-07-29  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/network/exmpp_session.erl: Fix compilation warnings.

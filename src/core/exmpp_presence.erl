@@ -117,7 +117,7 @@ is_presence(_El)                                  -> false.
 
 %% @spec (Presence) -> Type
 %%     Presence = exmpp_xml:xmlel()
-%%     Type = availale | unavailable | subscribe | subscribed | unsubscribe | unsubscribed | probe | error | undefined
+%%     Type = available | unavailable | subscribe | subscribed | unsubscribe | unsubscribed | probe | error | undefined
 %% @doc Return the type of the given `<presence/>'.
 
 get_type(Presence) when ?IS_PRESENCE(Presence) ->
@@ -135,7 +135,7 @@ get_type(Presence) when ?IS_PRESENCE(Presence) ->
 
 %% @spec (Presence, Type) -> New_Presence
 %%     Presence = exmpp_xml:xmlel()
-%%     Type = availale | unavailable | subscribe | subscribed | unsubscribe | unsubscribed | probe | error
+%%     Type = available | unavailable | subscribe | subscribed | unsubscribe | unsubscribed | probe | error
 %%     New_Presence = exmpp_xml:xmlel()
 %% @doc Set the type of the given `<presence/>'.
 
@@ -157,7 +157,7 @@ set_type(Presence, Type) when ?IS_PRESENCE(Presence) ->
 %% @doc Return the show attribute of the presence.
 
 get_show(#xmlel{ns = NS} = Presence) when ?IS_PRESENCE(Presence) ->
-    case exmpp_xml:get_element_by_name(Presence, NS, 'show') of
+    case exmpp_xml:get_element(Presence, NS, 'show') of
         undefined ->
             'online';
         Show_El ->
@@ -180,9 +180,9 @@ get_show(#xmlel{ns = NS} = Presence) when ?IS_PRESENCE(Presence) ->
 %% element is removed.
 
 set_show(#xmlel{ns = NS} = Presence, "") ->
-    exmpp_xml:remove_child(Presence, NS, 'show');
+    exmpp_xml:remove_element(Presence, NS, 'show');
 set_show(#xmlel{ns = NS} = Presence, 'online') ->
-    exmpp_xml:remove_child(Presence, NS, 'show');
+    exmpp_xml:remove_element(Presence, NS, 'show');
 set_show(#xmlel{ns = NS} = Presence, Show) when ?IS_PRESENCE(Presence) ->
     case Show of
         'away' -> ok;
@@ -192,7 +192,7 @@ set_show(#xmlel{ns = NS} = Presence, Show) when ?IS_PRESENCE(Presence) ->
         _      -> throw({presence, set_show, invalid_show, Show})
     end,
     New_Show_El = exmpp_xml:set_cdata(#xmlel{ns = NS, name = 'show'}, Show),
-    case exmpp_xml:get_element_by_name(Presence, NS, 'show') of
+    case exmpp_xml:get_element(Presence, NS, 'show') of
         undefined ->
             exmpp_xml:prepend_child(Presence, New_Show_El);
         Show_El ->
@@ -201,11 +201,11 @@ set_show(#xmlel{ns = NS} = Presence, Show) when ?IS_PRESENCE(Presence) ->
 
 %% @spec (Presence) -> Status | undefined
 %%     Presence = exmpp_xml:xmlel()
-%%     Status = online | away | chat | dnd | xa | undefined
+%%     Status = binary()
 %% @doc Return the status attribute of the presence.
 
 get_status(#xmlel{ns = NS} = Presence) when ?IS_PRESENCE(Presence) ->
-    case exmpp_xml:get_element_by_name(Presence, NS, 'status') of
+    case exmpp_xml:get_element(Presence, NS, 'status') of
         undefined ->
             undefined;
         Status_El ->
@@ -214,14 +214,14 @@ get_status(#xmlel{ns = NS} = Presence) when ?IS_PRESENCE(Presence) ->
 
 %% @spec (Presence, Status) -> New_Presence
 %%     Presence = exmpp_xml:xmlel()
-%%     Status = string()
+%%     Status = string() | binary()
 %%     New_Presence = exmpp_xml:xmlel()
 %% @doc Set the `<status/>' field of a presence stanza.
 
 set_status(#xmlel{ns = NS} = Presence, Status) when ?IS_PRESENCE(Presence) ->
     New_Status_El = exmpp_xml:set_cdata(#xmlel{ns = NS, name = 'status'},
       Status),
-    case exmpp_xml:get_element_by_name(Presence, NS, 'status') of
+    case exmpp_xml:get_element(Presence, NS, 'status') of
         undefined ->
             exmpp_xml:prepend_child(Presence, New_Status_El);
         Status_El ->
@@ -234,7 +234,7 @@ set_status(#xmlel{ns = NS} = Presence, Status) when ?IS_PRESENCE(Presence) ->
 %% @doc Return the priority attribute of the presence.
 
 get_priority(#xmlel{ns = NS} = Presence) when ?IS_PRESENCE(Presence) ->
-    case exmpp_xml:get_element_by_name(Presence, NS, 'priority') of
+    case exmpp_xml:get_element(Presence, NS, 'priority') of
         undefined ->
             0;
         Priority_El ->
@@ -254,7 +254,7 @@ set_priority(#xmlel{ns = NS} = Presence, Priority)
   when ?IS_PRESENCE(Presence) ->
     New_Priority_El = exmpp_xml:set_cdata(#xmlel{ns = NS, name = 'priority'},
       Priority),
-    case exmpp_xml:get_element_by_name(Presence, NS, 'priority') of
+    case exmpp_xml:get_element(Presence, NS, 'priority') of
         undefined ->
             exmpp_xml:prepend_child(Presence, New_Priority_El);
         Priority_El ->
