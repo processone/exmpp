@@ -1,3 +1,10 @@
+2008-07-31  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_xml.erl: Fix documentation for
+	parse_document_fragment/{1,2}. Add functions make_element/{1,2} and
+	make_attribute/{1,2} to create simple nodes without knowing the
+	records.
+
 2008-07-30  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_xml.erl: Remove *_by_name suffix from function names.

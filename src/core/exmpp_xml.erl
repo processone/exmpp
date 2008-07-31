@@ -63,6 +63,8 @@
 -export([
   attribute_matches/2,
   attribute_matches/3,
+  make_attribute/1,
+  make_attribute/2,
   get_attribute_node_from_list/2,
   get_attribute_node_from_list/3,
   get_attribute_node/2,
@@ -91,6 +93,8 @@
   element_matches/2,
   element_matches/3,
   element_matches_by_ns/2,
+  make_element/1,
+  make_element/2,
   get_element/2,
   get_element/3,
   get_elements/3,
@@ -509,6 +513,12 @@ parse_document(Document, Parser_Options) ->
 %%     XML_Element = xmlel() | xmlelement() | xmlendtag()
 %% @doc Parse a fragment of an XML document at once.
 %%
+%% This function is useful if you do not have a complete and valid XML
+%% document. For instance, something like this:
+%% ```
+%% <element>content</elem
+%% '''
+%%
 %% Initializing a parser with {@link start_parser/1} isn't necessary,
 %% this function will take care of it. It'll use default options, but
 %% will set `{root_depth, none}' (which can be overriden); see {@link
@@ -521,7 +531,13 @@ parse_document_fragment(Fragment) ->
 %%     Fragment = string() | binary()
 %%     Parser_Options = [xmlparseroption()]
 %%     XML_Element = xmlel() | xmlelement() | xmlendtag()
-%% @doc Parse an entire XML document at once.
+%% @doc Parse a fragment of an XML document at once.
+%%
+%% This function is useful if you do not have a complete and valid XML
+%% document. For instance, something like this:
+%% ```
+%% <element>content</elem
+%% '''
 %%
 %% Initializing a parser with {@link start_parser/1} isn't necessary,
 %% this function will take care of it. `Parser_Options' is passed to the
@@ -667,6 +683,33 @@ attribute_matches(#xmlattr{ns = NS, name = Name}, NS, Name_A)
 
 attribute_matches(_Attr, _NS, _Name) ->
     false.
+
+%% @spec (Name) -> Attr
+%%     Name = atom() | string()
+%%     Attr = xmlnsattribute()
+%% @doc Create an XML attribute with the name `Name'.
+%%
+%% This is the same as:
+%% ```
+%% Attr = #xmlattr{name = Name}.
+%% '''
+
+make_attribute(Name) ->
+    #xmlattr{name = Name}.
+
+%% @spec (NS, Name) -> Attr
+%%     NS = atom() | string() | undefined
+%%     Name = atom() | string()
+%%     Attr = xmlnsattribute()
+%% @doc Create an XML attribute with the name `Name' in the namespace `NS'.
+%%
+%% This is the same as:
+%% ```
+%% Attr = #xmlattr{ns = NS, name = Name}.
+%% '''
+
+make_attribute(NS, Name) ->
+    #xmlattr{ns = NS, name = Name}.
 
 %% @spec (Attrs, Attr_Name) -> Attr | undefined
 %%     Attrs = [xmlnsattribute() | xmlattribute()]
@@ -1182,6 +1225,33 @@ element_matches_by_ns(#xmlel{ns = NS}, NS_A)
 
 element_matches_by_ns(_XML_Element, _NS) ->
     false.
+
+%% @spec (Name) -> XML_Element
+%%     Name = atom() | string()
+%%     XML_Element = xmlel()
+%% @doc Create an XML element with the name `Name' but no namespace.
+%%
+%% This is the same as:
+%% ```
+%% XML_Element = #xmlel{name = Name}.
+%% '''
+
+make_element(Name) ->
+    #xmlel{ns = Name}.
+
+%% @spec (NS, Name) -> XML_Element
+%%     NS = atom() | string() | undefined
+%%     Name = atom() | string()
+%%     XML_Element = xmlel()
+%% @doc Create an XML element with the name `Name' in the namespace `NS'.
+%%
+%% This is the same as:
+%% ```
+%% XML_Element = #xmlel{ns = NS, name = Name}.
+%% '''
+
+make_element(NS, Name) ->
+    #xmlel{ns = NS, name = Name}.
 
 %% @spec (XML_Element, Name) -> XML_Subelement | undefined
 %%     XML_Element = xmlel() | xmlelement() | undefined
