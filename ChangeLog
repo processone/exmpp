@@ -10,6 +10,10 @@
 	version is added for each namespace too; this avoids calls to
 	atom_to_list. Fix NS_ROSTER_EXCHANGE duplicated definitions.
 
+	* c_src/xmpp_ns.h.in, c_src/xmpp_names.h.in, c_src/xmpp_attrs.h.in:
+	Historical XEPs are accepted now. Also some XEPs were updated on July
+	31th.
+
 2008-07-31  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_xml.erl: Fix documentation for
