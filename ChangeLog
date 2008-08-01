@@ -1,3 +1,8 @@
+2008-08-01  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_stanza.erl: Add functions to set both the sender and
+	the recipient at the same time.
+
 2008-07-31  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_xml.erl: Fix documentation for

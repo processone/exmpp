@@ -32,6 +32,8 @@
   set_recipient_in_attrs/2,
   remove_recipient/1,
   remove_recipient_in_attrs/1,
+  set_jids_in_attrs/3,
+  set_jids/3,
   get_id/1,
   get_id_from_attrs/1,
   set_id/2,
@@ -219,6 +221,26 @@ remove_recipient(#xmlel{attrs= Attrs} = Stanza) ->
 
 remove_recipient_in_attrs(Attrs) ->
     exmpp_xml:remove_attribute_from_list(Attrs, 'to').
+
+%% @spec (Attrs, Sender, Recipient) -> New_Attrs
+%%     Attrs = [exmpp_xml:xmlnsattribute()]
+%%     Sender = exmpp_jid:jid() | string()
+%%     Recipient = exmpp_jid:jid() | string()
+%%     New_Attrs = [exmpp_xml:xmlnattribute()]
+%% @doc Set the sender and the recipient at the same time.
+
+set_jids_in_attrs(Attrs, To, From) ->
+    set_recipient_in_attrs(set_sender_in_attrs(Attrs, To), From).
+
+%% @spec (Stanza, Sender, Recipient) -> New_Stanza
+%%     Stanza = exmpp_xml:xmlel()
+%%     Sender = exmpp_jid:jid() | string()
+%%     Recipient = exmpp_jid:jid() | string()
+%%     New_Stanza = exmpp_xml:xmlel()
+%% @doc Set the sender and the recipient at the same time.
+
+set_jids(Attrs, To, From) ->
+    set_recipient(set_sender(Attrs, To), From).
 
 %% @spec (Stanza) -> ID | undefined
 %%     Stanza = exmpp_xml:xmlel()
