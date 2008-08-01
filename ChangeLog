@@ -8,7 +8,7 @@
 
 	* include/exmpp.hrl: The list of namespaces is now complete. A string
 	version is added for each namespace too; this avoids calls to
-	atom_to_list.
+	atom_to_list. Fix NS_ROSTER_EXCHANGE duplicated definitions.
 
 2008-07-31  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 

@@ -324,8 +324,8 @@
 -define(NS_SOFT_VERSION_s,           "jabber:iq:version").
 
 % Defined by XEP-0093: Roster Item Exchange.
--define(NS_ROSTER_EXCHANGE,          'jabber:x:roster').
--define(NS_ROSTER_EXCHANGE_s,        "jabber:x:roster").
+-define(NS_ROSTER_EXCHANGE_OLD,      'jabber:x:roster').
+-define(NS_ROSTER_EXCHANGE_OLD_s,    "jabber:x:roster").
 
 % Defined by XEP-0095: Stream Initiation.
 -define(NS_SI,                       'http://jabber.org/protocol/si').
