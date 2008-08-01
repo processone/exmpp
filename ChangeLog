@@ -6,6 +6,10 @@
 	* c_src/make-specs-list: Historical XEPs are accepted; some are still
 	used in Ejabberd for instance.
 
+	* include/exmpp.hrl: The list of namespaces is now complete. A string
+	version is added for each namespace too; this avoids calls to
+	atom_to_list.
+
 2008-07-31  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_xml.erl: Fix documentation for
