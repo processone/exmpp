@@ -11,10 +11,12 @@ use POSIX qw(strftime);
 
 our $SPECS_URL = 'http://www.xmpp.org/extensions/all.shtml';
 
+# OR'd regex.
 our $TYPE_EXCL1 = qr/(Humorous|JIG Formation|Procedural)/io;
 our $STATUS_EXCL1 = qr/(Deferred|Obsolete|Rejected|Retracted)/io;
 
-our $TYPE_EXCL2 = qr/(Historical|Informational)/io;
+# AND'd regex.
+our $TYPE_EXCL2 = qr/(Informational)/io;
 our $STATUS_EXCL2 = qr/(Deprecated)/io;
 
 our @RFCS = (

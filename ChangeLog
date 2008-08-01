@@ -3,6 +3,9 @@
 	* src/core/exmpp_stanza.erl: Add functions to set both the sender and
 	the recipient at the same time.
 
+	* c_src/make-specs-list: Historical XEPs are accepted; some are still
+	used in Ejabberd for instance.
+
 2008-07-31  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_xml.erl: Fix documentation for
