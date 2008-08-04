@@ -8,6 +8,9 @@
 	examples to a dedicated directory. They may be disabled at configure
 	time.
 
+	* src/Makefile.am, examples/Makefile.am: Add +B arguments to erl(1).
+	With this, Ctrl+C will halt the emulator immediatly.
+
 2008-08-01  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_stanza.erl: Add functions to set both the sender and

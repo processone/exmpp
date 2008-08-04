@@ -45,7 +45,7 @@ EXTRA_DIST = core/exmpp.erl						\
 	     compat/xml_stream.erl
 
 all-local:
-	@$(ERL) -noshell -pa @top_builddir@/ebin			\
+	@$(ERL) +B -noshell -pa @top_builddir@/ebin			\
 		-eval "case make:all() of				\
 		         up_to_date -> halt(0);				\
 		         Err ->						\
