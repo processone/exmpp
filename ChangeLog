@@ -1,3 +1,8 @@
+2008-08-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* configure.ac: Exmpp is not installed under $prefix/lib/exmpp-X.X.X
+	but under $prefix/exmpp-X.X.X.
+
 2008-08-01  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_stanza.erl: Add functions to set both the sender and

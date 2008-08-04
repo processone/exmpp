@@ -302,7 +302,7 @@ if test "x${prefix}" = "xNONE"; then
 	ERLANG_INSTALL_LIB_DIR="${ERLANG_LIB_DIR}"
 else
 	# Under $prefix
-	ERLANG_INSTALL_LIB_DIR="${prefix}/lib"
+	ERLANG_INSTALL_LIB_DIR="${prefix}"
 fi
 
 AC_ERLANG_SUBST_INSTALL_LIB_DIR
