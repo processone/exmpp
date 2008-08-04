@@ -1,0 +1,15 @@
+% $Id$
+
+{
+	[
+		'@srcdir@/echo_client'
+	],
+	[
+		@EMKOPTS@,
+		{outdir, "@builddir@/../ebin"},
+		{i, "@top_srcdir@/include"},
+		{i, "@top_builddir@/include"}
+	]
+}.
+
+% vim:ft=erlang:

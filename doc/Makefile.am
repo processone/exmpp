@@ -12,8 +12,7 @@ erlang.png:
 ERL_SRCS = $(top_srcdir)/src/core/*.erl					\
 	   $(top_srcdir)/src/server/*.erl				\
 	   $(top_srcdir)/src/client/*.erl				\
-	   $(top_srcdir)/src/compat/*.erl				\
-	   $(top_srcdir)/src/examples/*.erl
+	   $(top_srcdir)/src/compat/*.erl
 
 HTML_FILES = index.html							\
 	     modules-frame.html						\
@@ -55,7 +54,6 @@ HTML_FILES = index.html							\
 	     exmpp_utils.html						\
 	     exmpp_xml.html						\
 	     exmpp_xmlstream.html					\
-	     echo_client.html						\
 	     ejabberd_socket.html					\
 	     ejabberd_zlib.html						\
 	     jlib.html							\

@@ -42,8 +42,7 @@ EXTRA_DIST = core/exmpp.erl						\
 	     compat/stringprep.erl					\
 	     compat/tls.erl						\
 	     compat/xml.erl						\
-	     compat/xml_stream.erl					\
-	     examples/echo_client.erl
+	     compat/xml_stream.erl
 
 all-local:
 	@$(ERL) -noshell -pa @top_builddir@/ebin			\

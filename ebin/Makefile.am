@@ -1,7 +1,6 @@
 # $Id$
 
 beamdir = $(ERLANG_INSTALL_LIB_DIR_exmpp)/ebin
-examplesdir = $(ERLANG_INSTALL_LIB_DIR_exmpp)/examples/ebin
 
 BEAM_FILES = exmpp.app							\
 	     exmpp.appup						\
@@ -54,6 +53,12 @@ endif
 
 beam_DATA = $(BEAM_FILES)
 
+CLEANFILES = $(beam_DATA)
+
+if ENABLE_EXAMPLES
+examplesdir = $(ERLANG_INSTALL_LIB_DIR_exmpp)/examples/ebin
+
 examples_DATA = echo_client.beam
 
-CLEANFILES = $(beam_DATA) $(examples_DATA)
+CLEANFILES += $(examples_DATA)
+endif

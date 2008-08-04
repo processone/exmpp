@@ -3,6 +3,11 @@
 	* configure.ac: Exmpp is not installed under $prefix/lib/exmpp-X.X.X
 	but under $prefix/exmpp-X.X.X.
 
+	* examples, src/Makefile.am, src/Emakefile.in,
+	doc/Makefile.am, ebin/Makefile.am, Makefile.am, configure.ac: Move
+	examples to a dedicated directory. They may be disabled at configure
+	time.
+
 2008-08-01  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_stanza.erl: Add functions to set both the sender and

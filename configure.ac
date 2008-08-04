@@ -208,6 +208,13 @@ AC_ARG_ENABLE([documentation],
 	enable_documentation="yes")
 AM_CONDITIONAL(ENABLE_DOCUMENTATION, test "x${enable_documentation}" = "xyes")
 
+dnl Examples.
+AC_ARG_ENABLE([examples],
+	AC_HELP_STRING([--enable-examples],
+	    [build examples [[default=no]]]),,
+	enable_examples="no")
+AM_CONDITIONAL(ENABLE_EXAMPLES, test "x${enable_examples}" = "xyes")
+
 dnl Internal escaping function to use.
 AC_ARG_ENABLE([escaping-using-cdata],
 	AC_HELP_STRING([--enable-escaping-using-cdata],
@@ -506,6 +513,8 @@ AC_CONFIG_FILES([
 	ebin/exmpp.appup
 	doc/Makefile
 	testsuite/Makefile
+	examples/Makefile
+	examples/Emakefile
 	Makefile
 ])
 AC_CONFIG_FILES([
@@ -531,8 +540,9 @@ echo "    Erlang interpreter: ${ESCRIPT}"
 echo
 echo "    Debug/warnings:     ${enable_debug}/${enable_warnings}"
 echo "    Compat modules:     ${enable_compat}"
-echo "    Testsuite:          ${enable_testsuite}"
 echo "    Documentation:      ${enable_documentation}"
+echo "    Testsuite:          ${enable_testsuite}"
+echo "    Examples:           ${enable_examples}"
 echo
 echo "    XML engines:"
 echo "      . Expat:          ${build_with_expat}"
