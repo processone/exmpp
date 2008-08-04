@@ -116,10 +116,7 @@ get_sender(#xmlel{attrs = Attrs} = _Stanza) ->
 %% {@link exmpp_jid:string_to_jid/1}.
 
 get_sender_from_attrs(Attrs) ->
-    case exmpp_xml:get_attribute_node_from_list(Attrs, 'from') of
-        #xmlattr{value = Value} -> Value;
-        _                       -> undefined
-    end.
+    exmpp_xml:get_attribute_from_list(Attrs, 'from', undefined).
 
 %% @spec (Stanza, Sender) -> New_Stanza
 %%     Stanza = exmpp_xml:xmlel()
@@ -179,10 +176,7 @@ get_recipient(#xmlel{attrs = Attrs} = _Stanza) ->
 %% {@link exmpp_jid:string_to_jid/1}.
 
 get_recipient_from_attrs(Attrs) ->
-    case exmpp_xml:get_attribute_node_from_list(Attrs, 'to') of
-        #xmlattr{value = Value} -> Value;
-        _                       -> undefined
-    end.
+    exmpp_xml:get_attribute_from_list(Attrs, 'to', undefined).
 
 %% @spec (Stanza, Recipient) -> New_Stanza
 %%     Stanza = exmpp_xml:xmlel()
@@ -256,10 +250,7 @@ get_id(#xmlel{attrs = Attrs} = _Stanza) ->
 %% @doc Return the stanza ID.
 
 get_id_from_attrs(Attrs) ->
-    case exmpp_xml:get_attribute_node_from_list(Attrs, 'id') of
-        #xmlattr{value = Value} -> Value;
-        _                       -> undefined
-    end.
+    exmpp_xml:get_attribute_from_list(Attrs, 'id', undefined).
 
 %% @spec (Stanza, ID) -> New_Stanza
 %%     Stanza = exmpp_xml:xmlel()
@@ -300,10 +291,7 @@ get_type(#xmlel{attrs = Attrs} = _Stanza) ->
 %% @doc Return the type of the stanza.
 
 get_type_from_attrs(Attrs) ->
-    case exmpp_xml:get_attribute_node_from_list(Attrs, 'type') of
-        #xmlattr{value = Value} -> Value;
-        _                       -> undefined
-    end.
+    exmpp_xml:get_attribute_from_list(Attrs, 'type', undefined).
 
 %% @spec (Stanza, Type) -> New_Stanza
 %%     Stanza = exmpp_xml:xmlel()
@@ -340,10 +328,7 @@ get_lang(#xmlel{attrs = Attrs} = _Stanza) ->
 %% @doc Return the language of the stanza.
 
 get_lang_from_attrs(Attrs) ->
-    case exmpp_xml:get_attribute_node_from_list(Attrs, ?NS_XML, 'lang') of
-        #xmlattr{value = Value} -> Value;
-        _                       -> undefined
-    end.
+    exmpp_xml:get_attribute_from_list(Attrs, ?NS_XML, 'lang', undefined).
 
 %% @spec (Stanza, Lang) -> New_Stanza
 %%     Stanza = exmpp_xml:xmlel()
@@ -581,7 +566,7 @@ get_error_type(Stanza) ->
     end.
 
 get_error_type_from_error(Error) ->
-    exmpp_xml:get_attribute(Error, 'type').
+    exmpp_xml:get_attribute(Error, 'type', "").
 
 %% @spec (Stanza, Type) -> New_Stanza
 %%     Stanza = exmpp_xml:xmlel()

@@ -324,13 +324,13 @@ closing(#xmlel{ns = NS, declared_ns = Declared_NS, name = Name}) ->
 % Stream standard attributes.
 % --------------------------------------------------------------------
 
-%% @spec (Opening) -> Hostname | nil()
+%% @spec (Opening) -> Hostname | undefined
 %%     Opening = exmpp_xml:xmlel()
 %%     Hostname = string()
 %% @doc Return the receiving entity hostname.
 
 get_receiving_entity(Opening) ->
-    exmpp_xml:get_attribute(Opening, 'to').
+    exmpp_xml:get_attribute(Opening, 'to', undefined).
 
 %% @spec (Opening, Hostname) -> New_Opening
 %%     Opening = exmpp_xml:xmlel()
@@ -347,13 +347,13 @@ set_receiving_entity_in_attrs(Attrs, undefined) ->
 set_receiving_entity_in_attrs(Attrs, Hostname) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'to', Hostname).
 
-%% @spec (Opening) -> Hostname | nil()
+%% @spec (Opening) -> Hostname | undefined
 %%     Opening = exmpp_xml:xmlel()
 %%     Hostname = string()
 %% @doc Return the initiating entity hostname.
 
 get_initiating_entity(Opening) ->
-    exmpp_xml:get_attribute(Opening, 'from').
+    exmpp_xml:get_attribute(Opening, 'from', undefined).
 
 %% @spec (Opening, Hostname) -> New_Opening
 %%     Opening = exmpp_xml:xmlel()
@@ -402,7 +402,7 @@ set_default_ns(#xmlel{declared_ns = Declared_NS} = Opening, NS) ->
 %% @doc Return the version of the stream.
 
 get_version(Opening) ->
-    parse_version(exmpp_xml:get_attribute(Opening, 'version')).
+    parse_version(exmpp_xml:get_attribute(Opening, 'version', "")).
 
 %% @spec (Opening, Version) -> New_Opening
 %%     Opening = exmpp_xml:xmlel()
@@ -425,13 +425,13 @@ set_version_in_attrs(Attrs, {_, _} = Version) ->
 set_version_in_attrs(Attrs, Version) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'version', Version).
 
-%% @spec (Opening) -> ID | nil()
+%% @spec (Opening) -> ID | undefined
 %%     Opening = exmpp_xml:xmlel()
 %%     ID = string()
 %% @doc Return the stream ID.
 
 get_id(Opening) ->
-    exmpp_xml:get_attribute(Opening, 'id').
+    exmpp_xml:get_attribute(Opening, 'id', undefined).
 
 %% @spec (Opening, ID) -> New_Opening
 %%     Opening = exmpp_xml:xmlel()
@@ -448,13 +448,13 @@ set_id_in_attrs(Attrs, ID) when ID == undefined; ID == "" ->
 set_id_in_attrs(Attrs, ID) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'id', ID).
 
-%% @spec (Opening) -> Lang | nil()
+%% @spec (Opening) -> Lang | undefined
 %%     Opening = exmpp_xml:xmlel()
 %%     Lang = string()
 %% @doc Return the language of the stream.
 
 get_lang(Opening) ->
-    exmpp_xml:get_attribute(Opening, ?NS_XML, 'lang').
+    exmpp_xml:get_attribute(Opening, ?NS_XML, 'lang', undefined).
 
 %% @spec (Opening, Lang) -> New_Opening
 %%     Opening = exmpp_xml:xmlel()

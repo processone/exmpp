@@ -69,10 +69,10 @@
   get_attribute_node_from_list/3,
   get_attribute_node/2,
   get_attribute_node/3,
-  get_attribute_from_list/2,
   get_attribute_from_list/3,
-  get_attribute/2,
+  get_attribute_from_list/4,
   get_attribute/3,
+  get_attribute/4,
   set_attribute_in_list/3,
   set_attribute_in_list/4,
   set_attribute/3,
@@ -774,71 +774,75 @@ get_attribute_node(#xmlel{attrs = Attrs} = _XML_Element, NS, Name) ->
 get_attribute_node(undefined, _NS, _Name) ->
     undefined.
 
-%% @spec (Attrs, Attr_Name) -> Attr_Value | nil()
+%% @spec (Attrs, Attr_Name, Default) -> Attr_Value | Default
 %%     Attrs = [xmlnsattribute() | xmlattribute()]
 %%     Attr_Name = atom() | string()
+%%     Default = term()
 %%     Attr_Value = string()
 %% @doc Return the value of the attribute named `Attr_Name' from the list.
 %%
-%% Return an empty string if the attribute isn't found.
+%% Return `Default' if the attribute isn't found.
 
-get_attribute_from_list(Attrs, Attr_Name) ->
+get_attribute_from_list(Attrs, Attr_Name, Default) ->
     case get_attribute_node_from_list(Attrs, Attr_Name) of
         #xmlattr{value = Value} ->
             Value;
         {_Name, Value} ->
             Value;
         _ ->
-            ""
+            Default
     end.
 
-%% @spec (Attrs, NS, Attr_Name) -> Attr_Value | nil()
+%% @spec (Attrs, NS, Attr_Name, Default) -> Attr_Value | Default
 %%     Attrs = [xmlnsattribute()]
 %%     NS = atom() | string()
 %%     Attr_Name = atom() | string()
+%%     Default = term()
 %%     Attr_Value = string()
 %% @doc Return the value of the attribute named `Attr_Name' from the
 %% list with the `NS' namespace URI.
 %%
-%% Return an empty string if the attribute isn't found.
+%% Return `Default' if the attribute isn't found.
 
-get_attribute_from_list(Attrs, NS, Attr_Name) ->
+get_attribute_from_list(Attrs, NS, Attr_Name, Default) ->
     case get_attribute_node_from_list(Attrs, NS, Attr_Name) of
         #xmlattr{value = Value} ->
             Value;
         _ ->
-            ""
+            Default
     end.
 
-%% @spec (XML_Element, Attr_Name) -> Attr_Value | nil()
+%% @spec (XML_Element, Attr_Name, Default) -> Attr_Value | Default
 %%     XML_Element = xmlel() | xmlelement() | undefined
 %%     Attr_Name = atom() | string()
+%%     Default = term()
 %%     Attr_Value = string()
 %% @doc Return the value of the attribute named `Attr_Name'.
 %%
-%% Return an empty string if the attribute isn't found.
+%% Return `Default' if the attribute isn't found.
 
-get_attribute(#xmlel{attrs = Attrs} = _XML_Element, Name) ->
-    get_attribute_from_list(Attrs, Name);
-get_attribute(#xmlelement{attrs = Attrs} = _XML_Element, Name) ->
-    get_attribute_from_list(Attrs, Name);
-get_attribute(undefined, _Name) ->
-    "".
+get_attribute(#xmlel{attrs = Attrs} = _XML_Element, Name, Default) ->
+    get_attribute_from_list(Attrs, Name, Default);
+get_attribute(#xmlelement{attrs = Attrs} = _XML_Element, Name, Default) ->
+    get_attribute_from_list(Attrs, Name, Default);
+get_attribute(undefined, _Name, Default) ->
+    Default.
 
-%% @spec (XML_Element, NS, Attr_Name) -> Attr_Value | nil()
+%% @spec (XML_Element, NS, Attr_Name, Default) -> Attr_Value | Default
 %%     XML_Element = xmlel() | undefined
 %%     NS = atom() | string()
 %%     Attr_Name = atom() | string()
+%%     Default = term()
 %%     Attr_Value = string()
 %% @doc Return the value of the attribute named `Attr_Name' with the
 %% `NS' namespace URI.
 %%
-%% Return an empty string if the attribute isn't found.
+%% Return `Default' if the attribute isn't found.
 
-get_attribute(#xmlel{attrs = Attrs} = _XML_Element, NS, Name) ->
-    get_attribute_from_list(Attrs, NS, Name);
-get_attribute(undefined, _NS, _Name) ->
-    "".
+get_attribute(#xmlel{attrs = Attrs} = _XML_Element, NS, Name, Default) ->
+    get_attribute_from_list(Attrs, NS, Name, Default);
+get_attribute(undefined, _NS, _Name, Default) ->
+    Default.
 
 %% @spec (Attrs, Attr_Name) -> bool()
 %%     Attrs = [xmlattribute() | xmlattribute()]
@@ -2136,10 +2140,10 @@ get_path(XML_Element, [{element, NS, Name} | Path]) ->
         undefined      -> get_path_not_found(Path);
         XML_Subelement -> get_path(XML_Subelement, Path)
     end;
-get_path(XML_Element, [{attribute, Name}]) ->
-    get_attribute(XML_Element, Name);
-get_path(XML_Element, [{attribute, NS, Name}]) ->
-    get_attribute(XML_Element, NS, Name);
+get_path(XML_Element, [{attribute, Name, Default}]) ->
+    get_attribute(XML_Element, Name, Default);
+get_path(XML_Element, [{attribute, NS, Name, Default}]) ->
+    get_attribute(XML_Element, NS, Name, Default);
 get_path(XML_Element, [cdata]) ->
     get_cdata(XML_Element);
 get_path(XML_Element, [cdata_as_list]) ->

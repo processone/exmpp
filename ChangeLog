@@ -13,6 +13,17 @@
 
 	* include/xmpp.hrl, include/Makefile.am: xmpp.hrl is unused.
 
+	* src/core/exmpp_xml.erl (get_attribute_from_list, get_attribute):
+	Function to get an attribute value now take an additional argument.
+	This new argument is returned by the functions if the specified
+	attribute isn't found. Before, those functions would always return an
+	empty string.
+
+	* src/compat/xml.erl, src/server/exmpp_server_sasl.erl,
+	src/core/exmpp_stream.erl, src/core/exmpp_stanza.erl,
+	src/network/exmpp_session.erl: Update to use the new
+	get_attribute_from_list and get_attribute functions from exmpp_xml.
+
 2008-08-01  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_stanza.erl: Add functions to set both the sender and

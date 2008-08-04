@@ -397,7 +397,7 @@ wait_for_stream(Start = ?stream, State = #state{connection = _Module,
 						auth_method = _Auth,
 						from_pid = From}) ->
     %% Get StreamID
-    StreamId = exmpp_xml:get_attribute(Start#xmlstreamstart.element, id),
+    StreamId = exmpp_xml:get_attribute(Start#xmlstreamstart.element, id, ""),
     gen_fsm:reply(From, StreamId),
     {next_state, stream_opened, State#state{from_pid=undefined,
 					    stream_id = StreamId}}.
@@ -495,7 +495,7 @@ wait_for_legacy_auth_method(?streamerror, State) ->
 %% TODO: We should be able to match on iq type directly on the first
 %% level record
 wait_for_auth_result(?iq_no_attrs, State = #state{from_pid=From}) ->
-    case exmpp_xml:get_attribute(IQElement, type) of
+    case exmpp_xml:get_attribute(IQElement, type, undefined) of
  	"result" ->
             gen_fsm:reply(From, ok),	     
             {next_state, logged_in, State#state{from_pid=undefined}};
@@ -510,7 +510,7 @@ wait_for_auth_result(?iq_no_attrs, State = #state{from_pid=From}) ->
 %% requirements. Check that a client can get the list of fields and
 %% override this simple method of registration.
 wait_for_register_result(?iq_no_attrs, State = #state{from_pid=From}) ->
-    case exmpp_xml:get_attribute(IQElement, type) of
+    case exmpp_xml:get_attribute(IQElement, type, undefined) of
  	"result" ->
             gen_fsm:reply(From, ok),	     
             {next_state, stream_opened, State#state{from_pid=undefined}};
@@ -654,7 +654,7 @@ start_parser() ->
 %% Authentication functions
 check_auth_method(Method, IQElement) ->
     %% Check auth method if we have the IQ result
-    case exmpp_xml:get_attribute(IQElement, type) of
+    case exmpp_xml:get_attribute(IQElement, type, undefined) of
 	"result" ->
 	    check_auth_method2(Method, IQElement);
 	_ ->
@@ -710,9 +710,9 @@ process_iq(ClientPid, Attrs, Packet) ->
 %% This function uses {@link random:uniform/1}. It's up to the caller to
 %% seed the generator.
 check_id(Attrs) ->
-    case exmpp_xml:get_attribute_from_list(Attrs, id) of
+    case exmpp_xml:get_attribute_from_list(Attrs, id, "") of
 	"" -> 	
-	    Id = "session-"++integer_to_list(random:uniform(65536 * 65536)),
+	    Id = exmpp_utils:random_id("session"),
 	    {exmpp_xml:set_attribute_in_list(Attrs, id, Id), Id};
         Id -> {Attrs, Id}
     end.
@@ -720,15 +720,12 @@ check_id(Attrs) ->
 %% Try getting a given atribute from a list of xmlattr records
 %% Return default value if attribute is not found
 get_attribute_value(Attrs, Attr, Default) ->
-    case exmpp_xml:get_attribute_node_from_list(Attrs, Attr) of
-        undefined -> Default;
-        #xmlattr{value=Value} -> Value
-    end.
+    exmpp_xml:get_attribute_from_list(Attrs, Attr, Default).
 
 %% Internal operations
 %% send_packet: actually format and send the packet:
 send_packet(?iqattrs, Module, ConnRef) ->
-    Type = exmpp_xml:get_attribute_from_list(Attrs, type),
+    Type = exmpp_xml:get_attribute_from_list(Attrs, type, undefined),
     case Type of 
 	"error" ->
 	    {Attrs2, PacketId} = check_id(Attrs),

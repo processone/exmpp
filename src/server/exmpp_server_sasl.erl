@@ -148,7 +148,7 @@ failure(Condition) ->
 %% Any response data is Base64-decoded.
 
 next_step(#xmlel{ns = ?NS_SASL, name = 'auth'} = El) ->
-    Mechanism = exmpp_xml:get_attribute(El, 'mechanism'),
+    Mechanism = exmpp_xml:get_attribute(El, 'mechanism', undefined),
     case exmpp_utils:strip(exmpp_xml:get_cdata_as_list(El)) of
         ""      -> {auth, Mechanism, none};
         "="     -> {auth, Mechanism, ""};

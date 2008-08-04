@@ -69,17 +69,15 @@ get_tag_cdata({xmlelement, _Name, _Attrs, Els}) ->
     get_cdata(Els).
 
 get_attr(AttrName, Attrs) ->
-    case exmpp_xml:get_attribute_node_from_list(Attrs, AttrName) of
+    case exmpp_xml:get_attribute_from_list(Attrs, AttrName, undefined) of
 	undefined ->
 	    false;
-	#xmlattr{value = Val} ->
-	    {value, Val};
-	{_Name, Val} ->
+	Val ->
 	    {value, Val}
     end.
 
 get_attr_s(AttrName, Attrs) ->
-    exmpp_xml:get_attribute_from_list(Attrs, AttrName).
+    exmpp_xml:get_attribute_from_list(Attrs, AttrName, "").
 
 get_tag_attr(AttrName, #xmlel{attrs = Attrs}) ->
     get_attr(AttrName, Attrs);
@@ -87,7 +85,7 @@ get_tag_attr(AttrName, #xmlelement{attrs = Attrs}) ->
     get_attr(AttrName, Attrs).
 
 get_tag_attr_s(AttrName, El) ->
-    exmpp_xml:get_attribute(El, AttrName).
+    exmpp_xml:get_attribute(El, AttrName, "").
 
 
 get_subtag(El, Name) ->
