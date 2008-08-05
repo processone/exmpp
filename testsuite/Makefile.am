@@ -7,6 +7,8 @@ ERL_FILES = $(EUNIT_REPORTER).erl					\
 	    xml_parser.erl						\
 	    jid.erl
 
+HRL_FILES = $(top_srcdir)/include/exmpp_xml.hrl
+
 JUNIT_REPORTS = exmpp-junit-*.xml
 
 REAL_TESTS =
@@ -22,7 +24,7 @@ EXTRA_DIST = $(ERL_FILES)
 
 CLEANFILES = $(EUNIT_REPORTER).beam $(TESTS) $(JUNIT_REPORTS) erl_crash.dump
 
-$(EUNIT_REPORTER).beam: $(srcdir)/$(EUNIT_REPORTER).erl $(top_srcdir)/include/exmpp.hrl
+$(EUNIT_REPORTER).beam: $(srcdir)/$(EUNIT_REPORTER).erl $(HRL_FILES)
 	@(echo "Recompile: $(srcdir)/$(EUNIT_REPORTER)" &&		\
 	  $(ERLC) -Wall +debug_info +report +warn_export_vars		\
 	  +warn_shadow_vars +warn_unused_import				\

@@ -3,7 +3,7 @@
 -module(eunit_tty).
 -vsn('$Revision$').
 
--include("exmpp.hrl").
+-include("exmpp_xml.hrl").
 
 -export([
   start/1,

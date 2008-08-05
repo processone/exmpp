@@ -28,6 +28,9 @@
 	include/exmpp_xmpp.hrl, include/Makefile.am: Split the main header in
 	multiple ones.
 
+	* testsuite/Makefile.am, testsuite/eunit_tty.erl: eunit_tty only needs
+	exmpp_xml.hrl.
+
 2008-08-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* configure.ac: Exmpp is not installed under $prefix/lib/exmpp-X.X.X
