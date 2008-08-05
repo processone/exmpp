@@ -6,6 +6,9 @@
 	(make_element/1): Fix a bug with the creation of the element; the
 	namespace was filled instead of the name.
 
+	* doc/Makefile.am: Add +B arguments to erl(1). With this, Ctrl+C will
+	halt the emulator immediatly.
+
 2008-08-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* configure.ac: Exmpp is not installed under $prefix/lib/exmpp-X.X.X

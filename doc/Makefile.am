@@ -63,7 +63,7 @@ HTML_FILES = index.html							\
 	     xml_stream.html
 
 $(HTML_FILES): overview.edoc $(ERL_SRCS) stylesheet.css
-	$(ERL) -noshell\
+	$(ERL) +B -noshell\
 		-run edoc_run application "'$(PACKAGE_NAME)'" '"$(top_srcdir)"'\
 		'[{def, {vsn, "$(PACKAGE_VERSION)"}}, {dir, "."}, {stylesheet, "stylesheet.css"}, {preprocess, true}, no_packages]'\
 		-s erlang halt
