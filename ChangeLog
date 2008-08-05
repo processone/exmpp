@@ -24,6 +24,10 @@
 	* src/server/exmpp_server_binding.erl (bind/2): Use the new
 	jid_to_binary/1 function in exmpp_jid.
 
+	* include/exmpp.hrl, include/exmpp_nss.hrl, include/exmpp_xml.hrl,
+	include/exmpp_xmpp.hrl, include/Makefile.am: Split the main header in
+	multiple ones.
+
 2008-08-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* configure.ac: Exmpp is not installed under $prefix/lib/exmpp-X.X.X
