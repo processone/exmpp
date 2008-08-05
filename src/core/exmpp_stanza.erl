@@ -74,7 +74,10 @@
 -export([
   to_list/2,
   to_list/3,
-  to_list/1
+  to_list/1,
+  to_binary/2,
+  to_binary/3,
+  to_binary/1
 ]).
 
 % --------------------------------------------------------------------
@@ -731,6 +734,53 @@ to_list(El, Default_NS, Prefixed_NS) ->
 
 to_list(El) ->
     to_list(El, [
+        ?NS_JABBER_CLIENT,
+        ?NS_JABBER_SERVER,
+        ?NS_COMPONENT_ACCEPT,
+        ?NS_COMPONENT_CONNECT
+      ]).
+
+%% @spec (El, Default_NS) -> XML_Text
+%%     El = exmpp_xml:xmlel() | list()
+%%     Default_NS = NS | Equivalent_NSs
+%%     NS = atom() | string()
+%%     Equivalent_NSs = [NS]
+%%     XML_Text = binary()
+%% @doc Serialize a stanza using the given default namespace.
+%%
+%% The XMPP namespace `http://etherx.jabber.org/streams' and the
+%% Server Dialback `jabber:server:dialback' are included as a prefixed
+%% namespace, with the `stream' prefix.
+
+to_binary(El, Default_NS) ->
+    to_binary(El, Default_NS,
+      [{?NS_XMPP, ?NS_XMPP_pfx}, {?NS_DIALBACK, ?NS_DIALBACK_pfx}]).
+
+%% @spec (El, Default_NS, Prefix) -> XML_Text
+%%     El = exmpp_xml:xmlel() | list()
+%%     Default_NS = NS | [NS]
+%%     Prefixed_NS = [{NS, Prefix}]
+%%     NS = atom() | string()
+%%     Prefix = string()
+%%     XML_Text = binary()
+%% @doc Serialize a stanza using the given namespaces.
+%%
+%% To understand `Default_NS', see {@link exmpp_xml:xmlel_to_xmlelement/3}.
+
+to_binary(El, Default_NS, Prefixed_NS) ->
+    exmpp_xml:node_to_binary(El, [Default_NS], Prefixed_NS).
+
+%% @spec (El) -> XML_Text
+%%     El = exmpp_xml:xmlel() | list()
+%%     XML_Text = binary()
+%% @doc Serialize a stanza using common XMPP default namespaces.
+%%
+%% This function calls {@link to_binary/2} with `Default_NS' set to
+%% `[?NS_JABBER_CLIENT, ?NS_JABBER_SERVER, ?NS_COMPONENT_ACCEPT,
+%% ?NS_COMPONENT_CONNECT]'.
+
+to_binary(El) ->
+    to_binary(El, [
         ?NS_JABBER_CLIENT,
         ?NS_JABBER_SERVER,
         ?NS_COMPONENT_ACCEPT,

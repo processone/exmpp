@@ -9,6 +9,9 @@
 	* doc/Makefile.am: Add +B arguments to erl(1). With this, Ctrl+C will
 	halt the emulator immediatly.
 
+	* src/core/exmpp_stream.erl, src/core/exmpp_stanza.erl: Add to_binary
+	functions.
+
 2008-08-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* configure.ac: Exmpp is not installed under $prefix/lib/exmpp-X.X.X

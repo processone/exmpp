@@ -156,7 +156,8 @@
 
 % Serialization wrappers.
 -export([
-  to_list/1
+  to_list/1,
+  to_binary/1
 ]).
 
 -define(STREAM_NS_PREFIX, "stream").
@@ -657,3 +658,11 @@ get_text(#xmlel{ns = ?NS_XMPP, name = 'error'} = El) ->
 
 to_list(El) ->
     exmpp_xml:document_to_list(El).
+
+%% @spec (El) -> XML_Text
+%%     El = exmpp_xml:xmlel() | list()
+%%     XML_Text = binary()
+%% @doc Serialize a stream opening/closing.
+
+to_binary(El) ->
+    exmpp_xml:document_to_binary(El).
