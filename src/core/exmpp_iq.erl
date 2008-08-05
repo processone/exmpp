@@ -98,7 +98,7 @@ set(NS, Request, ID) ->
 %%     Response_IQ = exmpp_xml:xmlel()
 %% @doc Prepare an `<iq/>' to answer to the given request.
 
-result(Request_IQ) ->
+result(Request_IQ) when ?IS_IQ(Request_IQ) ->
     Attrs1 = exmpp_stanza:set_type_in_attrs([], "result"),
     Attrs2 = exmpp_stanza:set_id_in_attrs(Attrs1,
       exmpp_stanza:get_id(Request_IQ)),
@@ -114,9 +114,9 @@ result(Request_IQ) ->
 %%     Response_IQ = exmpp_xml:xmlel()
 %% @doc Prepare an `<iq/>' to answer to the given request with `Result'.
 
-result(Request_IQ, Result) when is_list(Result) ->
+result(Request_IQ, Result) when ?IS_IQ(Request_IQ) andalso is_list(Result) ->
     exmpp_xml:set_children(result(Request_IQ), Result);
-result(Request_IQ, Result) ->
+result(Request_IQ, Result) when ?IS_IQ(Request_IQ) ->
     exmpp_xml:set_children(result(Request_IQ), [Result]).
 
 %% @spec (Request_IQ, Error) -> Response_IQ
@@ -131,7 +131,7 @@ result(Request_IQ, Result) ->
 error(IQ, Condition) when is_atom(Condition) ->
     Error = exmpp_stanza:error(IQ#xmlel.ns, Condition),
     error(IQ, Error);
-error(IQ, Error) ->
+error(IQ, Error) when ?IS_IQ(IQ) ->
     Attrs1 = exmpp_stanza:set_id_in_attrs([], exmpp_stanza:get_id(IQ)),
     exmpp_stanza:stanza_error(IQ#xmlel{attrs = Attrs1}, Error).
 
@@ -149,7 +149,7 @@ error(IQ, Error) ->
 error_without_original(IQ, Condition) when is_atom(Condition) ->
     Error = exmpp_stanza:error(IQ#xmlel.ns, Condition),
     error_without_original(IQ, Error);
-error_without_original(IQ, Error) ->
+error_without_original(IQ, Error) when ?IS_IQ(IQ) ->
     Attrs1 = exmpp_stanza:set_id_in_attrs([], exmpp_stanza:get_id(IQ)),
     exmpp_stanza:stanza_error_without_original(IQ#xmlel{attrs = Attrs1},
       Error).
@@ -162,7 +162,7 @@ error_without_original(IQ, Error) ->
 %%     El = exmpp_xml:xmlel()
 %% @doc Tell if `El' is an IQ.
 %%
-%% You should probably use the `IS_IQ(IQ)' guard expression.
+%% You should probably use the `IS_IQ(El)' guard expression.
 
 is_iq(IQ) when ?IS_IQ(IQ) -> true;
 is_iq(_El)                -> false.
@@ -172,7 +172,7 @@ is_iq(_El)                -> false.
 %%     Type = get | set | result | error | undefined
 %% @doc Return the type of the given `<iq/>'.
 
-get_type(IQ) ->
+get_type(IQ) when ?IS_IQ(IQ) ->
     case exmpp_stanza:get_type(IQ) of
         "get"    -> 'get';
         "set"    -> 'set';
@@ -186,7 +186,7 @@ get_type(IQ) ->
 %%     Kind = request | response | undefined
 %% @doc Tell if an IQ is a request or a response.
 
-get_kind(IQ) ->
+get_kind(IQ) when ?IS_IQ(IQ) ->
     case get_type(IQ) of
         'get'    -> request;
         'set'    -> request;
@@ -199,7 +199,7 @@ get_kind(IQ) ->
 %%     IQ = exmpp_xml:xmlel()
 %% @doc Tell if the IQ is a request.
 
-is_request(IQ) ->
+is_request(IQ) when ?IS_IQ(IQ) ->
     case get_kind(IQ) of
         request -> true;
         _       -> false
@@ -209,7 +209,7 @@ is_request(IQ) ->
 %%     IQ = exmpp_xml:xmlel()
 %% @doc Tell if the IQ is a response.
 
-is_response(IQ) ->
+is_response(IQ) when ?IS_IQ(IQ) ->
     case get_kind(IQ) of
         response -> true;
         _        -> false
@@ -219,7 +219,7 @@ is_response(IQ) ->
 %%     IQ = exmpp_xml:xmlel()
 %% @doc Tell if the IQ is a result (response of type `result').
 
-is_result(IQ) ->
+is_result(IQ) when ?IS_IQ(IQ) ->
     case get_type(IQ) of
         'result' -> true;
         _        -> false
@@ -229,7 +229,7 @@ is_result(IQ) ->
 %%     IQ = exmpp_xml:xmlel()
 %% @doc Tell if the IQ is an error (response of type `error').
 
-is_error(IQ) ->
+is_error(IQ) when ?IS_IQ(IQ) ->
     case get_type(IQ) of
         'error' -> true;
         _       -> false
@@ -243,7 +243,7 @@ is_error(IQ) ->
 %% @doc Return the request contained in a `get' or `set' IQ, or returned
 %% by an `error' IQ (if present).
 
-get_request(IQ) ->
+get_request(IQ) when ?IS_IQ(IQ) ->
     case get_type(IQ) of
         undefined ->
             throw({iq, get_result, invalid_iq, IQ});
@@ -273,7 +273,7 @@ get_request(IQ) ->
 %%         {iq, get_result, invalid_iq, IQ}
 %% @doc Return the result contained in a `result' IQ.
 
-get_result(IQ) ->
+get_result(IQ) when ?IS_IQ(IQ) ->
     case get_type(IQ) of
         undefined ->
             throw({iq, get_result, invalid_iq, IQ});
@@ -293,7 +293,7 @@ get_result(IQ) ->
 %%     Payload = exmpp_xml:xmlel()
 %% @doc Extract the request, the result or the error from `IQ'.
 
-get_payload(IQ) ->
+get_payload(IQ) when ?IS_IQ(IQ) ->
     case exmpp_iq:get_type(IQ) of
         'get'    -> exmpp_iq:get_request(IQ);
         'set'    -> exmpp_iq:get_request(IQ);

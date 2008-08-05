@@ -110,7 +110,7 @@ error() ->
 %%     El = exmpp_xml:xmlel()
 %% @doc Tell if `El' is a presence.
 %%
-%% You should probably use the `IS_PRESENCE(Presence)' guard expression.
+%% You should probably use the `IS_PRESENCE(El)' guard expression.
 
 is_presence(Presence) when ?IS_PRESENCE(Presence) -> true;
 is_presence(_El)                                  -> false.
@@ -179,9 +179,9 @@ get_show(#xmlel{ns = NS} = Presence) when ?IS_PRESENCE(Presence) ->
 %% If `Type' is an empty string or the atom `online', the `<show/>'
 %% element is removed.
 
-set_show(#xmlel{ns = NS} = Presence, "") ->
+set_show(#xmlel{ns = NS} = Presence, "") when ?IS_PRESENCE(Presence)->
     exmpp_xml:remove_element(Presence, NS, 'show');
-set_show(#xmlel{ns = NS} = Presence, 'online') ->
+set_show(#xmlel{ns = NS} = Presence, 'online') when ?IS_PRESENCE(Presence) ->
     exmpp_xml:remove_element(Presence, NS, 'show');
 set_show(#xmlel{ns = NS} = Presence, Show) when ?IS_PRESENCE(Presence) ->
     case Show of

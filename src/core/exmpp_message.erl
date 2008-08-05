@@ -28,7 +28,7 @@
 %%     El = exmpp_xml:xmlel()
 %% @doc Tell if `El' is a message.
 %%
-%% You should probably use the `IS_MESSAGE(Message)' guard expression.
+%% You should probably use the `IS_MESSAGE(El)' guard expression.
 
 is_message(Message) when ?IS_MESSAGE(Message) -> true;
 is_message(_El)                               -> false.
@@ -38,7 +38,7 @@ is_message(_El)                               -> false.
 %%     Type = chat | groupchat | headline | normal | error | undefined
 %% @doc Return the type of the given `<message/>'.
 
-get_type(Message) ->
+get_type(Message) when ?IS_MESSAGE(Message) ->
     case exmpp_stanza:get_type(Message) of
         "chat"      -> 'chat';
         "groupchat" -> 'groupchat';
