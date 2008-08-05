@@ -1,3 +1,11 @@
+2008-08-05  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_xml.erl: It's now possible to serialize an XML
+	document to binary. The use of binaries seems to bring an improvement
+	of 15 to 20% in speed over lists.
+	(make_element/1): Fix a bug with the creation of the element; the
+	namespace was filled instead of the name.
+
 2008-08-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* configure.ac: Exmpp is not installed under $prefix/lib/exmpp-X.X.X
