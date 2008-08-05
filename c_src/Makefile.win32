@@ -38,7 +38,7 @@ ZLIB_LIBS = "$(ZLIB_PREFIX)\lib\zdll.lib"
 
 DRIVERS = exmpp_xml_expat.dll exmpp_stringprep.dll exmpp_tls_openssl.dll exmpp_compress_zlib.dll
 
-BUILT_SOURCES = xmpp_ns.h xmpp_names.h xmpp_attrs.h
+BUILT_SOURCES = xmpp_nss.h xmpp_names.h xmpp_attrs.h
 
 all: $(DRIVERS)
 
@@ -54,7 +54,7 @@ clean:
 # --------------------------------------------------------------------
 
 # Generated headers.
-xmpp_ns.h: xmpp_ns.h.js xmpp_ns.h.in
+xmpp_nss.h: xmpp_nss.h.js xmpp_nss.h.in
 	cscript /nologo $*.h.js $*.h.in > $*.h
 
 xmpp_names.h: xmpp_names.h.js xmpp_names.h.in

@@ -12,10 +12,10 @@
 	* src/core/exmpp_stream.erl, src/core/exmpp_stanza.erl: Add to_binary
 	functions.
 
-	* src/core/exmpp_jid.erl: Rename *_to_string and string_to_*
-	functions to *_to_list and list_to_* respectively, for the sake of
-	consistency with other modules. Add functions to serialize a JID as a
-	binary, instead of a list.
+	* src/core/exmpp_jid.erl: Rename *_to_string and string_to_* functions
+	to *_to_list and list_to_* respectively, for consistency's sake with
+	other modules. Add functions to serialize a JID as a binary, instead
+	of a list.
 
 	* src/compat/jlib.erl, src/server/exmpp_server_binding.erl,
 	src/core/exmpp_stanza.erl, src/client/exmpp_client_binding.erl,
@@ -30,6 +30,11 @@
 
 	* testsuite/Makefile.am, testsuite/eunit_tty.erl: eunit_tty only needs
 	exmpp_xml.hrl.
+
+	* c_src/xmpp_nss.h.in, c_src/xmpp_nss.h.js, c_src/xmpp_nss.h.awk,
+	c_src/Makefile.am, c_src/Makefile.win32, c_src/Makefile.unix,
+	c_src/exmpp_xml_expat.c: Rename xmpp_ns.* to xmpp_nss.* for
+	consistency's sake.
 
 2008-08-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 

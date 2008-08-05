@@ -14,7 +14,7 @@ if WITH_ZLIB
 execdrivers_LTLIBRARIES += exmpp_compress_zlib.la
 endif
 
-KNOWN_NSS_SOURCE   ?= $(srcdir)/xmpp_ns.h.in
+KNOWN_NSS_SOURCE   ?= $(srcdir)/xmpp_nss.h.in
 KNOWN_NAMES_SOURCE ?= $(srcdir)/xmpp_names.h.in
 KNOWN_ATTRS_SOURCE ?= $(srcdir)/xmpp_attrs.h.in
 
@@ -23,14 +23,14 @@ EXTRACT_KNOWN = $(srcdir)/extract-known-from-specs
 
 EXTRA_DIST = $(MAKE_SPECS_LIST) $(EXTRACT_KNOWN)			\
 	     contrib/hashtable.h contrib/hashtable_private.h		\
-	     xmpp_ns.h.awk xmpp_ns.h.in					\
+	     xmpp_nss.h.awk xmpp_nss.h.in				\
 	     xmpp_names.h.awk xmpp_names.h.in				\
 	     xmpp_attrs.h.awk xmpp_attrs.h.in				\
 	     stringprep_uni_data.h stringprep_uni_norm.h
 
-BUILT_SOURCES = xmpp_ns.h xmpp_names.h xmpp_attrs.h
+BUILT_SOURCES = xmpp_nss.h xmpp_names.h xmpp_attrs.h
 
-CLEANFILES = xmpp_ns.h xmpp_names.h xmpp_attrs.h
+CLEANFILES = xmpp_nss.h xmpp_names.h xmpp_attrs.h
 
 EI_CPPFLAGS = -I$(ERLANG_ROOT_DIR)/usr/include				\
 	      -I$(ERLANG_LIB_DIR_erl_interface)/include
@@ -49,8 +49,8 @@ execdriversdir = $(ERLANG_INSTALL_LIB_DIR_exmpp)/priv/lib
 # --------------------------------------------------------------------
 
 # Expat port driver.
-xmpp_ns.h: $(srcdir)/xmpp_ns.h.awk $(KNOWN_NSS_SOURCE)
-	$(AWK) -f $(srcdir)/xmpp_ns.h.awk $(KNOWN_NSS_SOURCE) > $@
+xmpp_nss.h: $(srcdir)/xmpp_nss.h.awk $(KNOWN_NSS_SOURCE)
+	$(AWK) -f $(srcdir)/xmpp_nss.h.awk $(KNOWN_NSS_SOURCE) > $@
 
 xmpp_names.h: $(srcdir)/xmpp_names.h.awk $(KNOWN_NAMES_SOURCE)
 	$(AWK) -f $(srcdir)/xmpp_names.h.awk $(KNOWN_NAMES_SOURCE) > $@

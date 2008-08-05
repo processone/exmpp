@@ -53,10 +53,10 @@ clean:
 # --------------------------------------------------------------------
 
 # Generated headers.
-BUILT_SOURCES = xmpp_ns.h xmpp_names.h xmpp_attrs.h
+BUILT_SOURCES = xmpp_nss.h xmpp_names.h xmpp_attrs.h
 
-xmpp_ns.h: xmpp_ns.h.awk xmpp_ns.h.in
-	$(AWK) -f xmpp_ns.h.awk xmpp_ns.h.in > $@
+xmpp_nss.h: xmpp_nss.h.awk xmpp_nss.h.in
+	$(AWK) -f xmpp_nss.h.awk xmpp_nss.h.in > $@
 
 xmpp_names.h: xmpp_names.h.awk xmpp_names.h.in
 	$(AWK) -f xmpp_names.h.awk xmpp_names.h.in > $@

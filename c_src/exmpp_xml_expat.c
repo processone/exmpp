@@ -8,7 +8,7 @@
 
 #include "contrib/hashtable.h"
 
-#include "xmpp_ns.h"
+#include "xmpp_nss.h"
 #include "xmpp_names.h"
 #include "xmpp_attrs.h"
 
