@@ -79,12 +79,12 @@ wished_resource(Stanza) ->
 %% @doc Prepare a reply to `IQ' to inform the client of its final JID.
 
 bind(IQ, Jid) when ?IS_IQ(IQ) ->
-    Jid_S = exmpp_jid:jid_to_list(Jid),
+    Jid_B = exmpp_jid:jid_to_binary(Jid),
     El = #xmlel{
       ns = ?NS_BIND,
       name = 'jid'
     },
-    Children = [exmpp_xml:set_cdata(El, Jid_S)],
+    Children = [exmpp_xml:set_cdata(El, Jid_B)],
     Bind = #xmlel{
       ns = ?NS_BIND,
       name = 'bind',
