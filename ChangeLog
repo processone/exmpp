@@ -36,6 +36,9 @@
 	c_src/exmpp_xml_expat.c: Rename xmpp_ns.* to xmpp_nss.* for
 	consistency's sake.
 
+	* include/exmpp_xmpp.hrl: Improve guard macros. Now they can be used
+	in 'if' statements as well.
+
 2008-08-04  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* configure.ac: Exmpp is not installed under $prefix/lib/exmpp-X.X.X
