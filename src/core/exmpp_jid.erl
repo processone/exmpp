@@ -24,17 +24,22 @@
 
 % Parsing.
 -export([
-  string_to_jid/1,
-  string_to_bare_jid/1
+  list_to_jid/1,
+  list_to_bare_jid/1
 ]).
 
 % Serialization.
 -export([
-  jid_to_string/1,
-  jid_to_string/2,
-  jid_to_string/3,
-  bare_jid_to_string/1,
-  bare_jid_to_string/2
+  jid_to_list/1,
+  jid_to_list/2,
+  jid_to_list/3,
+  bare_jid_to_list/1,
+  bare_jid_to_list/2,
+  jid_to_binary/1,
+  jid_to_binary/2,
+  jid_to_binary/3,
+  bare_jid_to_binary/1,
+  bare_jid_to_binary/2
 ]).
 
 % Comparison.
@@ -220,10 +225,10 @@ bare_jid_to_jid(Jid, Resource) ->
 %%         {jid, parse, Reason,       {String, undefined, undefined}}
 %% @doc Parse a string and create a full JID.
 
-string_to_jid(String)
+list_to_jid(String)
   when length(String) > ?JID_MAX_LENGTH ->
     throw({jid, parse, jid_too_long, {String, undefined, undefined}});
-string_to_jid(String) ->
+list_to_jid(String) ->
     case parse_jid(full, String, "") of
         {error, Reason} ->
             throw({jid, parse, Reason, {String, undefined, undefined}});
@@ -238,10 +243,10 @@ string_to_jid(String) ->
 %%         {jid, parse, Reason,       {String, undefined, undefined}}
 %% @doc Parse a string and create a bare JID.
 
-string_to_bare_jid(String)
+list_to_bare_jid(String)
   when length(String) > ?BARE_JID_MAX_LENGTH ->
     throw({jid, parse, jid_too_long, {String, undefined, undefined}});
-string_to_bare_jid(String) ->
+list_to_bare_jid(String) ->
     case parse_jid(bare, String, "") of
         {error, Reason} ->
             throw({jid, parse, Reason, {String, undefined, undefined}});
@@ -317,8 +322,8 @@ parse_jid(full, [], Node, Domain) ->
 %%     String = string()
 %% @doc Stringify a full JID.
 
-jid_to_string(#jid{node = Node, domain = Domain, resource = Resource}) ->
-    jid_to_string(Node, Domain, Resource).
+jid_to_list(#jid{node = Node, domain = Domain, resource = Resource}) ->
+    jid_to_list(Node, Domain, Resource).
 
 %% @spec (Node, Domain) -> String
 %%     Node = string() | undefined
@@ -326,8 +331,8 @@ jid_to_string(#jid{node = Node, domain = Domain, resource = Resource}) ->
 %%     String = string()
 %% @doc Stringify a bare JID.
 
-jid_to_string(Node, Domain) ->
-    bare_jid_to_string(Node, Domain).
+jid_to_list(Node, Domain) ->
+    bare_jid_to_list(Node, Domain).
 
 %% @spec (Node, Domain, Resource) -> String
 %%     Node = string() | undefined
@@ -336,8 +341,8 @@ jid_to_string(Node, Domain) ->
 %%     String = string()
 %% @doc Stringify a full JID.
 
-jid_to_string(Node, Domain, Resource) ->
-    S1 = bare_jid_to_string(Node, Domain),
+jid_to_list(Node, Domain, Resource) ->
+    S1 = bare_jid_to_list(Node, Domain),
     case Resource of
         ""        -> S1;
         undefined -> S1;
@@ -349,8 +354,8 @@ jid_to_string(Node, Domain, Resource) ->
 %%     String = string()
 %% @doc Stringify a bare JID.
 
-bare_jid_to_string(#jid{node = Node, domain = Domain}) ->
-    bare_jid_to_string(Node, Domain).
+bare_jid_to_list(#jid{node = Node, domain = Domain}) ->
+    bare_jid_to_list(Node, Domain).
 
 %% @spec (Node, Domain) -> String
 %%     Node = string() | undefined
@@ -358,13 +363,71 @@ bare_jid_to_string(#jid{node = Node, domain = Domain}) ->
 %%     String = string()
 %% @doc Stringify a full JID.
 
-bare_jid_to_string(Node, Domain) ->
+bare_jid_to_list(Node, Domain) ->
     S1 = case Node of
         ""        -> "";
         undefined -> "";
         _         -> Node ++ "@"
     end,
     S1 ++ Domain.
+
+%% @spec (Jid) -> String
+%%     Jid = jid()
+%%     String = binary()
+%% @doc Stringify a full JID.
+
+jid_to_binary(#jid{node = Node, domain = Domain, resource = Resource}) ->
+    jid_to_binary(Node, Domain, Resource).
+
+%% @spec (Node, Domain) -> String
+%%     Node = string() | undefined
+%%     Domain = string()
+%%     String = binary()
+%% @doc Stringify a bare JID.
+
+jid_to_binary(Node, Domain) ->
+    bare_jid_to_binary(Node, Domain).
+
+%% @spec (Node, Domain, Resource) -> String
+%%     Node = string() | undefined
+%%     Domain = string()
+%%     Resource = string() | undefined
+%%     String = binary()
+%% @doc Stringify a full JID.
+
+jid_to_binary(Node, Domain, Resource) ->
+    S1 = bare_jid_to_binary(Node, Domain),
+    if
+        Resource == "" orelse Resource == undefined ->
+            S1;
+        true ->
+            Resource_B = list_to_binary(Resource),
+            <<S1/binary, "/", Resource_B/binary>>
+    end.
+
+%% @spec (Bare_Jid) -> String
+%%     Bare_Jid = jid()
+%%     String = binary()
+%% @doc Stringify a bare JID.
+
+bare_jid_to_binary(#jid{node = Node, domain = Domain}) ->
+    bare_jid_to_binary(Node, Domain).
+
+%% @spec (Node, Domain) -> String
+%%     Node = string() | undefined
+%%     Domain = string()
+%%     String = binary()
+%% @doc Stringify a full JID.
+
+bare_jid_to_binary(Node, Domain) ->
+    Domain_B = list_to_binary(Domain),
+    if
+        Node == "" orelse Node == undefined ->
+            Domain_B;
+        true ->
+            Node_B = list_to_binary(Node),
+            <<Node_B/binary, "@", Domain_B/binary>>
+    end.
 
 % --------------------------------------------------------------------
 % JID comparison.

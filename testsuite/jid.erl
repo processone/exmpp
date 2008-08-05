@@ -27,6 +27,7 @@
     lresource = "Work"
   }).
 -define(FJ1_S, "John@example.org/Work").
+-define(FJ1_B, <<"John@example.org/Work">>).
 -define(FJ1_S_BAD1, "John" ++ [0] ++ "@example.org/Work").
 -define(FJ1_S_BAD2, "John@example.org" ++ [128] ++ "/Work").
 -define(FJ1_S_BAD3, "John@example.org/Work" ++ [0]).
@@ -40,6 +41,7 @@
     lresource = "Work"
   }).
 -define(FJ2_S, "example2.org/Work").
+-define(FJ2_B, <<"example2.org/Work">>).
 -define(FJ2_S_BAD1, "example2.org" ++ [128] ++ "/Work").
 -define(FJ2_S_BAD2, "example2.org/Work" ++ [0]).
 
@@ -52,6 +54,7 @@
     lresource = undefined
   }).
 -define(BJ1_S, "John@example.org").
+-define(BJ1_B, <<"John@example.org">>).
 -define(BJ1_S_BAD1, "John" ++ [0] ++ "@example.org").
 -define(BJ1_S_BAD2, "John@example.org" ++ [128]).
 
@@ -64,6 +67,7 @@
     lresource = undefined
   }).
 -define(BJ2_S, "example2.org").
+-define(BJ2_B, <<"example2.org">>).
 -define(BJ2_S_BAD1, "example2.org" ++ [128]).
 
 -define(RES, "Work").
@@ -88,11 +92,11 @@ too_long_identifiers_test_() ->
       ),
       ?_assertThrow(
         {jid, parse, jid_too_long, {Too_Long_JID1, undefined, undefined}},
-        exmpp_jid:string_to_bare_jid(Too_Long_JID1)
+        exmpp_jid:list_to_bare_jid(Too_Long_JID1)
       ),
       ?_assertThrow(
         {jid, parse, jid_too_long, {Too_Long_JID2, undefined, undefined}},
-        exmpp_jid:string_to_jid(Too_Long_JID2)
+        exmpp_jid:list_to_jid(Too_Long_JID2)
       )
     ],
     {setup, ?SETUP, ?CLEANUP, Tests}.
@@ -102,77 +106,77 @@ jid_creation_with_bad_syntax_test_() ->
       ?_assertThrow(
         {jid, parse, unexpected_end_of_string,
           {"", undefined, undefined}},
-        exmpp_jid:string_to_jid("")
+        exmpp_jid:list_to_jid("")
       ),
       ?_assertThrow(
         {jid, parse, unexpected_node_separator,
           {"@", undefined, undefined}},
-        exmpp_jid:string_to_jid("@")
+        exmpp_jid:list_to_jid("@")
       ),
       ?_assertThrow(
         {jid, parse, unexpected_node_separator,
           {"@Domain", undefined, undefined}},
-        exmpp_jid:string_to_jid("@Domain")
+        exmpp_jid:list_to_jid("@Domain")
       ),
       ?_assertThrow(
         {jid, parse, unexpected_node_separator,
           {"@Domain@Domain", undefined, undefined}},
-        exmpp_jid:string_to_jid("@Domain@Domain")
+        exmpp_jid:list_to_jid("@Domain@Domain")
       ),
       ?_assertThrow(
         {jid, parse, unexpected_node_separator,
           {"@Domain/Resource", undefined, undefined}},
-        exmpp_jid:string_to_jid("@Domain/Resource")
+        exmpp_jid:list_to_jid("@Domain/Resource")
       ),
       ?_assertThrow(
         {jid, parse, unexpected_end_of_string,
           {"Node@", undefined, undefined}},
-        exmpp_jid:string_to_jid("Node@")
+        exmpp_jid:list_to_jid("Node@")
       ),
       ?_assertThrow(
         {jid, parse, unexpected_node_separator,
           {"Node@Domain@", undefined, undefined}},
-        exmpp_jid:string_to_jid("Node@Domain@")
+        exmpp_jid:list_to_jid("Node@Domain@")
       ),
       ?_assertThrow(
         {jid, parse, unexpected_node_separator,
           {"Node@@Domain", undefined, undefined}},
-        exmpp_jid:string_to_jid("Node@@Domain")
+        exmpp_jid:list_to_jid("Node@@Domain")
       ),
       ?_assertThrow(
         {jid, parse, unexpected_end_of_string,
           {"Domain/", undefined, undefined}},
-        exmpp_jid:string_to_jid("Domain/")
+        exmpp_jid:list_to_jid("Domain/")
       ),
       ?_assertThrow(
         {jid, parse, unexpected_end_of_string,
           {"Node@Domain/", undefined, undefined}},
-        exmpp_jid:string_to_jid("Node@Domain/")
+        exmpp_jid:list_to_jid("Node@Domain/")
       ),
       ?_assertThrow(
         {jid, parse, unexpected_node_separator,
           {"@/", undefined, undefined}},
-        exmpp_jid:string_to_jid("@/")
+        exmpp_jid:list_to_jid("@/")
       ),
       ?_assertThrow(
         {jid, parse, unexpected_resource_separator,
           {"Node@/", undefined, undefined}},
-        exmpp_jid:string_to_jid("Node@/")
+        exmpp_jid:list_to_jid("Node@/")
       ),
       ?_assertThrow(
         {jid, parse, unexpected_resource_separator,
           {"Node@/Resource", undefined, undefined}},
-        exmpp_jid:string_to_jid("Node@/Resource")
+        exmpp_jid:list_to_jid("Node@/Resource")
       ),
       ?_assertThrow(
         {jid, parse, unexpected_resource_separator,
           {"/", undefined, undefined}},
-        exmpp_jid:string_to_jid("/")
+        exmpp_jid:list_to_jid("/")
       ),
       ?_assertThrow(
         {jid, parse, unexpected_resource_separator,
           {"/Resource", undefined, undefined}},
-        exmpp_jid:string_to_jid("/Resource")
+        exmpp_jid:list_to_jid("/Resource")
       )
     ],
     {setup, ?SETUP, ?CLEANUP, Tests}.
@@ -181,45 +185,45 @@ jid_creation_with_bad_chars_test_() ->
     Tests = [
       ?_assertThrow(
         {jid, make, invalid_node, _},
-        exmpp_jid:string_to_jid(?FJ1_S_BAD1)
+        exmpp_jid:list_to_jid(?FJ1_S_BAD1)
       ),
       ?_assertThrow(
         {jid, make, invalid_domain, _},
-        exmpp_jid:string_to_jid(?FJ1_S_BAD2)
+        exmpp_jid:list_to_jid(?FJ1_S_BAD2)
       ),
       ?_assertThrow(
         {jid, make, invalid_resource, _},
-        exmpp_jid:string_to_jid(?FJ1_S_BAD3)
+        exmpp_jid:list_to_jid(?FJ1_S_BAD3)
       ),
       ?_assertThrow(
         {jid, make, invalid_domain, _},
-        exmpp_jid:string_to_jid(?FJ2_S_BAD1)
+        exmpp_jid:list_to_jid(?FJ2_S_BAD1)
       ),
       ?_assertThrow(
         {jid, make, invalid_resource, _},
-        exmpp_jid:string_to_jid(?FJ2_S_BAD2)
+        exmpp_jid:list_to_jid(?FJ2_S_BAD2)
       ),
       ?_assertThrow(
         {jid, make, invalid_node, _},
-        exmpp_jid:string_to_jid(?BJ1_S_BAD1)
+        exmpp_jid:list_to_jid(?BJ1_S_BAD1)
       ),
       ?_assertThrow(
         {jid, make, invalid_domain, _},
-        exmpp_jid:string_to_jid(?BJ1_S_BAD2)
+        exmpp_jid:list_to_jid(?BJ1_S_BAD2)
       ),
       ?_assertThrow(
         {jid, make, invalid_domain, _},
-        exmpp_jid:string_to_jid(?BJ2_S_BAD1)
+        exmpp_jid:list_to_jid(?BJ2_S_BAD1)
       )
     ],
     {setup, ?SETUP, ?CLEANUP, Tests}.
 
 good_jid_creation_test_() ->
     Tests = [
-      ?_assertMatch(?FJ1, exmpp_jid:string_to_jid(?FJ1_S)),
-      ?_assertMatch(?FJ2, exmpp_jid:string_to_jid(?FJ2_S)),
-      ?_assertMatch(?BJ1, exmpp_jid:string_to_jid(?BJ1_S)),
-      ?_assertMatch(?BJ2, exmpp_jid:string_to_jid(?BJ2_S))
+      ?_assertMatch(?FJ1, exmpp_jid:list_to_jid(?FJ1_S)),
+      ?_assertMatch(?FJ2, exmpp_jid:list_to_jid(?FJ2_S)),
+      ?_assertMatch(?BJ1, exmpp_jid:list_to_jid(?BJ1_S)),
+      ?_assertMatch(?BJ2, exmpp_jid:list_to_jid(?BJ2_S))
     ],
     {setup, ?SETUP, ?CLEANUP, Tests}.
 
@@ -227,47 +231,55 @@ bare_jid_creation_with_bad_chars_test_() ->
     Tests = [
       ?_assertThrow(
         {jid, make, invalid_node, _},
-        exmpp_jid:string_to_bare_jid(?FJ1_S_BAD1)
+        exmpp_jid:list_to_bare_jid(?FJ1_S_BAD1)
       ),
       ?_assertThrow(
         {jid, make, invalid_domain, _},
-        exmpp_jid:string_to_bare_jid(?FJ1_S_BAD2)
+        exmpp_jid:list_to_bare_jid(?FJ1_S_BAD2)
       ),
-      ?_assertMatch(?BJ1, exmpp_jid:string_to_bare_jid(?FJ1_S_BAD3)),
+      ?_assertMatch(?BJ1, exmpp_jid:list_to_bare_jid(?FJ1_S_BAD3)),
       ?_assertThrow(
         {jid, make, invalid_domain, _},
-        exmpp_jid:string_to_bare_jid(?FJ2_S_BAD1)
+        exmpp_jid:list_to_bare_jid(?FJ2_S_BAD1)
       ),
-      ?_assertMatch(?BJ2, exmpp_jid:string_to_bare_jid(?FJ2_S_BAD2)),
+      ?_assertMatch(?BJ2, exmpp_jid:list_to_bare_jid(?FJ2_S_BAD2)),
       ?_assertThrow(
         {jid, make, invalid_node, _},
-        exmpp_jid:string_to_bare_jid(?BJ1_S_BAD1)
+        exmpp_jid:list_to_bare_jid(?BJ1_S_BAD1)
       ),
       ?_assertThrow(
         {jid, make, invalid_domain, _},
-        exmpp_jid:string_to_bare_jid(?BJ1_S_BAD2)
+        exmpp_jid:list_to_bare_jid(?BJ1_S_BAD2)
       ),
       ?_assertThrow(
         {jid, make, invalid_domain, _},
-        exmpp_jid:string_to_bare_jid(?BJ2_S_BAD1)
+        exmpp_jid:list_to_bare_jid(?BJ2_S_BAD1)
       )
     ],
     {setup, ?SETUP, ?CLEANUP, Tests}.
 
 jid_stringification_test_() ->
     [
-      ?_assertMatch(?FJ1_S, exmpp_jid:jid_to_string(?FJ1)),
-      ?_assertMatch(?FJ2_S, exmpp_jid:jid_to_string(?FJ2)),
-      ?_assertMatch(?BJ1_S, exmpp_jid:jid_to_string(?BJ1)),
-      ?_assertMatch(?BJ2_S, exmpp_jid:jid_to_string(?BJ2))
+      ?_assertMatch(?FJ1_S, exmpp_jid:jid_to_list(?FJ1)),
+      ?_assertMatch(?FJ2_S, exmpp_jid:jid_to_list(?FJ2)),
+      ?_assertMatch(?BJ1_S, exmpp_jid:jid_to_list(?BJ1)),
+      ?_assertMatch(?BJ2_S, exmpp_jid:jid_to_list(?BJ2)),
+      ?_assertMatch(?FJ1_B, exmpp_jid:jid_to_binary(?FJ1)),
+      ?_assertMatch(?FJ2_B, exmpp_jid:jid_to_binary(?FJ2)),
+      ?_assertMatch(?BJ1_B, exmpp_jid:jid_to_binary(?BJ1)),
+      ?_assertMatch(?BJ2_B, exmpp_jid:jid_to_binary(?BJ2))
     ].
 
 bare_jid_stringification_test_() ->
     [
-      ?_assertMatch(?BJ1_S, exmpp_jid:bare_jid_to_string(?FJ1)),
-      ?_assertMatch(?BJ2_S, exmpp_jid:bare_jid_to_string(?FJ2)),
-      ?_assertMatch(?BJ1_S, exmpp_jid:bare_jid_to_string(?BJ1)),
-      ?_assertMatch(?BJ2_S, exmpp_jid:bare_jid_to_string(?BJ2))
+      ?_assertMatch(?BJ1_S, exmpp_jid:bare_jid_to_list(?FJ1)),
+      ?_assertMatch(?BJ2_S, exmpp_jid:bare_jid_to_list(?FJ2)),
+      ?_assertMatch(?BJ1_S, exmpp_jid:bare_jid_to_list(?BJ1)),
+      ?_assertMatch(?BJ2_S, exmpp_jid:bare_jid_to_list(?BJ2)),
+      ?_assertMatch(?BJ1_B, exmpp_jid:bare_jid_to_binary(?FJ1)),
+      ?_assertMatch(?BJ2_B, exmpp_jid:bare_jid_to_binary(?FJ2)),
+      ?_assertMatch(?BJ1_B, exmpp_jid:bare_jid_to_binary(?BJ1)),
+      ?_assertMatch(?BJ2_B, exmpp_jid:bare_jid_to_binary(?BJ2))
     ].
 
 jid_conversion_test_() ->

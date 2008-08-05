@@ -105,7 +105,7 @@ get_error(#xmlel{ns = NS} = Stanza) ->
 %% @doc Return the sender.
 %%
 %% The return value should be a JID and may be parsed with
-%% {@link exmpp_jid:string_to_jid/1}.
+%% {@link exmpp_jid:list_to_jid/1}.
 
 get_sender(#xmlel{attrs = Attrs} = _Stanza) ->
     get_sender_from_attrs(Attrs).
@@ -116,7 +116,7 @@ get_sender(#xmlel{attrs = Attrs} = _Stanza) ->
 %% @doc Return the sender.
 %%
 %% The return value should be a JID and may be parsed with
-%% {@link exmpp_jid:string_to_jid/1}.
+%% {@link exmpp_jid:list_to_jid/1}.
 
 get_sender_from_attrs(Attrs) ->
     exmpp_xml:get_attribute_from_list(Attrs, 'from', undefined).
@@ -138,7 +138,7 @@ set_sender(#xmlel{attrs = Attrs} = Stanza, Sender) ->
 %% @doc Set the sender.
 
 set_sender_in_attrs(Attrs, Sender) when ?IS_JID(Sender) ->
-    set_sender_in_attrs(Attrs, exmpp_jid:jid_to_string(Sender));
+    set_sender_in_attrs(Attrs, exmpp_jid:jid_to_list(Sender));
 set_sender_in_attrs(Attrs, Sender) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'from', Sender).
 
@@ -165,7 +165,7 @@ remove_sender_in_attrs(Attrs) ->
 %% @doc Return the recipient.
 %%
 %% The return value should be a JID and may be parsed with
-%% {@link exmpp_jid:string_to_jid/1}.
+%% {@link exmpp_jid:list_to_jid/1}.
 
 get_recipient(#xmlel{attrs = Attrs} = _Stanza) ->
     get_recipient_from_attrs(Attrs).
@@ -176,7 +176,7 @@ get_recipient(#xmlel{attrs = Attrs} = _Stanza) ->
 %% @doc Return the recipient.
 %%
 %% The return value should be a JID and may be parsed with
-%% {@link exmpp_jid:string_to_jid/1}.
+%% {@link exmpp_jid:list_to_jid/1}.
 
 get_recipient_from_attrs(Attrs) ->
     exmpp_xml:get_attribute_from_list(Attrs, 'to', undefined).
@@ -198,7 +198,7 @@ set_recipient(#xmlel{attrs = Attrs} = Stanza, Recipient) ->
 %% @doc Set the recipient.
 
 set_recipient_in_attrs(Attrs, Recipient) when ?IS_JID(Recipient) ->
-    set_recipient_in_attrs(Attrs, exmpp_jid:jid_to_string(Recipient));
+    set_recipient_in_attrs(Attrs, exmpp_jid:jid_to_list(Recipient));
 set_recipient_in_attrs(Attrs, Recipient) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'to', Recipient).
 
