@@ -5,6 +5,7 @@ EUNIT_REPORTER = eunit_tty
 
 ERL_FILES = $(EUNIT_REPORTER).erl					\
 	    xml_parser.erl						\
+	    xml_attributes.erl						\
 	    jid.erl
 
 HRL_FILES = $(top_srcdir)/include/exmpp_xml.hrl
@@ -16,7 +17,9 @@ REAL_TESTS =
 if WITH_EXPAT
 endif
 
-REAL_TESTS += xml_parser jid
+REAL_TESTS += xml_parser						\
+	      xml_attributes						\
+	      jid
 
 TESTS = $(REAL_TESTS)
 

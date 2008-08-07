@@ -1,3 +1,8 @@
+2008-08-07  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* testsuite/xml_attributes.erl, testsuite/Makefile.am:
+	check_xml_attributes was partly ported to the new testsuite framework.
+
 2008-08-05  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_xml.erl: It's now possible to serialize an XML
