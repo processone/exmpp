@@ -1,3 +1,17 @@
+2008-08-12  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* include/exmpp_xmpp.hrl, src/core/exmpp_stanza.erl,
+	src/core/exmpp_iq.erl: Add #iq record support. This record ressembles
+	a lot to the one in ejabberd. His main purpose is matching, in
+	function clause espcecially. Many functions in exmpp_stanza and
+	exmpp_iq accept this new record in place of the common #xmlel but not
+	all; check the documentation. Also several bugs were fixed, thanks to
+	the new tests.
+	
+	* testsuite/stanza.erl, testsuite/iq.erl: Add tests to check
+	exmpp_stanza and exmpp_iq behaviour. These testsuites are not complete
+	yet.
+
 2008-08-07  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* testsuite/xml_attributes.erl, testsuite/Makefile.am:

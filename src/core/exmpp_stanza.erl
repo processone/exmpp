@@ -85,7 +85,7 @@
 % --------------------------------------------------------------------
 
 %% @spec (Stanza) -> Error | undefined
-%%     Stanza = exmpp_xml:xmlel()
+%%     Stanza = exmpp_xml:xmlel() | iq()
 %%     Error = exmpp_xml:xmlel()
 %% @doc Return the error element from `Stanza'.
 %%
@@ -93,7 +93,11 @@
 %% namespace as the stanza.
 
 get_error(#xmlel{ns = NS} = Stanza) ->
-    exmpp_xml:get_element(Stanza, NS, 'error').
+    exmpp_xml:get_element(Stanza, NS, 'error');
+get_error(#iq{type = error, error = Error}) ->
+    Error;
+get_error(#iq{}) ->
+    undefined.
 
 % --------------------------------------------------------------------
 % Stanza standard attributes.
@@ -123,9 +127,11 @@ get_sender_from_attrs(Attrs) ->
 
 %% @spec (Stanza, Sender) -> New_Stanza
 %%     Stanza = exmpp_xml:xmlel()
-%%     Sender = exmpp_jid:jid() | string()
+%%     Sender = exmpp_jid:jid() | string() | undefined
 %%     New_Stanza = exmpp_xml:xmlel()
 %% @doc Set the sender.
+%%
+%% If `Sender' is set to `undefined', the sender is removed.
 
 set_sender(#xmlel{attrs = Attrs} = Stanza, Sender) ->
     New_Attrs = set_sender_in_attrs(Attrs, Sender),
@@ -133,10 +139,14 @@ set_sender(#xmlel{attrs = Attrs} = Stanza, Sender) ->
 
 %% @spec (Attrs, Sender) -> New_Attrs
 %%     Attrs = [exmpp_xml:xmlnsattribute()]
-%%     Sender = exmpp_jid:jid() | string()
+%%     Sender = exmpp_jid:jid() | string() | undefined
 %%     New_Attrs = [exmpp_xml:xmlnsattribute()]
 %% @doc Set the sender.
+%%
+%% If `Sender' is set to `undefined', the sender is removed.
 
+set_sender_in_attrs(Attrs, undefined) ->
+    remove_sender_in_attrs(Attrs);
 set_sender_in_attrs(Attrs, Sender) when ?IS_JID(Sender) ->
     set_sender_in_attrs(Attrs, exmpp_jid:jid_to_list(Sender));
 set_sender_in_attrs(Attrs, Sender) ->
@@ -183,9 +193,11 @@ get_recipient_from_attrs(Attrs) ->
 
 %% @spec (Stanza, Recipient) -> New_Stanza
 %%     Stanza = exmpp_xml:xmlel()
-%%     Recipient = exmpp_jid:jid() | string()
+%%     Recipient = exmpp_jid:jid() | string() | undefined
 %%     New_Stanza = exmpp_xml:xmlel()
 %% @doc Set the recipient.
+%%
+%% If `Recipient' is set to `undefined', the recipient is removed.
 
 set_recipient(#xmlel{attrs = Attrs} = Stanza, Recipient) ->
     New_Attrs = set_recipient_in_attrs(Attrs, Recipient),
@@ -193,10 +205,14 @@ set_recipient(#xmlel{attrs = Attrs} = Stanza, Recipient) ->
 
 %% @spec (Attrs, Recipient) -> New_Attrs
 %%     Attrs = [exmpp_xml:xmlnsattribute()]
-%%     Recipient = exmpp_jid:jid() | string()
+%%     Recipient = exmpp_jid:jid() | string() | undefined
 %%     New_Attrs = [exmpp_xml:xmlnattribute()]
 %% @doc Set the recipient.
+%%
+%% If `Recipient' is set to `undefined', the recipient is removed.
 
+set_recipient_in_attrs(Attrs, undefined) ->
+    remove_recipient_in_attrs(Attrs);
 set_recipient_in_attrs(Attrs, Recipient) when ?IS_JID(Recipient) ->
     set_recipient_in_attrs(Attrs, exmpp_jid:jid_to_list(Recipient));
 set_recipient_in_attrs(Attrs, Recipient) ->
@@ -219,33 +235,41 @@ remove_recipient(#xmlel{attrs= Attrs} = Stanza) ->
 remove_recipient_in_attrs(Attrs) ->
     exmpp_xml:remove_attribute_from_list(Attrs, 'to').
 
-%% @spec (Attrs, Sender, Recipient) -> New_Attrs
-%%     Attrs = [exmpp_xml:xmlnsattribute()]
-%%     Sender = exmpp_jid:jid() | string()
-%%     Recipient = exmpp_jid:jid() | string()
-%%     New_Attrs = [exmpp_xml:xmlnattribute()]
-%% @doc Set the sender and the recipient at the same time.
-
-set_jids_in_attrs(Attrs, To, From) ->
-    set_recipient_in_attrs(set_sender_in_attrs(Attrs, To), From).
-
 %% @spec (Stanza, Sender, Recipient) -> New_Stanza
 %%     Stanza = exmpp_xml:xmlel()
-%%     Sender = exmpp_jid:jid() | string()
-%%     Recipient = exmpp_jid:jid() | string()
+%%     Sender = exmpp_jid:jid() | string() | undefined
+%%     Recipient = exmpp_jid:jid() | string() | undefined
 %%     New_Stanza = exmpp_xml:xmlel()
 %% @doc Set the sender and the recipient at the same time.
+%%
+%% If `Sender' is set to `undefined', the sender is removed. If
+%% `Recipient' is set to `undefined', the recipient is removed.
 
-set_jids(Attrs, To, From) ->
-    set_recipient(set_sender(Attrs, To), From).
+set_jids(Stanza, From, To) ->
+    set_recipient(set_sender(Stanza, From), To).
+
+%% @spec (Attrs, Sender, Recipient) -> New_Attrs
+%%     Attrs = [exmpp_xml:xmlnsattribute()]
+%%     Sender = exmpp_jid:jid() | string() | undefined
+%%     Recipient = exmpp_jid:jid() | string() | undefined
+%%     New_Attrs = [exmpp_xml:xmlnattribute()]
+%% @doc Set the sender and the recipient at the same time.
+%%
+%% If `Sender' is set to `undefined', the sender is removed. If
+%% `Recipient' is set to `undefined', the recipient is removed.
+
+set_jids_in_attrs(Attrs, From, To) ->
+    set_recipient_in_attrs(set_sender_in_attrs(Attrs, From), To).
 
 %% @spec (Stanza) -> ID | undefined
-%%     Stanza = exmpp_xml:xmlel()
+%%     Stanza = exmpp_xml:xmlel() | iq()
 %%     ID = string()
 %% @doc Return the stanza ID.
 
 get_id(#xmlel{attrs = Attrs} = _Stanza) ->
-    get_id_from_attrs(Attrs).
+    get_id_from_attrs(Attrs);
+get_id(#iq{id = ID}) ->
+    ID.
 
 %% @spec (Attrs) -> ID | undefined
 %%     Attrs = [exmpp_xml:xmlnsattribute()]
@@ -256,9 +280,9 @@ get_id_from_attrs(Attrs) ->
     exmpp_xml:get_attribute_from_list(Attrs, 'id', undefined).
 
 %% @spec (Stanza, ID) -> New_Stanza
-%%     Stanza = exmpp_xml:xmlel()
+%%     Stanza = exmpp_xml:xmlel() | iq()
 %%     ID = string() | undefined
-%%     New_Stanza = exmpp_xml:xmlel()
+%%     New_Stanza = exmpp_xml:xmlel() | iq()
 %% @doc Set the id.
 
 set_id(#xmlel{attrs = Attrs, name = Name} = Stanza, ID)
@@ -267,7 +291,12 @@ set_id(#xmlel{attrs = Attrs, name = Name} = Stanza, ID)
     Stanza#xmlel{attrs = New_Attrs};
 set_id(#xmlel{attrs = Attrs} = Stanza, ID) ->
     New_Attrs = set_id_in_attrs(Attrs, ID),
-    Stanza#xmlel{attrs = New_Attrs}.
+    Stanza#xmlel{attrs = New_Attrs};
+set_id(#iq{} = Stanza, ID)
+  when ID == undefined; ID == "" ->
+    Stanza#iq{id = exmpp_utils:random_id("iq")};
+set_id(#iq{} = Stanza, ID) ->
+    Stanza#iq{id = ID}.
 
 %% @spec (Attrs, ID) -> New_Attrs
 %%     Attrs = [exmpp_xml:xmlnsattribute()]
@@ -281,12 +310,14 @@ set_id_in_attrs(Attrs, ID) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'id', ID).
 
 %% @spec (Stanza) -> Type | undefined
-%%     Stanza = exmpp_xml:xmlel()
+%%     Stanza = exmpp_xml:xmlel() | iq()
 %%     Type = string()
 %% @doc Return the type of the stanza.
 
 get_type(#xmlel{attrs = Attrs} = _Stanza) ->
-    get_type_from_attrs(Attrs).
+    get_type_from_attrs(Attrs);
+get_type(#iq{type = Type}) ->
+    atom_to_list(Type).
 
 %% @spec (Attrs) -> Type | undefined
 %%     Attrs = [exmpp_xml:xmlnsattribute()]
@@ -297,14 +328,24 @@ get_type_from_attrs(Attrs) ->
     exmpp_xml:get_attribute_from_list(Attrs, 'type', undefined).
 
 %% @spec (Stanza, Type) -> New_Stanza
-%%     Stanza = exmpp_xml:xmlel()
+%%     Stanza = exmpp_xml:xmlel() | iq()
 %%     Type = atom() | string()
-%%     New_Stanza = exmpp_xml:xmlel()
+%%     New_Stanza = exmpp_xml:xmlel() | iq()
 %% @doc Set the type of the stanza.
 
 set_type(#xmlel{attrs = Attrs} = Stanza, Type) ->
     New_Attrs = set_type_in_attrs(Attrs, Type),
-    Stanza#xmlel{attrs = New_Attrs}.
+    Stanza#xmlel{attrs = New_Attrs};
+set_type(#iq{} = Stanza, 'get') ->
+    Stanza#iq{type = get, kind = request};
+set_type(#iq{} = Stanza, 'set') ->
+    Stanza#iq{type = set, kind = request};
+set_type(#iq{} = Stanza, 'result') ->
+    Stanza#iq{type = result, kind = response};
+set_type(#iq{} = Stanza, 'error') ->
+    Stanza#iq{type = error, kind = response};
+set_type(#iq{} = Stanza, Type) when is_list(Type) ->
+    set_type(Stanza, list_to_atom(Type)).
 
 %% @spec (Attrs, Type) -> New_Attrs
 %%     Attrs = [exmpp_xml:xmlnsattribute()]
@@ -318,12 +359,14 @@ set_type_in_attrs(Attrs, Type) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'type', Type).
 
 %% @spec (Stanza) -> Lang | undefined
-%%     Stanza = exmpp_xml:xmlel()
+%%     Stanza = exmpp_xml:xmlel() | iq()
 %%     Lang = string()
 %% @doc Return the language of the stanza.
 
 get_lang(#xmlel{attrs = Attrs} = _Stanza) ->
-    get_lang_from_attrs(Attrs).
+    get_lang_from_attrs(Attrs);
+get_lang(#iq{lang = Lang}) ->
+    Lang.
 
 %% @spec (Attrs) -> Lang | undefined
 %%     Attrs = [exmpp_xml:xmlnsattribute()]
@@ -334,14 +377,16 @@ get_lang_from_attrs(Attrs) ->
     exmpp_xml:get_attribute_from_list(Attrs, ?NS_XML, 'lang', undefined).
 
 %% @spec (Stanza, Lang) -> New_Stanza
-%%     Stanza = exmpp_xml:xmlel()
+%%     Stanza = exmpp_xml:xmlel() | iq()
 %%     Lang = string()
-%%     New_Stanza = exmpp_xml:xmlel()
+%%     New_Stanza = exmpp_xml:xmlel() | iq()
 %% @doc Set the lang.
 
 set_lang(#xmlel{attrs = Attrs} = Stanza, Lang) ->
     New_Attrs = set_lang_in_attrs(Attrs, Lang),
-    Stanza#xmlel{attrs = New_Attrs}.
+    Stanza#xmlel{attrs = New_Attrs};
+set_lang(#iq{} = Stanza, Lang) ->
+    Stanza#iq{lang = Lang}.
 
 %% @spec (Attrs, Lang) -> New_Attrs
 %%     Attrs = [exmpp_xml:xmlnsattribute()]
@@ -386,30 +431,7 @@ reply_without_content(#xmlel{attrs = Attrs} = Stanza) ->
 reply_from_attrs(Attrs) ->
     Sender = get_sender_from_attrs(Attrs),
     Recipient = get_recipient_from_attrs(Attrs),
-    % Remove the `to' and `from' attributes.
-    Attrs1 = exmpp_xml:remove_attribute_from_list(Attrs, 'to'),
-    Attrs2 = exmpp_xml:remove_attribute_from_list(Attrs1, 'from'),
-    case Sender of
-        undefined ->
-            case Recipient of
-                undefined ->
-                    Attrs2;
-                _ ->
-                    % `from' takes the old `to' value.
-                    set_sender_in_attrs(Attrs2, Recipient)
-            end;
-        _ ->
-            case Recipient of
-                undefined ->
-                    % `to' takes the old `from' value.
-                    set_recipient_in_attrs(Attrs2, Sender);
-                _ ->
-                    % The `to' and `from' attributes are swapped.
-                    set_recipient_in_attrs(
-                      set_sender_in_attrs(Attrs2, Recipient),
-                      Sender)
-            end
-    end.
+    set_jids_in_attrs(Attrs, Recipient, Sender).
 
 %% @spec (Stanza, Error) -> Stanza_Reply
 %%     Stanza = exmpp_xml:xmlel()
@@ -694,7 +716,7 @@ get_text_in_error(Error) ->
 % --------------------------------------------------------------------
 
 %% @spec (El, Default_NS) -> XML_Text
-%%     El = exmpp_xml:xmlel() | list()
+%%     El = exmpp_xml:xmlel() | iq() | list()
 %%     Default_NS = NS | Equivalent_NSs
 %%     NS = atom() | string()
 %%     Equivalent_NSs = [NS]
@@ -705,12 +727,14 @@ get_text_in_error(Error) ->
 %% Server Dialback `jabber:server:dialback' are included as a prefixed
 %% namespace, with the `stream' prefix.
 
+to_list(#iq{} = El, Default_NS) ->
+    to_list(exmpp_iq:iq_to_xmlel(El), Default_NS);
 to_list(El, Default_NS) ->
     to_list(El, Default_NS,
       [{?NS_XMPP, ?NS_XMPP_pfx}, {?NS_DIALBACK, ?NS_DIALBACK_pfx}]).
 
 %% @spec (El, Default_NS, Prefix) -> XML_Text
-%%     El = exmpp_xml:xmlel() | list()
+%%     El = exmpp_xml:xmlel() | iq() | list()
 %%     Default_NS = NS | [NS]
 %%     Prefixed_NS = [{NS, Prefix}]
 %%     NS = atom() | string()
@@ -720,11 +744,13 @@ to_list(El, Default_NS) ->
 %%
 %% To understand `Default_NS', see {@link exmpp_xml:xmlel_to_xmlelement/3}.
 
+to_list(#iq{} = El, Default_NS, Prefixed_NS) ->
+    to_list(exmpp_iq:iq_to_xmlel(El), Default_NS, Prefixed_NS);
 to_list(El, Default_NS, Prefixed_NS) ->
     exmpp_xml:node_to_list(El, [Default_NS], Prefixed_NS).
 
 %% @spec (El) -> XML_Text
-%%     El = exmpp_xml:xmlel() | list()
+%%     El = exmpp_xml:xmlel() | iq() | list()
 %%     XML_Text = string()
 %% @doc Serialize a stanza using common XMPP default namespaces.
 %%
@@ -732,6 +758,8 @@ to_list(El, Default_NS, Prefixed_NS) ->
 %% `[?NS_JABBER_CLIENT, ?NS_JABBER_SERVER, ?NS_COMPONENT_ACCEPT,
 %% ?NS_COMPONENT_CONNECT]'.
 
+to_list(#iq{} = El) ->
+    to_list(exmpp_iq:iq_to_xmlel(El));
 to_list(El) ->
     to_list(El, [
         ?NS_JABBER_CLIENT,
@@ -741,7 +769,7 @@ to_list(El) ->
       ]).
 
 %% @spec (El, Default_NS) -> XML_Text
-%%     El = exmpp_xml:xmlel() | list()
+%%     El = exmpp_xml:xmlel() | iq() | list()
 %%     Default_NS = NS | Equivalent_NSs
 %%     NS = atom() | string()
 %%     Equivalent_NSs = [NS]
@@ -752,12 +780,14 @@ to_list(El) ->
 %% Server Dialback `jabber:server:dialback' are included as a prefixed
 %% namespace, with the `stream' prefix.
 
+to_binary(#iq{} = El, Default_NS) ->
+    to_binary(exmpp_iq:iq_to_xmlel(El), Default_NS);
 to_binary(El, Default_NS) ->
     to_binary(El, Default_NS,
       [{?NS_XMPP, ?NS_XMPP_pfx}, {?NS_DIALBACK, ?NS_DIALBACK_pfx}]).
 
 %% @spec (El, Default_NS, Prefix) -> XML_Text
-%%     El = exmpp_xml:xmlel() | list()
+%%     El = exmpp_xml:xmlel() | iq() | list()
 %%     Default_NS = NS | [NS]
 %%     Prefixed_NS = [{NS, Prefix}]
 %%     NS = atom() | string()
@@ -767,11 +797,13 @@ to_binary(El, Default_NS) ->
 %%
 %% To understand `Default_NS', see {@link exmpp_xml:xmlel_to_xmlelement/3}.
 
+to_binary(#iq{} = El, Default_NS, Prefixed_NS) ->
+    to_binary(exmpp_iq:iq_to_xmlel(El), Default_NS, Prefixed_NS);
 to_binary(El, Default_NS, Prefixed_NS) ->
     exmpp_xml:node_to_binary(El, [Default_NS], Prefixed_NS).
 
 %% @spec (El) -> XML_Text
-%%     El = exmpp_xml:xmlel() | list()
+%%     El = exmpp_xml:xmlel() | iq() | list()
 %%     XML_Text = binary()
 %% @doc Serialize a stanza using common XMPP default namespaces.
 %%
@@ -779,6 +811,8 @@ to_binary(El, Default_NS, Prefixed_NS) ->
 %% `[?NS_JABBER_CLIENT, ?NS_JABBER_SERVER, ?NS_COMPONENT_ACCEPT,
 %% ?NS_COMPONENT_CONNECT]'.
 
+to_binary(#iq{} = El) ->
+    to_binary(exmpp_iq:iq_to_xmlel(El));
 to_binary(El) ->
     to_binary(El, [
         ?NS_JABBER_CLIENT,
