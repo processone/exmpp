@@ -411,7 +411,7 @@ get_result(IQ) when ?IS_IQ(IQ) ->
         undefined ->
             throw({iq, get_result, invalid_iq, IQ});
         'result' ->
-            case IQ#xmlel.children of
+            case exmpp_xml:get_child_elements(IQ) of
                 [] ->
                     undefined;
                 [Result | _] ->
