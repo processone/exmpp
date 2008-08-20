@@ -5,16 +5,16 @@ You need:
     o  automake 1.9 (tested with 1.9.6)
     o  libtool 1.5 (tested with 1.5.24)
 
-Type the following sequence of commands: 
+Type the following sequence of commands:
 
  autoreconf -vif
  ./configure
- make 
+ make
  make install
 
 
 2. Examples
 
-After exmpp installation, you can compile the examples in the src/examples directory with the command:
+After exmpp installation, you can compile the examples in the examples directory with the command:
 
 erlc *.erl
