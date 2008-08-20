@@ -13,6 +13,7 @@
 
 % Presence creation.
 -export([
+  presence/2,
   available/0,
   unavailable/0,
   subscribe/0,
@@ -38,6 +39,14 @@
 % --------------------------------------------------------------------
 % Presence creation.
 % --------------------------------------------------------------------
+
+%% @spec (Type, Status) -> Presence
+%%     Type = available | unavailable | subscribe | subscribed | unsubscribe | unsubscribed | probe | error
+%%     Status = string() | binary()
+%%     Presence = exmpp_xml:xmlel()
+%% @doc Create a `<presence/>' with given Type and Status
+presence(Type, Status) ->
+    set_status(set_type(available(), Type), Status).
 
 %% @spec () -> Presence
 %%     Presence = exmpp_xml:xmlel()
