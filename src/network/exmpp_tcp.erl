@@ -11,7 +11,7 @@
 %% </p>
 %%
 %% <p>This code is copyright Process-one (http://www.process-one.net/)</p>
-%% 
+%%
 
 -module(exmpp_tcp).
 
@@ -28,7 +28,7 @@
 connect(ClientPid, StreamRef, {Host, Port}) ->
     case gen_tcp:connect(Host, Port, [{packet,0},
 				      binary,
-				      {active, false}, 
+				      {active, false},
 				      {reuseaddr, true}], 30000) of
 	{ok, Socket} ->
 	    %% TODO: Hide receiver failures in API
@@ -53,9 +53,9 @@ activate(ReceiverPid) ->
     end.
 
 % if we use active-once before spawning the receiver process,
-% we can receive some data in the original process rather than 
+% we can receive some data in the original process rather than
 % in the receiver process. So {active,once} is is set explicitly
-% in the receiver process. NOTE: in this case this wouldn't make 
+% in the receiver process. NOTE: in this case this wouldn't make
 % a big difference, as the connecting client should send the
 % stream header before receiving anything
 
@@ -76,7 +76,7 @@ send(Socket, XMLPacket) ->
 %%--------------------------------------------------------------------
 receiver(ClientPid, Socket, StreamRef) ->
     receiver_loop(ClientPid, Socket, StreamRef).
-    
+
 receiver_loop(ClientPid, Socket, StreamRef) ->
     receive
 	{activate, Pid, Ref} ->
@@ -90,5 +90,6 @@ receiver_loop(ClientPid, Socket, StreamRef) ->
 	    {ok, NewStreamRef} = exmpp_xmlstream:parse(StreamRef, Data),
 	    receiver_loop(ClientPid, Socket, NewStreamRef);
 	{tcp_closed, Socket} ->
-	    gen_fsm:sync_send_all_state_event(ClientPid, tcp_closed)
+	    % XXX why it timeouts with timeout 10 seconds with quickchek tests ???
+	    gen_fsm:sync_send_all_state_event(ClientPid, tcp_closed, 20000)
     end.
