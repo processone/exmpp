@@ -32,7 +32,7 @@ BUILT_SOURCES = xmpp_nss.h xmpp_names.h xmpp_attrs.h
 
 CLEANFILES = xmpp_nss.h xmpp_names.h xmpp_attrs.h
 
-EI_CPPFLAGS = -I$(ERLANG_ROOT_DIR)/usr/include				\
+EI_CPPFLAGS = -I$(ERLANG_ERTS_DIR)/include				\
 	      -I$(ERLANG_LIB_DIR_erl_interface)/include
 EI_LDFLAGS = -L$(ERLANG_LIB_DIR_erl_interface)/lib
 

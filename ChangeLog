@@ -7,6 +7,19 @@
 	* src/core/exmpp_jid.erl (make_jid/3): Accept an empty string as the
 	resource, to ease integration with Ejabberd.
 
+	* configure.ac: Rewrite again the way Erlang and its components are
+	detected. It's now possible to use --with-erlang to indicate an
+	alternate Erlang environment; much easier than filling ERL and ERLC
+	variables. Regarding cross-compilation, --with-erl_interface was
+	replaced by --with-host-erlang. This new option should point to the
+	Erlang environment used by the future host. The configure script will
+	use the ERTS and erl_interface found there. Checks for the need of any
+	workarounds will also use the host Erlang. While here, fix a bug with
+	--enable-escaping-using-cdata: when not specified, it disabled
+	--enable-http_base_64 instead.
+
+	* trunk/c_src/Makefile.am: Use the new ERLANG_ERTS_DIR variable.
+
 2008-08-20  Jérôme Sautret  <jerome.sautret@process-one.net>
 
 	* src/core/exmpp_presence.erl (presence/2): Add presence/2 helper

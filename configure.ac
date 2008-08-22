@@ -17,9 +17,10 @@ AC_PREREQ([2.60])
 AC_REVISION([$Revision$])
 
 dnl ------------------------------------------------------------------
-dnl Prepare fancy console output, taken from GNU shtools.
+dnl Internal functions for this configure script.
 dnl ------------------------------------------------------------------
 
+dnl Prepare fancy console output, taken from GNU shtools.
 term_bold=''
 term_norm=''
 
@@ -70,6 +71,58 @@ esac
 bold () {
         text=`echo $seo "$1" | sed -e "s/%B/${term_bold}/g" -e "s/%b/${term_norm}/g" 2>/dev/null`
         echo $seo "$text"
+}
+
+dnl EMKOPTS is used by Emakefile(s).
+append_to_EMKOPTS () {
+	if test -z "[$]EMKOPTS"; then
+		EMKOPTS="[$]1"
+	else
+		EMKOPTS="[$]{EMKOPTS% }, [$]1"
+	fi
+}
+
+dnl Expand shell variables to have a nice output in the final report.
+expand_var () {
+	local v=`eval echo '$'[$]1`
+	while test "`echo [$]v | grep [[$]] > /dev/null && echo nok`"; do
+		v=`eval echo [$]v`
+	done
+	echo [$]v
+}
+
+dnl Extract Erlang application version from its directory name.
+erlang_guess_version () {
+	echo "[$]1" | sed -e 's/.*-\([[0-9.]]\{1,\}\)[$]/\1/'
+}
+
+dnl Find an Erlang application without running erl(1).
+erlang_check_lib_noexec () {
+	local dir="not found"
+	local ver="0"
+
+	AC_MSG_CHECKING([for Erlang/OTP '[$]2' library subdirectory])
+	if test -d "[$]1/lib"; then
+		for d in `ls -d [$]1/lib/[$]2-* 2> /dev/null`; do
+			v=`erlang_guess_version [$]d`
+			AX_COMPARE_VERSION([[$]v], [gt], [[$]ver],
+			    [dir=[$]d; ver=[$]v])
+		done
+	fi
+
+	if test "x[$]{dir}" = "xnot found"; then
+		ver="not found"
+	fi
+
+	AC_MSG_RESULT([[$]dir])
+	AC_MSG_CHECKING([for Erlang/OTP '[$]2' library version])
+	AC_MSG_RESULT([[$]ver])
+
+	eval "ERLANG_LIB_DIR_[$]2='[$]dir'"
+	eval "ERLANG_LIB_VER_[$]2='[$]ver'"
+
+	AC_SUBST(ERLANG_LIB_DIR_[$]2)
+	AC_SUBST(ERLANG_LIB_VER_[$]2)
 }
 
 dnl ------------------------------------------------------------------
@@ -133,22 +186,6 @@ AM_PROG_LIBTOOL
 dnl ------------------------------------------------------------------
 dnl Options.
 dnl ------------------------------------------------------------------
-
-append_to_EMKOPTS () {
-	if test -z "[$]EMKOPTS"; then
-		EMKOPTS="[$]1"
-	else
-		EMKOPTS="[$]{EMKOPTS% }, [$]1"
-	fi
-}
-
-expand_var () {
-	local v=`eval echo '$'[$]1`
-	while test "`echo [$]v | grep [[$]] > /dev/null && echo nok`"; do
-		v=`eval echo [$]v`
-	done
-	echo [$]v
-}
 
 dnl Debugging option.
 if test $is_release -eq 0; then
@@ -219,7 +256,7 @@ dnl Internal escaping function to use.
 AC_ARG_ENABLE([escaping-using-cdata],
 	AC_HELP_STRING([--enable-escaping-using-cdata],
 	    [escape XML text node with CDATA sections [[default=off]]]),,
-	enable_http_base_64="no")
+	enable_escaping_using_cdata="no")
 if test "x${enable_escaping_using_cdata}" = "xyes"; then
 	append_to_EMKOPTS "{d, 'ESCAPE_USING_CDATA_SECTIONS'}"
 fi
@@ -231,84 +268,129 @@ dnl ------------------------------------------------------------------
 echo
 bold "%BErlang environment%b"
 
-dnl erl(1) is used to compile Erlang modules (regardless of the host).
-AC_ERLANG_PATH_ERL
-AC_ERLANG_PATH_ERLC
-
-dnl Erlang and especially erl_interface are needed to build port drivers.
+dnl Available flags.
 AC_ARG_WITH([erlang],
-	AC_HELP_STRING([--with-erlang=PREFIX (optional)],
-	    [prefix where erlang is installed]),,
+	AC_HELP_STRING([--with-erlang=PREFIX],
+	    [prefix where build machine's Erlang is installed (optional)]),
+	with_erlang=${withval%/},
 	with_erlang="")
 
-AC_ARG_WITH([erl_interface],
-	AC_HELP_STRING([--with-erl_interface=PREFIX (optional)],
-	    [prefix where erl_interface is installed]),,
-	with_erl_interface="")
+dnl Available flags (when cross-compiling only).
+AC_ARG_WITH([host-erlang],
+	AC_HELP_STRING([--with-host-erlang=PREFIX],
+	    [prefix where host machine's Erlang is installed ]
+	    [(mandatory when cross-compiling)]),
+	with_host_erlang=${withval%/},
+	with_host_erlang="")
 
+dnl erl(1) is used to compile Erlang modules (regardless of the host).
 if test "x${with_erlang}" = "x"; then
-	dnl If we're cross-compiling, no Erlang checks will be ran.
-	if test "x${cross_compiling}" = "xno"; then
-		dnl Get Erlang $ROOT dir and lib dir.
-		AC_ERLANG_SUBST_ROOT_DIR
-		AC_ERLANG_SUBST_LIB_DIR
+	AC_ERLANG_PATH_ERL
+	AC_ERLANG_PATH_ERLC
+else
+	erl_path="${with_erlang}/bin"
+	AC_ERLANG_PATH_ERL(, [$erl_path$PATH_SEPARATOR$PATH])
+	AC_ERLANG_PATH_ERLC(, [$erl_path$PATH_SEPARATOR$PATH])
+fi
 
-		if test "x${ERL}" != "x"; then
-			dnl Check for kernel (to verify if erl_ddll is
-			dnl broken).
-			AC_ERLANG_CHECK_LIB([kernel],,)
-
-			dnl Check for inets (to verify if http_base_64 is
-			dnl present).
-			AC_ERLANG_CHECK_LIB([inets],,)
-
-			dnl Check for EUnit (used for the testsuite).
-			AC_ERLANG_CHECK_LIB([eunit],,)
-		else
-			AC_MSG_ERROR(
-[Erlang not found. Fill the ERL variable with erl(1) path or provide
+if test "x${ERL}" = "x"; then
+	AC_MSG_ERROR([
+Erlang not found. Fill the ERL variable with erl(1) path or provide
 Erlang prefix with --with-erlang.])
-		fi
+fi
+
+dnl When cross-compiling, we need to access the host machine Erlang root
+dnl directory.
+if test "x${cross_compiling}" = "xyes" -a "x${with_host_erlang}" = "x"; then
+	AC_MSG_ERROR([
+Host machine's Erlang not found. When cross-compiling, indicate host's
+Erlang path using --with-host-erlang. Build machine's and host's Erlang
+versions are supposed to match.])
+fi
+
+dnl When NOT cross-compiling, the use of --with-host-erlang isn't allowed.
+if test "x${cross_compiling}" = "xno" -a "x${with_host_erlang}" != "x"; then
+	AC_MSG_ERROR([
+If you're not cross-compiling, do not use --with-host-erlang. Please
+use --with-erlang instead.])
+fi
+
+dnl escript(1) is used by the testsuite.
+AC_ARG_VAR([ESCRIPT], [Erlang/OTP interpreter command [autodetected]])
+
+if test "x${ESCRIPT}" = "x"; then
+	if test "x${with_erlang}" = "x"; then
+		AC_PATH_PROG([ESCRIPT], [escript],,)
 	else
-		AC_MSG_ERROR(
-[Erlang cannot be found if cross-compiling. Provide Erlang prefix with
---with-erlang.])
+		erl_path="${with_erlang}/bin"
+		AC_PATH_PROG([ESCRIPT], [escript],,
+		    [$erl_path$PATH_SEPARATOR$PATH])
 	fi
 else
-	ERLANG_ROOT_DIR="${with_erlang}"
+	AC_MSG_CHECKING([for escript])
+	AC_MSG_RESULT([$ESCRIPT])
+fi
+
+if test "x${ESCRIPT}" = "x"; then
+	AC_MSG_WARN([
+escript(1) not found. Fill the ESCRIPT variable with escript(1) path if
+you want to use the testsuite.])
+fi
+
+dnl Get Erlang $ROOT dir and lib dir.
+dnl
+dnl A bug in erlang.m4 in Autoconf prevents us from using Erlang macros
+dnl while cross-compiling.
+if test "x${cross_compiling}" = "xno"; then
+	AC_ERLANG_SUBST_ROOT_DIR
+	AC_ERLANG_SUBST_LIB_DIR
+else
+	ERLANG_ROOT_DIR=$with_host_erlang
 	ERLANG_LIB_DIR="${ERLANG_ROOT_DIR}/lib"
 	AC_SUBST(ERLANG_ROOT_DIR)
 	AC_SUBST(ERLANG_LIB_DIR)
 fi
+dnl For ERTS, take the default path under Erlang ROOT directory.
+ERLANG_ERTS_DIR="${ERLANG_ROOT_DIR}/usr"
+AC_SUBST(ERLANG_ERTS_DIR)
 
-if test "x${with_erl_interface}" = "x"; then
-	dnl If we're cross-compiling, no Erlang checks will be ran.
-	if test "x${cross_compiling}" = "xno"; then
-		if test "x${ERL}" != "x"; then
-			dnl Check for erl_interface.
-			AC_ERLANG_CHECK_LIB([erl_interface], [],
-			    [AC_MSG_ERROR([erl_interface was not found!])]
-			)
-		else
-			AC_MSG_ERROR(
-[erl_interface not found. Fill the ERL variable with erl(1)
-path or provide erl_interface prefix with --with-erl_interface.])
-		fi
-	else
-		AC_MSG_ERROR(
-[erl_interface cannot be found if cross-compiling. Provide
-erl_interface prefix with --with-erl_interface.])
+dnl Check for Erlang applications.
+if test "x${cross_compiling}" = "xno"; then
+	dnl Check for erl_interface (used by port drivers).
+	AC_ERLANG_CHECK_LIB([erl_interface],,
+	    [AC_MSG_ERROR([erl_interface was not found!])])
+
+	dnl Check for kernel (to verify if erl_ddll is broken).
+	AC_ERLANG_CHECK_LIB([kernel],,)
+
+	dnl Check for inets (to verify if http_base_64 is present).
+	AC_ERLANG_CHECK_LIB([inets],,)
+
+	dnl Check for EUnit (used for the testsuite).
+	if test "x${ESCRIPT}" = "x"; then
+		AC_ERLANG_CHECK_LIB([eunit],,)
 	fi
 else
-	ERLANG_LIB_DIR_erl_interface="${with_erl_interface}"
+	dnl Check for erl_interface (used by port drivers).
+	erlang_check_lib_noexec "${ERLANG_ROOT_DIR}" erl_interface
+	if test "x${ERLANG_LIB_DIR_erl_interface}" = "xnot found"; then
+		AC_MSG_ERROR([erl_interface was not found!])
+	fi
+
+	dnl Check for kernel (to verify if erl_ddll is broken).
+	erlang_check_lib_noexec "${ERLANG_ROOT_DIR}" kernel
+
+	dnl Check for inets (to verify if http_base_64 is present).
+	erlang_check_lib_noexec "${ERLANG_ROOT_DIR}" inets
 fi
 
 dnl Determine directories for installation.
 if test "x${prefix}" = "xNONE"; then
-	# Inside Erlang lib dir
+	dnl Inside Erlang lib directory.
+	dnl If cross-compiling, the host's Erlang lib directory is used.
 	ERLANG_INSTALL_LIB_DIR="${ERLANG_LIB_DIR}"
 else
-	# Under $prefix
+	dnl Under $prefix
 	ERLANG_INSTALL_LIB_DIR="${prefix}"
 fi
 
@@ -324,7 +406,7 @@ dnl
 dnl The user can for the latter behaviour with --enable-erl_ddll-workaround.
 AC_MSG_CHECKING([for the need for erl_ddll workaround])
 
-if test "x${cross_compiling}" = "xno"; then
+if test "x${ERLANG_LIB_VER_kernel}" != "xnot found"; then
 	AX_COMPARE_VERSION([${ERLANG_LIB_VER_kernel}], [lt], [2.11],
 	    [default_enable_erl_ddll_workaround="yes"],
 	    [default_enable_erl_ddll_workaround="no"])
@@ -342,10 +424,10 @@ fi
 
 if test "x${enable_erl_ddll_workaround}" = "xyes"; then
 	if test "x${default_enable_erl_ddll_workaround}" = "xyes"; then
-		if test "x${cross_compiling}" = "xno"; then
+		if test "x${ERLANG_LIB_VER_kernel}" != "xnot found"; then
 			AC_MSG_RESULT([yes (kernel < 2.11)])
 		else
-			AC_MSG_RESULT([yes (cross-compiling)])
+			AC_MSG_RESULT([yes (kernel version unknown)])
 		fi
 	else
 		AC_MSG_RESULT([yes (forced by user)])
@@ -372,7 +454,7 @@ dnl
 dnl The user can force the latter behaviour with --enable-http_base_64.
 AC_MSG_CHECKING([for the need to support http_base_64])
 
-if test "x${cross_compiling}" = "xno"; then
+if test "x${ERLANG_LIB_VER_inets}" != "xnot found"; then
 	AX_COMPARE_VERSION([${ERLANG_LIB_VER_inets}], [lt], [5.0],
 	    [default_enable_http_base_64="yes"],
 	    [default_enable_http_base_64="no"])
@@ -390,10 +472,10 @@ fi
 
 if test "x${enable_http_base_64}" = "xyes"; then
 	if test "x${default_enable_http_base_64}" = "xyes"; then
-		if test "x${cross_compiling}" = "xno"; then
+		if test "x${ERLANG_LIB_VER_inets}" != "xnot found"; then
 			AC_MSG_RESULT([yes (inets < 5.0)])
 		else
-			AC_MSG_RESULT([yes (cross-compiling)])
+			AC_MSG_RESULT([yes (inets version unknown)])
 		fi
 	else
 		AC_MSG_RESULT([yes (forced by user)])
@@ -406,18 +488,8 @@ else
 	fi
 fi
 
-dnl escript(1) is used by the testsuite.
-AC_ARG_VAR([ESCRIPT], [Erlang/OTP interpreter command [autodetected]])
-
-dnl Check for escript(1).
-dnl Should we look first In Erlang's ROOT directory?
-dnl     Eg: [${ERLANG_ROOT_DIR}/bin${PATH_SEPARATOR}${PATH}]
-if test "x${ESCRIPT}" = "x"; then
-        AC_PATH_PROG([ESCRIPT], [escript],,)
-fi
-
 dnl Do we have all the tools for the testsuite to be used.
-if test "x${ERLANG_LIB_DIR_eunit}" != "x" -a "x${ESCRIPT}" != "x"; then
+if test "x${ERLANG_LIB_DIR_eunit}" != "xnot found" -a "x${ESCRIPT}" != "x"; then
 	enable_testsuite="yes"
 else
 	enable_testsuite="no"
@@ -444,7 +516,7 @@ dnl Dependencies.
 dnl ------------------------------------------------------------------
 
 echo
-bold "%BGeneric dependencies%b"
+bold "%BXML parsers dependencies%b"
 
 dnl Expat port driver.
 EXMPP_EXPAT(build_with_expat="yes", build_with_expat="no")
@@ -544,7 +616,7 @@ echo "    Documentation:      ${enable_documentation}"
 echo "    Testsuite:          ${enable_testsuite}"
 echo "    Examples:           ${enable_examples}"
 echo
-echo "    XML engines:"
+echo "    XML parsers:"
 echo "      . Expat:          ${build_with_expat}"
 echo
 echo "    TLS engines:"
