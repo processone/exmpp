@@ -1,3 +1,16 @@
+2008-08-22  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_presence.erl (set_status/1): Accept an empty string
+	or an empty binary as the status. In this case, the status element is
+	removed.
+
+2008-08-20  Jérôme Sautret  <jerome.sautret@process-one.net>
+
+	* src/core/exmpp_presence.erl (presence/2): Add presence/2 helper
+	function in the API to create a generic presence packet.
+
+	* README: Fix path to examples.
+
 2008-08-14  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_iq.erl (get_result/1): Fix a bug where a text node

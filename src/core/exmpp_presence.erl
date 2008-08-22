@@ -45,6 +45,7 @@
 %%     Status = string() | binary()
 %%     Presence = exmpp_xml:xmlel()
 %% @doc Create a `<presence/>' with given Type and Status
+
 presence(Type, Status) ->
     set_status(set_type(available(), Type), Status).
 
@@ -226,7 +227,14 @@ get_status(#xmlel{ns = NS} = Presence) when ?IS_PRESENCE(Presence) ->
 %%     Status = string() | binary()
 %%     New_Presence = exmpp_xml:xmlel()
 %% @doc Set the `<status/>' field of a presence stanza.
+%%
+%% If `Status' is an empty string (or an empty binary), the previous
+%% status is removed.
 
+set_status(#xmlel{ns = NS} = Presence, "") when ?IS_PRESENCE(Presence) ->
+    exmpp_xml:remove_element(Presence, NS, 'status');
+set_status(#xmlel{ns = NS} = Presence, <<>>) when ?IS_PRESENCE(Presence) ->
+    exmpp_xml:remove_element(Presence, NS, 'status');
 set_status(#xmlel{ns = NS} = Presence, Status) when ?IS_PRESENCE(Presence) ->
     New_Status_El = exmpp_xml:set_cdata(#xmlel{ns = NS, name = 'status'},
       Status),
