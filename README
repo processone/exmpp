@@ -1,20 +1,145 @@
-1. How to compile and install:
+Exmpp is an Erlang application which provides the modules to ease the
+development of an XMPP/Jabber server or client.
 
-You need:
-    o  autoconf 2.60
-    o  automake 1.9 (tested with 1.9.6)
-    o  libtool 1.5 (tested with 1.5.24)
+== Table of contents ==
 
-Type the following sequence of commands:
+    I. How to build and install
+        1. Requirements
+        2. Build and install
+        3. Building examples
+        4. Using an alternate Erlang environment
+        5. Using another C compiler
+        6. Cross-compiling
+        7. Creating Autotools files
 
- autoreconf -vif
- ./configure
- make
- make install
+I. How to build and install
+===========================
 
+1. Requirements
+---------------
 
-2. Examples
+    o  Erlang (REQUIRED)
+       A full Erlang environment is recommended but only ERTS and
+       erl_interface are required.
+           . Minimum version:           R10B
+           . Recommended version:       R12B
 
-After exmpp installation, you can compile the examples in the examples directory with the command:
+    o  A C compiler (REQUIRED)
+       Exmpp contains Erlang port drivers which are written in C.
+       Tested C compilers include:
+           . GNU Compiler Collection (gcc)
+           . Intel C++ Compiler (icc)
+           . GCC frontend for LLVM (llvm-gcc)
+           . Microsoft Visual C++ (cl)
+       C compilers known not to work:
+           . clang frontend for LLVM (ccc)
 
-erlc *.erl
+    o  Expat (optional)
+       It's the only XML parser supported for now.
+           . Recommended version:       2.0.1
+
+    o  OpenSSL (optional)
+       It's the only TLS engine supported for now.
+           . Recommended version:       0.9.8e
+
+    o  zlib (optional)
+       It's the only compression engine supported for now.
+           . Recommended version:       1.2.3
+
+    o  eunit (optional)
+       To be able to use the testsuite, this Erlang application is required.
+
+2. Build and install
+--------------------
+
+Exmpp uses the Autotools. Therefore the process is quite common:
+
+    $ ./configure
+    $ make
+    $ sudo make install
+
+Building outside of the source directory is supported:
+
+    $ mkdir exmpp-build
+    $ cd exmpp-build
+    exmpp-build$ /path/to/exmpp-src/configure
+    exmpp-build$ make
+    exmpp-build$ sudo make install
+
+By default, Exmpp is installed in Erlang lib directory. You may select
+another directory with the --prefix argument to the configure script:
+
+    $ ./configure --prefix=/install/exmpp/here
+
+Exmpp will be installed in "/install/exmpp/here/exmpp-$VERSION".
+
+3. Building examples
+--------------------
+
+You can find exmple code in the "examples" directory.
+
+These modules may be built for you with the --enable-examples configure
+argument:
+
+    $ ./configure --enable-examples
+
+For now, they're not installed.
+
+4. Using an alternate Erlang environment
+----------------------------------------
+
+If Erlang cannot be found by the configure script of if you prefer to
+use a specific Erlang environment, you may indicate an alternate Erlang
+root directory with the --with-erlang argument:
+
+    $ ./configure --with-erlang=/path/to/alternate/erlang
+
+5. Using another C compiler
+---------------------------
+
+You may specify another C compiler to use at configure time. For instance, to use GCC frontend for LLVM:
+
+    $ ./configure CC=llvm-gcc
+    $ make
+
+6. Cross-compiling
+------------------
+
+If you need to cross-compile for another host, you must use --host and
+--with-host-erlang arguments to the configure script:
+
+    $ ./configure --host=mingw32 --with-host-erlang=/path/to/win32/erlang
+    $ make
+
+The first argument is the standard way to indicate that you want to
+cross-compile for the specified host. The machine you use here is called
+the build machine. Of course, you must install a C cross-compiler
+before.
+
+The second argument is used to point to the Erlang environment of the
+host machine. It's only needed for headers and libraries found in ERTS
+and erl_interface. Nothing is executed from this environment. Build
+machine's Erlang environment is used to compile all the Erlang code!
+Obsviously there must not be any incompatibilities between both Erlang
+environments.
+
+7. Creating Autotools files
+---------------------------
+
+If you work on a Subversion checkout, you'll have to generate some files
+such as the configure script and Makefile.in. For this, you'll have to install the following autotools:
+    o  autoconf 2.60 or later
+    o  automake 1.9 or later
+    o  libtool 1.5 or later
+
+WARNING: Erlang macros from autoconf 2.62 doesn't seem to work properly!
+Do NOT use autoconf 2.62 with Exmpp for now.
+
+To generate the files, run:
+
+    $ autoreconf -vif
+
+After that, you can use the standard procedure:
+
+    $ ./configure
+    $ make
