@@ -157,6 +157,9 @@ make_jid(Node, Domain) ->
 
 make_jid(Node, Domain, undefined) ->
     make_bare_jid(Node, Domain);
+make_jid(Node, Domain, "") ->
+    % This clause is here because ejabberd uses empty string.
+    make_bare_jid(Node, Domain);
 make_jid(Node, Domain, random) ->
     Resource = generate_resource(),
     make_jid(Node, Domain, Resource);

@@ -4,6 +4,9 @@
 	or an empty binary as the status. In this case, the status element is
 	removed.
 
+	* src/core/exmpp_jid.erl (make_jid/3): Accept an empty string as the
+	resource, to ease integration with Ejabberd.
+
 2008-08-20  Jérôme Sautret  <jerome.sautret@process-one.net>
 
 	* src/core/exmpp_presence.erl (presence/2): Add presence/2 helper
