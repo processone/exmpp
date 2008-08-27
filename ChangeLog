@@ -1,3 +1,9 @@
+2008-08-26  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_xml.erl: New function remove_whitespaces_deeply/1 to
+	operate on the entire XML tree, not only the current node (as
+	remove_whitespaces/1).
+
 2008-08-22  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_presence.erl (set_status/1): Accept an empty string

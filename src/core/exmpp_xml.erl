@@ -142,7 +142,8 @@
   remove_cdata/1,
   is_whitespace/1,
   remove_whitespaces_from_list/1,
-  remove_whitespaces/1
+  remove_whitespaces/1,
+  remove_whitespaces_deeply/1
 ]).
 
 % Misc. functions on the whole XML tree.
@@ -2102,6 +2103,40 @@ remove_whitespaces(#xmlel{children = Children} = XML_Element) ->
 remove_whitespaces(#xmlelement{children = Children} = XML_Element) ->
     New_Children = remove_whitespaces_from_list(Children),
     XML_Element#xmlelement{children = New_Children}.
+
+%% @spec (XML_Element) -> New_XML_Element
+%%     XML_Element = xmlel() | xmlelement()
+%%     New_XML_Element = xmlel() | xmlelement()
+%% @doc Remove text nodes containing only whitespaces in every elements
+%% in the given tree.
+%%
+%% @see is_whitespace/1.
+
+remove_whitespaces_deeply(#xmlel{children = Children} = XML_Element) ->
+    New_Children = remove_whitespaces_deeply2(Children),
+    XML_Element#xmlel{children = New_Children};
+remove_whitespaces_deeply(#xmlelement{children = Children} = XML_Element) ->
+    New_Children = remove_whitespaces_deeply2(Children),
+    XML_Element#xmlelement{children = New_Children}.
+
+remove_whitespaces_deeply2(undefined) ->
+    undefined;
+remove_whitespaces_deeply2(Children) ->
+    remove_whitespaces_deeply3(Children, []).
+
+remove_whitespaces_deeply3([El | Rest], Result)
+  when is_record(El, xmlel); is_record(El, xmlelement) ->
+    New_El = remove_whitespaces_deeply(El),
+    remove_whitespaces_deeply3(Rest, [New_El | Result]);
+remove_whitespaces_deeply3([#xmlcdata{} = CData | Rest], Result) ->
+    case is_whitespace(CData) of
+        true  -> remove_whitespaces_deeply3(Rest, Result);
+        false -> remove_whitespaces_deeply3(Rest, [CData | Result])
+    end;
+remove_whitespaces_deeply3([Other | Rest], Result) ->
+    remove_whitespaces_deeply3(Rest, [Other | Result]);
+remove_whitespaces_deeply3([], Result) ->
+    lists:reverse(Result).
 
 % --------------------------------------------------------------------
 % Function to walk the tree.
