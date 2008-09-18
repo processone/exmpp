@@ -73,8 +73,10 @@
   get_attribute_from_list/4,
   get_attribute/3,
   get_attribute/4,
+  set_attribute_in_list/2,
   set_attribute_in_list/3,
   set_attribute_in_list/4,
+  set_attribute/2,
   set_attribute/3,
   set_attribute/4,
   set_attributes/2,
@@ -895,6 +897,42 @@ has_attribute(#xmlel{attrs = Attrs} = _XML_Element, NS, Name) ->
 has_attribute(undefined, _NS, _Name) ->
     false.
 
+%% @spec (Attrs, Attr) -> New_Attrs
+%%     Attrs = [xmlnsattribute() | xmlattribute()]
+%%     Attr = xmlnsattribute() | xmlattribute()
+%%     Attr_Name = atom() | string()
+%%     Attr_Value = string() | atom() | integer()
+%%     New_Attrs = [xmlnsattribute() | xmlattribute()]
+%% @doc Add a new attribute or change the value of an existing attribute
+%% with the same name.
+%%
+%% If a match is found, `Attr' will replace the old attribute as is,
+%% regardless of the format of the latter.
+
+set_attribute_in_list(Attrs, {Name, Value}) ->
+    set_attribute_in_list(Attrs, Name, Value);
+set_attribute_in_list(Attrs, #xmlattr{} = Attr) ->
+    set_attribute_in_list2(Attrs, Attr, []).
+
+set_attribute_in_list2([Attr | Rest],
+  #xmlattr{ns = undefined, name = Name} = New_Attr, New_Attrs) ->
+    case attribute_matches(Attr, Name) of
+        true ->
+            New_Attrs ++ [New_Attr] ++ Rest;
+        false ->
+            set_attribute_in_list2(Rest, New_Attr, New_Attrs ++ [Attr])
+    end;
+set_attribute_in_list2([Attr | Rest],
+  #xmlattr{ns = NS, name = Name} = New_Attr, New_Attrs) ->
+    case attribute_matches(Attr, NS, Name) of
+        true ->
+            New_Attrs ++ [New_Attr] ++ Rest;
+        false ->
+            set_attribute_in_list2(Rest, New_Attr, New_Attrs ++ [Attr])
+    end;
+set_attribute_in_list2([], New_Attr, New_Attrs) ->
+    New_Attrs ++ [New_Attr].
+
 %% @spec (Attrs, Attr_Name, Attr_Value) -> New_Attrs
 %%     Attrs = [xmlnsattribute() | xmlattribute()]
 %%     Attr_Name = atom() | string()
@@ -969,6 +1007,23 @@ set_attribute_in_list2([Attr | Rest], NS, Name, Value, New_Attrs) ->
 set_attribute_in_list2([], NS, Name, Value, New_Attrs) ->
     New_Attrs ++ [#xmlattr{ns = NS, name = Name, value = Value}].
 
+%% @spec (XML_Element, Attr) -> New_XML_Element
+%%     XML_Element = xmlel() | xmlelement()
+%%     Attr = xmlnsattribute() | xmlattribute()
+%%     New_XML_Element = xmlel() | xmlelement()
+%% @doc Add a new attribute or change the value of an existing attribute
+%% with the same name.
+%%
+%% If a match is found, `Attr' will replace the old attribute as is,
+%% regardless of the format of the latter.
+
+set_attribute(#xmlel{attrs = Attrs} = XML_Element, Attr) ->
+    New_Attrs = set_attribute_in_list(Attrs, Attr),
+    XML_Element#xmlel{attrs = New_Attrs};
+set_attribute(#xmlelement{attrs = Attrs} = XML_Element, Attr) ->
+    New_Attrs = set_attribute_in_list(Attrs, Attr),
+    XML_Element#xmlelement{attrs = New_Attrs}.
+
 %% @spec (XML_Element, Attr_Name, Attr_Value) -> New_XML_Element
 %%     XML_Element = xmlel() | xmlelement()
 %%     Attr_Name = atom() | string()
@@ -1042,7 +1097,7 @@ set_attribute_ns2([], NS, Name, Value, New_Attrs) ->
 
 %% @spec (XML_Element, Attrs_Spec) -> New_XML_Element
 %%     XML_Element = xmlel() | xmlelement()
-%%     Attrs_Spec = [{Name, Value} | {NS, Name, Value}]
+%%     Attrs_Spec = [{Name, Value} | {NS, Name, Value} | xmlattribute() | xmlnsattribute()]
 %%       NS = atom() | string()
 %%       Name = atom() | string()
 %%       Value = string()
@@ -1058,6 +1113,10 @@ set_attributes(XML_Element, [{Name, Value} | Rest]) ->
 
 set_attributes(XML_Element, [{NS, Name, Value} | Rest]) ->
     New_XML_Element = set_attribute(XML_Element, NS, Name, Value),
+    set_attributes(New_XML_Element, Rest);
+
+set_attributes(XML_Element, [#xmlattr{} = Attr | Rest]) ->
+    New_XML_Element = set_attribute(XML_Element, Attr),
     set_attributes(New_XML_Element, Rest);
 
 set_attributes(XML_Element, []) ->

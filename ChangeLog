@@ -1,3 +1,11 @@
+2008-09-18  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_xml.erl: Add functions set_attribute_in_list/2 and
+	set_attribute/2. They work like set_attribute_in_list/{3,4} and
+	set_attribute/{3,4} respectively but take an xmlattribute() or an
+	xmlnsattribute() in argument. Add a clause to set_attributes/2 to also
+	accept xmlattribute() or xmlnsattribute() arguments.
+
 2008-08-26  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_xml.erl: New function remove_whitespaces_deeply/1 to
