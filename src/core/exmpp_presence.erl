@@ -3,7 +3,7 @@
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
 %% @doc
-%% The module <strong>{@module}</strong> provides helper to do presence
+%% The module <strong>{@module}</strong> provides helpers to do presence
 %% common operations.
 
 -module(exmpp_presence).
@@ -21,7 +21,7 @@
   unsubscribe/0,
   unsubscribed/0,
   probe/0,
-  error/0
+  error/2
 ]).
 
 % Presence standard attributes.
@@ -36,6 +36,8 @@
   set_priority/2
 ]).
 
+-define(EMPTY_PRESENCE, #xmlel{ns = ?NS_JABBER_CLIENT, name = 'presence'}).
+
 % --------------------------------------------------------------------
 % Presence creation.
 % --------------------------------------------------------------------
@@ -44,73 +46,78 @@
 %%     Type = available | unavailable | subscribe | subscribed | unsubscribe | unsubscribed | probe | error
 %%     Status = string() | binary()
 %%     Presence = exmpp_xml:xmlel()
-%% @doc Create a `<presence/>' with given Type and Status
+%% @doc Create a presence stanza with given type and status.
 
 presence(Type, Status) ->
-    set_status(set_type(available(), Type), Status).
+    set_status(set_type(?EMPTY_PRESENCE, Type), Status).
 
 %% @spec () -> Presence
 %%     Presence = exmpp_xml:xmlel()
-%% @doc Create a `<presence/>' to tell that the sender is available.
+%% @doc Create a presence stanza to tell that the sender is available.
 
 available() ->
-    #xmlel{
-      ns = ?NS_JABBER_CLIENT,
-      name = 'presence'
-    }.
+    ?EMPTY_PRESENCE.
 
 %% @spec () -> Presence
 %%     Presence = exmpp_xml:xmlel()
-%% @doc Create a `<presence/>' to tell that the sender is not available.
+%% @doc Create a presence stanza to tell that the sender is not available.
 
 unavailable() ->
-    set_type(available(), "unavailable").
+    set_type(?EMPTY_PRESENCE, "unavailable").
 
 %% @spec () -> Presence
 %%     Presence = exmpp_xml:xmlel()
-%% @doc Create a `<presence/>' to tell that the sender wants to
+%% @doc Create a presence stanza to tell that the sender wants to
 %% subscribe to the receiver's presence.
 
 subscribe() ->
-    set_type(available(), "subscribe").
+    set_type(?EMPTY_PRESENCE, "subscribe").
 
 %% @spec () -> Presence
 %%     Presence = exmpp_xml:xmlel()
-%% @doc Create a `<presence/>' to tell that the receiver was
+%% @doc Create a presence stanza to tell that the receiver was
 %% subscribed from the sender's presence.
 
 subscribed() ->
-    set_type(available(), "subscribed").
+    set_type(?EMPTY_PRESENCE, "subscribed").
 
 %% @spec () -> Presence
 %%     Presence = exmpp_xml:xmlel()
-%% @doc Create a `<presence/>' to tell that the sender wants to
+%% @doc Create a presence stanza to tell that the sender wants to
 %% unsubscribe to the receiver's presence.
 
 unsubscribe() ->
-    set_type(available(), "unsubscribe").
+    set_type(?EMPTY_PRESENCE, "unsubscribe").
 
 %% @spec () -> Presence
 %%     Presence = exmpp_xml:xmlel()
-%% @doc Create a `<presence/>' to tell that the receiver was
+%% @doc Create a presence stanza to tell that the receiver was
 %% unsubscribed from the sender's presence.
 
 unsubscribed() ->
-    set_type(available(), "unsubscribed").
+    set_type(?EMPTY_PRESENCE, "unsubscribed").
 
 %% @spec () -> Presence
 %%     Presence = exmpp_xml:xmlel()
-%% @doc Create a probe `<presence/>'.
+%% @doc Create a probe presence stanza.
 
 probe() ->
-    set_type(available(), "probe").
+    set_type(?EMPTY_PRESENCE, "probe").
 
-%% @spec () -> Presence
+%% @spec (Presence, Error) -> New_Presence
 %%     Presence = exmpp_xml:xmlel()
-%% @doc Create an error `<presence/>'.
+%%     Error = exmpp_xml:xmlel() | atom()
+%%     New_Presence = exmpp_xml:xmlel()
+%% @doc Prepare a presence stanza to notify an error.
+%%
+%% If `Error' is an atom, it must be a standard condition defined by
+%% XMPP Core.
 
-error() ->
-    set_type(available(), "error").
+error(Presence, Condition) when is_atom(Condition) ->
+    Error = exmpp_stanza:error(Presence#xmlel.ns, Condition),
+    error(Presence, Error);
+error(Presence, Error) when ?IS_PRESENCE(Presence) ->
+    exmpp_stanza:reply_with_error(Presence, Error).
 
 % --------------------------------------------------------------------
 % Presence standard attributes.
@@ -128,7 +135,7 @@ is_presence(_El)                                  -> false.
 %% @spec (Presence) -> Type
 %%     Presence = exmpp_xml:xmlel()
 %%     Type = available | unavailable | subscribe | subscribed | unsubscribe | unsubscribed | probe | error | undefined
-%% @doc Return the type of the given `<presence/>'.
+%% @doc Return the type of the given presence stanza.
 
 get_type(Presence) when ?IS_PRESENCE(Presence) ->
     case exmpp_stanza:get_type(Presence) of
@@ -147,7 +154,7 @@ get_type(Presence) when ?IS_PRESENCE(Presence) ->
 %%     Presence = exmpp_xml:xmlel()
 %%     Type = available | unavailable | subscribe | subscribed | unsubscribe | unsubscribed | probe | error
 %%     New_Presence = exmpp_xml:xmlel()
-%% @doc Set the type of the given `<presence/>'.
+%% @doc Set the type of the given presence stanza.
 
 set_type(Presence, "") when ?IS_PRESENCE(Presence) ->
     exmpp_xml:remove_attribute(Presence, 'type');
@@ -204,7 +211,7 @@ set_show(#xmlel{ns = NS} = Presence, Show) when ?IS_PRESENCE(Presence) ->
     New_Show_El = exmpp_xml:set_cdata(#xmlel{ns = NS, name = 'show'}, Show),
     case exmpp_xml:get_element(Presence, NS, 'show') of
         undefined ->
-            exmpp_xml:prepend_child(Presence, New_Show_El);
+            exmpp_xml:append_child(Presence, New_Show_El);
         Show_El ->
             exmpp_xml:replace_child(Presence, Show_El, New_Show_El)
     end.
@@ -240,7 +247,7 @@ set_status(#xmlel{ns = NS} = Presence, Status) when ?IS_PRESENCE(Presence) ->
       Status),
     case exmpp_xml:get_element(Presence, NS, 'status') of
         undefined ->
-            exmpp_xml:prepend_child(Presence, New_Status_El);
+            exmpp_xml:append_child(Presence, New_Status_El);
         Status_El ->
             exmpp_xml:replace_child(Presence, Status_El, New_Status_El)
     end.
@@ -273,7 +280,7 @@ set_priority(#xmlel{ns = NS} = Presence, Priority)
       Priority),
     case exmpp_xml:get_element(Presence, NS, 'priority') of
         undefined ->
-            exmpp_xml:prepend_child(Presence, New_Priority_El);
+            exmpp_xml:append_child(Presence, New_Priority_El);
         Priority_El ->
             exmpp_xml:replace_child(Presence, Priority_El, New_Priority_El)
     end.

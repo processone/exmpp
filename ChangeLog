@@ -1,7 +1,14 @@
 2008-09-23  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
-	* src/core/exmpp_stanza.erl, src/core/exmpp_iq.erl: Typo in modules
-	short description.
+	* src/core/exmpp_stanza.erl, src/core/exmpp_iq.erl,
+	src/core/exmpp_presence.erl: Typo in modules short description.
+
+	* src/core/exmpp_presence.erl: In documentation, use "presence stanza"
+	instead of "<presence/>".
+	(error): Rewrite to behave like exmpp_iq:error/2.
+	(set_show, set_status, set_priority): Always use
+	exmpp_xml:append_child/2 so the caller better controls the order of
+	the elements.
 
 2008-09-18  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
