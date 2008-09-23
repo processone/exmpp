@@ -1,7 +1,8 @@
 2008-09-23  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_stanza.erl, src/core/exmpp_iq.erl,
-	src/core/exmpp_presence.erl: Typo in modules short description.
+	src/core/exmpp_presence.erl, src/core/exmpp_message.erl: Typo in
+	modules short description.
 
 	* src/core/exmpp_presence.erl: In documentation, use "presence stanza"
 	instead of "<presence/>".
@@ -9,6 +10,11 @@
 	(set_show, set_status, set_priority): Always use
 	exmpp_xml:append_child/2 so the caller better controls the order of
 	the elements.
+
+	* src/core/exmpp_message.erl: Add functions to create message stanzas.
+	Add functions to set the subject, the body and the thread.
+	(get_type): When the type isn't specified or isn't recognized, return
+	'normal' as mentionned in the RFC.
 
 2008-09-18  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
