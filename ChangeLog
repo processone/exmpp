@@ -1,3 +1,8 @@
+2008-09-23  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_stanza.erl, src/core/exmpp_iq.erl: Typo in modules
+	short description.
+
 2008-09-18  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_xml.erl: Add functions set_attribute_in_list/2 and

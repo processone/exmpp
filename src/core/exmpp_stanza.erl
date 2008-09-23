@@ -5,7 +5,7 @@
 %% @copyright Process-One [http://www.process-one.net/]
 
 %% @doc
-%% The module <strong>{@module}</strong> provides helper to manipulate
+%% The module <strong>{@module}</strong> provides helpers to manipulate
 %% standard stanza.
 
 -module(exmpp_stanza).

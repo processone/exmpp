@@ -3,7 +3,7 @@
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
 %% @doc
-%% The module <strong>{@module}</strong> provides helper to do IQ common
+%% The module <strong>{@module}</strong> provides helpers to do IQ common
 %% operations.
 
 -module(exmpp_iq).
