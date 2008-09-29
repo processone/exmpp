@@ -143,9 +143,14 @@ result(Request_IQ_Rec, Result) when ?IS_IQ_RECORD(Request_IQ_Rec) ->
 %% If `Error' is an atom, it must be a standard condition defined by
 %% XMPP Core.
 
-error(IQ, Condition) when is_atom(Condition) ->
+error(IQ, Condition)
+  when is_atom(Condition) andalso ?IS_IQ(IQ) ->
     Error = exmpp_stanza:error(IQ#xmlel.ns, Condition),
     error(IQ, Error);
+error(IQ_Rec, Condition)
+  when is_atom(Condition) andalso ?IS_IQ_RECORD(IQ_Rec) ->
+    Error = exmpp_stanza:error(IQ_Rec#iq.iq_ns, Condition),
+    error(IQ_Rec, Error);
 error(IQ, Error) when ?IS_IQ(IQ) ->
     exmpp_stanza:reply_with_error(IQ, Error);
 error(IQ_Rec, Error) when ?IS_IQ_RECORD(IQ_Rec) ->

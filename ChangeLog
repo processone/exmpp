@@ -1,3 +1,9 @@
+2008-09-29  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_iq.erl (error): The case where the function was
+	called with an #iq record and a condition (atom) was not implemented,
+	causing a crash.
+
 2008-09-23  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_stanza.erl, src/core/exmpp_iq.erl,
