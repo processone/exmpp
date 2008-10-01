@@ -1,6 +1,20 @@
+2008-10-01  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_xml.erl: Rename get_lname_as_atom/1 and
+	get_lname_as_list/1 to get_name_as_atom/1 and get_name_as_list/1
+	respectively. Add add_autoload_known_nss/1, add_autoload_known_names/1
+	and add_autoload_known_attrs/1 to populate Exmpp application
+	environment with autoloaded known lists.
+	(get_ns_as_atom, get_ns_as_list): Use the new as_atom/1 and as_list/1
+	functions.
+
+	* testsuite/check_xml_element_handlers.erl: Updated the old testsuite
+	as reference.
+
 2008-09-30  Pablo Polvorin  <pablo.polvorin@process-one.net>
 
-	* src/core/exmpp_xml: Add functions to get the local name of an element.
+	* src/core/exmpp_xml: Add functions to get the local name of an
+	element.
 
 2008-09-29  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 

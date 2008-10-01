@@ -90,7 +90,7 @@ do_check() ->
     [?ELEMENT2_NS]}
 ).
 
--define(ELEMENT4_NS, {xmlel, 
+-define(ELEMENT4_NS, {xmlel,
     ?NS_XML, [], "element",
     [],
     [?ELEMENT1_NS,?ELEMENT2_NS]}
@@ -353,10 +353,7 @@ test_set_children() ->
       ?ELEMENT2_NS),
     ok.
 
-
-
 test_get_lname() ->
-    testsuite:is(exmpp_xml:get_lname(?TARGET),"element"),
-    testsuite:is(exmpp_xml:get_lname(?TARGET_NS),"element"),
+    testsuite:is(exmpp_xml:get_lname_as_list(?TARGET), "element"),
+    testsuite:is(exmpp_xml:get_lname_as_list(?TARGET_NS), "element"),
     ok.
-    

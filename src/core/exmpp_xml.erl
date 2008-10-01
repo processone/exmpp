@@ -42,6 +42,9 @@
   add_known_nss/2,
   add_known_names/2,
   add_known_attrs/2,
+  add_autoload_known_nss/1,
+  add_autoload_known_names/1,
+  add_autoload_known_attrs/1,
   parse/2,
   parse_final/2,
   parse_document/1,
@@ -92,8 +95,8 @@
 
 % Element handling.
 -export([
-  get_lname_as_list/1,
-  get_lname_as_atom/1,
+  get_name_as_list/1,
+  get_name_as_atom/1,
   element_matches/2,
   element_matches/3,
   element_matches_by_ns/2,
@@ -417,6 +420,54 @@ autoload_known(Parser) ->
             throw({xml, autoload_known, invalid_known_attrs, Bad_Attrs})
     end.
 
+%% @spec (NSs) -> ok
+%%     NSS = [NS]
+%%     NS = atom() | string()
+%% @throws {xml, autoload_known, invalid_known_nss, term()}
+%% @doc Add the given NS list to the autoloaded NS list.
+
+add_autoload_known_nss(NSs) when is_list(NSs) ->
+    case application:get_env(exmpp, xml_known_nss) of
+        undefined ->
+            application:set_env(exmpp, xml_known_nss, NSs);
+        {ok, Prev_NSs} when is_list(Prev_NSs) ->
+            application:set_env(exmpp, xml_known_nss, Prev_NSs ++ NSs);
+        {ok, Bad_NSs} ->
+            throw({xml, autoload_known, invalid_known_nss, Bad_NSs})
+    end.
+
+%% @spec (Names) -> ok
+%%     Names = [Name]
+%%     Name = atom() | string()
+%% @throws {xml, autoload_known, invalid_known_names, term()}
+%% @doc Add the given names list to the autoloaded names list.
+
+add_autoload_known_names(Names) when is_list(Names) ->
+    case application:get_env(exmpp, xml_known_names) of
+        undefined ->
+            application:set_env(exmpp, xml_known_names, Names);
+        {ok, Prev_Names} when is_list(Prev_Names) ->
+            application:set_env(exmpp, xml_known_names, Prev_Names ++ Names);
+        {ok, Bad_Names} ->
+            throw({xml, autoload_known, invalid_known_names, Bad_Names})
+    end.
+
+%% @spec (Attrs) -> ok
+%%     Attrs = [Attr]
+%%     Attr = atom() | string()
+%% @throws {xml, autoload_known, invalid_known_attrs, term()}
+%% @doc Add the given attributes list to the autoloaded attributes list.
+
+add_autoload_known_attrs(Attrs) when is_list(Attrs) ->
+    case application:get_env(exmpp, xml_known_attrs) of
+        undefined ->
+            application:set_env(exmpp, xml_known_attrs, Attrs);
+        {ok, Prev_Attrs} when is_list(Prev_Attrs) ->
+            application:set_env(exmpp, xml_known_attrs, Prev_Attrs ++ Attrs);
+        {ok, Bad_Attrs} ->
+            throw({xml, autoload_known, invalid_known_attrs, Bad_Attrs})
+    end.
+
 %% @spec (Parser, Data) -> [XML_Element] | continue
 %%     Parser = xmlparser()
 %%     Data = string() | binary()
@@ -602,12 +653,13 @@ declare_ns_here(#xmlel{declared_ns = Declared_NS} = XML_Element,
 %% @doc Return the namespace as a string, regardless of the original
 %% encoding.
 
-get_ns_as_list(XML_Element) ->
-    case XML_Element#xmlel.ns of
-        undefined           -> "";
-        NS when is_atom(NS) -> atom_to_list(NS);
-        NS                  -> NS
-    end.
+get_ns_as_list(#xmlel{ns = undefined}) ->
+    "";
+get_ns_as_list(#xmlel{ns = NS}) ->
+    as_list(NS).
+
+as_list(V) when is_atom(V) -> atom_to_list(V);
+as_list(V) when is_list(V) -> V.
 
 %% @spec (XML_Element) -> NS
 %%     XML_Element = xmlel()
@@ -615,12 +667,13 @@ get_ns_as_list(XML_Element) ->
 %% @doc Return the namespace as an atom, regardless of the original
 %% encoding.
 
-get_ns_as_atom(XML_Element) ->
-    case XML_Element#xmlel.ns of
-        undefined           -> undefined;
-        NS when is_atom(NS) -> NS;
-        NS                  -> list_to_atom(NS)
-    end.
+get_ns_as_atom(#xmlel{ns = undefined}) ->
+    undefined;
+get_ns_as_atom(#xmlel{ns = NS}) ->
+    as_atom(NS).
+
+as_atom(V) when is_atom(V) -> V;
+as_atom(V) when is_list(V) -> list_to_atom(V).
 
 % --------------------------------------------------------------------
 % Functions to handle XML attributes (xmlnsattribute() & xmlattribute()).
@@ -1210,29 +1263,27 @@ remove_attribute(#xmlel{attrs = Attrs} = XML_Element, NS, Name) ->
 % This is similar to the DOM interface but NOT compliant.
 % --------------------------------------------------------------------
 
-%% @spec (XML_Element) -> list()
-%%     XML_Element = xmlel() | xmlelement()   
-%% @doc Returns the local name of the element,as list
-get_lname_as_list(#xmlel{name=N}) ->
-    as_list(N);
-get_lname_as_list(#xmlelement{name=N}) ->
-    as_list(N).
+%% @spec (XML_Element) -> Name
+%%     XML_Element = xmlel() | xmlelement()
+%%     Name = list()
+%% @doc Return the name of an element as list, regardless of the
+%% original encoding.
 
-    
-%% @spec (XML_Element) -> atom()
-%%     XML_Element = xmlel() | xmlelement()   
-%% @doc Returns the local name of the element, as atom
-get_lname_as_atom(#xmlel{name=N}) ->
-    as_atom(N);
-get_lname_as_atom(#xmlelement{name=N}) ->
-    as_atom(N).
+get_name_as_list(#xmlel{name = Name}) ->
+    as_list(Name);
+get_name_as_list(#xmlelement{name = Name}) ->
+    as_list(Name).
 
+%% @spec (XML_Element) -> Name
+%%     XML_Element = xmlel() | xmlelement()
+%%     Name = atom()
+%% @doc Return the name of an element as atom, regardless of the
+%% original encoding.
 
-as_list(V) when is_atom(V) -> atom_to_list(V);
-as_list(V) when is_list(V) -> V.
-
-as_atom(V) when is_atom(V) -> V;
-as_atom(V) when is_list(V) -> list_to_atom(V).
+get_name_as_atom(#xmlel{name = Name}) ->
+    as_atom(Name);
+get_name_as_atom(#xmlelement{name = Name}) ->
+    as_atom(Name).
 
 %% @spec (XML_Element, Name) -> boolean()
 %%     XML_Element = xmlel() | xmlelement() | undefined
