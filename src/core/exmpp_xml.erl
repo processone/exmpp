@@ -92,6 +92,8 @@
 
 % Element handling.
 -export([
+  get_lname_as_list/1,
+  get_lname_as_atom/1,
   element_matches/2,
   element_matches/3,
   element_matches_by_ns/2,
@@ -1207,6 +1209,30 @@ remove_attribute(#xmlel{attrs = Attrs} = XML_Element, NS, Name) ->
 % Functions to handle XML elements (xmlel() & xmlelement()).
 % This is similar to the DOM interface but NOT compliant.
 % --------------------------------------------------------------------
+
+%% @spec (XML_Element) -> list()
+%%     XML_Element = xmlel() | xmlelement()   
+%% @doc Returns the local name of the element,as list
+get_lname_as_list(#xmlel{name=N}) ->
+    as_list(N);
+get_lname_as_list(#xmlelement{name=N}) ->
+    as_list(N).
+
+    
+%% @spec (XML_Element) -> atom()
+%%     XML_Element = xmlel() | xmlelement()   
+%% @doc Returns the local name of the element, as atom
+get_lname_as_atom(#xmlel{name=N}) ->
+    as_atom(N);
+get_lname_as_atom(#xmlelement{name=N}) ->
+    as_atom(N).
+
+
+as_list(V) when is_atom(V) -> atom_to_list(V);
+as_list(V) when is_list(V) -> V.
+
+as_atom(V) when is_atom(V) -> V;
+as_atom(V) when is_list(V) -> list_to_atom(V).
 
 %% @spec (XML_Element, Name) -> boolean()
 %%     XML_Element = xmlel() | xmlelement() | undefined

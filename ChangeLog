@@ -1,3 +1,7 @@
+2008-09-30  Pablo Polvorin  <pablo.polvorin@process-one.net>
+
+	* src/core/exmpp_xml: Add functions to get the local name of an element.
+
 2008-09-29  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_iq.erl (error): The case where the function was

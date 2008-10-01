@@ -23,6 +23,7 @@ do_check() ->
     test_prepend_children(),
     test_replace_child(),
     test_set_children(),
+    test_get_lname(),
     ok.
 
 % --------------------------------------------------------------------
@@ -351,3 +352,11 @@ test_set_children() ->
     testsuite:is(exmpp_xml:set_children(?ELEMENT2_NS, [?TARGET_NS]),
       ?ELEMENT2_NS),
     ok.
+
+
+
+test_get_lname() ->
+    testsuite:is(exmpp_xml:get_lname(?TARGET),"element"),
+    testsuite:is(exmpp_xml:get_lname(?TARGET_NS),"element"),
+    ok.
+    
