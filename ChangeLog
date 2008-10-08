@@ -1,3 +1,8 @@
+2008-10-08  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_jid.erl: Add functions to serialize JIDs using their
+	STRINGPREP'd version.
+
 2008-10-01  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_xml.erl: Rename get_lname_as_atom/1 and

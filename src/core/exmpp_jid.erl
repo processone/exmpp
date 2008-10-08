@@ -33,13 +33,17 @@
   jid_to_list/1,
   jid_to_list/2,
   jid_to_list/3,
+  prepd_jid_to_list/1,
   bare_jid_to_list/1,
   bare_jid_to_list/2,
+  prepd_bare_jid_to_list/1,
   jid_to_binary/1,
   jid_to_binary/2,
   jid_to_binary/3,
+  prepd_jid_to_binary/1,
   bare_jid_to_binary/1,
-  bare_jid_to_binary/2
+  bare_jid_to_binary/2,
+  prepd_bare_jid_to_binary/1
 ]).
 
 % Comparison.
@@ -352,8 +356,17 @@ jid_to_list(Node, Domain, Resource) ->
         _         -> S1 ++ "/" ++ Resource
     end.
 
-%% @spec (Bare_Jid) -> String
-%%     Bare_Jid = jid()
+%% @spec (Jid) -> String
+%%     Jid = jid()
+%%     String = string()
+%% @doc Stringify a full JID with STRINGPREP profiles applied.
+
+prepd_jid_to_list(
+  #jid{lnode = Node, ldomain = Domain, lresource = Resource}) ->
+    jid_to_list(Node, Domain, Resource).
+
+%% @spec (Jid) -> String
+%%     Jid = jid()
 %%     String = string()
 %% @doc Stringify a bare JID.
 
@@ -373,6 +386,15 @@ bare_jid_to_list(Node, Domain) ->
         _         -> Node ++ "@"
     end,
     S1 ++ Domain.
+
+%% @spec (Jid) -> String
+%%     Jid = jid()
+%%     String = string()
+%% @doc Stringify a bare JID with STRINGPREP profiles applied.
+
+prepd_bare_jid_to_list(
+  #jid{lnode = Node, ldomain = Domain}) ->
+    bare_jid_to_list(Node, Domain).
 
 %% @spec (Jid) -> String
 %%     Jid = jid()
@@ -408,8 +430,17 @@ jid_to_binary(Node, Domain, Resource) ->
             <<S1/binary, "/", Resource_B/binary>>
     end.
 
-%% @spec (Bare_Jid) -> String
-%%     Bare_Jid = jid()
+%% @spec (Jid) -> String
+%%     Jid = jid()
+%%     String = binary()
+%% @doc Stringify a full JID with STRINGPREP profiles applied.
+
+prepd_jid_to_binary(
+  #jid{lnode = Node, ldomain = Domain, lresource = Resource}) ->
+    jid_to_binary(Node, Domain, Resource).
+
+%% @spec (Jid) -> String
+%%     Jid = jid()
 %%     String = binary()
 %% @doc Stringify a bare JID.
 
@@ -432,6 +463,15 @@ bare_jid_to_binary(Node, Domain) ->
             <<Node_B/binary, "@", Domain_B/binary>>
     end.
 
+%% @spec (Jid) -> String
+%%     Jid = jid()
+%%     String = binary()
+%% @doc Stringify a bare JID with STRINGPREP profiles applied.
+
+prepd_bare_jid_to_binary(
+  #jid{lnode = Node, ldomain = Domain}) ->
+    bare_jid_to_binary(Node, Domain).
+
 % --------------------------------------------------------------------
 % JID comparison.
 % --------------------------------------------------------------------
@@ -448,9 +488,9 @@ compare_jids(
 compare_jids(_Jid1, _Jid2) ->
     false.
 
-%% @spec (Bare_Jid1, Bare_Jid2) -> bool()
-%%     Bare_Jid1 = jid()
-%%     Bare_Jid2 = jid()
+%% @spec (Jid1, Jid2) -> bool()
+%%     Jid1 = jid()
+%%     Jid2 = jid()
 %% @doc Compare bare JIDs.
 
 compare_bare_jids(
