@@ -25,6 +25,7 @@
   get_engine_names/0,
   get_engine_names/1,
   get_prefered_engine_name/1,
+  is_engine_available/1,
   get_engine_driver/1
 ]).
 
@@ -84,7 +85,6 @@
 }).
 
 -define(SERVER, ?MODULE).
--define(DEFAULT_ENGINE, openssl).
 
 -define(COMMAND_SET_MODE,              1).
 -define(COMMAND_SET_IDENTITY,          2).
@@ -224,21 +224,25 @@ get_prefered_engine_name(Auth_Method) ->
         [Engine | _] -> Engine#tls_engine.name
     end.
 
-%% @spec (Engine_Name) -> Driver
+%% @spec (Engine_Name) -> bool()
 %%     Engine_Name = atom()
-%%     Driver = Driver_Name | {Driver_Path, Driver_Name}
+%% @doc Tell if `Engine_Name' is available.
+
+is_engine_available(Engine_Name) ->
+    case gen_server:call(?SERVER, {get_engine, Engine_Name}) of
+        undefined -> false;
+        _         -> true
+    end.
+
+%% @spec (Engine_Name) -> Driver_Name
+%%     Engine_Name = atom()
 %%     Driver_Name = atom()
-%%     Driver_Path = string()
 %% @doc Return the port driver name associated to the given engine.
 
 get_engine_driver(Engine_Name) ->
     case gen_server:call(?SERVER, {get_engine, Engine_Name}) of
-        undefined ->
-            undefined;
-        #tls_engine{driver_path = undefined, driver = Driver_Name} ->
-            Driver_Name;
-        #tls_engine{driver_path = Driver_Path, driver = Driver_Name} ->
-            {Driver_Path, Driver_Name}
+        undefined                         -> undefined;
+        #tls_engine{driver = Driver_Name} -> Driver_Name
     end.
 
 % --------------------------------------------------------------------
@@ -253,7 +257,7 @@ get_engine_driver(Engine_Name) ->
 %%     Auth_Method = atom()
 %%     Certificate = string()
 %%     Private_Key = string()
-%%     Peer_Verification = boolean() | Peer_Name
+%%     Peer_Verification = bool() | Peer_Name
 %%     Peer_Name = string()
 %%     Options = [Option]
 %%     Option = {engine, Engine} | {mode, Mode} | {trusted_certs, Auth_Method, Certs} | peer_cert_required | accept_expired_cert | accept_revoked_cert | accept_non_trusted_cert | accept_corrupted_cert
@@ -273,7 +277,7 @@ connect(Socket_Desc, Identity, Peer_Verification, Options) ->
 %%     Auth_Method = atom()
 %%     Certificate = string()
 %%     Private_Key = string()
-%%     Peer_Verification = boolean() | Peer_Name
+%%     Peer_Verification = bool() | Peer_Name
 %%     Peer_Name = string()
 %%     Options = [Option]
 %%     Option = {engine, Engine} | {mode, Mode} | {trusted_certs, {Auth_Method, Certs}} | peer_cert_required | accept_expired_cert | accept_revoked_cert | accept_non_trusted_cert | accept_corrupted_cert
@@ -537,14 +541,16 @@ quiet_shutdown(#tls_socket{socket = Socket_Desc, port = Port}) ->
 % Handshake helpers.
 % --------------------------------------------------------------------
 
+% Choose the most appropriate engine.
 get_engine_from_args(Identity, _Peer_Verification, Options) ->
-    case get_engine_from_options(Options) of
+    Engine_Name = case get_engine_from_options(Options) of
         undefined ->
             case get_engine_from_identity(Identity) of
                 undefined ->
                     case get_engine_from_verification(Options) of
                         undefined ->
-                            ?DEFAULT_ENGINE;
+                            throw({tls, options, no_engine_available,
+                                undefined});
                         Name ->
                             Name
                     end;
@@ -552,24 +558,25 @@ get_engine_from_args(Identity, _Peer_Verification, Options) ->
                     Name
             end;
         Name ->
-            Name
-    end.
+            case is_engine_available(Name) of
+                true ->
+                    Name;
+                false ->
+                    throw({tls, options, engine_unavailable, Name})
+            end
+    end,
+    get_engine_driver(Engine_Name).
 
 get_engine_from_options(Options) ->
-    case lists:keysearch(engine, 1, Options) of
-        {value, {_, Engine_Name}} -> Engine_Name;
-        _                         -> undefined
-    end.
+    proplists:get_value(engine, Options).
 
 get_engine_from_identity({Auth_Method, _, _}) ->
     get_prefered_engine_name(Auth_Method).
 
 get_engine_from_verification(Options) ->
-    case lists:keysearch(trusted_certs, 1, Options) of
-        {value, {_, Auth_Method, _}} ->
-            get_prefered_engine_name(Auth_Method);
-        _ ->
-            undefined
+    case proplists:get_value(trusted_certs, Options) of
+        undefined   -> undefined;
+        Auth_Method -> get_prefered_engine_name(Auth_Method)
     end.
 
 check_identity(Identity, Mode) ->

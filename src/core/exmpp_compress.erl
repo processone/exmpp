@@ -25,6 +25,7 @@
   get_engine_names/0,
   get_engine_names/1,
   get_prefered_engine_name/1,
+  is_engine_available/1,
   get_engine_driver/1
 ]).
 
@@ -206,21 +207,25 @@ get_prefered_engine(Compress_Method) ->
         [Engine | _] -> Engine
     end.
 
-%% @spec (Engine_Name) -> Driver
+%% @spec (Engine_Name) -> bool()
 %%     Engine_Name = atom()
-%%     Driver = Driver_Name | {Driver_Path, Driver_Name}
+%% @doc Tell if `Engine_Name' is available.
+
+is_engine_available(Engine_Name) ->
+    case gen_server:call(?SERVER, {get_engine, Engine_Name}) of
+        undefined -> false;
+        _         -> true
+    end.
+
+%% @spec (Engine_Name) -> Driver_Name
+%%     Engine_Name = atom()
 %%     Driver_Name = atom()
-%%     Driver_Path = string()
 %% @doc Return the port driver name associated to the given engine.
 
 get_engine_driver(Engine_Name) ->
     case gen_server:call(?SERVER, {get_engine, Engine_Name}) of
-        undefined ->
-            undefined;
-        #compress_engine{driver_path = undefined, driver = Driver_Name} ->
-            Driver_Name;
-        #compress_engine{driver_path = Driver_Path, driver = Driver_Name} ->
-            {Driver_Path, Driver_Name}
+        undefined                              -> undefined;
+        #compress_engine{driver = Driver_Name} -> Driver_Name
     end.
 
 % --------------------------------------------------------------------
@@ -245,7 +250,7 @@ enable_compression(Socket_Desc, Options) ->
     Driver_Name = get_engine_from_options(Options),
     Port = exmpp_internals:open_port(Driver_Name),
 
-    % Initialize the port and handshake.
+    % Initialize the port.
     try
         % Set compression method.
         case proplists:get_value(compress_method, Options) of
@@ -286,18 +291,34 @@ disable_compression(#compress_socket{socket = Socket_Desc, port = Port}) ->
 % Activation helpers.
 % --------------------------------------------------------------------
 
+% Choose the most appropriate engine.
 get_engine_from_options(Options) ->
-    case lists:keysearch(engine, 1, Options) of
-        {value, {_, Engine}} ->
-            Engine;
-        _ ->
-            case lists:keysearch(compress_method, 1, Options) of
-                {value, {_, CM}} ->
-                    get_prefered_engine_name(CM);
-                _ ->
-                    ?DEFAULT_ENGINE
+    Engine_Name = case proplists:get_value(engine, Options) of
+        undefined ->
+            case proplists:get_value(compress_method, Options) of
+                undefined ->
+                    case get_engine_names() of
+                        [] ->
+                            throw({compress, options, no_engine_available,
+                                undefined});
+                        [Name | _] = Names ->
+                            case lists:member(?DEFAULT_ENGINE, Names) of
+                                true  -> ?DEFAULT_ENGINE;
+                                false -> Name
+                            end
+                    end;
+                CM ->
+                    get_prefered_engine_name(CM)
+            end;
+        Name ->
+            case is_engine_available(Name) of
+                true ->
+                    Name;
+                false ->
+                    throw({compress, options, engine_unavailable, Name})
             end
-    end.
+    end,
+    get_engine_driver(Engine_Name).
 
 % --------------------------------------------------------------------
 % Common socket API.

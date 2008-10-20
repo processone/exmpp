@@ -13,6 +13,10 @@
 	* configure.ac: Define HAVE_EXPAT when the Expat XML port driver is
 	built.
 
+	* src/core/exmpp_compress.erl (get_engine_from_options),
+	src/core/exmpp_tls.erl (get_engine_from_args): Fix behaviour which was
+	broken by previous commit.
+
 2008-10-08  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_jid.erl: Add functions to serialize JIDs using their
