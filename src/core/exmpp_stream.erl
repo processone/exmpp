@@ -157,7 +157,8 @@
 % Serialization wrappers.
 -export([
   to_list/1,
-  to_binary/1
+  to_binary/1,
+  to_iolist/1
 ]).
 
 -define(STREAM_NS_PREFIX, "stream").
@@ -666,3 +667,11 @@ to_list(El) ->
 
 to_binary(El) ->
     exmpp_xml:document_to_binary(El).
+
+%% @spec (El) -> XML_Text
+%%     El = exmpp_xml:xmlel() | list()
+%%     XML_Text = iolist()
+%% @doc Serialize a stream opening/closing.
+
+to_iolist(El) ->
+    exmpp_xml:document_to_iolist(El).

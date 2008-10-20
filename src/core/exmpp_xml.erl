@@ -182,6 +182,8 @@
   document_to_list/1,
   node_to_binary/3,
   document_to_binary/1,
+  node_to_iolist/3,
+  document_to_iolist/1,
   deindent_document/1,
   indent_document/2,
   indent_document/3,
@@ -3219,6 +3221,85 @@ attr_to_binary(Name, Value, Buf) ->
 
 document_to_binary(El) ->
     node_to_binary(El, [], []).
+
+%% @spec (XML_Element, Default_NS, Prefixed_NS) -> XML_Text
+%%     XML_Element = xmlel() | xmlelement() | xmlendtag() | xmlcdata() | list()
+%%     Default_NS = [NS | Equivalent_NSs]
+%%     Prefixed_NS = [{NS, Prefix}]
+%%     NS = atom()
+%%     Equivalent_NSs = [NS]
+%%     Prefix = string()
+%%     XML_Text = iolist()
+%% @doc Serialize an XML node to text.
+%%
+%% Converting to iolist is about 40% to 50% faster than converting to a
+%% list.
+
+node_to_iolist(El, Default_NS, Prefixed_NS) when is_list(El) ->
+    node_to_iolist2(El, Default_NS, Prefixed_NS, []);
+node_to_iolist(El, Default_NS, Prefixed_NS) ->
+    node_to_iolist2([El], Default_NS, Prefixed_NS, []).
+
+node_to_iolist2([El | Rest], Default_NS, Prefixed_NS, IO_List) ->
+    Sub_IO_List = case El of
+        #xmlel{children = Children} ->
+            {Name, Attrs, Default_NS1, Prefixed_NS1} = unresolve_xmlel_nss(El,
+              Default_NS, Prefixed_NS),
+            element_to_iolist(Name, Attrs, Children,
+              Default_NS1, Prefixed_NS1);
+        #xmlelement{name = Name, attrs = Attrs, children = Children} ->
+            element_to_iolist(Name, Attrs, Children,
+              Default_NS, Prefixed_NS);
+        #xmlendtag{ns = undefined, name = Name} ->
+            endtag_to_iolist(Name);
+        #xmlendtag{} ->
+            Name = unresolve_endtag_nss(El, Default_NS, Prefixed_NS),
+            endtag_to_iolist(Name);
+        #xmlpi{target = Target, value = Value} ->
+            pi_to_iolist(Target, Value);
+        #xmlcdata{cdata = CData} ->
+            ?ESCAPE(CData)
+    end,
+    node_to_iolist2(Rest, Default_NS, Prefixed_NS, [Sub_IO_List | IO_List]);
+node_to_iolist2([], _Default_NS, _Prefixed_NS, IO_List) ->
+    lists:reverse(IO_List).
+
+element_to_iolist(Name, Attrs, Children, Default_NS, Prefixed_NS)
+  when is_atom(Name) ->
+    element_to_iolist(atom_to_list(Name), Attrs, Children,
+      Default_NS, Prefixed_NS);
+element_to_iolist(Name, Attrs, undefined, _Default_NS, _Prefixed_NS) ->
+    % Children may come later, we don't close the tag.
+    [$<, Name, attrs_to_iolist(Attrs), $>];
+element_to_iolist(Name, Attrs, [], _Default_NS, _Prefixed_NS) ->
+    [$<, Name, attrs_to_iolist(Attrs), $/, $>];
+element_to_iolist(Name, Attrs, Children, Default_NS, Prefixed_NS) ->
+    Content = node_to_iolist(Children, Default_NS, Prefixed_NS),
+    [$<, Name, attrs_to_iolist(Attrs), $>, Content, $<, $/, Name, $>].
+
+endtag_to_iolist(Name) when is_atom(Name) ->
+    endtag_to_iolist(atom_to_list(Name));
+endtag_to_iolist(Name) ->
+    [$<, $/, Name, $>].
+
+pi_to_iolist(Target, Value) when is_atom(Target) ->
+    pi_to_iolist(atom_to_list(Target), Value);
+pi_to_iolist(Target, Value) ->
+    [$<, $?, Target, $\s, Value, $?, $>].
+
+attrs_to_iolist(Attrs) ->
+    [attr_to_iolist(A) || A <- Attrs].
+
+attr_to_iolist({Name, Value}) ->
+    [$\s, Name, $=, $", escape_using_entities(Value), $"].
+
+%% @spec (XML_Element) -> XML_Text
+%%     XML_Element = xmlel() | xmlelement() | list()
+%%     XML_Text = iolist()
+%% @doc Serialize an XML document to text.
+
+document_to_iolist(El) ->
+    node_to_iolist(El, [], []).
 
 %% @spec (XML_Element) -> New_XML_Element
 %%     XML_Element = xmlel() | xmlelement()

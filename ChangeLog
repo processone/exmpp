@@ -32,6 +32,13 @@
 
 	* ebin/exmpp.app.in: Fill the registered processes list.
 
+	* src/core/exmpp_xml.erl: It's now possible to serialize an XML
+	document to iolist. The use of iolists seems to bring an improvement
+	of 40 to 50% in speed over lists.
+
+	* src/core/exmpp_stream.erl, src/core/exmpp_stanza.erl: Add to_iolist
+	functions.
+
 2008-10-08  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_jid.erl: Add functions to serialize JIDs using their
