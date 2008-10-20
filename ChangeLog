@@ -10,6 +10,9 @@
 	* src/core/exmpp_xml.erl: Change default options! Namespace support is
 	enabled and names are returned as atom.
 
+	* configure.ac: Define HAVE_EXPAT when the Expat XML port driver is
+	built.
+
 2008-10-08  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_jid.erl: Add functions to serialize JIDs using their

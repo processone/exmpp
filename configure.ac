@@ -521,6 +521,9 @@ bold "%BXML parsers dependencies%b"
 dnl Expat port driver.
 EXMPP_EXPAT(build_with_expat="yes", build_with_expat="no")
 AM_CONDITIONAL(WITH_EXPAT, test "x${build_with_expat}" = "xyes")
+if test "x${build_with_expat}" = "xyes"; then
+	append_to_EMKOPTS "{d, 'HAVE_EXPAT'}"
+fi
 
 echo
 bold "%BTLS engines dependencies%b"
