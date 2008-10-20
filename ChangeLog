@@ -1,3 +1,7 @@
+2008-10-20  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* include/exmpp_nss.hrl: Add string version of MUC namespaces.
+
 2008-10-08  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_jid.erl: Add functions to serialize JIDs using their

@@ -92,6 +92,11 @@
 -define(NS_MUC_OWNER,                'http://jabber.org/protocol/muc#owner').
 -define(NS_MUC_UNIQUE,               'http://jabber.org/protocol/muc#unique').
 -define(NS_MUC_USER,                 'http://jabber.org/protocol/muc#user').
+-define(NS_MUC_s,                    "http://jabber.org/protocol/muc").
+-define(NS_MUC_ADMIN_s,              "http://jabber.org/protocol/muc#admin").
+-define(NS_MUC_OWNER_s,              "http://jabber.org/protocol/muc#owner").
+-define(NS_MUC_UNIQUE_s,             "http://jabber.org/protocol/muc#unique").
+-define(NS_MUC_USER_s,               "http://jabber.org/protocol/muc#user").
 
 % Defined by XEP-0047: In-Band Bytestreams.
 -define(NS_IBB,                      'http://jabber.org/protocol/ibb').
@@ -154,9 +159,7 @@
 
 % Defined by XEP-0071: XHTML-IM.
 -define(NS_XHTML_IM,                 'http://jabber.org/protocol/xhtml-im').
--define(NS_XHTML,                    'http://www.w3.org/1999/xhtml').
 -define(NS_XHTML_IM_s,               "http://jabber.org/protocol/xhtml-im").
--define(NS_XHTML_s,                  "http://www.w3.org/1999/xhtml").
 
 % Defined by XEP-0072: SOAP Over XMPP.
 -define(NS_SOAP_FAULT,               'http://jabber.org/protocol/soap#fault').
@@ -498,3 +501,7 @@
 % Defined by XEP-0247: Jingle XML Streams.
 -define(NS_JINGLE_XML_STREAM,        'urn:xmpp:tmp:jingle:apps:xmlstream').
 -define(NS_JINGLE_XML_STREAM_s,      "urn:xmpp:tmp:jingle:apps:xmlstream").
+
+% Defined by XHTML 1.0.
+-define(NS_XHTML,                    'http://www.w3.org/1999/xhtml').
+-define(NS_XHTML_s,                  "http://www.w3.org/1999/xhtml").
