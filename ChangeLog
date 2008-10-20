@@ -17,6 +17,16 @@
 	src/core/exmpp_tls.erl (get_engine_from_args): Fix behaviour which was
 	broken by previous commit.
 
+	* src/core/exmpp_xml.erl: Like exmpp_tls or exmpp_compress, exmpp_xml
+	may use several port drivers, though only Expat is available right
+	now. Follow recommandations of erl_ddll regarding driver loading:
+	drivers are loaded only once in a central process.
+
+	* testsuite/xml_parser.erl: Update to take into account the default
+	options change and the fact that exmpp must be started.
+
+	* src/core/exmpp_sup.erl: Start exmpp_xml.
+
 2008-10-08  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_jid.erl: Add functions to serialize JIDs using their

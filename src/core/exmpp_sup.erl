@@ -62,6 +62,14 @@ init(_Args) ->
       worker,
       [exmpp_stringprep]
     },
+    % XML.
+    XML = {xml,
+      {exmpp_xml, start_link, []},
+      transient,
+      2000,
+      worker,
+      [exmpp_xml]
+    },
     % TLS.
     TLS = {tls,
       {exmpp_tls, start_link, []},
@@ -81,6 +89,7 @@ init(_Args) ->
     {ok, {
       {one_for_one, 10, 1}, [
         Stringprep,
+        XML,
         TLS,
         Compress
       ]

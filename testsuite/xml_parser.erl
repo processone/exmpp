@@ -7,6 +7,9 @@
 
 -include("exmpp.hrl").
 
+-define(SETUP, fun()  -> exmpp:start(), error_logger:tty(false) end).
+-define(CLEANUP, fun(_) -> application:stop(exmpp) end).
+
 -define(SOURCE1, "<stream:stream xmlns:stream='ns_stream' xmlns='ns_default'><iq xml:lang='fr'>Content</iq></stream:stream>").
 
 -define(TREE1_NO_NS, [
@@ -156,10 +159,13 @@
 -define(BAD_SOURCE2, "</stream>").
 
 start_stop_test_() ->
-    ?_assertMatch(ok, exmpp_xml:stop_parser(exmpp_xml:start_parser())).
+    Tests = [
+      ?_assertMatch(ok, exmpp_xml:stop_parser(exmpp_xml:start_parser()))
+    ],
+    {setup, ?SETUP, ?CLEANUP, Tests}.
 
 unknown_options_test_() ->
-    [
+    Tests = [
       ?_assertThrow(
         {xml_parser, options, invalid, _Infos},
         exmpp_xml:start_parser([bad_option])
@@ -168,28 +174,26 @@ unknown_options_test_() ->
         {xml_parser, options, invalid, _Infos},
         exmpp_xml:parse_document("", [bad_option])
       )
-    ].
+    ],
+    {setup, ?SETUP, ?CLEANUP, Tests}.
 
 options_test_() ->
-    [
-      ?_assertMatch(
-        ?TREE1_NO_NS,
-        exmpp_xml:parse_document(?SOURCE1)
-      ),
+    Tests = [
       ?_assertMatch(
         ?TREE1_NO_NS,
         exmpp_xml:parse_document(?SOURCE1,
-          [{namespace, false}])
+          [{namespace, false}, {name_as_atom, false}])
       ),
       ?_assertMatch(
         ?TREE1_NO_NS_ATOM,
         exmpp_xml:parse_document(?SOURCE1,
-          [name_as_atom, {names_check, false}, {attrs_check, false}])
+          [{namespace, false}, {name_as_atom, true},
+            {names_check, false}, {attrs_check, false}])
       ),
       ?_assertMatch(
         ?TREE1_NS,
         exmpp_xml:parse_document(?SOURCE1,
-          [namespace, {ns_check, false}])
+          [namespace, {name_as_atom, false}, {ns_check, false}])
       ),
       ?_assertMatch(
         ?TREE1_NS_ATOM,
@@ -200,7 +204,7 @@ options_test_() ->
       ?_assertMatch(
         ?TREE2_NS_CHECK,
         exmpp_xml:parse_document(?SOURCE2,
-          [namespace, ns_check])
+          [{name_as_atom, false}, ns_check])
       ),
       ?_assertMatch(
         ?TREE3_NS_CHECK,
@@ -215,12 +219,14 @@ options_test_() ->
       ?_assertMatch(
         ?TREE1_NO_NS,
         exmpp_xml:parse_document(?SOURCE1,
-          [{maxsize, length(?SOURCE1)}])
+          [{namespace, false}, {name_as_atom, false},
+            {maxsize, length(?SOURCE1)}])
       ),
       ?_assertMatch(
         ?TREE1_NO_NS,
         exmpp_xml:parse_document(?SOURCE1,
-          [{maxsize, infinity}])
+          [{namespace, false}, {name_as_atom, false},
+            {maxsize, infinity}])
       ),
       ?_assertThrow(
         {xml_parser, parsing, stanza_too_big, undefined},
@@ -230,28 +236,39 @@ options_test_() ->
       ?_assertMatch(
         ?TREE1_ROOT_DEPTH,
         exmpp_xml:parse_document(?SOURCE1,
-          [{root_depth, 1}])
+          [{namespace, false}, {name_as_atom, false}, {root_depth, 1}])
       ),
       ?_assertMatch(
         ?TREE1_NS_ROOT_DEPTH,
         exmpp_xml:parse_document(?SOURCE1,
-          [namespace, {root_depth, 1}, {ns_check, false}])
+          [namespace, {name_as_atom, false},
+            {root_depth, 1}, {ns_check, false}])
       ),
       ?_assertMatch(
         ?TREE1_END_EL,
         exmpp_xml:parse_document(?SOURCE1,
-          [{root_depth, 1}, endtag])
+          [{namespace, false}, {name_as_atom, false},
+            {root_depth, 1}, endtag])
       ),
       ?_assertMatch(
         ?TREE1_NS_END_EL,
         exmpp_xml:parse_document(?SOURCE1,
-          [namespace, {root_depth, 1}, endtag, {ns_check, false}])
+          [namespace, {name_as_atom, false},
+            {root_depth, 1}, endtag, {ns_check, false}])
       )
-    ].
+    ],
+    {setup, ?SETUP, ?CLEANUP, Tests}.
 
 chunk_by_chunk_test_() ->
-    Setup = fun() -> exmpp_xml:start_parser() end,
-    Cleanup = fun(P) -> exmpp_xml:stop_parser(P) end,
+    Setup = fun() ->
+        exmpp:start(),
+        error_logger:tty(false),
+        exmpp_xml:start_parser([{namespace, false}, {name_as_atom, false}])
+    end,
+    Cleanup = fun(P) ->
+        exmpp_xml:stop_parser(P),
+        application:stop(exmpp)
+    end,
     Inst = {with, [
         fun(P) ->
             ?assertMatch(?CHUNK1_TREE, exmpp_xml:parse(P, ?CHUNK1))
@@ -266,8 +283,15 @@ chunk_by_chunk_test_() ->
     {setup, Setup, Cleanup, Inst}.
 
 bad_xml_test_() ->
-    Setup = fun() -> exmpp_xml:start_parser() end,
-    Cleanup = fun(P) -> exmpp_xml:stop_parser(P) end,
+    Setup = fun() ->
+        exmpp:start(),
+        error_logger:tty(false),
+        exmpp_xml:start_parser()
+    end,
+    Cleanup = fun(P) ->
+        exmpp_xml:stop_parser(P),
+        application:stop(exmpp)
+    end,
     Inst = {with, [
         fun(P) ->
             ?assertThrow(

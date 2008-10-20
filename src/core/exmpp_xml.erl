@@ -24,6 +24,8 @@
 -module(exmpp_xml).
 -vsn('$Revision$').
 
+-behaviour(gen_server).
+
 -include("exmpp.hrl").
 
 % Deprecated functions list.
@@ -31,6 +33,21 @@
 -deprecated({get_element_by_name, 3, next_major_release}).
 -deprecated({get_elements_by_name, 2, next_major_release}).
 -deprecated({get_elements_by_name, 3, next_major_release}).
+
+% Initialization.
+-export([
+  start/0,
+  start_link/0
+]).
+
+% Registry handling.
+-export([
+  register_engine/2,
+  register_engine/3,
+  get_engine_names/0,
+  is_engine_available/1,
+  get_engine_driver/1
+]).
 
 % Parser.
 -export([
@@ -174,22 +191,48 @@
   internal_escaping_function_name/0
 ]).
 
--define(DRIVER_NAME, exmpp_xml_expat).
+% gen_server(3erl) callbacks.
+-export([
+  init/1,
+  handle_call/3,
+  handle_cast/2,
+  handle_info/2,
+  terminate/2,
+  code_change/3
+]).
 
--define(EXPAT_SET_NSPARSER,     1).
--define(EXPAT_SET_NAMEASATOM,   2).
--define(EXPAT_SET_CHECK_NS,     3).
--define(EXPAT_SET_CHECK_NAMES,  4).
--define(EXPAT_SET_CHECK_ATTRS,  5).
--define(EXPAT_SET_MAXSIZE,      6).
--define(EXPAT_SET_ROOTDEPTH,    7).
--define(EXPAT_SET_ENDTAG,       8).
--define(EXPAT_ADD_KNOWN_NS,     9).
--define(EXPAT_ADD_KNOWN_NAME,  10).
--define(EXPAT_ADD_KNOWN_ATTR,  11).
--define(EXPAT_PARSE,           12).
--define(EXPAT_PARSE_FINAL,     13).
--define(EXPAT_SVN_REVISION,    14).
+-record(state, {
+  engines
+}).
+
+-record(xml_engine, {
+  name,
+  driver_path,
+  driver
+}).
+
+-record(xml_parser, {
+  options = [],
+  port
+}).
+
+-define(SERVER, ?MODULE).
+-define(DEFAULT_ENGINE, expat).
+
+-define(COMMAND_SET_NSPARSER,     1).
+-define(COMMAND_SET_NAMEASATOM,   2).
+-define(COMMAND_SET_CHECK_NS,     3).
+-define(COMMAND_SET_CHECK_NAMES,  4).
+-define(COMMAND_SET_CHECK_ATTRS,  5).
+-define(COMMAND_SET_MAXSIZE,      6).
+-define(COMMAND_SET_ROOTDEPTH,    7).
+-define(COMMAND_SET_ENDTAG,       8).
+-define(COMMAND_ADD_KNOWN_NS,     9).
+-define(COMMAND_ADD_KNOWN_NAME,  10).
+-define(COMMAND_ADD_KNOWN_ATTR,  11).
+-define(COMMAND_PARSE,           12).
+-define(COMMAND_PARSE_FINAL,     13).
+-define(COMMAND_SVN_REVISION,    14).
 
 -define(DEFAULT_PARSER_OPTIONS, [
   {namespace, true},
@@ -214,10 +257,109 @@
   {?NS_XML, ?NS_XML_pfx}
 ]).
 
--record(xml_parser, {
-  options = [],
-  port
-}).
+% --------------------------------------------------------------------
+% Initialization.
+% --------------------------------------------------------------------
+
+%% @hidden
+
+start() ->
+    Ret = gen_server:start({local, ?SERVER}, ?MODULE, [], []),
+    register_builtin_engines(),
+    Ret.
+
+%% @hidden
+
+start_link() ->
+    Ret = gen_server:start_link({local, ?SERVER}, ?MODULE, [], []),
+    register_builtin_engines(),
+    Ret.
+
+-ifdef(HAVE_EXPAT).
+-define(REGISTER_EXPAT,
+  register_builtin_engine(expat, exmpp_xml_expat)).
+-else.
+-define(REGISTER_EXPAT, ok).
+-endif.
+
+-ifdef(HAVE_LIBXML2).
+-define(REGISTER_LIBXML2,
+  register_builtin_engine(libxml2, exmpp_xml_libxml2)).
+-else.
+-define(REGISTER_LIBXML2, ok).
+-endif.
+
+register_builtin_engines() ->
+    ?REGISTER_EXPAT,
+    ?REGISTER_LIBXML2,
+    ok.
+
+register_builtin_engine(Name, Driver) ->
+    try
+        register_engine(Name, Driver)
+    catch
+        throw:{port_driver, load, Reason, Driver_Name} ->
+            error_logger:warning_msg("Failed to load driver \"~s\": ~s~n",
+              [Driver_Name, erl_ddll:format_error(Reason)])
+    end.
+
+% --------------------------------------------------------------------
+% Registry handling.
+% --------------------------------------------------------------------
+
+%% @spec (Name, Driver) -> ok
+%%     Name = atom()
+%%     Driver = atom()
+%% @doc Add a new XML engine.
+
+register_engine(Name, Driver) ->
+    register_engine(Name, undefined, Driver).
+
+%% @spec (Name, Driver_Path, Driver) -> ok
+%%     Name = atom()
+%%     Driver_Path = string()
+%%     Driver = atom()
+%% @doc Add a new XML engine.
+
+register_engine(Name, Driver_Path, Driver)
+  when is_atom(Name) ->
+    Engine = #xml_engine{
+      name = Name,
+      driver_path = Driver_Path,
+      driver = Driver
+    },
+    case gen_server:call(?SERVER, {register_engine, Engine}) of
+        ok                 -> ok;
+        {error, Exception} -> throw(Exception)
+    end.
+
+%% @spec () -> [Engine_Name]
+%%     Engine_Name = atom()
+%% @doc Return the list of XML engines.
+
+get_engine_names() ->
+    gen_server:call(?SERVER, get_engine_names).
+
+%% @spec (Engine_Name) -> bool()
+%%     Engine_Name = atom()
+%% @doc Tell if `Engine_Name' is available.
+
+is_engine_available(Engine_Name) ->
+    case gen_server:call(?SERVER, {get_engine, Engine_Name}) of
+        undefined -> false;
+        _         -> true
+    end.
+
+%% @spec (Engine_Name) -> Driver_Name
+%%     Engine_Name = atom()
+%%     Driver_Name = atom()
+%% @doc Return the port driver name associated to the given engine.
+
+get_engine_driver(Engine_Name) ->
+    case gen_server:call(?SERVER, {get_engine, Engine_Name}) of
+        undefined                         -> undefined;
+        #xml_engine{driver = Driver_Name} -> Driver_Name
+    end.
 
 % --------------------------------------------------------------------
 % Parsing functions (interface to the Expat port driver).
@@ -229,7 +371,7 @@
 %%
 %% Default options are:
 %% ```
-%% [no_namespace, {name_as_atom, false}, {endtag, false}, {root_depth, 0}, {maxsize, infinity}]
+%% [namespace, name_as_atom, {endtag, false}, {root_depth, 0}, {maxsize, infinity}]
 %% '''
 %%
 %% Activating namespace support enables `ns_check'. Activating
@@ -260,26 +402,19 @@ start_parser() ->
 %% '''
 
 start_parser(Options) ->
-    try
-        % First, load the driver and open a port.
-        exmpp_internals:load_driver(?DRIVER_NAME),
-        Port = exmpp_internals:open_port(?DRIVER_NAME),
+    % Start a port driver instance.
+    Driver_Name = get_engine_from_options(Options),
+    Port = exmpp_internals:open_port(Driver_Name),
 
+    % Initialize port.
+    try
         % Check options.
-        try
-            Parser = #xml_parser{port = Port},
-            New_Options = merge_options(?DEFAULT_PARSER_OPTIONS, Options),
-            reset_parser2(Parser, New_Options)
-        catch
-            throw:Exception1 ->
-                exmpp_internals:close_port(Port),
-                throw(Exception1)
-        end
+        Parser = #xml_parser{port = Port},
+        New_Options = merge_options(?DEFAULT_PARSER_OPTIONS, Options),
+        reset_parser2(Parser, New_Options)
     catch
-        throw:{port_driver, load, _, _} = Exception ->
-            throw(Exception);
-        throw:Exception ->
-            exmpp_internals:unload_driver(?DRIVER_NAME),
+        _:Exception ->
+            exmpp_internals:close_port(Port),
             throw(Exception)
     end.
 
@@ -324,7 +459,6 @@ reset_parser2(Parser, Options) ->
 stop_parser(#xml_parser{port = Port} = _Parser) ->
     unlink(Port),
     exmpp_internals:close_port(Port),
-    exmpp_internals:unload_driver(?DRIVER_NAME),
     ok.
 
 %% @spec (Parser, NS_List) -> ok
@@ -345,7 +479,7 @@ add_known_nss(_Parser, []) ->
 add_known_ns(Parser, NS) when is_atom(NS) ->
     add_known_ns(Parser, atom_to_list(NS));
 add_known_ns(#xml_parser{port = Port} = _Parser, NS) when is_list(NS) ->
-    binary_to_term(port_control(Port, ?EXPAT_ADD_KNOWN_NS,
+    binary_to_term(port_control(Port, ?COMMAND_ADD_KNOWN_NS,
       term_to_binary(NS))).
 
 %% @spec (Parser, Names_List) -> ok
@@ -366,7 +500,7 @@ add_known_names(_Parser, []) ->
 add_known_name(Parser, Name) when is_atom(Name) ->
     add_known_name(Parser, atom_to_list(Name));
 add_known_name(#xml_parser{port = Port} = _Parser, Name) when is_list(Name) ->
-    binary_to_term(port_control(Port, ?EXPAT_ADD_KNOWN_NAME,
+    binary_to_term(port_control(Port, ?COMMAND_ADD_KNOWN_NAME,
       term_to_binary(Name))).
 
 %% @spec (Parser, Attrs_List) -> ok
@@ -387,7 +521,7 @@ add_known_attrs(_Parser, []) ->
 add_known_attr(Parser, Attr) when is_atom(Attr) ->
     add_known_attr(Parser, atom_to_list(Attr));
 add_known_attr(#xml_parser{port = Port} = _Parser, Attr) when is_list(Attr) ->
-    binary_to_term(port_control(Port, ?EXPAT_ADD_KNOWN_ATTR,
+    binary_to_term(port_control(Port, ?COMMAND_ADD_KNOWN_ATTR,
       term_to_binary(Attr))).
 
 %% @spec (Parser) -> ok
@@ -494,7 +628,7 @@ parse(Parser, Data) when is_list(Data) ->
     parse(Parser, list_to_binary(Data));
 
 parse(#xml_parser{port = Port} = _Parser, Data) when is_binary(Data) ->
-    case binary_to_term(port_control(Port, ?EXPAT_PARSE, Data)) of
+    case binary_to_term(port_control(Port, ?COMMAND_PARSE, Data)) of
         {ok, Result} ->
             Result;
         {error, Reason} ->
@@ -522,7 +656,7 @@ parse_final(Parser, Data) when is_list(Data) ->
     parse_final(Parser, list_to_binary(Data));
 
 parse_final(#xml_parser{port = Port} = _Parser, Data) when is_binary(Data) ->
-    case binary_to_term(port_control(Port, ?EXPAT_PARSE_FINAL, Data)) of
+    case binary_to_term(port_control(Port, ?COMMAND_PARSE_FINAL, Data)) of
         {ok, Result} ->
             Result;
         {error, Reason} ->
@@ -619,7 +753,7 @@ parse_document_fragment(Fragment, Parser_Options) ->
 
 port_revision(#xml_parser{port = Port} = _Parser) ->
     {ok, Result} = binary_to_term(port_control(Port,
-        ?EXPAT_SVN_REVISION, <<>>)),
+        ?COMMAND_SVN_REVISION, <<>>)),
     Result.
 
 % --------------------------------------------------------------------
@@ -680,7 +814,7 @@ as_atom(V) when is_list(V) -> list_to_atom(V).
 % This is similar to the DOM interface but NOT compliant.
 % --------------------------------------------------------------------
 
-%% @spec (Attr, Name) -> boolean()
+%% @spec (Attr, Name) -> bool()
 %%     Attr = xmlnsattribute() | xmlattribute()
 %%     Name = atom() | string()
 %% @doc Tell if `Attr' is named `Name'.
@@ -709,7 +843,7 @@ attribute_matches({Name, _Value}, Name_A)
 attribute_matches(_Attr, _Name) ->
     false.
 
-%% @spec (Attr, NS, Name) -> boolean()
+%% @spec (Attr, NS, Name) -> bool()
 %%     Attr = xmlnsattribute()
 %%     NS = atom() | string()
 %%     Name = atom() | string()
@@ -1285,7 +1419,7 @@ get_name_as_atom(#xmlel{name = Name}) ->
 get_name_as_atom(#xmlelement{name = Name}) ->
     as_atom(Name).
 
-%% @spec (XML_Element, Name) -> boolean()
+%% @spec (XML_Element, Name) -> bool()
 %%     XML_Element = xmlel() | xmlelement() | undefined
 %%     Name = atom() | string()
 %% @doc Tell if `XML_Element' is named `Name'.
@@ -1314,7 +1448,7 @@ element_matches(#xmlelement{name = Name}, Name_A)
 element_matches(_XML_Element, _Name) ->
     false.
 
-%% @spec (XML_Element, NS, Name) -> boolean()
+%% @spec (XML_Element, NS, Name) -> bool()
 %%     XML_Element = xmlel() | xmlelement() | undefined
 %%     NS = atom() | string()
 %%     Name = atom() | string()
@@ -1349,7 +1483,7 @@ element_matches(#xmlel{ns = NS, name = Name}, NS, Name_A)
 element_matches(_XML_Element, _NS, _Name) ->
     false.
 
-%% @spec (XML_Element, NS) -> boolean()
+%% @spec (XML_Element, NS) -> bool()
 %%     XML_Element = xmlel() | xmlelement() | undefined
 %%     NS = atom() | string()
 %% @doc Tell if `XML_Element' has the namespace `NS'.
@@ -1912,7 +2046,7 @@ set_children(#xmlelement{} = XML_Element, New_Children) ->
 %%
 %% `Pred' has the following prototype:
 %% ```
-%% fun(XML_Element, Child) -> boolean()
+%% fun(XML_Element, Child) -> bool()
 %% '''
 %%
 %% If `children' is `undefined', the function isn't called.
@@ -3329,6 +3463,30 @@ internal_escaping_function_name() ->
 % Utilities.
 % --------------------------------------------------------------------
 
+% Choose the most appropriate engine.
+get_engine_from_options(Options) ->
+    Engine_Name = case proplists:get_value(engine, Options) of
+        undefined ->
+            case get_engine_names() of
+                [] ->
+                    throw({xml_parser, options, no_engine_available,
+                        undefined});
+                [Name | _] = Names ->
+                    case lists:member(?DEFAULT_ENGINE, Names) of
+                        true  -> ?DEFAULT_ENGINE;
+                        false -> Name
+                    end
+            end;
+        Name ->
+            case is_engine_available(Name) of
+                true ->
+                    Name;
+                false ->
+                    throw({xml_parser, options, engine_unavailable, Name})
+            end
+    end,
+    get_engine_driver(Engine_Name).
+
 % Merge options to avoid duplicates and multiple initialization of the
 % parser.
 merge_options(Options, [{Key, _} = Option | Rest]) ->
@@ -3355,45 +3513,48 @@ handle_options(_Parser, [Invalid_Option | _Rest]) ->
 handle_options(Parser, []) ->
     Parser.
 
+set_option(_Port, {engine, Engine_Name}) when is_atom(Engine_Name) ->
+    ok;
+
 set_option(Port, {namespace, NS}) when is_boolean(NS) ->
-    Ret = port_control(Port, ?EXPAT_SET_NSPARSER, term_to_binary(NS)),
+    Ret = port_control(Port, ?COMMAND_SET_NSPARSER, term_to_binary(NS)),
     case binary_to_term(Ret) of
         ok              -> ok;
         {error, Reason} -> {error, init, Reason}
     end;
 
 set_option(Port, {name_as_atom, As_Atom}) when is_boolean(As_Atom) ->
-    port_control(Port, ?EXPAT_SET_NAMEASATOM, term_to_binary(As_Atom)),
+    port_control(Port, ?COMMAND_SET_NAMEASATOM, term_to_binary(As_Atom)),
     ok;
 
 set_option(Port, {ns_check, Check}) when is_boolean(Check) ->
-    port_control(Port, ?EXPAT_SET_CHECK_NS, term_to_binary(Check)),
+    port_control(Port, ?COMMAND_SET_CHECK_NS, term_to_binary(Check)),
     ok;
 
 set_option(Port, {names_check, Check}) when is_boolean(Check) ->
-    port_control(Port, ?EXPAT_SET_CHECK_NAMES, term_to_binary(Check)),
+    port_control(Port, ?COMMAND_SET_CHECK_NAMES, term_to_binary(Check)),
     ok;
 
 set_option(Port, {attrs_check, Check}) when is_boolean(Check) ->
-    port_control(Port, ?EXPAT_SET_CHECK_ATTRS, term_to_binary(Check)),
+    port_control(Port, ?COMMAND_SET_CHECK_ATTRS, term_to_binary(Check)),
     ok;
 
 set_option(Port, {maxsize, infinity}) ->
-    port_control(Port, ?EXPAT_SET_MAXSIZE, term_to_binary(-1)),
+    port_control(Port, ?COMMAND_SET_MAXSIZE, term_to_binary(-1)),
     ok;
 set_option(Port, {maxsize, Max}) when is_integer(Max), Max >= 0 ->
-    port_control(Port, ?EXPAT_SET_MAXSIZE, term_to_binary(Max)),
+    port_control(Port, ?COMMAND_SET_MAXSIZE, term_to_binary(Max)),
     ok;
 
 set_option(Port, {root_depth, none}) ->
-    port_control(Port, ?EXPAT_SET_ROOTDEPTH, term_to_binary(-1)),
+    port_control(Port, ?COMMAND_SET_ROOTDEPTH, term_to_binary(-1)),
     ok;
 set_option(Port, {root_depth, Depth}) when is_integer(Depth), Depth >= 0 ->
-    port_control(Port, ?EXPAT_SET_ROOTDEPTH, term_to_binary(Depth)),
+    port_control(Port, ?COMMAND_SET_ROOTDEPTH, term_to_binary(Depth)),
     ok;
 
 set_option(Port, {endtag, Endtag}) when is_boolean(Endtag) ->
-    port_control(Port, ?EXPAT_SET_ENDTAG, term_to_binary(Endtag)),
+    port_control(Port, ?COMMAND_SET_ENDTAG, term_to_binary(Endtag)),
     ok;
 
 set_option(_Port, {autoload_known, Autoload}) when is_boolean(Autoload) ->
@@ -3403,6 +3564,83 @@ set_option(_Port, Invalid_Option) ->
     {error, invalid, Invalid_Option}.
 
 % --------------------------------------------------------------------
+% gen_server(3erl) callbacks.
+% --------------------------------------------------------------------
+
+%% @hidden
+
+init([]) ->
+    Engines = dict:new(),
+    {ok, #state{engines = Engines}}.
+
+%% @hidden
+
+handle_call({register_engine,
+  #xml_engine{name = Name,
+    driver_path = Driver_Path, driver = Driver_Name} = Engine},
+  _From,
+  #state{engines = Engines} = State) ->
+    try
+        % Load the driver now.
+        case Driver_Path of
+            undefined ->
+                exmpp_internals:load_driver(Driver_Name);
+            _ ->
+                exmpp_internals:load_driver(Driver_Name, [Driver_Path])
+        end,
+        % Add engine to the global list.
+        New_Engines = dict:store(Name, Engine, Engines),
+        {reply, ok, State#state{
+          engines = New_Engines
+        }}
+    catch
+        _:Exception ->
+            {reply, {error, Exception}, State}
+    end;
+
+handle_call(get_engine_names, _From,
+  #state{engines = Engines} = State) ->
+    {reply, dict:fetch_keys(Engines), State};
+
+handle_call({get_engine, Engine_Name}, _From,
+  #state{engines = Engines} = State) ->
+    case dict:is_key(Engine_Name, Engines) of
+        true  -> {reply, dict:fetch(Engine_Name, Engines), State};
+        false -> {reply, undefined, State}
+    end;
+
+handle_call(Request, From, State) ->
+    error_logger:info_msg("~p:handle_call/3:~n- Request: ~p~n- From: ~p~n"
+      "- State: ~p~n", [?MODULE, Request, From, State]),
+    {reply, ok, State}.
+
+%% @hidden
+
+handle_cast(Request, State) ->
+    error_logger:info_msg("~p:handle_cast/2:~n- Request: ~p~n"
+      "- State: ~p~n", [?MODULE, Request, State]),
+    {noreply, State}.
+
+%% @hidden
+
+handle_info(Info, State) ->
+    error_logger:info_msg("~p:handle_info/2:~n- Info: ~p~n"
+      "- State: ~p~n", [?MODULE, Info, State]),
+    {noreply, State}.
+
+%% @hidden
+
+code_change(Old_Vsn, State, Extra) ->
+    error_logger:info_msg("~p:code_change/3:~n- Old_Vsn: ~p~n- Extra: ~p~n"
+      "- State: ~p~n", [?MODULE, Old_Vsn, Extra, State]),
+    {ok, State}.
+
+%% @hidden
+
+terminate(_Reason, _State) ->
+    ok.
+
+% --------------------------------------------------------------------
 % Documentation / type definitions.
 % --------------------------------------------------------------------
 
@@ -3410,19 +3648,24 @@ set_option(_Port, Invalid_Option) ->
 %% Handler for the Expat parser, initialized with a call to {@link
 %% start_parser/0}.
 
-%% @type xmlparseroption() = Namespace_Option | Names_Format | Checks | Stanza_Max_Size | Root_Depth | Send_End_Element | Autoload_Known
-%%     Namespace_Option = {namespace, boolean()}
-%%     Name_Format = {name_as_atom, boolean()}
+%% @type xmlparseroption() = Engine | Namespace_Option | Names_Format | Checks | Stanza_Max_Size | Root_Depth | Send_End_Element | Autoload_Known
+%%     Engine = {engine, atom()}
+%%     Namespace_Option = {namespace, bool()}
+%%     Name_Format = {name_as_atom, bool()}
 %%     Checks = NS_Check | Names_Check | Attrs_Check
-%%       NS_Check = {ns_check, boolean()}
-%%       Names_Check = {names_check, boolean()}
-%%       Attrs_Check = {attrs_check, boolean()}
+%%       NS_Check = {ns_check, bool()}
+%%       Names_Check = {names_check, bool()}
+%%       Attrs_Check = {attrs_check, bool()}
 %%     Stanza_Max_Size  = {maxsize, infinity} | {maxsize, Size}
 %%     Root_Depth = {root_depth, none} | {root_depth, Depth}
-%%     Send_End_Element = {endtag, boolean()}
-%%     Autoload_Known = {autoload_known, boolean()}.
-%% Options of the form `{Key, boolean()}' can be specified as `Key'. See
+%%     Send_End_Element = {endtag, bool()}
+%%     Autoload_Known = {autoload_known, bool()}.
+%% Options of the form `{Key, bool()}' can be specified as `Key'. See
 %% {@link proplists}.
+%%
+%% <br/>br/>
+%% The `engine' option allows one to choose the engine to use. Available
+%% engines list can be retrived with {@link get_engine_names/0}.
 %%
 %% <br/><br/>
 %% The `namespace' option enables or disables the support for namespaces
