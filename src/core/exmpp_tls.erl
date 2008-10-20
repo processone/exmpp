@@ -80,8 +80,7 @@
 -record(tls_socket, {
   socket,
   packet_mode = binary,
-  port,
-  driver
+  port
 }).
 
 -define(SERVER, ?MODULE).
@@ -124,14 +123,16 @@ start_link() ->
 
 -ifdef(HAVE_OPENSSL).
 -define(REGISTER_OPENSSL,
-  register_engine(openssl, exmpp_tls_openssl, [{x509, 10}])).
+  register_builtin_engine(openssl, exmpp_tls_openssl,
+    [{x509, 10}])).
 -else.
 -define(REGISTER_OPENSSL, ok).
 -endif.
 
 -ifdef(HAVE_GNUTLS).
 -define(REGISTER_GNUTLS,
-  register_engine(gnutls, exmpp_tls_gnutls, [{x509, 20}, {openpgp, 10}])).
+  register_builtin_engine(gnutls, exmpp_tls_gnutls,
+    [{x509, 20}, {openpgp, 10}])).
 -else.
 -define(REGISTER_GNUTLS, ok).
 -endif.
@@ -140,6 +141,15 @@ register_builtin_engines() ->
     ?REGISTER_OPENSSL,
     ?REGISTER_GNUTLS,
     ok.
+
+register_builtin_engine(Name, Driver, Auth_Methods) ->
+    try
+        register_engine(Name, Driver, Auth_Methods)
+    catch
+        throw:{port_driver, load, Reason, Driver_Name} ->
+            error_logger:warning_msg("Failed to load driver \"~s\": ~s~n",
+              [Driver_Name, erl_ddll:format_error(Reason)])
+    end.
 
 % --------------------------------------------------------------------
 % Registry handling.
@@ -171,7 +181,10 @@ register_engine(Name, Driver_Path, Driver, Auth_Methods)
       driver = Driver,
       auth_methods = Auth_Methods
     },
-    gen_server:cast(?SERVER, {register_engine, Engine}).
+    case gen_server:call(?SERVER, {register_engine, Engine}) of
+        ok                 -> ok;
+        {error, Exception} -> throw(Exception)
+    end.
 
 %% @spec () -> [Auth_Method]
 %%     Auth_Method = atom()
@@ -263,7 +276,7 @@ connect(Socket_Desc, Identity, Peer_Verification, Options) ->
 %%     Peer_Verification = boolean() | Peer_Name
 %%     Peer_Name = string()
 %%     Options = [Option]
-%%     Option = {engine, Engine} | {mode, Mode} | {trusted_certs, Auth_Method, Certs} | peer_cert_required | accept_expired_cert | accept_revoked_cert | accept_non_trusted_cert | accept_corrupted_cert
+%%     Option = {engine, Engine} | {mode, Mode} | {trusted_certs, {Auth_Method, Certs}} | peer_cert_required | accept_expired_cert | accept_revoked_cert | accept_non_trusted_cert | accept_corrupted_cert
 %%     Engine = atom()
 %%     Mode = binary | list
 %%     TLS_Socket = tls_socket()
@@ -292,13 +305,7 @@ handshake(Mode, Socket_Desc, Identity, Peer_Verification, Options,
 
     % Start a port driver instance.
     Driver_Name = get_engine_from_args(Identity, Peer_Verification, Options),
-    Port = try
-        exmpp_internals:open_port(Driver_Name)
-    catch
-        Exception1 ->
-            exmpp_internals:unload_driver(Driver_Name),
-            throw(Exception1)
-    end,
+    Port = exmpp_internals:open_port(Driver_Name),
 
     % Initialize the port and handshake.
     try
@@ -312,23 +319,23 @@ handshake(Mode, Socket_Desc, Identity, Peer_Verification, Options,
         engine_set_peer_verification(Port, Peer_Verification),
 
         % Packet mode.
-        Packet_Mode = get_packet_mode_from_options(Options),
+        Packet_Mode = proplists:get_value(mode, Options, binary),
 
         % Set trusted certificates.
         engine_set_trusted_certs(Port,
-          get_trusted_certs_from_options(Options)),
+          proplists:get_value(trusted_certs, Options)),
 
         % Set flags.
         engine_set_options(Port, peer_cert_required,
-          is_flag_set(Options, peer_cert_required)),
+          proplists:get_bool(peer_cert_required, Options)),
         engine_set_options(Port, accept_expired_cert,
-          is_flag_set(Options, accept_expired_cert)),
+          proplists:get_bool(accept_expired_cert, Options)),
         engine_set_options(Port, accept_non_trusted_cert,
-          is_flag_set(Options, accept_non_trusted_cert)),
+          proplists:get_bool(accept_non_trusted_cert, Options)),
         engine_set_options(Port, accept_revoked_cert,
-          is_flag_set(Options, accept_revoked_cert)),
+          proplists:get_bool(accept_revoked_cert, Options)),
         engine_set_options(Port, accept_corrupted_cert,
-          is_flag_set(Options, accept_corrupted_cert)),
+          proplists:get_bool(accept_corrupted_cert, Options)),
 
         % Before anything use of the socket, we must disable the 'active'
         % mode. Otherwise, we can't receive any data.
@@ -341,13 +348,12 @@ handshake(Mode, Socket_Desc, Identity, Peer_Verification, Options,
         % We can now restore the 'active' mode.
         exmpp_internals:gen_setopts(Socket_Desc, [{active, Is_Active}]),
 
-        TLS_Socket#tls_socket{packet_mode = Packet_Mode, driver = Driver_Name}
+        TLS_Socket#tls_socket{packet_mode = Packet_Mode}
     catch
-        Exception2 ->
+        _:Exception ->
             exmpp_internals:close_port(Port),
-            exmpp_internals:unload_driver(Driver_Name),
             exmpp_internals:gen_setopts(Socket_Desc, [{active, Is_Active}]),
-            throw(Exception2)
+            throw(Exception)
     end.
 
 handshake2(client = Mode, Socket_Desc, Port, Recv_Timeout) ->
@@ -472,8 +478,8 @@ shutdown(TLS_Socket, Mode) ->
 %%
 %% The underlying socket is NOT closed by this function.
 
-shutdown(#tls_socket{socket = Socket_Desc, port = Port,
-  driver = Driver_Name} = TLS_Socket, Mode, Timeout) ->
+shutdown(#tls_socket{socket = Socket_Desc, port = Port} = TLS_Socket,
+  Mode, Timeout) ->
     % Start/continue the shutdown process.
     case engine_shutdown(Port) of
         want_read when Mode == bidirectional ->
@@ -488,14 +494,12 @@ shutdown(#tls_socket{socket = Socket_Desc, port = Port,
                     % XXX Should this be treated as an error (the caller
                     % asked for a bidirectional shutdown)?
                     exmpp_internals:close_port(Port),
-                    exmpp_internals:unload_driver(Driver_Name),
                     Socket_Desc;
                 {error, closed} ->
                     % The peer closed the underlying socket.
                     % XXX Should this be treated as an error (the purpose
                     % was not to close the socket)?
                     exmpp_internals:close_port(Port),
-                    exmpp_internals:unload_driver(Driver_Name),
                     Socket_Desc;
                 {error, Reason} ->
                     throw({tls, shutdown, underlying_recv, Reason})
@@ -514,7 +518,6 @@ shutdown(#tls_socket{socket = Socket_Desc, port = Port,
             % The shutdown is complete (or unidirectionnal shutdown was
             % prefered).
             exmpp_internals:close_port(Port),
-            exmpp_internals:unload_driver(Driver_Name),
             Socket_Desc
     end.
 
@@ -525,11 +528,9 @@ shutdown(#tls_socket{socket = Socket_Desc, port = Port,
 %%
 %% The underlying socket is NOT closed.
 
-quiet_shutdown(#tls_socket{socket = Socket_Desc, port = Port,
-  driver = Driver_Name}) ->
+quiet_shutdown(#tls_socket{socket = Socket_Desc, port = Port}) ->
     engine_quiet_shutdown(Port),
     exmpp_internals:close_port(Port),
-    exmpp_internals:unload_driver(Driver_Name),
     Socket_Desc.
 
 % --------------------------------------------------------------------
@@ -537,7 +538,7 @@ quiet_shutdown(#tls_socket{socket = Socket_Desc, port = Port,
 % --------------------------------------------------------------------
 
 get_engine_from_args(Identity, _Peer_Verification, Options) ->
-    Engine_Name = case get_engine_from_options(Options) of
+    case get_engine_from_options(Options) of
         undefined ->
             case get_engine_from_identity(Identity) of
                 undefined ->
@@ -552,14 +553,6 @@ get_engine_from_args(Identity, _Peer_Verification, Options) ->
             end;
         Name ->
             Name
-    end,
-    case get_engine_driver(Engine_Name) of
-        {Driver_Path, Driver_Name} ->
-            exmpp_internals:load_driver(Driver_Name, [Driver_Path]),
-            Driver_Name;
-        Driver_Name ->
-            exmpp_internals:load_driver(Driver_Name),
-            Driver_Name
     end.
 
 get_engine_from_options(Options) ->
@@ -612,23 +605,6 @@ check_peer_verification(Peer_Verif, _Mode) ->
         _ ->
             throw({tls, handshake, invalid_peer_verification, Peer_Verif})
     end.
-
-
-get_packet_mode_from_options(Options) ->
-    case lists:keysearch(mode, 1, Options) of
-        {value, {_, binary}} -> binary;
-        {value, {_, list}}   -> list;
-        _                    -> binary
-    end.
-
-get_trusted_certs_from_options(Options) ->
-    case lists:keysearch(trusted_certs, 1, Options) of
-        {value, {_, AM, Certs}} -> {AM, Certs};
-        _                       -> undefined
-    end.
-
-is_flag_set(Options, Flag) ->
-    lists:member(Flag, Options).
 
 % --------------------------------------------------------------------
 % Common socket API.
@@ -994,6 +970,43 @@ init([]) ->
 
 %% @hidden
 
+handle_call({register_engine,
+  #tls_engine{name = Name, auth_methods = Auth_Methods,
+    driver_path = Driver_Path, driver = Driver_Name} = Engine},
+  _From,
+  #state{engines = Engines, by_auth_method = By_AM} = State) ->
+    try
+        % Load the driver now.
+        case Driver_Path of
+            undefined ->
+                exmpp_internals:load_driver(Driver_Name);
+            _ ->
+                exmpp_internals:load_driver(Driver_Name, [Driver_Path])
+        end,
+        % Add engine to the global list.
+        New_Engines = dict:store(Name, Engine, Engines),
+        % Index engine by its auth methods.
+        Fun = fun({AM, Prio}, {E, AM_Dict}) ->
+            New_AM_Dict = case dict:is_key(AM, AM_Dict) of
+                true ->
+                    L = [{E, Prio} | dict:fetch(AM, AM_Dict)],
+                    New_L = lists:keysort(2, L),
+                    dict:store(AM, New_L, AM_Dict);
+                false ->
+                    dict:store(AM, [{E, Prio}], AM_Dict)
+            end,
+            {E, New_AM_Dict}
+        end,
+        {_, New_By_AM} = lists:foldl(Fun, {Engine, By_AM}, Auth_Methods),
+        {reply, ok, State#state{
+          engines = New_Engines,
+          by_auth_method = New_By_AM
+        }}
+    catch
+        _:Exception ->
+            {reply, {error, Exception}, State}
+    end;
+
 handle_call(get_auth_methods, _From,
   #state{by_auth_method = By_AM} = State) ->
     {reply, dict:fetch_keys(By_AM), State};
@@ -1022,29 +1035,6 @@ handle_call(Request, From, State) ->
     {reply, ok, State}.
 
 %% @hidden
-
-handle_cast({register_engine,
-  #tls_engine{name = Name, auth_methods = Auth_Methods} = Engine},
-  #state{engines = Engines, by_auth_method = By_AM} = State) ->
-    % Add engine to the global list.
-    New_Engines = dict:store(Name, Engine, Engines),
-    % Index engine by its auth methods.
-    Fun = fun({AM, Prio}, {E, AM_Dict}) ->
-        New_AM_Dict = case dict:is_key(AM, AM_Dict) of
-            true ->
-                L = [{E, Prio} | dict:fetch(AM, AM_Dict)],
-                New_L = lists:keysort(2, L),
-                dict:store(AM, New_L, AM_Dict);
-            false ->
-                dict:store(AM, [{E, Prio}], AM_Dict)
-        end,
-        {E, New_AM_Dict}
-    end,
-    {_, New_By_AM} = lists:foldl(Fun, {Engine, By_AM}, Auth_Methods),
-    {noreply, State#state{
-      engines = New_Engines,
-      by_auth_method = New_By_AM
-    }};
 
 handle_cast(Request, State) ->
     error_logger:info_msg("~p:handle_cast/2:~n- Request: ~p~n"

@@ -2,6 +2,11 @@
 
 	* include/exmpp_nss.hrl: Add string version of MUC namespaces.
 
+	* src/core/exmpp_compress.erl, src/core/exmpp_tls.erl: Follow
+	recommandation of erl_ddll regarding driver loading: drivers are
+	loaded only once in a central process. Options are now treated as
+	standard proplists; one option of exmpp_tls has a new format.
+
 2008-10-08  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_jid.erl: Add functions to serialize JIDs using their

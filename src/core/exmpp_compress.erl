@@ -74,8 +74,7 @@
 -record(compress_socket, {
   socket,
   packet_mode = binary,
-  port,
-  driver
+  port
 }).
 
 -define(SERVER, ?MODULE).
@@ -109,7 +108,8 @@ start_link() ->
 
 -ifdef(HAVE_ZLIB).
 -define(REGISTER_ZLIB,
-  register_engine(zlib, exmpp_compress_zlib, [{zlib, 10}, {gzip, 10}])).
+  register_builtin_engine(zlib, exmpp_compress_zlib,
+    [{zlib, 10}, {gzip, 10}])).
 -else.
 -define(REGISTER_ZLIB, ok).
 -endif.
@@ -117,6 +117,15 @@ start_link() ->
 register_builtin_engines() ->
     ?REGISTER_ZLIB,
     ok.
+
+register_builtin_engine(Name, Driver, Compress_Methods) ->
+    try
+        register_engine(Name, Driver, Compress_Methods)
+    catch
+        throw:{port_driver, load, Reason, Driver_Name} ->
+            error_logger:warning_msg("Failed to load driver \"~s\": ~s~n",
+              [Driver_Name, erl_ddll:format_error(Reason)])
+    end.
 
 % --------------------------------------------------------------------
 % Registry handling.
@@ -148,7 +157,10 @@ register_engine(Name, Driver_Path, Driver, Compress_Methods)
       driver = Driver,
       compress_methods = Compress_Methods
     },
-    gen_server:cast(?SERVER, {register_engine, Engine}).
+    case gen_server:call(?SERVER, {register_engine, Engine}) of
+        ok                 -> ok;
+        {error, Exception} -> throw(Exception)
+    end.
 
 %% @spec () -> [Compress_Method]
 %%     Compress_Method = atom()
@@ -231,39 +243,32 @@ get_engine_driver(Engine_Name) ->
 enable_compression(Socket_Desc, Options) ->
     % Start a port driver instance.
     Driver_Name = get_engine_from_options(Options),
-    Port = try
-        exmpp_internals:open_port(Driver_Name)
-    catch
-        Exception1 ->
-            exmpp_internals:unload_driver(Driver_Name),
-            throw(Exception1)
-    end,
+    Port = exmpp_internals:open_port(Driver_Name),
 
     % Initialize the port and handshake.
     try
         % Set compression method.
-        case get_compress_method_from_options(Options) of
+        case proplists:get_value(compress_method, Options) of
             undefined -> ok;
             CM        -> engine_set_compress_method(Port, CM)
         end,
 
         % Set compression level.
-        Level = get_compress_level_from_options(Options),
+        Level = prolists:get_value(compress_level, Options),
         engine_set_compress_level(Port, Level),
 
         % Packet mode.
-        Packet_Mode = get_packet_mode_from_options(Options),
+        Packet_Mode = prolists:get_value(mode, Options, binary),
 
         % Enable compression.
         engine_prepare_compress(Port),
         engine_prepare_uncompress(Port),
         #compress_socket{socket = Socket_Desc, packet_mode = Packet_Mode,
-          port = Port, driver = Driver_Name}
+          port = Port}
     catch
-        Exception2 ->
+        _:Exception ->
             exmpp_internals:close_port(Port),
-            exmpp_internals:unload_driver(Driver_Name),
-            throw(Exception2)
+            throw(Exception)
     end.
 
 %% @spec (Compress_Socket) -> Socket_Desc
@@ -273,10 +278,8 @@ enable_compression(Socket_Desc, Options) ->
 %%     Socket = term()
 %% @doc Disable compression and return the underlying socket.
 
-disable_compression(#compress_socket{socket = Socket_Desc, port = Port,
-  driver = Driver_Name}) ->
+disable_compression(#compress_socket{socket = Socket_Desc, port = Port}) ->
     exmpp_internals:close_port(Port),
-    exmpp_internals:unload_driver(Driver_Name),
     Socket_Desc.
 
 % --------------------------------------------------------------------
@@ -284,7 +287,7 @@ disable_compression(#compress_socket{socket = Socket_Desc, port = Port,
 % --------------------------------------------------------------------
 
 get_engine_from_options(Options) ->
-    Engine_Name = case lists:keysearch(engine, 1, Options) of
+    case lists:keysearch(engine, 1, Options) of
         {value, {_, Engine}} ->
             Engine;
         _ ->
@@ -294,33 +297,6 @@ get_engine_from_options(Options) ->
                 _ ->
                     ?DEFAULT_ENGINE
             end
-    end,
-    case get_engine_driver(Engine_Name) of
-        {Driver_Path, Driver_Name} ->
-            exmpp_internals:load_driver(Driver_Name, [Driver_Path]),
-            Driver_Name;
-        Driver_Name ->
-            exmpp_internals:load_driver(Driver_Name),
-            Driver_Name
-    end.
-
-get_compress_method_from_options(Options) ->
-    case lists:keysearch(compress_method, 1, Options) of
-        {value, {_, CM}} -> CM;
-        _                -> undefined
-    end.
-
-get_compress_level_from_options(Options) ->
-    case lists:keysearch(compress_level, 1, Options) of
-        {value, {_, Level}} when is_integer(Level) -> Level;
-        _                                          -> default
-    end.
-
-get_packet_mode_from_options(Options) ->
-    case lists:keysearch(mode, 1, Options) of
-        {value, {_, binary}} -> binary;
-        {value, {_, list}}   -> list;
-        _                    -> binary
     end.
 
 % --------------------------------------------------------------------
@@ -547,6 +523,43 @@ init([]) ->
 
 %% @hidden
 
+handle_call({register_engine,
+  #compress_engine{name = Name, compress_methods = Compress_Methods,
+    driver_path = Driver_Path, driver = Driver_Name} = Engine},
+  _From,
+  #state{engines = Engines, by_compress_method = By_CM} = State) ->
+    try
+        % Load the driver now.
+        case Driver_Path of
+            undefined ->
+                exmpp_internals:load_driver(Driver_Name);
+            _ ->
+                exmpp_internals:load_driver(Driver_Name, [Driver_Path])
+        end,
+        % Add engine to the global list.
+        New_Engines = dict:store(Name, Engine, Engines),
+        % Index engine by its compress methods.
+        Fun = fun({CM, Prio}, {E, CM_Dict}) ->
+            New_CM_Dict = case dict:is_key(CM, CM_Dict) of
+                true ->
+                    L = [{E, Prio} | dict:fetch(CM, CM_Dict)],
+                    New_L = lists:keysort(2, L),
+                    dict:store(CM, New_L, CM_Dict);
+                false ->
+                    dict:store(CM, [{E, Prio}], CM_Dict)
+            end,
+            {E, New_CM_Dict}
+        end,
+        {_, New_By_CM} = lists:foldl(Fun, {Engine, By_CM}, Compress_Methods),
+        {reply, ok, State#state{
+          engines = New_Engines,
+          by_compress_method = New_By_CM
+        }}
+    catch
+        _:Exception ->
+            {reply, {error, Exception}, State}
+    end;
+
 handle_call(get_compress_methods, _From,
   #state{by_compress_method = By_CM} = State) ->
     {reply, dict:fetch_keys(By_CM), State};
@@ -575,29 +588,6 @@ handle_call(Request, From, State) ->
     {reply, ok, State}.
 
 %% @hidden
-
-handle_cast({register_engine,
-  #compress_engine{name = Name, compress_methods = Compress_Methods} = Engine},
-  #state{engines = Engines, by_compress_method = By_CM} = State) ->
-    % Add engine to the global list.
-    New_Engines = dict:store(Name, Engine, Engines),
-    % Index engine by its compress methods.
-    Fun = fun({CM, Prio}, {E, CM_Dict}) ->
-        New_CM_Dict = case dict:is_key(CM, CM_Dict) of
-            true ->
-                L = [{E, Prio} | dict:fetch(CM, CM_Dict)],
-                New_L = lists:keysort(2, L),
-                dict:store(CM, New_L, CM_Dict);
-            false ->
-                dict:store(CM, [{E, Prio}], CM_Dict)
-        end,
-        {E, New_CM_Dict}
-    end,
-    {_, New_By_CM} = lists:foldl(Fun, {Engine, By_CM}, Compress_Methods),
-    {noreply, State#state{
-      engines = New_Engines,
-      by_compress_method = New_By_CM
-    }};
 
 handle_cast(Request, State) ->
     error_logger:info_msg("~p:handle_cast/2:~n- Request: ~p~n"
