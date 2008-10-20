@@ -30,6 +30,8 @@
 	* src/core/exmpp_xml.erl, c_src/exmpp_xml_expat.c: Rename commands
 	from EXPAT_* to COMMAND_*, now that other port drivers may come in.
 
+	* ebin/exmpp.app.in: Fill the registered processes list.
+
 2008-10-08  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_jid.erl: Add functions to serialize JIDs using their

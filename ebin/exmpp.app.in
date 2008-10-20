@@ -49,7 +49,14 @@
         @COMPAT_MODULES@xml,
         @COMPAT_MODULES@xml_stream
     ]},
-    {registered, []},
+    {registered, [
+        exmpp_sup,
+        exmpp_compress,
+        exmpp_stringprep,
+        exmpp_stringprep_port,
+        exmpp_tls,
+        exmpp_xml
+    ]},
     {applications, [
         kernel,
         stdlib
