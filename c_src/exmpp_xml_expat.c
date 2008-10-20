@@ -48,20 +48,20 @@
 
 /* Control operations. */
 enum {
-	EXPAT_SET_NSPARSER = 1,
-	EXPAT_SET_NAMEASATOM,
-	EXPAT_SET_CHECK_NS,
-	EXPAT_SET_CHECK_NAMES,
-	EXPAT_SET_CHECK_ATTRS,
-	EXPAT_SET_MAXSIZE,
-	EXPAT_SET_ROOTDEPTH,
-	EXPAT_SET_ENDTAG,
-	EXPAT_ADD_KNOWN_NS,
-	EXPAT_ADD_KNOWN_NAME,
-	EXPAT_ADD_KNOWN_ATTR,
-	EXPAT_PARSE,
-	EXPAT_PARSE_FINAL,
-	EXPAT_SVN_REVISION
+	COMMAND_SET_NSPARSER = 1,
+	COMMAND_SET_NAMEASATOM,
+	COMMAND_SET_CHECK_NS,
+	COMMAND_SET_CHECK_NAMES,
+	COMMAND_SET_CHECK_ATTRS,
+	COMMAND_SET_MAXSIZE,
+	COMMAND_SET_ROOTDEPTH,
+	COMMAND_SET_ENDTAG,
+	COMMAND_ADD_KNOWN_NS,
+	COMMAND_ADD_KNOWN_NAME,
+	COMMAND_ADD_KNOWN_ATTR,
+	COMMAND_PARSE,
+	COMMAND_PARSE_FINAL,
+	COMMAND_SVN_REVISION
 };
 
 /* Structure to handle default namespace stack. */
@@ -360,58 +360,58 @@ exmpp_xml_expat_control(ErlDrvData drv_data, unsigned int command,
 	to_send = NULL;
 
 	switch (command) {
-	case EXPAT_SET_MAXSIZE:
+	case COMMAND_SET_MAXSIZE:
 		/* Get the max size value. */
 		SKIP_VERSION(buf);
 		ei_decode_long(buf, &index, &(ed->max_size));
 
 		MAKE_ATOM_OK(to_send);
 		break;
-	case EXPAT_SET_ROOTDEPTH:
+	case COMMAND_SET_ROOTDEPTH:
 		/* Get the root depth value. */
 		SKIP_VERSION(buf);
 		ei_decode_long(buf, &index, &(ed->root_depth));
 
 		MAKE_ATOM_OK(to_send);
 		break;
-	case EXPAT_SET_ENDTAG:
+	case COMMAND_SET_ENDTAG:
 		/* Get the "send end element" flag. */
 		SKIP_VERSION(buf);
 		ei_decode_boolean(buf, &index, &(ed->send_endtag));
 
 		MAKE_ATOM_OK(to_send);
 		break;
-	case EXPAT_SET_NAMEASATOM:
+	case COMMAND_SET_NAMEASATOM:
 		/* Get the "name as atom()" flag. */
 		SKIP_VERSION(buf);
 		ei_decode_boolean(buf, &index, &(ed->name_as_atom));
 
 		MAKE_ATOM_OK(to_send);
 		break;
-	case EXPAT_SET_CHECK_NS:
+	case COMMAND_SET_CHECK_NS:
 		/* Get the "check namespaces" flag. */
 		SKIP_VERSION(buf);
 		ei_decode_boolean(buf, &index, &(ed->check_ns));
 
 		MAKE_ATOM_OK(to_send);
 		break;
-	case EXPAT_SET_CHECK_NAMES:
+	case COMMAND_SET_CHECK_NAMES:
 		/* Get the "check names" flag. */
 		SKIP_VERSION(buf);
 		ei_decode_boolean(buf, &index, &(ed->check_names));
 
 		MAKE_ATOM_OK(to_send);
 		break;
-	case EXPAT_SET_CHECK_ATTRS:
+	case COMMAND_SET_CHECK_ATTRS:
 		/* Get the "check attributes" flag. */
 		SKIP_VERSION(buf);
 		ei_decode_boolean(buf, &index, &(ed->check_attrs));
 
 		MAKE_ATOM_OK(to_send);
 		break;
-	case EXPAT_ADD_KNOWN_NS:
-	case EXPAT_ADD_KNOWN_NAME:
-	case EXPAT_ADD_KNOWN_ATTR:
+	case COMMAND_ADD_KNOWN_NS:
+	case COMMAND_ADD_KNOWN_NAME:
+	case COMMAND_ADD_KNOWN_ATTR:
 		SKIP_VERSION(buf);
 		ei_get_type(buf, &index, &type, &ret);
 
@@ -421,13 +421,13 @@ exmpp_xml_expat_control(ErlDrvData drv_data, unsigned int command,
 		ei_decode_string(buf, &index, known);
 
 		switch (command) {
-		case EXPAT_ADD_KNOWN_NS:
+		case COMMAND_ADD_KNOWN_NS:
 			add_known_ns(ed, known);
 			break;
-		case EXPAT_ADD_KNOWN_NAME:
+		case COMMAND_ADD_KNOWN_NAME:
 			add_known_name(ed, known);
 			break;
-		case EXPAT_ADD_KNOWN_ATTR:
+		case COMMAND_ADD_KNOWN_ATTR:
 			add_known_attr(ed, known);
 			break;
 		}
@@ -437,7 +437,7 @@ exmpp_xml_expat_control(ErlDrvData drv_data, unsigned int command,
 		MAKE_ATOM_OK(to_send);
 
 		break;
-	case EXPAT_SET_NSPARSER:
+	case COMMAND_SET_NSPARSER:
 		/* Get the flag value. */
 		SKIP_VERSION(buf);
 		ei_decode_boolean(buf, &index, &(ed->use_ns_parser));
@@ -499,8 +499,8 @@ exmpp_xml_expat_control(ErlDrvData drv_data, unsigned int command,
 		}
 
 		break;
-	case EXPAT_PARSE:
-	case EXPAT_PARSE_FINAL:
+	case COMMAND_PARSE:
+	case COMMAND_PARSE_FINAL:
 		if (ed->parser == NULL) {
 			to_send = driver_alloc(sizeof(ei_x_buff));
 			if (to_send == NULL)
@@ -532,7 +532,7 @@ exmpp_xml_expat_control(ErlDrvData drv_data, unsigned int command,
 
 		/* Start XML document parsing. */
 		ret = XML_Parse(ed->parser, buf, len,
-		    command == EXPAT_PARSE_FINAL);
+		    command == COMMAND_PARSE_FINAL);
 
 		if (!ret) {
 			/* Initialize the ei_x_buff buffer used to store the
@@ -555,7 +555,7 @@ exmpp_xml_expat_control(ErlDrvData drv_data, unsigned int command,
 		}
 
 		/* Update the size of processed data. */
-		if (command == EXPAT_PARSE_FINAL)
+		if (command == COMMAND_PARSE_FINAL)
 			ed->cur_size = 0;
 		else
 			ed->cur_size += len;
@@ -576,13 +576,13 @@ exmpp_xml_expat_control(ErlDrvData drv_data, unsigned int command,
 				ei_x_encode_tuple_header(to_send, 2);
 				ei_x_encode_atom(to_send, "ok");
 				ei_x_encode_atom(to_send,
-				    command == EXPAT_PARSE ?
+				    command == COMMAND_PARSE ?
 				    "continue" : "done");
 			}
 		}
 
 		break;
-	case EXPAT_SVN_REVISION:
+	case COMMAND_SVN_REVISION:
 		to_send = driver_alloc(sizeof(ei_x_buff));
 		if (to_send == NULL)
 			return (-1);
@@ -620,12 +620,12 @@ exmpp_xml_expat_control(ErlDrvData drv_data, unsigned int command,
 	ei_x_free(to_send);
 	driver_free(to_send);
 
-	if (command == EXPAT_PARSE || command == EXPAT_PARSE_FINAL)
+	if (command == COMMAND_PARSE || command == COMMAND_PARSE_FINAL)
 		ed->complete_trees = NULL;
 
 	/* If necessary, reset the Expat parser. */
 	/* XXX Necessary? */
-	if (command == EXPAT_PARSE_FINAL) {
+	if (command == COMMAND_PARSE_FINAL) {
 		destroy_parser(ed);
 		create_parser(ed);
 	}
