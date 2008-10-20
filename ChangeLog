@@ -7,6 +7,9 @@
 	loaded only once in a central process. Options are now treated as
 	standard proplists; one option of exmpp_tls has a new format.
 
+	* src/core/exmpp_xml.erl: Change default options! Namespace support is
+	enabled and names are returned as atom.
+
 2008-10-08  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_jid.erl: Add functions to serialize JIDs using their

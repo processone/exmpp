@@ -192,8 +192,8 @@
 -define(EXPAT_SVN_REVISION,    14).
 
 -define(DEFAULT_PARSER_OPTIONS, [
-  {namespace, false},
-  {name_as_atom, false},
+  {namespace, true},
+  {name_as_atom, true},
   {ns_check, true},
   {names_check, true},
   {attrs_check, true},
