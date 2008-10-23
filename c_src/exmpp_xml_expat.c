@@ -2,7 +2,6 @@
 
 #include <ei.h>
 #include <erl_driver.h>
-#include <erl_interface.h>
 #include <expat.h>
 #include <string.h>
 

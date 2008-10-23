@@ -3,6 +3,9 @@
 	* c_src/exmpp_xml_expat.c, c_src/Makefile.am, c_src/Makefile.unix:
 	Remove the workaround for an old libei bug with string encoding.
 
+	* c_src/exmpp_xml_expat.c: erl_interface.h is unused; remove the
+	corresponding #include directive.
+
 2008-10-20  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp_nss.hrl: Add string version of MUC namespaces.
