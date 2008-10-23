@@ -59,7 +59,7 @@ xmpp_attrs.h: $(srcdir)/xmpp_attrs.h.awk $(KNOWN_ATTRS_SOURCE)
 	$(AWK) -f $(srcdir)/xmpp_attrs.h.awk $(KNOWN_ATTRS_SOURCE) > $@
 
 exmpp_xml_expat_la_CPPFLAGS = -I$(srcdir)/contrib			\
-			      $(EI_CPPFLAGS) -DEI_ENCODE_STRING_BUG	\
+			      $(EI_CPPFLAGS)				\
 			      $(EXPAT_CPPFLAGS)
 exmpp_xml_expat_la_LDFLAGS = -module -avoid-version			\
 			     $(ERL_DRIVER_LDFLAGS)			\

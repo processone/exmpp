@@ -66,7 +66,7 @@ xmpp_attrs.h: xmpp_attrs.h.awk xmpp_attrs.h.in
 
 # Expat port driver
 exmpp_xml_expat_la_CPPFLAGS = -Icontrib					\
-			      $(EI_CPPFLAGS) -DEI_ENCODE_STRING_BUG	\
+			      $(EI_CPPFLAGS)				\
 			      $(EXPAT_CPPFLAGS)
 exmpp_xml_expat_la_LDFLAGS = $(EI_LDFLAGS) $(EI_LIBS)			\
 			     $(EXPAT_LDFLAGS) $(EXPAT_LIBS)

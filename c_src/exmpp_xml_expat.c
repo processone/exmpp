@@ -142,108 +142,6 @@ const int	KNOWN = 1;
 #define	XML_NS	"http://www.w3.org/XML/1998/namespace"
 
 /* -------------------------------------------------------------------
- * Workaround for EI encode_string bug.
- * ------------------------------------------------------------------- */
-
-#if defined(EI_ENCODE_STRING_BUG)
-
-#define	put8(s, n) do {							\
-	(s)[0] = (char)((n) & 0xff);					\
-	(s) += 1;							\
-} while (0)
-
-#define	put16be(s, n) do {						\
-	(s)[0] = ((n) >>  8) & 0xff;					\
-	(s)[1] = (n) & 0xff;						\
-	(s) += 2;							\
-} while (0)
-
-#define	put32be(s, n) do {						\
-	(s)[0] = ((n) >>  24) & 0xff;					\
-	(s)[1] = ((n) >>  16) & 0xff;					\
-	(s)[2] = ((n) >>  8) & 0xff;					\
-	(s)[3] = (n) & 0xff;						\
-	(s) += 4;							\
-} while (0)
-
-static int
-ei_encode_string_len_fixed(char *buf, int *index, const char *p, int len)
-{
-	int i;
-	char *s, *s0;
-
-	s = buf + *index;
-	s0 = s;
-
-	if (len <= 0xffff) {
-		if (!buf) {
-			s += 3;
-		} else {
-			put8(s, ERL_STRING_EXT);
-			put16be(s, len);
-			memmove(s, p, len); /* Unterminated string. */
-		}
-		s += len;
-	} else {
-		if (!buf) {
-			s += 6 + (2 * len);
-		} else {
-			/* Strings longer than 65535 are encoded as lists. */
-			put8(s, ERL_LIST_EXT);
-			put32be(s, len);
-
-			for (i = 0; i < len; i++) {
-				put8(s, ERL_SMALL_INTEGER_EXT);
-				put8(s, p[i]);
-			}
-
-			put8(s, ERL_NIL_EXT);
-		}
-	}
-
-	*index += s - s0;
-
-	return (0);
-}
-
-/* x_fix_buff is an internal function of libei_st.a. */
-extern int	x_fix_buff(ei_x_buff* x, int szneeded);
-
-static int
-ei_x_encode_string_len_fixed(ei_x_buff *x, const char *s, int len)
-{
-	int i;
-
-	i = x->index;
-
-	ei_encode_string_len_fixed(NULL, &i, s, len);
-	if (!x_fix_buff(x, i))
-		return (-1);
-	return (ei_encode_string_len_fixed(x->buff, &x->index, s, len));
-}
-
-static int
-ei_x_encode_string_fixed(ei_x_buff *x, const char *s)
-{
-
-	return (ei_x_encode_string_len_fixed(x, s, strlen(s)));
-}
-
-#else /* if !defined(EI_ENCODE_STRING_BUG) */
-
-#define	ei_encode_string_len_fixed(buf, index, p, len)			\
-    ei_encode_string_len(buf, index, p, len)
-#define	ei_encode_string_fixed(buf, index, p)				\
-    ei_encode_string(buf, index, p)
-
-#define	ei_x_encode_string_len_fixed(x, s, len)				\
-    ei_x_encode_string_len(x, s, len)
-#define	ei_x_encode_string_fixed(x, s)					\
-    ei_x_encode_string(x, s)
-
-#endif /* defined(EI_ENCODE_STRING_BUG) */
-
-/* -------------------------------------------------------------------
  * Erlang port driver callbacks.
  * ------------------------------------------------------------------- */
 
@@ -551,7 +449,7 @@ exmpp_xml_expat_control(ErlDrvData drv_data, unsigned int command,
 			ei_x_encode_atom(to_send, TUPLE_XML_ERROR);
 			ei_x_encode_tuple_header(to_send, 2);
 			ei_x_encode_long(to_send, errcode);
-			ei_x_encode_string_fixed(to_send, errmsg);
+			ei_x_encode_string(to_send, errmsg);
 		}
 
 		/* Update the size of processed data. */
@@ -705,12 +603,12 @@ expat_cb_start_namespace(void *user_data,
 	else if (is_a_known_ns(ed, uri))
 		ei_x_encode_atom(ed->declared_ns, uri);
 	else
-		ei_x_encode_string_fixed(ed->declared_ns, uri);
+		ei_x_encode_string(ed->declared_ns, uri);
 
 	if (prefix == NULL)
 		ei_x_encode_atom(ed->declared_ns, "none");
 	else
-		ei_x_encode_string_fixed(ed->declared_ns, prefix);
+		ei_x_encode_string(ed->declared_ns, prefix);
 
 	/* Store the new namespace in the new_ns table. */
 	if (uri != NULL)
@@ -803,7 +701,7 @@ expat_cb_start_element(void *user_data,
 			if (ed->name_as_atom && is_a_known_name(ed, name)) {
 				ei_x_encode_atom(tree, name);
 			} else {
-				ei_x_encode_string_fixed(tree, name);
+				ei_x_encode_string(tree, name);
 			}
 		} else {
 			/* Terminate the namespace with a NUL character.
@@ -816,7 +714,7 @@ expat_cb_start_element(void *user_data,
 			if (is_known) {
 				ei_x_encode_atom(tree, name);
 			} else {
-				ei_x_encode_string_fixed(tree, name);
+				ei_x_encode_string(tree, name);
 			}
 
 			/* Lookup a prefix and eventually encode it as a
@@ -839,10 +737,10 @@ expat_cb_start_element(void *user_data,
 					if (is_known) {
 						ei_x_encode_atom(tree, name);
 					} else {
-						ei_x_encode_string_fixed(tree,
+						ei_x_encode_string(tree,
 						    name);
 					}
-					ei_x_encode_string_fixed(tree, prefix);
+					ei_x_encode_string(tree, prefix);
 				}
 			}
 
@@ -858,7 +756,7 @@ expat_cb_start_element(void *user_data,
 			    is_a_known_name(ed, ns_sep + 1)) {
 				ei_x_encode_atom(tree, ns_sep + 1);
 			} else {
-				ei_x_encode_string_fixed(tree, ns_sep + 1);
+				ei_x_encode_string(tree, ns_sep + 1);
 			}
 		}
 
@@ -874,7 +772,7 @@ expat_cb_start_element(void *user_data,
 		if (ed->name_as_atom && is_a_known_name(ed, name)) {
 			ei_x_encode_atom(tree, name);
 		} else {
-			ei_x_encode_string_fixed(tree, name);
+			ei_x_encode_string(tree, name);
 		}
 	}
 
@@ -908,7 +806,7 @@ expat_cb_start_element(void *user_data,
 						ei_x_encode_atom(tree,
 						    attrs[i]);
 					} else {
-						ei_x_encode_string_fixed(tree,
+						ei_x_encode_string(tree,
 						    attrs[i]);
 					}
 				} else {
@@ -924,7 +822,7 @@ expat_cb_start_element(void *user_data,
 						ei_x_encode_atom(tree,
 						    attrs[i]);
 					} else {
-						ei_x_encode_string_fixed(tree,
+						ei_x_encode_string(tree,
 						    attrs[i]);
 					}
 
@@ -941,7 +839,7 @@ expat_cb_start_element(void *user_data,
 					}
 
 					if (prefix != NULL) {
-						ei_x_encode_string_fixed(tree,
+						ei_x_encode_string(tree,
 						    prefix);
 					} else {
 						ei_x_encode_atom(tree,
@@ -957,7 +855,7 @@ expat_cb_start_element(void *user_data,
 						ei_x_encode_atom(tree,
 						    ns_sep + 1);
 					} else {
-						ei_x_encode_string_fixed(tree,
+						ei_x_encode_string(tree,
 						    ns_sep + 1);
 					}
 				}
@@ -970,13 +868,13 @@ expat_cb_start_element(void *user_data,
 					ei_x_encode_atom(tree,
 					    attrs[i]);
 				} else {
-					ei_x_encode_string_fixed(tree,
+					ei_x_encode_string(tree,
 					    attrs[i]);
 				}
 			}
 
 			/* Encode the attribute value. */
-			ei_x_encode_string_fixed(tree, attrs[i + 1]);
+			ei_x_encode_string(tree, attrs[i + 1]);
 		}
 	}
 
@@ -1038,7 +936,7 @@ expat_cb_end_element(void *user_data,
 				    is_a_known_name(ed, name)) {
 					ei_x_encode_atom(tree, name);
 				} else {
-					ei_x_encode_string_fixed(tree, name);
+					ei_x_encode_string(tree, name);
 				}
 			} else {
 				/* Terminate the namespace with a NUL
@@ -1051,7 +949,7 @@ expat_cb_end_element(void *user_data,
 				if (is_a_known_ns(ed, name)) {
 					ei_x_encode_atom(tree, name);
 				} else {
-					ei_x_encode_string_fixed(tree, name);
+					ei_x_encode_string(tree, name);
 				}
 
 				/* Lookup a prefix and eventually encode it
@@ -1064,7 +962,7 @@ expat_cb_end_element(void *user_data,
 				}
 
 				if (prefix != NULL) {
-					ei_x_encode_string_fixed(tree, prefix);
+					ei_x_encode_string(tree, prefix);
 				} else {
 					ei_x_encode_atom(tree, "undefined");
 				}
@@ -1077,7 +975,7 @@ expat_cb_end_element(void *user_data,
 				    is_a_known_name(ed, ns_sep + 1)) {
 					ei_x_encode_atom(tree, ns_sep + 1);
 				} else {
-					ei_x_encode_string_fixed(tree,
+					ei_x_encode_string(tree,
 					    ns_sep + 1);
 				}
 			}
@@ -1093,7 +991,7 @@ expat_cb_end_element(void *user_data,
 			if (ed->name_as_atom && is_a_known_name(ed, name)) {
 				ei_x_encode_atom(tree, name);
 			} else {
-				ei_x_encode_string_fixed(tree, name);
+				ei_x_encode_string(tree, name);
 			}
 		}
 
