@@ -2,6 +2,10 @@
 
 	* include/exmpp_nss.hrl: Add a string version of NS_XML.
 
+	* src/core/exmpp_tls.erl: Rename engine_svn_revision/1 to
+	engine_port_revision/1. There still remains references to Subversion
+	in the code.
+
 2008-10-23  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* c_src/exmpp_xml_expat.c, c_src/Makefile.am, c_src/Makefile.unix:

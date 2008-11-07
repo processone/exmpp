@@ -800,7 +800,7 @@ close(#tls_socket{socket = Socket_Desc} = TLS_Socket) ->
 %% @hidden
 
 port_revision(#tls_socket{port = Port}) ->
-    engine_svn_revision(Port).
+    engine_port_revision(Port).
 
 % --------------------------------------------------------------------
 % Engine function wrappers.
@@ -956,10 +956,10 @@ engine_quiet_shutdown(Port) ->
             ok
     end.
 
-engine_svn_revision(Port) ->
+engine_port_revision(Port) ->
     case control(Port, ?COMMAND_SVN_REVISION, <<>>) of
         {error, Reason} ->
-            throw({tls, handshake, svn_revision, Reason});
+            throw({tls, port_revision, port_revision, Reason});
         Revision ->
             binary_to_term(Revision)
     end.
