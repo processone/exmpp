@@ -6,6 +6,8 @@
 	engine_port_revision/1. There still remains references to Subversion
 	in the code.
 
+	* testsuite/eunit_tty.erl: Pretty print error messages.
+
 2008-10-23  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* c_src/exmpp_xml_expat.c, c_src/Makefile.am, c_src/Makefile.unix:

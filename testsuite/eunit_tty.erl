@@ -254,7 +254,7 @@ print_test_skip(#state{mode = junit, data = XML} = St, _Id, Desc, Reason) ->
     New_XML = [Testcase | XML],
     St#state{data = New_XML};
 print_test_skip(St, _Id, Desc, Reason) ->
-    io:format("~s (skip):~n~s~n", [Desc, format_test_error(Reason)]),
+    io:format("~n~s (skip):~n~s~n", [Desc, format_test_error(Reason)]),
     St.
 
 print_test_error(#state{mode = junit, data = XML} = St, _Id, Desc,
@@ -271,7 +271,7 @@ print_test_error(#state{mode = junit, data = XML} = St, _Id, Desc,
     New_XML = [Testcase | XML],
     St#state{data = New_XML};
 print_test_error(St, _Id, Desc, Result, _Time, _Output) ->
-    io:format("~s:~n~s~n", [Desc, format_test_error(Result)]),
+    io:format("~n~s:~n~s~n", [Desc, format_test_error(Result)]),
     St.
 
 print_test_abort(#state{mode = junit, data = XML} = St, _Id, Desc, Reason) ->
@@ -285,7 +285,7 @@ print_test_abort(#state{mode = junit, data = XML} = St, _Id, Desc, Reason) ->
     New_XML = [Testcase | XML],
     St#state{data = New_XML};
 print_test_abort(St, _Id, Desc, Reason) ->
-    io:format("~s (abort):~n~s~n", [Desc, format_test_error(Reason)]),
+    io:format("~n~s (abort):~n~s~n", [Desc, format_test_error(Reason)]),
     St.
 
 % --------------------------------------------------------------------
@@ -334,8 +334,33 @@ format_test_error({skipped, {exit, Reason}}) ->
         [Reason, 15]));
 format_test_error({skipped, {abort, Reason}}) ->
     eunit_lib:format_error(Reason);
+format_test_error({error, {error, {Type, Props}, _}}) ->
+    Type_For_Human = case Type of
+        assert_failed      -> "Test not true";
+        assertNot_failed   -> "Test not false";
+        assertMatch_failed -> "Value doesn't match";
+        assertThrow_failed -> "Exception doesn't match"
+    end,
+    Expression = beautify_expr(proplists:get_value(expression, Props, "n/a")),
+    Expected = beautify_expr(proplists:get_value(expected, Props, "n/a")),
+    Value = proplists:get_value(value, Props, "n/a"),
+    lists:flatten(io_lib:format(
+        "~s:~n"
+        "  Expression:~n"
+        "    ~s~n"
+        "  Expected:~n"
+        "    ~s~n"
+        "  Value:~n"
+        "    ~p",
+        [Type_For_Human, Expression, Expected, Value]));
 format_test_error({error, Exception}) ->
     eunit_lib:format_exception(Exception).
+
+beautify_expr(Expr) ->
+    Tokens = string:tokens(Expr, ","),
+    Fun = fun(S) -> string:join(string:tokens(S, " "), "") end,
+    New_Tokens = lists:map(Fun, Tokens),
+    string:join(New_Tokens, ", ").
 
 save_parent_state(#state{mode = junit} = St) ->
     #state{mode = St#state.mode, parent_state = St};
