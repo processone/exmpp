@@ -1,3 +1,7 @@
+2008-11-07  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* include/exmpp_nss.hrl: Add a string version of NS_XML.
+
 2008-10-23  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* c_src/exmpp_xml_expat.c, c_src/Makefile.am, c_src/Makefile.unix:
