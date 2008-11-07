@@ -65,7 +65,7 @@ HTML_FILES = index.html							\
 $(HTML_FILES): overview.edoc $(ERL_SRCS) stylesheet.css
 	$(ERL) +B -noshell\
 		-run edoc_run application "'$(PACKAGE_NAME)'" '"$(top_srcdir)"'\
-		'[{def, {vsn, "$(PACKAGE_VERSION)"}}, {dir, "."}, {stylesheet, "stylesheet.css"}, {preprocess, true}, no_packages]'\
+		'[{def, {vsn, "$(PACKAGE_VERSION)"}}, {dir, "."}, {stylesheet, "stylesheet.css"}, {preprocess, true}, {includes, ["$(top_builddir)/include"]}, no_packages]'\
 		-s erlang halt
 	@for f in $(HTML_FILES); do					\
 		$(SED) -i.bak						\
