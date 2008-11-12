@@ -38,10 +38,10 @@ create_hashtable(unsigned int minsize,
     for (pindex=0; pindex < prime_table_length; pindex++) {
         if (primes[pindex] > minsize) { size = primes[pindex]; break; }
     }
-    h = (struct hashtable *)malloc(sizeof(struct hashtable));
+    h = (struct hashtable *)driver_alloc(sizeof(struct hashtable));
     if (NULL == h) return NULL; /*oom*/
-    h->table = (struct entry **)malloc(sizeof(struct entry*) * size);
-    if (NULL == h->table) { free(h); return NULL; } /*oom*/
+    h->table = (struct entry **)driver_alloc(sizeof(struct entry*) * size);
+    if (NULL == h->table) { driver_free(h); return NULL; } /*oom*/
     memset(h->table, 0, size * sizeof(struct entry *));
     h->tablelength  = size;
     h->primeindex   = pindex;
@@ -79,7 +79,7 @@ hashtable_expand(struct hashtable *h)
     if (h->primeindex == (prime_table_length - 1)) return 0;
     newsize = primes[++(h->primeindex)];
 
-    newtable = (struct entry **)malloc(sizeof(struct entry*) * newsize);
+    newtable = (struct entry **)driver_alloc(sizeof(struct entry*) * newsize);
     if (NULL != newtable)
     {
         memset(newtable, 0, newsize * sizeof(struct entry *));
@@ -93,7 +93,7 @@ hashtable_expand(struct hashtable *h)
                 newtable[index] = e;
             }
         }
-        free(h->table);
+        driver_free(h->table);
         h->table = newtable;
     }
     /* Plan B: realloc instead */
@@ -147,7 +147,7 @@ hashtable_insert(struct hashtable *h, void *k, void *v)
          * element may be ok. Next time we insert, we'll try expanding again.*/
         hashtable_expand(h);
     }
-    e = (struct entry *)malloc(sizeof(struct entry));
+    e = (struct entry *)driver_alloc(sizeof(struct entry));
     if (NULL == e) { --(h->entrycount); return 0; } /*oom*/
     e->h = hash(h,k);
     index = indexFor(h->tablelength,e->h);
@@ -201,7 +201,7 @@ hashtable_remove(struct hashtable *h, void *k)
             h->entrycount--;
             v = e->v;
             freekey(e->k);
-            free(e);
+            driver_free(e);
             return v;
         }
         pE = &(e->next);
@@ -224,7 +224,7 @@ hashtable_destroy(struct hashtable *h, int free_values)
         {
             e = table[i];
             while (NULL != e)
-            { f = e; e = e->next; freekey(f->k); free(f->v); free(f); }
+            { f = e; e = e->next; freekey(f->k); driver_free(f->v); driver_free(f); }
         }
     }
     else
@@ -233,11 +233,11 @@ hashtable_destroy(struct hashtable *h, int free_values)
         {
             e = table[i];
             while (NULL != e)
-            { f = e; e = e->next; freekey(f->k); free(f); }
+            { f = e; e = e->next; freekey(f->k); driver_free(f); }
         }
     }
-    free(h->table);
-    free(h);
+    driver_free(h->table);
+    driver_free(h);
 }
 
 /*

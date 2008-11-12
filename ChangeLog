@@ -1,3 +1,9 @@
+2008-11-12  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* c_src/contrib/hashtable.h, c_src/contrib/hashtable.c: Use
+	driver_alloc/driver_free to allocate memory so that Erlang can report
+	more accurate statistics.
+
 2008-11-07  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp_nss.hrl: Add a string version of NS_XML.

@@ -3,6 +3,9 @@
 #ifndef __HASHTABLE_CWC22_H__
 #define __HASHTABLE_CWC22_H__
 
+/* EXMPP: We need this header to be able to use driver_alloc/driver_free. */
+#include <erl_driver.h>
+
 struct hashtable;
 
 /* Example of use:
