@@ -22,7 +22,7 @@
 %% </p>
 
 -module(exmpp_xml).
--vsn('$Revision$').
+-vsn('$Revision$ ').
 
 -behaviour(gen_server).
 
@@ -154,6 +154,7 @@
 
 % Character data handling.
 -export([
+  cdata/1,
   get_cdata_from_list/1,
   get_cdata_from_list_as_list/1,
   get_cdata/1,
@@ -162,6 +163,7 @@
   normalize_cdata/1,
   set_cdata_in_list/2,
   set_cdata/2,
+  append_cdata/2,
   remove_cdata_from_list/1,
   remove_cdata/1,
   is_whitespace/1,
@@ -2162,6 +2164,21 @@ map2(_Fun, _XML_Element, []) ->
 % This is similar to the DOM interface but NOT compliant.
 % --------------------------------------------------------------------
 
+
+%% @spec (Value) -> CData
+%%     Value = binary() | string() | atom() | integer()
+%%     CData = xmlcdata()
+%% @doc Create a CData node from a value.
+cdata(CData) when is_atom(CData) ->
+    cdata(atom_to_list(CData));
+cdata(CData) when is_integer(CData) ->
+    cdata(integer_to_list(CData));
+cdata(CData) when is_list(CData) ->
+    cdata(list_to_binary(CData));
+cdata(CData) when is_binary(CData) ->
+    #xmlcdata{cdata = CData}.
+
+
 %% @spec (Children) -> CData
 %%     Children = [xmlel() | xmlelement() | xmlcdata()] | undefined
 %%     CData = binary()
@@ -2250,7 +2267,7 @@ normalize_cdata_in_list2([XML_Node | Rest], Current_CDatas, New_Children) ->
 %% @spec (XML_Element) -> New_XML_Element
 %%     XML_Element = xmlel() | xmlelement()
 %%     New_XML_Element = xmlel() | xmlelement()
-%% @doc Regroup all splitted {@link xmlcdata()} in a unique one.
+%% @doc Regroup all splitted {@link xmlcdata()} in a unique one and remove empty ones.
 %%
 %% One caveats is the reconstructed {@link xmlcdata()} is appended at
 %% the end of the children list.
@@ -2300,6 +2317,16 @@ set_cdata(#xmlel{children = Children} = XML_Element, CData) ->
 set_cdata(#xmlelement{children = Children} = XML_Element, CData) ->
     New_Children = set_cdata_in_list(Children, CData),
     XML_Element#xmlelement{children = New_Children}.
+
+
+%% @spec (XML_Element, CData) -> New_XML_Element
+%%     XML_Element = xmlel() | xmlelement()
+%%     CData = binary() | string() | atom() | integer()
+%%     New_XML_Element = xmlel() | xmlelement()
+%% @doc Append `Child' to `XML_Element''s children list.
+append_cdata(Children, CData) ->
+    append_child(Children, cdata(CData)).
+
 
 %% @spec (Children) -> New_Children
 %%     Children = [xmlel() | xmlelement() | xmlcdata()] | undefined
@@ -3089,14 +3116,17 @@ element_to_list(Name, Attrs, Children, Default_NS, Prefixed_NS)
 element_to_list(Name, Attrs, undefined, _Default_NS, _Prefixed_NS) ->
     % Children may come later, we don't close the tag.
     lists:append(["<", Name, attrs_to_list(Attrs), ">"]);
-element_to_list(Name, Attrs, [], _Default_NS, _Prefixed_NS) ->
-    lists:append(["<", Name, attrs_to_list(Attrs), "/>"]);
 element_to_list(Name, Attrs, Children, Default_NS, Prefixed_NS) ->
     Norm = normalize_cdata_in_list(Children),
-    Content = lists:append(
-      [node_to_list(E, Default_NS, Prefixed_NS) || E <- Norm]),
-    lists:append(
-      ["<", Name, attrs_to_list(Attrs), ">", Content, "</", Name, ">"]).
+    case Norm of
+	[] ->
+	    lists:append(["<", Name, attrs_to_list(Attrs), "/>"]);
+	_ ->
+	    Content = lists:append(
+			[node_to_list(E, Default_NS, Prefixed_NS) || E <- Norm]),
+	    lists:append(
+	      ["<", Name, attrs_to_list(Attrs), ">", Content, "</", Name, ">"])
+    end.
 
 endtag_to_list(Name) when is_atom(Name) ->
     endtag_to_list(atom_to_list(Name));
