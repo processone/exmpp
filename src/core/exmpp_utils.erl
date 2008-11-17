@@ -189,5 +189,7 @@ random_id(undefined) ->
     integer_to_list(random:uniform(65536 * 65536));
 random_id("") ->
     random_id(undefined);
-random_id(Prefix) ->
+random_id(Prefix) when is_atom(Prefix) ->
+    random_id(atom_to_list(Prefix));
+random_id(Prefix) when is_list(Prefix) ->
     Prefix ++ "-" ++ random_id(undefined).
