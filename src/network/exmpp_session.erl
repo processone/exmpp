@@ -12,7 +12,7 @@
 %% </p>
 %%
 %% <p>This code is copyright Process-one (http://www.process-one.net/)</p>
-%% 
+%%
 %% TODO: Rewrite the following text into a comprehensive documentation.
 %%   explain priority matching of iq query reply. Illustration with echo_client.
 %%   Illustration with an Erlang/OTP example.
@@ -86,7 +86,7 @@
 %% Function: start_link() -> ok,Pid} | ignore | {error,Error}
 %% Description:Creates a gen_fsm process which calls Module:init/1 to
 %% initialize. To ensure a synchronized start-up procedure, this function
-%% does not return until Module:init/1 has returned.  
+%% does not return until Module:init/1 has returned.
 %%--------------------------------------------------------------------
 %% Start the session (used to get a reference):
 start() ->
@@ -140,7 +140,7 @@ auth_basic_digest(Session, JID, Password)
 %% If the domain is not passed we expect to find it in the authentication
 %% method. It should thus be set before.
 %% Returns StreamId (String)
-connect_TCP(Session, Server, Port) 
+connect_TCP(Session, Server, Port)
   when pid(Session),
        list(Server),
        integer(Port) ->
@@ -168,7 +168,7 @@ connect_TCP(Session, Server, Port, Domain)
 %% If the domain is not passed we expect to find it in the authentication
 %% method. It should thus be set before.
 %% Returns StreamId (String)
-connect_SSL(Session, Server, Port) 
+connect_SSL(Session, Server, Port)
   when pid(Session),
        list(Server),
        integer(Port) ->
@@ -180,7 +180,7 @@ connect_SSL(Session, Server, Port)
 
 %% Initiate SSL XMPP server connection
 %% Returns StreamId (String)
-connect_SSL(Session, Server, Port, Domain) 
+connect_SSL(Session, Server, Port, Domain)
   when pid(Session),
        list(Server),
        integer(Port),
@@ -231,13 +231,14 @@ set_controlling_process(Session,Client) when pid(Session), pid(Client) ->
 	Error when tuple(Error) -> erlang:throw(Error);
         Id -> Id
     end.
-    
+
 %%====================================================================
 %% gen_fsm callbacks
 %%====================================================================
 init([Pid]) ->
     exmpp_stringprep:start(),
-    %% TODO: Init random numbers generator ?
+    {A1,A2,A3} = now(),
+    random:seed(A1, A2, A3),
     {ok, setup, #state{client_pid=Pid}}.
 
 handle_event(_Event, StateName, State) ->
@@ -268,8 +269,8 @@ terminate(Reason, _StateName, #state{connection_ref = undefined,
 terminate(Reason, _StateName, #state{connection_ref = undefined,
 				    stream_ref = StreamRef,
 				    from_pid=From}) ->
-    exmpp_xml:stop_parser(exmpp_xmlstream:get_parser(StreamRef)),
     exmpp_xmlstream:stop(StreamRef),
+    exmpp_xml:stop_parser(exmpp_xmlstream:get_parser(StreamRef)),
     reply(Reason, From),
     ok;
 terminate(Reason, _StateName, #state{connection_ref = ConnRef,
@@ -284,8 +285,8 @@ terminate(Reason, _StateName, #state{connection_ref = ConnRef,
 				     stream_ref = StreamRef,
 				     receiver_ref = ReceiverRef,
 				     from_pid=From}) ->
-    exmpp_xml:stop_parser(exmpp_xmlstream:get_parser(StreamRef)),
     exmpp_xmlstream:stop(StreamRef),
+    exmpp_xml:stop_parser(exmpp_xmlstream:get_parser(StreamRef)),
     Module:close(ConnRef, ReceiverRef),
     reply(Reason, From),
     ok.
@@ -365,7 +366,7 @@ setup(_UnknownMessage, _From, State) ->
           ns='http://etherx.jabber.org/streams',
           name=stream}}).
 
-%% Extract IQElement from IQ 
+%% Extract IQElement from IQ
 -define(iq,
 	#xmlstreamelement{
 	  element=#xmlel{name=iq, attrs=Attrs}=IQElement}).
@@ -451,7 +452,7 @@ stream_opened({send_packet, Packet}, _From,
     Id = send_packet(Packet, Module, ConnRef),
     {reply, Id, stream_opened, State}.
 
-%% Process incoming 
+%% Process incoming
 %% Dispatch incoming messages
 stream_opened(?message, State = #state{connection = _Module,
 				   connection_ref = _ConnRef}) ->
@@ -478,7 +479,7 @@ wait_for_legacy_auth_method(?iq_no_attrs, State = #state{connection = Module,
     Resource = get_resource(Auth),
     Method = get_method(Auth),
     case check_auth_method(Method, IQElement) of
-	ok -> 
+	ok ->
 	    case do_auth(Method, ConnRef, Module, Username, Password, Resource,
                          StreamId) of
 		ok ->
@@ -497,7 +498,7 @@ wait_for_legacy_auth_method(?streamerror, State) ->
 wait_for_auth_result(?iq_no_attrs, State = #state{from_pid=From}) ->
     case exmpp_xml:get_attribute(IQElement, type, undefined) of
  	"result" ->
-            gen_fsm:reply(From, ok),	     
+            gen_fsm:reply(From, ok),
             {next_state, logged_in, State#state{from_pid=undefined}};
         "error" ->
             Reason = exmpp_stanza:get_condition(IQElement),
@@ -512,7 +513,7 @@ wait_for_auth_result(?iq_no_attrs, State = #state{from_pid=From}) ->
 wait_for_register_result(?iq_no_attrs, State = #state{from_pid=From}) ->
     case exmpp_xml:get_attribute(IQElement, type, undefined) of
  	"result" ->
-            gen_fsm:reply(From, ok),	     
+            gen_fsm:reply(From, ok),
             {next_state, stream_opened, State#state{from_pid=undefined}};
         "error" ->
             Reason = exmpp_stanza:get_condition(IQElement),
@@ -598,14 +599,14 @@ connect(Module, Host, Port, Domain, From, #state{client_pid=Pid} = State) ->
 	Error ->
 	    {reply, Error, setup, State}
     end.
-    
+
 %% Authentication
 %% digest auth will fail if we do not have streamid
 do_auth(password, ConnRef, Module, Username, Password, Resource, _StreamId) ->
     Module:send(ConnRef,
-		exmpp_client_legacy_auth:password_plain(Username, Password, 
+		exmpp_client_legacy_auth:password_plain(Username, Password,
 						  Resource));
-do_auth(digest, ConnRef, Module, Username, Password, Resource, StreamId) 
+do_auth(digest, ConnRef, Module, Username, Password, Resource, StreamId)
 when list(StreamId) ->
     Module:send(ConnRef,
 		exmpp_client_legacy_auth:password_digest(Username,
@@ -613,7 +614,7 @@ when list(StreamId) ->
 							 Resource,
                              StreamId));
 %% In this case StreamId can be false
-do_auth(digest, _ConnRef, _Module, _Username, _Password, _Resource, StreamId) 
+do_auth(digest, _ConnRef, _Module, _Username, _Password, _Resource, StreamId)
 when atom(StreamId) ->
     {auth_error, no_streamid_for_digest_auth}.
 
@@ -711,12 +712,12 @@ process_iq(ClientPid, Attrs, Packet) ->
 %% seed the generator.
 check_id(Attrs) ->
     case exmpp_xml:get_attribute_from_list(Attrs, id, "") of
-	"" -> 	
+	"" ->
 	    Id = exmpp_utils:random_id("session"),
 	    {exmpp_xml:set_attribute_in_list(Attrs, id, Id), Id};
         Id -> {Attrs, Id}
     end.
-    
+
 %% Try getting a given atribute from a list of xmlattr records
 %% Return default value if attribute is not found
 get_attribute_value(Attrs, Attr, Default) ->
@@ -726,12 +727,12 @@ get_attribute_value(Attrs, Attr, Default) ->
 %% send_packet: actually format and send the packet:
 send_packet(?iqattrs, Module, ConnRef) ->
     Type = exmpp_xml:get_attribute_from_list(Attrs, type, undefined),
-    case Type of 
+    case Type of
 	"error" ->
 	    {Attrs2, PacketId} = check_id(Attrs),
 	    Module:send(ConnRef, IQElement#xmlel{attrs=Attrs2}),
 	    PacketId;
-	"result" -> 
+	"result" ->
 	    {Attrs2, PacketId} = check_id(Attrs),
 	    Module:send(ConnRef, IQElement#xmlel{attrs=Attrs2}),
 	    PacketId;
