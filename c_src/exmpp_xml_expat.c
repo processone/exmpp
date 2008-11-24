@@ -111,6 +111,7 @@ static void		expat_cb_end_element(void *user_data,
 static void		expat_cb_character_data(void *user_data,
 			    const char *data, int len);
 
+char *			exmpp_strdup(const char *str);
 static int		create_parser(struct exmpp_xml_expat_data *ed);
 static int		destroy_parser(struct exmpp_xml_expat_data *ed);
 static int		current_tree_finished(
@@ -360,8 +361,8 @@ exmpp_xml_expat_control(ErlDrvData drv_data, unsigned int command,
 
 			/* Already add `xml' prefix which is implied. */
 			hashtable_insert(ed->prefixes,
-			    strdup(XML_NS),
-			    strdup("xml"));
+			    exmpp_strdup(XML_NS),
+			    exmpp_strdup("xml"));
 
 			ed->new_ns = create_hashtable(16,
 			    hash_djb2, hash_equalkeys);
@@ -583,7 +584,8 @@ expat_cb_start_namespace(void *user_data,
 			/* An empty prefixed namespace is illegal. */
 			return;
 
-		hashtable_insert(ed->prefixes, strdup(uri), strdup(prefix));
+		hashtable_insert(ed->prefixes,
+		    exmpp_strdup(uri), exmpp_strdup(prefix));
 	}
 
 	/* Build the declared_ns list. This list will be reset
@@ -611,7 +613,7 @@ expat_cb_start_namespace(void *user_data,
 
 	/* Store the new namespace in the new_ns table. */
 	if (uri != NULL)
-		hashtable_insert(ed->new_ns, strdup(uri), "");
+		hashtable_insert(ed->new_ns, exmpp_strdup(uri), "");
 }
 
 static void
@@ -1031,6 +1033,22 @@ expat_cb_character_data(void *user_data,
  * Internal functions.
  * ------------------------------------------------------------------- */
 
+char *
+exmpp_strdup(const char *str)
+{
+	size_t len;
+	char *dup;
+
+	len = strlen(str);
+	dup = driver_alloc(len + 1);
+	if (dup == NULL)
+		return (NULL);
+
+	memcpy(dup, str, len + 1);
+
+	return (dup);
+}
+
 static int
 create_parser(struct exmpp_xml_expat_data *ed)
 {
@@ -1143,25 +1161,25 @@ initialize_lookup_tables(struct exmpp_xml_expat_data *ed)
 		return (-1);
 
 	/* Load XML known tokens. */
-	hashtable_insert(ed->known_ns,    strdup(XML_NS), (int *)&KNOWN);
-	hashtable_insert(ed->known_attrs, strdup("lang"), (int *)&KNOWN);
+	hashtable_insert(ed->known_ns,    exmpp_strdup(XML_NS), (int *)&KNOWN);
+	hashtable_insert(ed->known_attrs, exmpp_strdup("lang"), (int *)&KNOWN);
 
 	/* Load custom namespaces. */
 	for (i = 0; xmpp_ns_list[i] != NULL; ++i) {
 		hashtable_insert(ed->known_ns,
-		    strdup(xmpp_ns_list[i]), (int *)&KNOWN);
+		    exmpp_strdup(xmpp_ns_list[i]), (int *)&KNOWN);
 	}
 
 	/* Load custom names. */
 	for (i = 0; xmpp_names_list[i] != NULL; ++i) {
 		hashtable_insert(ed->known_names,
-		    strdup(xmpp_names_list[i]), (int *)&KNOWN);
+		    exmpp_strdup(xmpp_names_list[i]), (int *)&KNOWN);
 	}
 
 	/* Load custom attributes. */
 	for (i = 0; xmpp_attrs_list[i] != NULL; ++i) {
 		hashtable_insert(ed->known_attrs,
-		    strdup(xmpp_attrs_list[i]), (int *)&KNOWN);
+		    exmpp_strdup(xmpp_attrs_list[i]), (int *)&KNOWN);
 	}
 
 	return (0);

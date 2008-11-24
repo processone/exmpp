@@ -47,7 +47,7 @@ indexFor(unsigned int tablelength, unsigned int hashvalue)
 */
 
 /*****************************************************************************/
-#define freekey(X) free(X)
+#define freekey(X) driver_free(X)
 /*define freekey(X) ; */
 
 

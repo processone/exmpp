@@ -342,14 +342,14 @@ register_engine(Name, Driver_Path, Driver)
 %% @doc Return the list of XML engines.
 
 get_engine_names() ->
-    gen_server:call(?SERVER, get_engine_names).
+    gen_server:call(?SERVER, get_engine_names, infinity).
 
 %% @spec (Engine_Name) -> bool()
 %%     Engine_Name = atom()
 %% @doc Tell if `Engine_Name' is available.
 
 is_engine_available(Engine_Name) ->
-    case gen_server:call(?SERVER, {get_engine, Engine_Name}) of
+    case gen_server:call(?SERVER, {get_engine, Engine_Name}, infinity) of
         undefined -> false;
         _         -> true
     end.
@@ -360,7 +360,7 @@ is_engine_available(Engine_Name) ->
 %% @doc Return the port driver name associated to the given engine.
 
 get_engine_driver(Engine_Name) ->
-    case gen_server:call(?SERVER, {get_engine, Engine_Name}) of
+    case gen_server:call(?SERVER, {get_engine, Engine_Name}, infinity) of
         undefined                         -> undefined;
         #xml_engine{driver = Driver_Name} -> Driver_Name
     end.

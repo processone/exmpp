@@ -1,3 +1,28 @@
+2008-11-24  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	The following changes fix a few things regarding memory consumption
+	tracking. They're committed only for the record and will be deprecated
+	when the real improvements are committed.
+
+	* src/core/exmpp_xml.erl: Call to the gen_server are made without any
+	timeout.
+
+	* c_src/exmpp_xml_expat.c, c_src/contrib/hashtable_private.h: Track
+	memory used by hashtable keys. This is where this port driver uses a
+	LOT of memory.
+
+2008-11-17  Jérôme Sautret  <jerome.sautret@process-one.net>
+
+	* src/core/exmpp_utils.erl (random_id/1): Fix manual id generation for
+	iq.
+
+	* src/core/exmpp_xml.erl: Add cdata/1 and append_cdata/2 helper
+	functions.
+	(element_to_list/5): Fix empty tags serialization.
+
+	* src/network/exmpp_session.erl: Initialize random number generator
+	for id. Stop the parser after closing the stream.
+
 2008-11-12  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* c_src/contrib/hashtable.h, c_src/contrib/hashtable.c: Use
