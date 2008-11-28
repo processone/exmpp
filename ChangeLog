@@ -1,3 +1,8 @@
+2008-11-28  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* testsuite/eunit_tty.erl: Rename assert_failed to assertion_failed.
+	Accept unknown failure types. Beautify returned value.
+
 2008-11-24  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	The following changes fix a few things regarding memory consumption

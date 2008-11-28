@@ -336,14 +336,15 @@ format_test_error({skipped, {abort, Reason}}) ->
     eunit_lib:format_error(Reason);
 format_test_error({error, {error, {Type, Props}, _}}) ->
     Type_For_Human = case Type of
-        assert_failed      -> "Test not true";
+        assertion_failed   -> "Test not true";
         assertNot_failed   -> "Test not false";
         assertMatch_failed -> "Value doesn't match";
-        assertThrow_failed -> "Exception doesn't match"
+        assertThrow_failed -> "Exception doesn't match";
+        _                  -> atom_to_list(Type)
     end,
     Expression = beautify_expr(proplists:get_value(expression, Props, "n/a")),
     Expected = beautify_expr(proplists:get_value(expected, Props, "n/a")),
-    Value = proplists:get_value(value, Props, "n/a"),
+    Value = beautify_expr(proplists:get_value(value, Props, "n/a")),
     lists:flatten(io_lib:format(
         "~s:~n"
         "  Expression:~n"
@@ -356,6 +357,8 @@ format_test_error({error, {error, {Type, Props}, _}}) ->
 format_test_error({error, Exception}) ->
     eunit_lib:format_exception(Exception).
 
+beautify_expr(Expr) when is_atom(Expr) ->
+    atom_to_list(Expr);
 beautify_expr(Expr) ->
     Tokens = string:tokens(Expr, ","),
     Fun = fun(S) -> string:join(string:tokens(S, " "), "") end,
