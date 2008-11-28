@@ -1,5 +1,10 @@
 2008-11-28  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
+	* m4/pkg.m4: Include pkg-config M4 macros because it's still needed
+	when pkg-config isn't installed.
+
+2008-11-28  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
 	The following changes greatly improve memory consumption but they
 	include some API changes:
 	  o  #xmlattr doesn't carry a prefix anymore (the new record
