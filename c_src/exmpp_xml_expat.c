@@ -497,8 +497,13 @@ static ErlDrvEntry driver_entry = {
 	.driver_flags = ERL_DRV_FLAG_USE_PORT_LOCKING,
 	.handle2 = NULL,
 	.process_exit = NULL
-#else
-	.extended_marker = 0
+#elif defined(ERL_DRV_EXTENDED_MARKER)
+	.extended_marker = 0,
+	.major_version = 0,
+	.minor_version = 0,
+	.driver_flags = 0,
+	.handle2 = NULL,
+	.process_exit = NULL
 #endif
 };
 

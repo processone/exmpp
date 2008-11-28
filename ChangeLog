@@ -6,7 +6,8 @@
 	* c_src/exmpp_xml_expat_legacy.c, c_src/exmpp_xml_libxml2.c,
 	c_src/exmpp_xml_expat.c: ERL_DRV_FLAG_USE_PORT_LOCKING was always set,
 	even when SMP support wasn't available in Erlang. This caused build
-	failure with R11B for instance.
+	failure with R11B-5 for instance. The extended driver structure
+	doesn't exist in R11B-2 and earlier; fix this case.
 
 2008-11-28  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
