@@ -3,6 +3,11 @@
 	* m4/pkg.m4: Include pkg-config M4 macros because it's still needed
 	when pkg-config isn't installed.
 
+	* c_src/exmpp_xml_expat_legacy.c, c_src/exmpp_xml_libxml2.c,
+	c_src/exmpp_xml_expat.c: ERL_DRV_FLAG_USE_PORT_LOCKING was always set,
+	even when SMP support wasn't available in Erlang. This caused build
+	failure with R11B for instance.
+
 2008-11-28  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	The following changes greatly improve memory consumption but they

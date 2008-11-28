@@ -443,7 +443,6 @@ destroy_parser(struct exmpp_xml_data *edd)
 
 static ErlDrvEntry driver_entry = {
 	.driver_name = S(DRIVER_NAME),
-	.driver_flags = ERL_DRV_FLAG_USE_PORT_LOCKING,
 	.init = exmpp_xml_init,
 	.finish = exmpp_xml_finish,
 	.start = exmpp_xml_start,
