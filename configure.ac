@@ -4,7 +4,7 @@ dnl ------------------------------------------------------------------
 dnl Autoconf initialisation.
 dnl ------------------------------------------------------------------
 
-AC_INIT([exmpp], [0.9.0], [js.pedron@meetic-corp.com], [exmpp])
+AC_INIT([exmpp], [0.9.1], [js.pedron@meetic-corp.com], [exmpp])
 AC_CONFIG_SRCDIR([include/exmpp.hrl])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([ac-aux])
@@ -198,7 +198,7 @@ AC_ARG_ENABLE([debug],
 	    [turn on debugging [[default=auto]]]),,
 	enable_debug=$default_enable_debug)
 if test "x${enable_debug}" = "xyes"; then
-	CPPFLAGS="-DDEBUG ${CPPFLAGS# }"
+	dnl AC_DEFINE([DEBUG], [], [Enable debug])
 	append_to_EMKOPTS "debug_info"
 	append_to_EMKOPTS "{d, debug}"
 else
@@ -397,6 +397,48 @@ fi
 AC_ERLANG_SUBST_INSTALL_LIB_DIR
 AC_ERLANG_SUBST_INSTALL_LIB_SUBDIR(exmpp, ${VERSION})
 
+dnl SMP support.
+dnl
+dnl Support is enabled by default for Erlang R12B and later ; disabled
+dnl otherwise.
+AC_MSG_CHECKING([for SMP support])
+
+if test "x${ERLANG_LIB_VER_kernel}" != "xnot found"; then
+	AX_COMPARE_VERSION([${ERLANG_LIB_VER_kernel}], [ge], [2.12],
+	    [default_enable_smp_support="yes"],
+	    [default_enable_smp_support="no"])
+else
+	default_enable_smp_support="no"
+fi
+
+AC_ARG_ENABLE([smp-support],
+	AC_HELP_STRING([--enable-smp-support],
+	    [enable SMP support [[default=auto]]]),,
+	enable_smp_support=$default_enable_smp_support)
+AM_CONDITIONAL(ENABLE_SMP_SUPPORT, test "x${enable_smp_support}" = "xyes")
+
+if test "x${enable_smp_support}" = "xyes"; then
+	AC_DEFINE(SMP_SUPPORT, [], [SMP support enabled in port drivers.])
+	AC_DEFINE(USE_RWLOCK, [], [Use rwlocks.])
+	AC_DEFINE(_REENTRANT, [], [_REENTRANT])
+
+	if test "x${default_enable_smp_support}" = "xyes"; then
+		AC_MSG_RESULT([yes (kernel >= 2.12)])
+	else
+		AC_MSG_RESULT([yes (forced by user)])
+	fi
+else
+	if test "x${default_enable_smp_support}" = "xno"; then
+		if test "x${ERLANG_LIB_VER_kernel}" != "xnot found"; then
+			AC_MSG_RESULT([no (kernel < 2.12)])
+		else
+			AC_MSG_RESULT([no (kernel version unknown)])
+		fi
+	else
+		AC_MSG_RESULT([no (disabled by user)])
+	fi
+fi
+
 dnl Broken erl_ddll handling.
 dnl
 dnl Before kernel-2.11, port drivers refcount is not updated correctly,
@@ -525,6 +567,14 @@ if test "x${build_with_expat}" = "xyes"; then
 	append_to_EMKOPTS "{d, 'HAVE_EXPAT'}"
 fi
 
+dnl LibXML2 port driver.
+PKG_CHECK_MODULES([LIBXML2], [libxml-2.0],
+    build_with_libxml2="yes", build_with_libxml2="no")
+AM_CONDITIONAL(WITH_LIBXML2, test "x${build_with_libxml2}" = "xyes")
+if test "x${build_with_libxml2}" = "xyes"; then
+	append_to_EMKOPTS "{d, 'HAVE_LIBXML2'}"
+fi
+
 echo
 bold "%BTLS engines dependencies%b"
 
@@ -581,6 +631,7 @@ AM_CONFIG_HEADER([config.h])
 AC_CONFIG_FILES([
 	c_src/Makefile
 	include/Makefile
+	include/internal/Makefile
 	src/Makefile
 	src/Emakefile
 	ebin/Makefile
@@ -621,6 +672,7 @@ echo "    Examples:           ${enable_examples}"
 echo
 echo "    XML parsers:"
 echo "      . Expat:          ${build_with_expat}"
+echo "      . LibXML2:        ${build_with_libxml2}"
 echo
 echo "    TLS engines:"
 echo "      . OpenSSL:        ${build_with_openssl}"

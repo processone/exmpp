@@ -1,39 +1,55 @@
 /* $Id$ */
 
-#include <expat.h>
+#include <libxml/parser.h>
 #include <string.h>
 
 #include "exmpp_xml.h"
 
-#define	DRIVER_NAME	exmpp_xml_expat
+#define	DRIVER_NAME	exmpp_xml_libxml2
 
-#define	NS_SEP		'|'
-
-/* Driver data (also, user data for expat). */
+/* Driver data (also, user data for LibXML2). */
 struct exmpp_xml_data {
 	/* Generic context. */
-	struct exmpp_xml_ctx	 ctx;
+	struct exmpp_xml_ctx	  ctx;
 
 	/* Driver instance's context. */
-	XML_Parser		 parser;
-	ei_x_buff		*declared_nss;
+	xmlParserCtxtPtr	  parser;
+	int			  declared_nss_count;
+	int			  attrs_count;
+	const xmlChar		**declared_nss;
+	const xmlChar		**attrs;
 };
 
-/* Expat handler prototypes */
-static void		expat_cb_start_namespace(void *user_data,
-			    const char *prefix, const char *uri);
-static void		expat_cb_start_element(void *user_data,
-			    const char *elem, const char **attrs);
-static void		expat_cb_end_element(void *user_data,
-			    const char *elem);
-static void		expat_cb_character_data(void *user_data,
-			    const char *data, int len);
+/* LibXML2 handler prototypes */
+static void		libxml2_cb_start_element(void *user_data,
+			    const xmlChar *elem,
+			    const xmlChar *prefix, const xmlChar *ns,
+			    int declared_nss_count,
+			    const xmlChar **declared_nss,
+			    int attrs_count, int attrs_defaulted,
+			    const xmlChar **attrs);
+static void		libxml2_cb_end_element(void *user_data,
+			    const xmlChar *elem,
+			    const xmlChar *prefix, const xmlChar *ns);
+static xmlEntityPtr	libxml2_cb_get_entity(void *user_data,
+			    const xmlChar *name);
+static void		libxml2_cb_character_data(void *user_data,
+			    const xmlChar *data, int len);
 
-make_attributes_cb	exmpp_xml_cb_make_attributes;
+static make_declared_nss_cb	exmpp_xml_cb_make_declared_nss;
+static make_attributes_cb	exmpp_xml_cb_make_attributes;
 
 static int		create_parser(struct exmpp_xml_data *edd);
-static void		init_parser(struct exmpp_xml_data *edd);
 static void		destroy_parser(struct exmpp_xml_data *edd);
+
+/* LibXML2 SAX handler. */
+static xmlSAXHandler sax_handler = {
+	.initialized = XML_SAX2_MAGIC,
+	.startElementNs = libxml2_cb_start_element,
+	.endElementNs = libxml2_cb_end_element,
+	.getEntity = libxml2_cb_get_entity,
+	.characters = libxml2_cb_character_data
+};
 
 /* -------------------------------------------------------------------
  * Erlang port driver callbacks.
@@ -47,12 +63,18 @@ exmpp_xml_init()
 	if (init_known_lists() != 0)
 		return (-1);
 
+	/* Initialize and check LibXML2. */
+	LIBXML_TEST_VERSION; /* be safe, plus calls xmlInitParser */
+
 	return (0);
 }
 
 static void
 exmpp_xml_finish()
 {
+
+	/* Terminate LibXML2. */
+	xmlCleanupParser();
 
 	/* Free the global known lists. */
 	free_known_lists();
@@ -76,19 +98,11 @@ exmpp_xml_start(ErlDrvPort port, char *command)
 		driver_free(edd);
 		return (ERL_DRV_ERROR_GENERAL);
 	}
+	edd->ctx.make_declared_nss = exmpp_xml_cb_make_declared_nss;
 	edd->ctx.make_attributes = exmpp_xml_cb_make_attributes;
 
 	/* Initialize driver instance's context. */
 	edd->parser = NULL;
-
-	/* Initialize the declared_nss list. */
-	edd->declared_nss = driver_alloc(sizeof(*(edd->declared_nss)));
-	if (edd->declared_nss == NULL) {
-		free_context(&edd->ctx);
-		driver_free(edd);
-		return (ERL_DRV_ERROR_GENERAL);
-	}
-	ei_x_new(edd->declared_nss);
 
 	return ((ErlDrvData)edd);
 }
@@ -99,13 +113,6 @@ exmpp_xml_stop(ErlDrvData drv_data)
 	struct exmpp_xml_data *edd;
 
 	edd = (struct exmpp_xml_data *)drv_data;
-
-	/* Free the declared_nss list. */
-	if (edd->declared_nss) {
-		ei_x_free(edd->declared_nss);
-		driver_free(edd->declared_nss);
-		edd->declared_nss = NULL;
-	}
 
 	/* Destroy the parser. */
 	destroy_parser(edd);
@@ -166,17 +173,15 @@ exmpp_xml_control(ErlDrvData drv_data, unsigned int command,
 		}
 
 		/* Run XML document parsing. */
-		ret = XML_Parse(edd->parser, buf, len,
+		ret = xmlParseChunk(edd->parser, buf, len,
 		    command == COMMAND_PARSE_FINAL);
 
-		if (!ret) {
-			int errcode;
-			char *errmsg;
+		if (ret > 0) {
+			xmlError *error;
 
 			/* An error occured during parsing; most probably,
 			 * XML wasn't well-formed. */
-			errcode = XML_GetErrorCode(edd->parser);
-			errmsg = (char *)XML_ErrorString(errcode);
+			error = xmlCtxtGetLastError(edd->parser);
 
 			to_return = exmpp_new_xbuf();
 			if (to_return == NULL)
@@ -186,8 +191,8 @@ exmpp_xml_control(ErlDrvData drv_data, unsigned int command,
 			ei_x_encode_tuple_header(to_return, 2);
 			ei_x_encode_atom(to_return, "parsing_failed");
 			ei_x_encode_tuple_header(to_return, 2);
-			ei_x_encode_long(to_return, errcode);
-			ei_x_encode_string(to_return, errmsg);
+			ei_x_encode_long(to_return, error->code);
+			ei_x_encode_string(to_return, error->message);
 
 			break;
 		}
@@ -231,12 +236,9 @@ exmpp_xml_control(ErlDrvData drv_data, unsigned int command,
 
 	case COMMAND_RESET_PARSER:
 		if (edd->parser != NULL) {
-			XML_ParserReset(edd->parser, "UTF-8");
-			init_parser(edd);
+			xmlCtxtResetPush(edd->parser, NULL, 0, NULL, NULL);
 		}
-
 		ret = RET_OK;
-
 		break;
 
 	/*
@@ -292,133 +294,113 @@ exmpp_xml_control(ErlDrvData drv_data, unsigned int command,
 }
 
 /* -------------------------------------------------------------------
- * Expat handlers.
+ * LibXML2 handlers.
  * ------------------------------------------------------------------- */
 
 static void
-expat_cb_start_namespace(void *user_data,
-    const char *prefix, const char *uri)
+libxml2_cb_start_element(void *user_data,
+    const xmlChar *elem, const xmlChar *prefix, const xmlChar *ns,
+    int declared_nss_count, const xmlChar **declared_nss,
+    int attrs_count, int attrs_defaulted, const xmlChar **attrs)
 {
 	struct exmpp_xml_data *edd;
 
 	edd = (struct exmpp_xml_data *)user_data;
 
-	/* Build the declared_nss list. This list will be reset
-	 * in expat_cb_start_element(). */
-	make_declared_ns_in_buf(&edd->ctx, edd->declared_nss,
-	    uri, strlen(uri),
-	    prefix, prefix != NULL ? strlen(prefix) : 0);
-}
-
-static void
-expat_cb_start_element(void *user_data,
-    const char *elem, const char **attrs)
-{
-	struct exmpp_xml_data *edd;
-	const char *real_elem, *ns;
-	int ns_len;
-
-	edd = (struct exmpp_xml_data *)user_data;
-
-	/* With Expat, we must extract the namespace from the element's
-	 * name. */
-	real_elem = strchr(elem, NS_SEP);
-	if (real_elem != NULL) {
-		/* This element has a namespace. */
-		ns = elem;
-		ns_len = real_elem - elem;
-		real_elem++;
-	} else {
-		ns = NULL;
-		ns_len = 0;
-		real_elem = elem;
-	}
+	edd->declared_nss_count = declared_nss_count;
+	edd->declared_nss = declared_nss;
+	edd->attrs_count = attrs_count;
+	edd->attrs = attrs;
 
 	enter_element(&edd->ctx,
-	    ns, ns_len,
-	    real_elem, strlen(real_elem),
-	    edd->declared_nss, attrs);
+	    (char *)ns, -1,
+	    (char *)elem, -1,
+	    edd, edd);
 
-	/* We can now reset the declared_nss list. We only reset the
-	 * index to avoid memory free/alloc. */
-	if (edd->declared_nss != NULL)
-		edd->declared_nss->index = 0;
+	/* We can now reset the declared_nss and attrs lists. */
+	edd->declared_nss_count = 0;
+	edd->declared_nss = NULL;
+	edd->attrs_count = 0;
+	edd->attrs = NULL;
 }
 
 static void
-expat_cb_end_element(void *user_data,
-    const char *elem)
+libxml2_cb_end_element(void *user_data,
+    const xmlChar *elem, const xmlChar *prefix, const xmlChar *ns)
 {
-	int ns_len;
-	const char *real_elem, *ns;
 	struct exmpp_xml_data *edd;
 
 	edd = (struct exmpp_xml_data *)user_data;
-
-	/* With Expat, we must extract the namespace from the element's
-	 * name. */
-	real_elem = strchr(elem, NS_SEP);
-	if (real_elem != NULL) {
-		/* This element has a namespace. */
-		ns = elem;
-		ns_len = real_elem - elem;
-		real_elem++;
-	} else {
-		ns = NULL;
-		ns_len = 0;
-		real_elem = elem;
-	}
 
 	exit_element(&edd->ctx,
-	    ns, ns_len,
-	    real_elem, strlen(real_elem));
+	    (char *)ns, -1,
+	    (char *)elem, -1);
+}
+
+static xmlEntityPtr
+libxml2_cb_get_entity(void *user_data, const xmlChar *name)
+{
+
+	return (xmlGetPredefinedEntity(name));
 }
 
 static void
-expat_cb_character_data(void *user_data,
-    const char *data, int len)
+libxml2_cb_character_data(void *user_data,
+    const xmlChar *data, int len)
 {
 	struct exmpp_xml_data *edd;
 
 	edd = (struct exmpp_xml_data *)user_data;
 
-	add_character_data(&edd->ctx, data, len);
+	add_character_data(&edd->ctx, (char *)data, len);
 }
 
-int
-exmpp_xml_cb_make_attributes(struct exmpp_xml_ctx *ctx, void *attributes)
+static int
+exmpp_xml_cb_make_declared_nss(struct exmpp_xml_ctx *ctx, void *user_data)
 {
-	int i, ns_len;
-	const char *real_attr, *ns;
-	const char **attrs;
+	int n, i;
+	const char *ns, *prefix;
+	struct exmpp_xml_data *edd;
 
-	if (attributes == NULL)
+	if (user_data == NULL)
 		return (0);
 
-	i = 0;
-	attrs = (const char **)attributes;
+	edd = (struct exmpp_xml_data *)user_data;
 
-	while (attrs[i] != NULL) {
-		/* With Expat, we must extract the namespace from the
-		 * attribute's name. */
-		real_attr = strchr(attrs[i], NS_SEP);
-		if (real_attr != NULL) {
-			/* This element has a namespace. */
-			ns = attrs[i];
-			ns_len = real_attr - attrs[i];
-			real_attr++;
-		} else {
-			ns = NULL;
-			ns_len = 0;
-			real_attr = attrs[i];
-		}
+	for (n = 0, i = 0; n < edd->declared_nss_count; ++n, i += 2) {
+		ns = (char *)edd->declared_nss[i + 1];
+		prefix = (char *)edd->declared_nss[i];
+
+		make_declared_ns(ctx,
+		    ns, -1,
+		    prefix, -1);
+	}
+
+	return (0);
+}
+
+static int
+exmpp_xml_cb_make_attributes(struct exmpp_xml_ctx *ctx, void *user_data)
+{
+	int n, i, value_len;
+	const char *ns, *attr, *value;
+	struct exmpp_xml_data *edd;
+
+	if (user_data == NULL)
+		return (0);
+
+	edd = (struct exmpp_xml_data *)user_data;
+
+	for (n = 0, i = 0; n < edd->attrs_count; ++n, i += 5) {
+		ns = (char *)edd->attrs[i + 2];
+		attr = (char *)edd->attrs[i];
+		value = (char *)edd->attrs[i + 3];
+		value_len = edd->attrs[i + 4] - edd->attrs[i + 3];
 
 		make_attribute(ctx,
-		    ns, ns_len,
-		    real_attr, strlen(real_attr),
-		    attrs[i + 1], strlen(attrs[i + 1]));
-
-		i += 2;
+		    ns, -1,
+		    attr, -1,
+		    value, value_len);
 	}
 
 	return (0);
@@ -433,31 +415,12 @@ create_parser(struct exmpp_xml_data *edd)
 {
 
 	/* Create a parser. */
-	edd->parser = XML_ParserCreateNS("UTF-8", NS_SEP);
+	edd->parser = xmlCreatePushParserCtxt(&sax_handler, edd,
+	    NULL, 0, NULL);
 	if (edd->parser == NULL)
 		return (-1);
 
-	init_parser(edd);
-
 	return (0);
-}
-
-static void
-init_parser(struct exmpp_xml_data *edd)
-{
-
-	/* Set Expat user data to be this structure. */
-	XML_SetUserData(edd->parser, edd);
-
-	/* Configure the parser. */
-	XML_SetNamespaceDeclHandler(edd->parser,
-	    expat_cb_start_namespace,
-	    NULL);
-	XML_SetElementHandler(edd->parser,
-	    expat_cb_start_element,
-	    expat_cb_end_element);
-	XML_SetCharacterDataHandler(edd->parser,
-	    expat_cb_character_data);
 }
 
 static void
@@ -466,15 +429,11 @@ destroy_parser(struct exmpp_xml_data *edd)
 
 	if (edd->parser != NULL) {
 		/* Destroy the parser. */
-		XML_ParserFree(edd->parser);
+		xmlFreeParserCtxt(edd->parser);
 		edd->parser = NULL;
 
 		/* Reset generic context. */
 		reset_context(&edd->ctx);
-
-		/* Reset the declared_nss list. */
-		if (edd->declared_nss != NULL)
-			edd->declared_nss->index = 0;
 	}
 }
 

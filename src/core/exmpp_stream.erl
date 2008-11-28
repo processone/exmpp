@@ -306,21 +306,15 @@ opening_reply(#xmlel{attrs = Attrs} = Opening, ID, Lang) ->
 %% @doc Make a `</stream>' closing tag.
 
 closing() ->
-    #xmlendtag{ns = ?NS_XMPP, prefix = ?STREAM_NS_PREFIX,
-      name = 'stream'}.
+    #xmlendtag{ns = ?NS_XMPP, name = 'stream'}.
 
 %% @spec (Opening) -> Closing
 %%     Opening = exmpp_xml:xmlel()
 %%     Closing = exmpp_xml:xmlendtag()
 %% @doc Make a `</stream>' closing tag for the given `Opening' tag.
 
-closing(#xmlel{ns = NS, declared_ns = Declared_NS, name = Name}) ->
-    Prefix = case lists:keysearch(NS, 1, Declared_NS) of
-        {value, {_NS, none}} -> undefined;
-        {value, {_NS, P}}    -> P;
-        _                    -> undefined
-    end,
-    #xmlendtag{ns = NS, prefix = Prefix, name = Name}.
+closing(#xmlel{ns = NS, name = Name}) ->
+    #xmlendtag{ns = NS, name = Name}.
 
 % --------------------------------------------------------------------
 % Stream standard attributes.

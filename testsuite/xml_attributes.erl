@@ -22,11 +22,11 @@
   ]).
 
 -define(ATTRS3_1, [
-    {xmlattr, undefined, undefined, "version", "1.0"}
+    {xmlattr, undefined, "version", "1.0"}
   ]).
 -define(ATTRS3_2, [
-    {xmlattr, undefined, undefined, "version", "1.0"},
-    {xmlattr, ?NS_XML, undefined, "lang", "fr"}
+    {xmlattr, undefined, "version", "1.0"},
+    {xmlattr, ?NS_XML, "lang", "fr"}
   ]).
 
 -define(ATTRS4, [
@@ -102,11 +102,11 @@
 creation_test_() ->
     [
       ?_assertMatch(
-        {xmlattr, undefined, undefined, "name", undefined},
+        {xmlattr, undefined, "name", undefined},
         exmpp_xml:make_attribute("name")
       ),
       ?_assertMatch(
-        {xmlattr, "ns", undefined, "name", undefined},
+        {xmlattr, "ns", "name", undefined},
         exmpp_xml:make_attribute("ns", "name")
       )
     ].
@@ -183,7 +183,7 @@ get_attribute_node_from_list_test_() ->
         undefined,
         exmpp_xml:get_attribute_node_from_list(?ATTRS3_1, "lang")),
       ?_assertMatch(
-        {xmlattr, ?NS_XML, undefined, "lang", "fr"},
+        {xmlattr, ?NS_XML, "lang", "fr"},
         exmpp_xml:get_attribute_node_from_list(?ATTRS3_2, "lang")),
       ?_assertMatch(
         undefined,
@@ -196,7 +196,7 @@ get_attribute_node_from_list_test_() ->
         undefined,
         exmpp_xml:get_attribute_node_from_list(?ATTRS3_1, ?NS_XML, "lang")),
       ?_assertMatch(
-        {xmlattr, ?NS_XML, undefined, "lang", "fr"},
+        {xmlattr, ?NS_XML, "lang", "fr"},
         exmpp_xml:get_attribute_node_from_list(?ATTRS3_2, ?NS_XML, "lang")),
       ?_assertMatch(
         undefined,
@@ -222,7 +222,7 @@ get_attribute_node_test_() ->
         undefined,
         exmpp_xml:get_attribute_node(?ELEMENT3_1, "lang")),
       ?_assertMatch(
-        {xmlattr, ?NS_XML, undefined, "lang", "fr"},
+        {xmlattr, ?NS_XML, "lang", "fr"},
         exmpp_xml:get_attribute_node(?ELEMENT3_2, "lang")),
       ?_assertMatch(
         undefined,
@@ -239,7 +239,7 @@ get_attribute_node_test_() ->
         undefined,
         exmpp_xml:get_attribute_node(?ELEMENT3_1, ?NS_XML, "lang")),
       ?_assertMatch(
-        {xmlattr, ?NS_XML, undefined, "lang", "fr"},
+        {xmlattr, ?NS_XML, "lang", "fr"},
         exmpp_xml:get_attribute_node(?ELEMENT3_2, ?NS_XML, "lang")),
       ?_assertMatch(
         undefined,

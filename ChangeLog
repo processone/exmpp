@@ -1,5 +1,60 @@
 2008-11-28  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
+	The following changes greatly improve memory consumption but they
+	include some API changes:
+	  o  #xmlattr doesn't carry a prefix anymore (the new record
+	     is incompatible with the previous one).
+	  o  Known lists handling and API is completly new (and incompatible).
+	  o  exmpp_xml parser's options have changed:
+	       . namespace has been removed.
+	       . ns_check, names_check and attrs_check were renamed to
+	         check_nss, check_elems and check_attrs.
+	       . check_nss, check_elems and check_attrs now take the name
+	         of a known list.
+	       . endtag was renamed to emit_endtag.
+	       . maxsize was renamed to max_size.
+
+	* configure.ac: Add an option to enable/disable SMP support in port
+	drivers that use it. Check for LibXML2 presence. Take care of the new
+	include/internal/Makefile.
+
+	* include/internal/extract-known-from-specs,
+	include/internal/make-specs-list,
+	include/internal/exmpp_known_nss.in,
+	include/internal/exmpp_known_elems.in,
+	include/internal/exmpp_known_attrs.in,
+	include/internal/exmpp_known_nss.hrl.js,
+	include/internal/exmpp_known_elems.hrl.js,
+	include/internal/exmpp_known_attrs.hrl.js,
+	include/internal/exmpp_known_nss.hrl.awk,
+	include/internal/exmpp_known_elems.hrl.awk,
+	include/internal/exmpp_known_attrs.hrl.awk,
+	include/internal/Makefile.am, include/Makefile.am,
+	c_src/extract-known-from-specs, c_src/make-specs-list,
+	c_src/xmpp_nss.h.in, c_src/xmpp_names.h.in, c_src/xmpp_attrs.h.in:
+	Known lists are now Erlang headers instead of C headers.
+
+	* include/exmpp_xml.hrl, src/core/exmpp_stream.erl: Remove prefix from
+	#xmlattr and #xmlendtag.
+
+	* c_src/exmpp_driver.h, c_src/exmpp_driver.c, c_src/exmpp_xml.h,
+	c_src/exmpp_xml.c, c_src/exmpp_xml_expat.c,
+	c_src/exmpp_xml_expat_legacy.c, c_src/exmpp_xml_libxml2.c: Improve
+	memory consumption. Add support for SMP, though there's room for
+	enhancement. Add support for LibXML2.
+
+	* src/core/exmpp_xml.erl: Completly change known list handling and
+	API. Change some parser options.
+
+	* testsuite/xml_attributes.erl, testsuite/xml_parser.erl: Update
+	testsuite.
+
+	* c_src/contrib/hashtable.h, c_src/contrib/hashtable_private.h,
+	c_src/contrib/hashtable.c: A new hashtable is implemented by
+	exmpp_driver.c
+
+2008-11-28  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
 	* testsuite/eunit_tty.erl: Rename assert_failed to assertion_failed.
 	Accept unknown failure types. Beautify returned value.
 

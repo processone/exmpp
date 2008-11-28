@@ -22,17 +22,14 @@
 %% </p>
 
 -module(exmpp_xml).
--vsn('$Revision$ ').
+-vsn('$Revision$').
 
 -behaviour(gen_server).
 
 -include("exmpp.hrl").
-
-% Deprecated functions list.
--deprecated({get_element_by_name, 2, next_major_release}).
--deprecated({get_element_by_name, 3, next_major_release}).
--deprecated({get_elements_by_name, 2, next_major_release}).
--deprecated({get_elements_by_name, 3, next_major_release}).
+-include("internal/exmpp_known_nss.hrl").
+-include("internal/exmpp_known_elems.hrl").
+-include("internal/exmpp_known_attrs.hrl").
 
 % Initialization.
 -export([
@@ -57,11 +54,8 @@
   reset_parser/2,
   stop_parser/1,
   add_known_nss/2,
-  add_known_names/2,
+  add_known_elems/2,
   add_known_attrs/2,
-  add_autoload_known_nss/1,
-  add_autoload_known_names/1,
-  add_autoload_known_attrs/1,
   parse/2,
   parse_final/2,
   parse_document/1,
@@ -113,7 +107,7 @@
 % Element handling.
 -export([
   get_name_as_list/1,
-  get_name_as_atom/1,
+  get_names_as_atom/1,
   element_matches/2,
   element_matches/3,
   element_matches_by_ns/2,
@@ -123,10 +117,6 @@
   get_element/3,
   get_elements/3,
   get_elements/2,
-  get_element_by_name/2,  % Deprecated
-  get_element_by_name/3,  % Deprecated
-  get_elements_by_name/3, % Deprecated
-  get_elements_by_name/2, % Deprecated
   get_element_by_ns/2,
   has_element/2,
   has_element/3,
@@ -206,13 +196,16 @@
 ]).
 
 -record(state, {
-  engines
+  known_nss_lists,
+  known_elems_lists,
+  known_attrs_lists
 }).
 
 -record(xml_engine, {
   name,
   driver_path,
-  driver
+  driver,
+  port
 }).
 
 -record(xml_parser, {
@@ -221,32 +214,29 @@
 }).
 
 -define(SERVER, ?MODULE).
+-define(ENGINES_REGISTRY, exmpp_xml_engines_registry).
 -define(DEFAULT_ENGINE, expat).
 
--define(COMMAND_SET_NSPARSER,     1).
--define(COMMAND_SET_NAMEASATOM,   2).
--define(COMMAND_SET_CHECK_NS,     3).
--define(COMMAND_SET_CHECK_NAMES,  4).
--define(COMMAND_SET_CHECK_ATTRS,  5).
--define(COMMAND_SET_MAXSIZE,      6).
--define(COMMAND_SET_ROOTDEPTH,    7).
--define(COMMAND_SET_ENDTAG,       8).
--define(COMMAND_ADD_KNOWN_NS,     9).
--define(COMMAND_ADD_KNOWN_NAME,  10).
--define(COMMAND_ADD_KNOWN_ATTR,  11).
--define(COMMAND_PARSE,           12).
--define(COMMAND_PARSE_FINAL,     13).
--define(COMMAND_SVN_REVISION,    14).
+-define(COMMAND_ADD_KNOWN_NSS,     1).
+-define(COMMAND_ADD_KNOWN_ELEMS,   2).
+-define(COMMAND_ADD_KNOWN_ATTRS,   3).
+-define(COMMAND_SET_MAX_SIZE,      4).
+-define(COMMAND_SET_ROOT_DEPTH,    5).
+-define(COMMAND_SET_NAMES_AS_ATOM, 6).
+-define(COMMAND_SET_CHECK_NSS,     7).
+-define(COMMAND_SET_CHECK_ELEMS,   8).
+-define(COMMAND_SET_CHECK_ATTRS,   9).
+-define(COMMAND_SET_EMIT_ENDTAG,  10).
+-define(COMMAND_PARSE,            11).
+-define(COMMAND_PARSE_FINAL,      12).
+-define(COMMAND_RESET_PARSER,     13).
+-define(COMMAND_PORT_REVISION,    14).
 
 -define(DEFAULT_PARSER_OPTIONS, [
-  {namespace, true},
-  {name_as_atom, true},
-  {ns_check, true},
-  {names_check, true},
-  {attrs_check, true},
-  {endtag, false},
+  {max_size, infinity},
   {root_depth, 0},
-  {maxsize, infinity}
+  {names_as_atom, true},
+  {emit_endtag, false}
 ]).
 
 -define(PREFIXED_NAME(P, N), P ++ ":" ++ N).
@@ -270,6 +260,7 @@
 start() ->
     Ret = gen_server:start({local, ?SERVER}, ?MODULE, [], []),
     register_builtin_engines(),
+    load_builtin_known_lists(),
     Ret.
 
 %% @hidden
@@ -277,13 +268,17 @@ start() ->
 start_link() ->
     Ret = gen_server:start_link({local, ?SERVER}, ?MODULE, [], []),
     register_builtin_engines(),
+    load_builtin_known_lists(),
     Ret.
 
 -ifdef(HAVE_EXPAT).
 -define(REGISTER_EXPAT,
   register_builtin_engine(expat, exmpp_xml_expat)).
+-define(REGISTER_EXPAT_LEGACY,
+  register_builtin_engine(expat_legacy, exmpp_xml_expat_legacy)).
 -else.
 -define(REGISTER_EXPAT, ok).
+-define(REGISTER_EXPAT_LEGACY, ok).
 -endif.
 
 -ifdef(HAVE_LIBXML2).
@@ -295,6 +290,7 @@ start_link() ->
 
 register_builtin_engines() ->
     ?REGISTER_EXPAT,
+    ?REGISTER_EXPAT_LEGACY,
     ?REGISTER_LIBXML2,
     ok.
 
@@ -306,6 +302,14 @@ register_builtin_engine(Name, Driver) ->
             error_logger:warning_msg("Failed to load driver \"~s\": ~s~n",
               [Driver_Name, erl_ddll:format_error(Reason)])
     end.
+
+load_builtin_known_lists() ->
+    [_ | Known_NSs] = lists:reverse(?XMPP_KNOWN_NSS),
+    [_ | Known_Elems] = lists:reverse(?XMPP_KNOWN_ELEMS),
+    [_ | Known_Attrs] = lists:reverse(?XMPP_KNOWN_ATTRS),
+    add_known_nss(xmpp, Known_NSs),
+    add_known_elems(xmpp, Known_Elems),
+    add_known_attrs(xmpp, Known_Attrs).
 
 % --------------------------------------------------------------------
 % Registry handling.
@@ -342,27 +346,85 @@ register_engine(Name, Driver_Path, Driver)
 %% @doc Return the list of XML engines.
 
 get_engine_names() ->
-    gen_server:call(?SERVER, get_engine_names, infinity).
+    ets:safe_fixtable(?ENGINES_REGISTRY, true),
+    Keys = get_engine_names2(ets:first(?ENGINES_REGISTRY), []),
+    ets:safe_fixtable(?ENGINES_REGISTRY, false),
+    Keys.
+
+get_engine_names2('$end_of_table', Keys) ->
+    lists:reverse(Keys);
+get_engine_names2(Prev_Key, Keys) ->
+    get_engine_names2(ets:next(?ENGINES_REGISTRY, Prev_Key),
+      [Prev_Key | Keys]).
 
 %% @spec (Engine_Name) -> bool()
 %%     Engine_Name = atom()
 %% @doc Tell if `Engine_Name' is available.
 
 is_engine_available(Engine_Name) ->
-    case gen_server:call(?SERVER, {get_engine, Engine_Name}, infinity) of
-        undefined -> false;
-        _         -> true
-    end.
+    ets:member(?ENGINES_REGISTRY, Engine_Name).
 
 %% @spec (Engine_Name) -> Driver_Name
 %%     Engine_Name = atom()
-%%     Driver_Name = atom()
+%%     Driver_Name = atom() | undefined
 %% @doc Return the port driver name associated to the given engine.
 
 get_engine_driver(Engine_Name) ->
-    case gen_server:call(?SERVER, {get_engine, Engine_Name}, infinity) of
-        undefined                         -> undefined;
-        #xml_engine{driver = Driver_Name} -> Driver_Name
+    case ets:match(?ENGINES_REGISTRY,
+      {xml_engine, Engine_Name, '_', '$1', '_'}) of
+        [[Engine_Driver]] ->
+            Engine_Driver;
+        _ ->
+            undefined
+    end.
+
+% --------------------------------------------------------------------
+% Global known lists.
+% --------------------------------------------------------------------
+
+%% @spec (List_Name, List) -> ok
+%%     List_Name = atom() | string()
+%%     List = [NS]
+%%     NS = atom() | string()
+%% @doc Tell parsers that `NS_List' are known namespaces.
+%%
+%% If `check_nss' is enabled, all occurences of these namespaces will be
+%% represented as an atom().
+
+add_known_nss(List_Name, List) ->
+    case gen_server:call(?SERVER, {add_known, nss, List_Name, List}) of
+        ok                 -> ok;
+        {error, Exception} -> throw(Exception)
+    end.
+
+%% @spec (List_Name, List) -> ok
+%%     List_Name = atom() | string()
+%%     List = [Name]
+%%     Name = atom() | string()
+%% @doc Tell parsers that `Names_List' are known element names.
+%%
+%% If `check_elems' is enabled, all occurences of these names will be
+%% represented as an atom().
+
+add_known_elems(List_Name, List) ->
+    case gen_server:call(?SERVER, {add_known, names, List_Name, List}) of
+        ok                 -> ok;
+        {error, Exception} -> throw(Exception)
+    end.
+
+%% @spec (List_Name, List) -> ok
+%%     List_Name = atom() | string()
+%%     List = [Attr]
+%%     Attr = atom() | string()
+%% @doc Tell parsers that `Attr' are known element attributes.
+%%
+%% If `check_attrs' is enabled, all occurences of these attributes will
+%% be represented as an atom().
+
+add_known_attrs(List_Name, List) ->
+    case gen_server:call(?SERVER, {add_known, attrs, List_Name, List}) of
+        ok                 -> ok;
+        {error, Exception} -> throw(Exception)
     end.
 
 % --------------------------------------------------------------------
@@ -375,11 +437,13 @@ get_engine_driver(Engine_Name) ->
 %%
 %% Default options are:
 %% ```
-%% [namespace, name_as_atom, {endtag, false}, {root_depth, 0}, {maxsize, infinity}]
+%% [
+%%   {max_size, infinity},
+%%   {root_depth, 0},
+%%   names_as_atom,
+%%   {emit_endtag, false}
+%% ].
 %% '''
-%%
-%% Activating namespace support enables `ns_check'. Activating
-%% `name_as_atom' enables `names_check' and `attrs_check'.
 %%
 %% @see start_parser/1.
 %% @see xmlparseroption().
@@ -434,8 +498,9 @@ reset_parser(Parser) ->
 %%     Options = [xmlparseroption()]
 %% @doc Reset the parser and update its options.
 
-reset_parser(Parser, Options) ->
+reset_parser(#xml_parser{port = Port} = Parser, Options) ->
     New_Options = merge_options(Parser#xml_parser.options, Options),
+    port_control(Port, ?COMMAND_RESET_PARSER, <<>>),
     reset_parser2(Parser, New_Options).
 
 reset_parser2(Parser, Options) ->
@@ -443,11 +508,6 @@ reset_parser2(Parser, Options) ->
         {error, Reason, Infos} ->
             throw({xml_parser, options, Reason, Infos});
         New_Parser ->
-            % We can now autoload known namespaces/names/attrs.
-            case proplists:get_bool(autoload_known, Options) of
-                true  -> autoload_known(New_Parser);
-                false -> ok
-            end,
             New_Parser
     end.
 
@@ -465,153 +525,11 @@ stop_parser(#xml_parser{port = Port} = _Parser) ->
     exmpp_internals:close_port(Port),
     ok.
 
-%% @spec (Parser, NS_List) -> ok
-%%     Parser = xmlparser()
-%%     NS_List = [NS]
-%%     NS = atom() | string()
-%% @doc Tell the parser that `NS' are known namespaces.
-%%
-%% If enabled, all occurences of these namespaces will be represented as
-%% an atom().
-
-add_known_nss(Parser, [NS | Rest]) ->
-    add_known_ns(Parser, NS),
-    add_known_nss(Parser, Rest);
-add_known_nss(_Parser, []) ->
-    ok.
-
-add_known_ns(Parser, NS) when is_atom(NS) ->
-    add_known_ns(Parser, atom_to_list(NS));
-add_known_ns(#xml_parser{port = Port} = _Parser, NS) when is_list(NS) ->
-    binary_to_term(port_control(Port, ?COMMAND_ADD_KNOWN_NS,
-      term_to_binary(NS))).
-
-%% @spec (Parser, Names_List) -> ok
-%%     Parser = xmlparser()
-%%     Names_List = [Name]
-%%     Name = atom() | string()
-%% @doc Tell the parser that `Name' are known element names.
-%%
-%% If enabled, all occurences of these names will be represented as
-%% an atom().
-
-add_known_names(Parser, [Name | Rest]) ->
-    add_known_name(Parser, Name),
-    add_known_names(Parser, Rest);
-add_known_names(_Parser, []) ->
-    ok.
-
-add_known_name(Parser, Name) when is_atom(Name) ->
-    add_known_name(Parser, atom_to_list(Name));
-add_known_name(#xml_parser{port = Port} = _Parser, Name) when is_list(Name) ->
-    binary_to_term(port_control(Port, ?COMMAND_ADD_KNOWN_NAME,
-      term_to_binary(Name))).
-
-%% @spec (Parser, Attrs_List) -> ok
-%%     Parser = xmlparser()
-%%     Attrs_List = [Attr]
-%%     Attr = atom() | string()
-%% @doc Tell the parser that `Attr' are known element attributes.
-%%
-%% If enabled, all occurences of these attributes will be represented as
-%% an atom().
-
-add_known_attrs(Parser, [Attr | Rest]) ->
-    add_known_attr(Parser, Attr),
-    add_known_attrs(Parser, Rest);
-add_known_attrs(_Parser, []) ->
-    ok.
-
-add_known_attr(Parser, Attr) when is_atom(Attr) ->
-    add_known_attr(Parser, atom_to_list(Attr));
-add_known_attr(#xml_parser{port = Port} = _Parser, Attr) when is_list(Attr) ->
-    binary_to_term(port_control(Port, ?COMMAND_ADD_KNOWN_ATTR,
-      term_to_binary(Attr))).
-
-%% @spec (Parser) -> ok
-%%     Parser = xmlparser()
-%% @doc Autoload known namespaces/names/attributes.
-
-autoload_known(Parser) ->
-    case application:get_env(exmpp, xml_known_nss) of
-        undefined ->
-            ok;
-        {ok, NSs} when is_list(NSs) ->
-            add_known_nss(Parser, NSs);
-        {ok, Bad_NSs} ->
-            throw({xml, autoload_known, invalid_known_nss, Bad_NSs})
-    end,
-    case application:get_env(exmpp, xml_known_names) of
-        undefined ->
-            ok;
-        {ok, Names} when is_list(Names) ->
-            add_known_names(Parser, Names);
-        {ok, Bad_Names} ->
-            throw({xml, autoload_known, invalid_known_names, Bad_Names})
-    end,
-    case application:get_env(exmpp, xml_known_attrs) of
-        undefined ->
-            ok;
-        {ok, Attrs} when is_list(Attrs) ->
-            add_known_attrs(Parser, Attrs);
-        {ok, Bad_Attrs} ->
-            throw({xml, autoload_known, invalid_known_attrs, Bad_Attrs})
-    end.
-
-%% @spec (NSs) -> ok
-%%     NSS = [NS]
-%%     NS = atom() | string()
-%% @throws {xml, autoload_known, invalid_known_nss, term()}
-%% @doc Add the given NS list to the autoloaded NS list.
-
-add_autoload_known_nss(NSs) when is_list(NSs) ->
-    case application:get_env(exmpp, xml_known_nss) of
-        undefined ->
-            application:set_env(exmpp, xml_known_nss, NSs);
-        {ok, Prev_NSs} when is_list(Prev_NSs) ->
-            application:set_env(exmpp, xml_known_nss, Prev_NSs ++ NSs);
-        {ok, Bad_NSs} ->
-            throw({xml, autoload_known, invalid_known_nss, Bad_NSs})
-    end.
-
-%% @spec (Names) -> ok
-%%     Names = [Name]
-%%     Name = atom() | string()
-%% @throws {xml, autoload_known, invalid_known_names, term()}
-%% @doc Add the given names list to the autoloaded names list.
-
-add_autoload_known_names(Names) when is_list(Names) ->
-    case application:get_env(exmpp, xml_known_names) of
-        undefined ->
-            application:set_env(exmpp, xml_known_names, Names);
-        {ok, Prev_Names} when is_list(Prev_Names) ->
-            application:set_env(exmpp, xml_known_names, Prev_Names ++ Names);
-        {ok, Bad_Names} ->
-            throw({xml, autoload_known, invalid_known_names, Bad_Names})
-    end.
-
-%% @spec (Attrs) -> ok
-%%     Attrs = [Attr]
-%%     Attr = atom() | string()
-%% @throws {xml, autoload_known, invalid_known_attrs, term()}
-%% @doc Add the given attributes list to the autoloaded attributes list.
-
-add_autoload_known_attrs(Attrs) when is_list(Attrs) ->
-    case application:get_env(exmpp, xml_known_attrs) of
-        undefined ->
-            application:set_env(exmpp, xml_known_attrs, Attrs);
-        {ok, Prev_Attrs} when is_list(Prev_Attrs) ->
-            application:set_env(exmpp, xml_known_attrs, Prev_Attrs ++ Attrs);
-        {ok, Bad_Attrs} ->
-            throw({xml, autoload_known, invalid_known_attrs, Bad_Attrs})
-    end.
-
 %% @spec (Parser, Data) -> [XML_Element] | continue
 %%     Parser = xmlparser()
 %%     Data = string() | binary()
 %%     XML_Element = xmlelement() | xmlel() | xmlendtag()
-%% @throws {xml_parser, parsing, Reason, undefined} |
-%%         {xml_parser, parsing, malformed_xml, Reason}
+%% @throws {xml_parser, parsing, Reason, Details}
 %% @doc Parse a chunk from an XML stream.
 %%
 %% This may be called multiple times with a new chunk of data. However
@@ -632,21 +550,13 @@ parse(Parser, Data) when is_list(Data) ->
     parse(Parser, list_to_binary(Data));
 
 parse(#xml_parser{port = Port} = _Parser, Data) when is_binary(Data) ->
-    case binary_to_term(port_control(Port, ?COMMAND_PARSE, Data)) of
-        {ok, Result} ->
-            Result;
-        {error, Reason} ->
-            throw({xml_parser, parsing, Reason, undefined});
-        {xmlerror, Reason} ->
-            throw({xml_parser, parsing, malformed_xml, Reason})
-    end.
+    engine_parse(Port, Data).
 
 %% @spec (Parser, Data) -> [XML_Element] | done
 %%     Parser = xmlparser()
 %%     Data = string() | binary()
 %%     XML_Element = xmlelement() | xmlel() | xmlendtag()
-%% @throws {xml_parser, parsing, Reason, undefined} |
-%%         {xml_parser, parsing, malformed_xml, Reason}
+%% @throws {xml_parser, parsing, Reason, Details}
 %% @doc Parse the last chunk from an XML stream.
 %%
 %% This is used when you know there won't be any more data to process.
@@ -660,14 +570,7 @@ parse_final(Parser, Data) when is_list(Data) ->
     parse_final(Parser, list_to_binary(Data));
 
 parse_final(#xml_parser{port = Port} = _Parser, Data) when is_binary(Data) ->
-    case binary_to_term(port_control(Port, ?COMMAND_PARSE_FINAL, Data)) of
-        {ok, Result} ->
-            Result;
-        {error, Reason} ->
-            throw({xml_parser, parsing, Reason, undefined});
-        {xmlerror, Reason} ->
-            throw({xml_parser, parsing, malformed_xml, Reason})
-    end.
+    engine_parse_final(Port, Data).
 
 %% @spec (Document) -> [XML_Element] | done
 %%     Document = string() | binary()
@@ -756,9 +659,7 @@ parse_document_fragment(Fragment, Parser_Options) ->
 %% @hidden
 
 port_revision(#xml_parser{port = Port} = _Parser) ->
-    {ok, Result} = binary_to_term(port_control(Port,
-        ?COMMAND_SVN_REVISION, <<>>)),
-    Result.
+    engine_port_revision(Port).
 
 % --------------------------------------------------------------------
 % Functions to handle namespaces in XML elements and attributes.
@@ -1418,9 +1319,9 @@ get_name_as_list(#xmlelement{name = Name}) ->
 %% @doc Return the name of an element as atom, regardless of the
 %% original encoding.
 
-get_name_as_atom(#xmlel{name = Name}) ->
+get_names_as_atom(#xmlel{name = Name}) ->
     as_atom(Name);
-get_name_as_atom(#xmlelement{name = Name}) ->
+get_names_as_atom(#xmlelement{name = Name}) ->
     as_atom(Name).
 
 %% @spec (XML_Element, Name) -> bool()
@@ -1560,16 +1461,6 @@ get_element2([], _Name) ->
 get_element2(undefined, _Name) ->
     undefined.
 
-%% @spec (XML_Element, Name) -> XML_Subelement | undefined
-%%     XML_Element = xmlel() | xmlelement() | undefined
-%%     Name = atom() | string()
-%%     XML_Subelement = xmlel() | xmlelement()
-%% @deprecated Please use {@link get_element/2} instead.
-%% @doc Search in the children of `XML_Element' an element named `Name'.
-
-get_element_by_name(XML_Element, Name) ->
-    get_element(XML_Element, Name).
-
 %% @spec (XML_Element, NS, Name) -> XML_Subelement | undefined
 %%     XML_Element = xmlel() | undefined
 %%     NS = atom() | string()
@@ -1595,18 +1486,6 @@ get_element2([], _NS, _Name) ->
     undefined;
 get_element2(undefined, _NS, _Name) ->
     undefined.
-
-%% @spec (XML_Element, NS, Name) -> XML_Subelement | undefined
-%%     XML_Element = xmlel() | undefined
-%%     NS = atom() | string()
-%%     Name = atom() | string()
-%%     XML_Subelement = xmlel()
-%% @deprecated Please use {@link get_element/3} instead.
-%% @doc Search in the children of `XML_Element' an element named `Name'
-%% with `NS' namespace URI.
-
-get_element_by_name(XML_Element, NS, Name) ->
-    get_element(XML_Element, NS, Name).
 
 %% @spec (XML_Element, Name) -> [XML_Subelement]
 %%     XML_Element = xmlel() | xmlelement() | undefined
@@ -1636,17 +1515,6 @@ filter_by_name(Searched_Name) ->
         element_matches(XML_Element, Searched_Name)
     end.
 
-%% @spec (XML_Element, Name) -> [XML_Subelement]
-%%     XML_Element = xmlel() | xmlelement() | undefined
-%%     Name = atom() | string()
-%%     XML_Subelement = xmlel() | xmlelement()
-%% @deprecated Please use {@link get_elements/2} instead.
-%% @doc Search in the children of `XML_Element' for all the elements
-%% named `Name'
-
-get_elements_by_name(XML_Element, Name) ->
-    get_elements(XML_Element, Name).
-
 %% @spec (XML_Element, NS, Name) -> [XML_Subelement]
 %%     XML_Element = xmlel() | undefined
 %%     NS = atom() | string()
@@ -1673,18 +1541,6 @@ filter_by_name(Searched_NS, Searched_Name) ->
     fun(XML_Element) ->
         element_matches(XML_Element, Searched_NS, Searched_Name)
     end.
-
-%% @spec (XML_Element, NS, Name) -> [XML_Subelement]
-%%     XML_Element = xmlel() | undefined
-%%     NS = atom() | string()
-%%     Name = atom() | string()
-%%     XML_Subelement = xmlel()
-%% @deprecated Please use {@link get_elements_by_name/3} instead.
-%% @doc Search in the children of `XML_Element' for all the elements
-%% named `Name' with `NS' namespace URI.
-
-get_elements_by_name(XML_Element, NS, Name) ->
-    get_elements(XML_Element, NS, Name).
 
 %% @spec (XML_Element, NS) -> XML_Subelement | undefined
 %%     XML_Element = xmlel() | undefined
@@ -2267,7 +2123,8 @@ normalize_cdata_in_list2([XML_Node | Rest], Current_CDatas, New_Children) ->
 %% @spec (XML_Element) -> New_XML_Element
 %%     XML_Element = xmlel() | xmlelement()
 %%     New_XML_Element = xmlel() | xmlelement()
-%% @doc Regroup all splitted {@link xmlcdata()} in a unique one and remove empty ones.
+%% @doc Regroup all splitted {@link xmlcdata()} in a unique one
+%% and remove empty ones.
 %%
 %% One caveats is the reconstructed {@link xmlcdata()} is appended at
 %% the end of the children list.
@@ -2574,7 +2431,7 @@ xmlel_to_xmlelement(#xmlendtag{} = Endtag,
     % Unresolve namespaces.
     New_Name = unresolve_endtag_nss(Endtag, Default_NS, Prefixed_NS),
     % Now, recreate the final #xmlendtag.
-    #xmlendtag{ns = undefined, prefix = undefined, name = New_Name};
+    #xmlendtag{ns = undefined, name = New_Name};
 xmlel_to_xmlelement(XML_El, _Default_NS, _Prefixed_NS) ->
     % xmlelement() or xmlcdata().
     XML_El.
@@ -2599,8 +2456,8 @@ unresolve_xmlel_nss(#xmlel{ns = NS, name = Name, attrs = Attrs,
     end,
     {New_Name, New_Attrs, Default_NS1, Prefixed_NS2}.
 
-unresolve_endtag_nss(#xmlendtag{ns = NS, name = Name,
-  prefix = Wanted_Prefix}, Default_NS, Prefixed_NS) ->
+unresolve_endtag_nss(#xmlendtag{ns = NS, name = Name},
+  Default_NS, Prefixed_NS) ->
     Name_S = if
         is_atom(Name) -> atom_to_list(Name);
         true          -> Name
@@ -2613,8 +2470,6 @@ unresolve_endtag_nss(#xmlendtag{ns = NS, name = Name,
         false ->
             % Search a prefix in already declared namespaces.
             case search_in_prefixed_ns(NS, Prefixed_NS) of
-                undefined  when Wanted_Prefix /= undefined ->
-                    Wanted_Prefix ++ ":" ++ Name_S;
                 undefined ->
                     % Too late to declare something; the
                     % namespace should have been provided
@@ -2630,7 +2485,7 @@ xmlnsattributes_to_xmlattributes(Attrs, Prefixed_NS) ->
     xmlnsattributes_to_xmlattributes2(Attrs, Prefixed_NS, []).
 
 xmlnsattributes_to_xmlattributes2([#xmlattr{ns = NS, name = Name,
-  value = Value, prefix = Wanted_Prefix} | Rest],
+  value = Value} | Rest],
   Prefixed_NS, Converted_Attrs) ->
     Name_S = if
         is_atom(Name) -> atom_to_list(Name);
@@ -2646,15 +2501,8 @@ xmlnsattributes_to_xmlattributes2([#xmlattr{ns = NS, name = Name,
         _ ->
             case search_in_prefixed_ns(NS, Prefixed_NS) of
                 undefined ->
-                    % Never declared.
-                    Prefix = case Wanted_Prefix of
-                        undefined ->
-                            % Doesn't provide a prefix, it must be generated.
-                            new_auto_prefix(Prefixed_NS);
-                        _ ->
-                            % Use the desired prefix.
-                            Wanted_Prefix
-                    end,
+                    % Never declared. A prefix must be generated.
+                    Prefix = new_auto_prefix(Prefixed_NS),
                     NS_S = if
                         is_atom(NS) -> atom_to_list(NS);
                         true        -> NS
@@ -2762,8 +2610,6 @@ forward_declare_ns(Curr_NS, [{NS, Prefix} = PNS | Rest],
             forward_declare_ns(Curr_NS, Rest, New_Attrs,
               Default_NS, Prefixed_NS1)
     end;
-%forward_declare_ns(undefined, [], Attrs, Default_NS, Prefixed_NS) ->
-%    {none, Attrs, Default_NS, Prefixed_NS};
 forward_declare_ns(Curr_NS, [], Attrs, Default_NS, Prefixed_NS) ->
     % We finish with the current namespace of the element.
     Use_Default_NS = use_default_ns(Curr_NS, Default_NS),
@@ -2931,13 +2777,11 @@ xmlelement_to_xmlel_and_ns_tables(
                     % Namespace never declared.
                     #xmlendtag{
                       ns = undefined,
-                      prefix = Prefix,
                       name = Real_Name_A
                     };
                 NS ->
                     #xmlendtag{
                       ns = NS,
-                      prefix = Prefix,
                       name = Real_Name_A
                     }
             end;
@@ -2948,14 +2792,12 @@ xmlelement_to_xmlel_and_ns_tables(
                     % Uses the current default namespace.
                     #xmlendtag{
                       ns = NS,
-                      prefix = undefined,
                       name = Real_Name_A
                     };
                 _ ->
                     % No default namespace declared.
                     #xmlendtag{
                       ns = undefined,
-                      prefix = undefined,
                       name = Real_Name_A
                     }
             end
@@ -3013,14 +2855,12 @@ xmlattributes_to_xmlnsattributes([{Name, Value} | Rest],
                     % Namespace never declared.
                     #xmlattr{
                       ns = undefined,
-                      prefix = Prefix,
                       name = Real_Name_A,
                       value = Value
                     };
                 NS ->
                     #xmlattr{
                       ns = NS,
-                      prefix = Prefix,
                       name = Real_Name_A,
                       value = Value
                     }
@@ -3030,7 +2870,6 @@ xmlattributes_to_xmlnsattributes([{Name, Value} | Rest],
             Real_Name_A = list_to_atom(Real_Name),
             #xmlattr{
               ns = undefined,
-              prefix = undefined,
               name = Real_Name_A,
               value = Value
             }
@@ -3578,14 +3417,16 @@ internal_escaping_function_name() ->
 get_engine_from_options(Options) ->
     Engine_Name = case proplists:get_value(engine, Options) of
         undefined ->
-            case get_engine_names() of
-                [] ->
-                    throw({xml_parser, options, no_engine_available,
-                        undefined});
-                [Name | _] = Names ->
-                    case lists:member(?DEFAULT_ENGINE, Names) of
-                        true  -> ?DEFAULT_ENGINE;
-                        false -> Name
+            case is_engine_available(?DEFAULT_ENGINE) of
+                true ->
+                    ?DEFAULT_ENGINE;
+                false ->
+                    case ets:first(?ENGINES_REGISTRY) of
+                        '$end_of_table' ->
+                            throw({xml_parser, options, no_engine_registered,
+                                undefined});
+                        Name ->
+                            Name
                     end
             end;
         Name ->
@@ -3627,52 +3468,111 @@ handle_options(Parser, []) ->
 set_option(_Port, {engine, Engine_Name}) when is_atom(Engine_Name) ->
     ok;
 
-set_option(Port, {namespace, NS}) when is_boolean(NS) ->
-    Ret = port_control(Port, ?COMMAND_SET_NSPARSER, term_to_binary(NS)),
-    case binary_to_term(Ret) of
-        ok              -> ok;
-        {error, Reason} -> {error, init, Reason}
-    end;
-
-set_option(Port, {name_as_atom, As_Atom}) when is_boolean(As_Atom) ->
-    port_control(Port, ?COMMAND_SET_NAMEASATOM, term_to_binary(As_Atom)),
+set_option(Port, {max_size, infinity}) ->
+    port_control(Port, ?COMMAND_SET_MAX_SIZE, term_to_binary(-1)),
     ok;
-
-set_option(Port, {ns_check, Check}) when is_boolean(Check) ->
-    port_control(Port, ?COMMAND_SET_CHECK_NS, term_to_binary(Check)),
-    ok;
-
-set_option(Port, {names_check, Check}) when is_boolean(Check) ->
-    port_control(Port, ?COMMAND_SET_CHECK_NAMES, term_to_binary(Check)),
-    ok;
-
-set_option(Port, {attrs_check, Check}) when is_boolean(Check) ->
-    port_control(Port, ?COMMAND_SET_CHECK_ATTRS, term_to_binary(Check)),
-    ok;
-
-set_option(Port, {maxsize, infinity}) ->
-    port_control(Port, ?COMMAND_SET_MAXSIZE, term_to_binary(-1)),
-    ok;
-set_option(Port, {maxsize, Max}) when is_integer(Max), Max >= 0 ->
-    port_control(Port, ?COMMAND_SET_MAXSIZE, term_to_binary(Max)),
+set_option(Port, {max_size, Max}) when is_integer(Max), Max >= 0 ->
+    port_control(Port, ?COMMAND_SET_MAX_SIZE, term_to_binary(Max)),
     ok;
 
 set_option(Port, {root_depth, none}) ->
-    port_control(Port, ?COMMAND_SET_ROOTDEPTH, term_to_binary(-1)),
+    port_control(Port, ?COMMAND_SET_ROOT_DEPTH, term_to_binary(-1)),
     ok;
 set_option(Port, {root_depth, Depth}) when is_integer(Depth), Depth >= 0 ->
-    port_control(Port, ?COMMAND_SET_ROOTDEPTH, term_to_binary(Depth)),
+    port_control(Port, ?COMMAND_SET_ROOT_DEPTH, term_to_binary(Depth)),
     ok;
 
-set_option(Port, {endtag, Endtag}) when is_boolean(Endtag) ->
-    port_control(Port, ?COMMAND_SET_ENDTAG, term_to_binary(Endtag)),
+set_option(Port, {names_as_atom, As_Atom}) when is_boolean(As_Atom) ->
+    port_control(Port, ?COMMAND_SET_NAMES_AS_ATOM, term_to_binary(As_Atom)),
     ok;
 
-set_option(_Port, {autoload_known, Autoload}) when is_boolean(Autoload) ->
+set_option(Port, {check_nss, Check}) when is_atom(Check) ->
+    engine_set_things_check(Port, nss, Check);
+
+set_option(Port, {check_elems, Check}) when is_atom(Check) ->
+    engine_set_things_check(Port, names, Check);
+
+set_option(Port, {check_attrs, Check}) when is_atom(Check) ->
+    engine_set_things_check(Port, attrs, Check);
+
+set_option(Port, {emit_endtag, Endtag}) when is_boolean(Endtag) ->
+    port_control(Port, ?COMMAND_SET_EMIT_ENDTAG, term_to_binary(Endtag)),
     ok;
 
 set_option(_Port, Invalid_Option) ->
     {error, invalid, Invalid_Option}.
+
+% --------------------------------------------------------------------
+% Engine function wrappers.
+% --------------------------------------------------------------------
+
+control(Port, Command, Data) ->
+    case port_control(Port, Command, Data) of
+        <<0, Result/binary>> ->
+            Result;
+        <<1, Error/binary>> ->
+            {error, binary_to_term(Error)};
+        Other ->
+            % The port driver must have a bug somewhere: this return
+            % value is illegal.
+            {_, Driver_Name} = erlang:port_info(Port, name),
+            Term = try
+                binary_to_term(Other)
+            catch
+                _:_ ->
+                    Other
+            end,
+            error_logger:error_msg(
+              "exmpp_xml: Unexpected return value from '~s':~n~p~n",
+              [Driver_Name, Term]),
+            {error, {unexpected, Term}}
+    end.
+
+engine_add_known(Port, Type, List_Name, New_Items) ->
+    Command = case Type of
+        nss   -> ?COMMAND_ADD_KNOWN_NSS;
+        names -> ?COMMAND_ADD_KNOWN_ELEMS;
+        attrs -> ?COMMAND_ADD_KNOWN_ATTRS
+    end,
+    control(Port, Command, term_to_binary({List_Name, New_Items})).
+
+engine_set_things_check(Port, Type, List_Name) ->
+    Command = case Type of
+        nss   -> ?COMMAND_SET_CHECK_NSS;
+        names -> ?COMMAND_SET_CHECK_ELEMS;
+        attrs -> ?COMMAND_SET_CHECK_ATTRS
+    end,
+    case control(Port, Command, term_to_binary(List_Name)) of
+        {error, Reason} -> {error, failure, Reason};
+        _               -> ok
+    end.
+
+engine_parse(Port, Data) ->
+    engine_parse2(Port, ?COMMAND_PARSE, Data).
+
+engine_parse_final(Port, Data) ->
+    engine_parse2(Port, ?COMMAND_PARSE_FINAL, Data).
+
+engine_parse2(Port, Command, Data) ->
+    case control(Port, Command, Data) of
+        {error, Error} ->
+            case Error of
+                {Reason, Details} ->
+                    throw({xml_parser, parsing, Reason, Details});
+                Reason ->
+                    throw({xml_parser, parsing, Reason, undefined})
+            end;
+        Result ->
+            binary_to_term(Result)
+    end.
+
+engine_port_revision(Port) ->
+    case control(Port, ?COMMAND_PORT_REVISION, <<>>) of
+        {error, Reason} ->
+            throw({xml_parser, port_revision, port_revision, Reason});
+        Revision ->
+            binary_to_term(Revision)
+    end.
 
 % --------------------------------------------------------------------
 % gen_server(3erl) callbacks.
@@ -3681,16 +3581,21 @@ set_option(_Port, Invalid_Option) ->
 %% @hidden
 
 init([]) ->
-    Engines = dict:new(),
-    {ok, #state{engines = Engines}}.
+    process_flag(trap_exit, true),
+    ets:new(?ENGINES_REGISTRY, [named_table, {keypos, 2}]),
+    {ok, #state{
+        known_nss_lists = dict:new(),
+        known_elems_lists = dict:new(),
+        known_attrs_lists = dict:new()
+      }}.
 
 %% @hidden
 
 handle_call({register_engine,
-  #xml_engine{name = Name,
-    driver_path = Driver_Path, driver = Driver_Name} = Engine},
+  #xml_engine{driver_path = Driver_Path, driver = Driver_Name} = Engine},
   _From,
-  #state{engines = Engines} = State) ->
+  #state{known_nss_lists = Known_NSs, known_elems_lists = Known_Names,
+  known_attrs_lists = Known_Attrs} = State) ->
     try
         % Load the driver now.
         case Driver_Path of
@@ -3699,25 +3604,96 @@ handle_call({register_engine,
             _ ->
                 exmpp_internals:load_driver(Driver_Name, [Driver_Path])
         end,
-        % Add engine to the global list.
-        New_Engines = dict:store(Name, Engine, Engines),
-        {reply, ok, State#state{
-          engines = New_Engines
-        }}
+        try
+            % Start a port for management purpose.
+            Port = exmpp_internals:open_port(Driver_Name),
+            % Send him the known lists.
+            Fun1 = fun(List_Name, List, {P, Type, Acc}) ->
+                Items = dict:fetch_keys(List),
+                Ret = engine_add_known(P, Type, List_Name, Items),
+                case Acc of
+                    {error, _Reason} -> {P, Type, Acc};
+                    _                -> {P, Type, Ret}
+                end
+            end,
+            case dict:fold(Fun1, {Port, nss, ok}, Known_NSs) of
+                {_Port1, {error, Reason1}} ->
+                    exmpp_internals:close_port(Port),
+                    throw(Reason1);
+                _ ->
+                    ok
+            end,
+            case dict:fold(Fun1, {Port, names, ok}, Known_Names) of
+                {_Port2, {error, Reason2}} ->
+                    exmpp_internals:close_port(Port),
+                    throw(Reason2);
+                _ ->
+                    ok
+            end,
+            case dict:fold(Fun1, {Port, attrs, ok}, Known_Attrs) of
+                {_Port3, {error, Reason3}} ->
+                    exmpp_internals:close_port(Port),
+                    throw(Reason3);
+                _ ->
+                    ok
+            end,
+            % Add engine to the global list.
+            Engine1 = Engine#xml_engine{port = Port},
+            try
+                ets:insert(?ENGINES_REGISTRY, Engine1)
+            catch
+                _:Exception2 ->
+                    exmpp_internals:close_port(Port),
+                    throw(Exception2)
+            end,
+            {reply, ok, State}
+        catch
+            _:Exception1 ->
+                exmpp_internals:unload_driver(Driver_Name),
+                {reply, {error, Exception1}, State}
+        end
     catch
         _:Exception ->
             {reply, {error, Exception}, State}
     end;
 
-handle_call(get_engine_names, _From,
-  #state{engines = Engines} = State) ->
-    {reply, dict:fetch_keys(Engines), State};
-
-handle_call({get_engine, Engine_Name}, _From,
-  #state{engines = Engines} = State) ->
-    case dict:is_key(Engine_Name, Engines) of
-        true  -> {reply, dict:fetch(Engine_Name, Engines), State};
-        false -> {reply, undefined, State}
+handle_call({add_known, Type, List_Name, New_Items}, _From, State) ->
+    Lists = case Type of
+        nss   -> State#state.known_nss_lists;
+        names -> State#state.known_elems_lists;
+        attrs -> State#state.known_attrs_lists
+    end,
+    % Give the new items to all drivers.
+    Fun1 = fun(#xml_engine{port = Port}, Acc) ->
+        Ret = engine_add_known(Port, Type, List_Name, New_Items),
+        case Acc of
+            {error, _Reason} -> Acc;
+            _                -> Ret
+        end
+    end,
+    Result = ets:foldl(Fun1, ok, ?ENGINES_REGISTRY),
+    case Result of
+        {error, Reason} ->
+            {reply,
+              {error,
+                {xml_parser, add_known, Type, {List_Name, New_Items, Reason}}},
+              State};
+        _ ->
+            % Add new items to the list.
+            List = case dict:is_key(List_Name, Lists) of
+                true  -> dict:fetch(List_Name, Lists);
+                false -> dict:new()
+            end,
+            Fun2 = fun(Item, Acc) -> dict:store(Item, true, Acc) end,
+            New_List = lists:foldl(Fun2, List, New_Items),
+            New_Lists = dict:store(List_Name, New_List, Lists),
+            % Update the state.
+            New_State = case Type of
+                nss   -> State#state{known_nss_lists = New_Lists};
+                names -> State#state{known_elems_lists = New_Lists};
+                attrs -> State#state{known_attrs_lists = New_Lists}
+            end,
+            {reply, ok, New_State}
     end;
 
 handle_call(Request, From, State) ->
@@ -3761,16 +3737,15 @@ terminate(_Reason, _State) ->
 
 %% @type xmlparseroption() = Engine | Namespace_Option | Names_Format | Checks | Stanza_Max_Size | Root_Depth | Send_End_Element | Autoload_Known
 %%     Engine = {engine, atom()}
-%%     Namespace_Option = {namespace, bool()}
-%%     Name_Format = {name_as_atom, bool()}
-%%     Checks = NS_Check | Names_Check | Attrs_Check
-%%       NS_Check = {ns_check, bool()}
-%%       Names_Check = {names_check, bool()}
-%%       Attrs_Check = {attrs_check, bool()}
-%%     Stanza_Max_Size  = {maxsize, infinity} | {maxsize, Size}
+%%     Stanza_Max_Size  = {max_size, infinity} | {max_size, Size}
 %%     Root_Depth = {root_depth, none} | {root_depth, Depth}
-%%     Send_End_Element = {endtag, bool()}
-%%     Autoload_Known = {autoload_known, bool()}.
+%%     Name_Format = {names_as_atom, bool()}
+%%     Checks = NS_Check | Elems_Check | Attrs_Check
+%%       NS_Check = {check_nss, Known_List_Name | bool()}
+%%       Elems_Check = {check_elems, Known_List_Name | bool()}
+%%       Attrs_Check = {check_attrs, Known_List_Name | bool()}
+%%     Known_List_Name = atom()
+%%     Send_End_Element = {emit_endtag, bool()}.
 %% Options of the form `{Key, bool()}' can be specified as `Key'. See
 %% {@link proplists}.
 %%
@@ -3779,25 +3754,7 @@ terminate(_Reason, _State) ->
 %% engines list can be retrived with {@link get_engine_names/0}.
 %%
 %% <br/><br/>
-%% The `namespace' option enables or disables the support for namespaces
-%% respectively. Tag and attribute namespaces are supported.
-%%
-%% <br/><br/>
-%% The `name_as_atom' option sets if element and attribute names should
-%% be encoded as an {@link atom()} or a {@link string()} respectively.
-%% "Should" because if names or attributes checks fail, a name will be
-%% encoded as a `string()' (see next option).
-%%
-%% <br/><br/>
-%% The `Checks' options enable or disable the control of a namespace,
-%% an element name or an attribute name if `name_as_atom' is set. This
-%% is to avoid atom() table pollution and overflow. If a check says
-%% that the verified string is known, it'll be encoded as an atom() in
-%% the tuple; otherwise it'll be encoded as a string(). It's highly
-%% recommended to keep these checks enabled.
-%%
-%% <br/><br/>
-%% The `maxsize' option limits the size in bytes of a stanza to avoid
+%% The `max_size' option limits the size in bytes of a stanza to avoid
 %% deny of service at the parser level. Actually, this limit is only
 %% verified against the length of the data provided and the counter is
 %% reset to zero when an element is found. The caveats is that if the
@@ -3816,15 +3773,25 @@ terminate(_Reason, _State) ->
 %% children.
 %%
 %% <br/><br/>
-%% The `endtag' option selects if the parser must produce {@link
-%% xmlendtag()} when it encouters an end tag above `root_depth'.
+%% The `names_as_atom' option sets if element and attribute names should
+%% be encoded as an {@link atom()} or a {@link string()} respectively.
+%% "Should" because if names or attributes checks fail, a name will be
+%% encoded as a `string()' (see next option).
 %%
 %% <br/><br/>
-%% The `autoload_known' option selects if namespaces/names/attributes
-%% known tables are filled with the ones from the `exmpp' application
-%% environment. The parameters are `xml_known_nss', `xml_known_names'
-%% and `xml_known_attrs'. If they're present, they must be set to a list
-%% of atoms or strings.
+%% The `Checks' options enable or disable the control of a namespace,
+%% an element name or an attribute name if `names_as_atom' is set. If
+%% `false' is set, no check will be made. If a known list name is
+%% specified, the checks will be based on this list. If `true' is set,
+%% the previous selected known list will be used. The known list must
+%% exist already. This is to avoid atom() table pollution and overflow.
+%% If a check says that the verified string is known, it'll be encoded
+%% as an atom() in the tuple; otherwise it'll be encoded as a string().
+%% It's highly recommended to keep these checks enabled.
+%%
+%% <br/><br/>
+%% The `emit_endtag' option selects if the parser must produce {@link
+%% xmlendtag()} when it encouters an end tag above `root_depth'.
 
 %% @type xmlelement() = {xmlelement, Name, Attrs, Children}
 %%     Name = string()
@@ -3839,7 +3806,7 @@ terminate(_Reason, _State) ->
 %%     Name = atom() | string()
 %%     Attrs = [xmlnsattribute()]
 %%     Children = [xmlel() | xmlcdata()] | undefined.
-%% Record representing an XML tag when namespace support is enabled.
+%% Record representing an XML element (or only the opening tag).
 
 %% @type xmlcdata() = {xmlcdata, CData}
 %%     CData = binary().
@@ -3850,20 +3817,17 @@ terminate(_Reason, _State) ->
 %%     Value = string().
 %% Represents an tag attribute.
 
-%% @type xmlnsattribute() = {xmlattr, NS, Prefix, Name, Value}
+%% @type xmlnsattribute() = {xmlattr, NS, Name, Value}
 %%     NS = atom() | string()
-%%     Prefix = string() | undefined
 %%     Name = atom() | string()
 %%     Value = string().
 %% Represents an tag attribute.
 
-%% @type xmlendtag() = {xmlendtag, NS, Prefix, Name}
+%% @type xmlendtag() = {xmlendtag, NS, Name}
 %%     NS = atom() | string()
-%%     Prefix = string() | undefined
 %%     Name = atom() | string().
-%% Record representing an XML end tag when namespace support is
-%% enabled, for nodes above the configured `root_depth' (see {@link
-%% xmlparseroption()}).
+%% Record representing an XML end tag, for nodes above the configured
+%% `root_depth' (see {@link xmlparseroption()}).
 
 %% @type pathcomponent() = {element, Elem_Name} | {element, NS, Elem_Name} | {attribute, Attr_Name} | {attribute, NS, Attr_Name} | cdata | cdata_as_list
 %%     NS = atom() | string()

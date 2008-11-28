@@ -3,7 +3,11 @@
 execdrivers_LTLIBRARIES = exmpp_stringprep.la
 
 if WITH_EXPAT
-execdrivers_LTLIBRARIES += exmpp_xml_expat.la
+execdrivers_LTLIBRARIES += exmpp_xml_expat.la exmpp_xml_expat_legacy.la
+endif
+
+if WITH_LIBXML2
+execdrivers_LTLIBRARIES += exmpp_xml_libxml2.la
 endif
 
 if WITH_OPENSSL
@@ -14,23 +18,7 @@ if WITH_ZLIB
 execdrivers_LTLIBRARIES += exmpp_compress_zlib.la
 endif
 
-KNOWN_NSS_SOURCE   ?= $(srcdir)/xmpp_nss.h.in
-KNOWN_NAMES_SOURCE ?= $(srcdir)/xmpp_names.h.in
-KNOWN_ATTRS_SOURCE ?= $(srcdir)/xmpp_attrs.h.in
-
-MAKE_SPECS_LIST = $(srcdir)/make-specs-list
-EXTRACT_KNOWN = $(srcdir)/extract-known-from-specs
-
-EXTRA_DIST = $(MAKE_SPECS_LIST) $(EXTRACT_KNOWN)			\
-	     contrib/hashtable.h contrib/hashtable_private.h		\
-	     xmpp_nss.h.awk xmpp_nss.h.in				\
-	     xmpp_names.h.awk xmpp_names.h.in				\
-	     xmpp_attrs.h.awk xmpp_attrs.h.in				\
-	     stringprep_uni_data.h stringprep_uni_norm.h
-
-BUILT_SOURCES = xmpp_nss.h xmpp_names.h xmpp_attrs.h
-
-CLEANFILES = xmpp_nss.h xmpp_names.h xmpp_attrs.h
+EXTRA_DIST = stringprep_uni_data.h stringprep_uni_norm.h
 
 EI_CPPFLAGS = -I$(ERLANG_ERTS_DIR)/include				\
 	      -I$(ERLANG_LIB_DIR_erl_interface)/include
@@ -48,25 +36,46 @@ execdriversdir = $(ERLANG_INSTALL_LIB_DIR_exmpp)/priv/lib
 # Supported port drivers.
 # --------------------------------------------------------------------
 
-# Expat port driver.
-xmpp_nss.h: $(srcdir)/xmpp_nss.h.awk $(KNOWN_NSS_SOURCE)
-	$(AWK) -f $(srcdir)/xmpp_nss.h.awk $(KNOWN_NSS_SOURCE) > $@
-
-xmpp_names.h: $(srcdir)/xmpp_names.h.awk $(KNOWN_NAMES_SOURCE)
-	$(AWK) -f $(srcdir)/xmpp_names.h.awk $(KNOWN_NAMES_SOURCE) > $@
-
-xmpp_attrs.h: $(srcdir)/xmpp_attrs.h.awk $(KNOWN_ATTRS_SOURCE)
-	$(AWK) -f $(srcdir)/xmpp_attrs.h.awk $(KNOWN_ATTRS_SOURCE) > $@
-
-exmpp_xml_expat_la_CPPFLAGS = -I$(srcdir)/contrib			\
+# Expat port drivers.
+exmpp_xml_expat_la_CPPFLAGS = $(SMP_CPPFLAGS)				\
 			      $(EI_CPPFLAGS)				\
 			      $(EXPAT_CPPFLAGS)
 exmpp_xml_expat_la_LDFLAGS = -module -avoid-version			\
 			     $(ERL_DRIVER_LDFLAGS)			\
 			     $(EI_LDFLAGS) $(EI_LIBS)			\
 			     $(EXPAT_LDFLAGS) $(EXPAT_LIBS)
-exmpp_xml_expat_la_SOURCES = contrib/hashtable.c			\
+exmpp_xml_expat_la_SOURCES = exmpp_driver.h				\
+			     exmpp_driver.c				\
+			     exmpp_xml.h				\
+			     exmpp_xml.c				\
 			     exmpp_xml_expat.c
+
+exmpp_xml_expat_legacy_la_CPPFLAGS = $(SMP_CPPFLAGS)			\
+				     $(EI_CPPFLAGS)			\
+				     $(EXPAT_CPPFLAGS)
+exmpp_xml_expat_legacy_la_LDFLAGS = -module -avoid-version		\
+				    $(ERL_DRIVER_LDFLAGS)		\
+				    $(EI_LDFLAGS) $(EI_LIBS)		\
+				    $(EXPAT_LDFLAGS) $(EXPAT_LIBS)
+exmpp_xml_expat_legacy_la_SOURCES = exmpp_driver.h			\
+				    exmpp_driver.c			\
+				    exmpp_xml.h				\
+				    exmpp_xml.c				\
+				    exmpp_xml_expat_legacy.c
+
+# LibXML2 port drivers.
+exmpp_xml_libxml2_la_CPPFLAGS = $(SMP_CPPFLAGS)				\
+				$(EI_CPPFLAGS)
+exmpp_xml_libxml2_la_CFLAGS = $(LIBXML2_CFLAGS)
+exmpp_xml_libxml2_la_LDFLAGS = -module -avoid-version			\
+			       $(ERL_DRIVER_LDFLAGS)			\
+			       $(EI_LDFLAGS) $(EI_LIBS)			\
+			       $(LIBXML2_LIBS)
+exmpp_xml_libxml2_la_SOURCES = exmpp_driver.h				\
+			       exmpp_driver.c				\
+			       exmpp_xml.h				\
+			       exmpp_xml.c				\
+			       exmpp_xml_libxml2.c
 
 # Stringprep port driver.
 exmpp_stringprep_la_CPPFLAGS = $(EI_CPPFLAGS)
@@ -94,15 +103,3 @@ exmpp_compress_zlib_la_LDFLAGS = -module -avoid-version			\
 				 $(ZLIB_LDFLAGS) $(ZLIB_LIBS)
 exmpp_compress_zlib_la_SOURCES = exmpp_compress.h			\
 				 exmpp_compress_zlib.c
-
-# --------------------------------------------------------------------
-# Known namespaces/names/attributes updates.
-# --------------------------------------------------------------------
-
-updateknown: $(MAKE_SPECS_LIST) $(EXTRACT_KNOWN)
-	@$(MAKE_SPECS_LIST) | $(EXTRACT_KNOWN)				\
-		$(KNOWN_NSS_SOURCE)					\
-		$(KNOWN_NAMES_SOURCE)					\
-		$(KNOWN_ATTRS_SOURCE)
-
-.PHONY: updateknown
