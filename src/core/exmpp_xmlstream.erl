@@ -199,14 +199,19 @@ process_elements2(Stream, [XML_Element | Rest], Events) ->
             New_Stream = Stream#xml_stream{opened = false},
             New_Events = [#xmlstreamend{endtag = XML_Element} |
               Events],
-            process_elements2(New_Stream, Rest, New_Events)
+            process_elements2(New_Stream, Rest, New_Events);
+
+        % Character data as <stream> child, ignore.
+        % This is probably a keep-alive whitespace. 
+        #xmlcdata{} ->
+            process_elements2(Stream, Rest, Events);
 
         % Unknown tuple.
-        %_ ->
-        %    error_logger:info_msg(
-        %      "~s:process_elements/2: Unknown element: ~p~n",
-        %      [?MODULE, XML_Element]),
-        %    process_elements(Stream, Rest)
+        _ ->
+            %error_logger:info_msg(
+            %  "~s:process_elements/2: Unknown element: ~p~n",
+            %  [?MODULE, XML_Element]),
+            process_elements(Stream, Rest)
     end;
 process_elements2(Stream, [], Events) ->
     {ok, Stream, lists:reverse(Events)}.

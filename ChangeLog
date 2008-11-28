@@ -3,6 +3,9 @@
 	* testsuite/eunit_tty.erl: Rename assert_failed to assertion_failed.
 	Accept unknown failure types. Beautify returned value.
 
+	* src/core/exmpp_xmlstream.erl (process_elements/2): Ignore #xmlcdata
+	when they're direct children of the stream.
+
 2008-11-24  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	The following changes fix a few things regarding memory consumption
