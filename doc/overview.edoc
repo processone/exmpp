@@ -36,7 +36,6 @@ communication with a remote entity, nor the logical stanzas flow.
 <h3>Possible bugs</h3>
 <ul>
   <li>Fix `maxsize' handling in the parser.</li>
-  <li>Fix character data handling above `root_depth'.</li>
 </ul>
 <h3>Improvements</h3>
 <h3>New features</h3>

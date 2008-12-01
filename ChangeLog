@@ -2,6 +2,9 @@
 
 	* README: Add LibXML2 as an optional dependency.
 
+	* TODO, doc/overview.edoc: Character data handling above 'root_depth'
+	is fixed.
+
 2008-11-28  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* m4/pkg.m4: Include pkg-config M4 macros because it's still needed
