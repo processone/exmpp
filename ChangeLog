@@ -1,3 +1,7 @@
+2008-12-01  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* README: Add LibXML2 as an optional dependency.
+
 2008-11-28  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* m4/pkg.m4: Include pkg-config M4 macros because it's still needed

@@ -38,6 +38,10 @@ I. How to build and install
        It's the only XML parser supported for now.
            . Recommended version:       2.0.1
 
+    o  LibXML2 (optional)
+       It's the only XML parser supported for now.
+           . Tested version:            2.6.31
+
     o  OpenSSL (optional)
        It's the only TLS engine supported for now.
            . Recommended version:       0.9.8e
