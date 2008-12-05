@@ -231,6 +231,7 @@ exmpp_xml_control(ErlDrvData drv_data, unsigned int command,
 
 	case COMMAND_RESET_PARSER:
 		if (edd->parser != NULL) {
+			reset_context(&edd->ctx);
 			XML_ParserReset(edd->parser, "UTF-8");
 			init_parser(edd);
 		}
