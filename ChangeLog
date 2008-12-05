@@ -6,6 +6,8 @@
 	* c_src/exmpp_xml_expat.c: Fix a bug with parser reset: the context
 	was not reset.
 
+	* include/exmpp_nss.hrl: Add non-XML Publish-Subscribe namespaces.
+
 2008-12-01  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* README: Add LibXML2 as an optional dependency.

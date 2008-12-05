@@ -135,6 +135,16 @@
   'http://jabber.org/protocol/pubsub#event').
 -define(NS_PUBSUB_OWNER,
   'http://jabber.org/protocol/pubsub#owner').
+-define(NS_PUBSUB_SUBSCRIBE_AUTH,
+  'http://jabber.org/protocol/pubsub#subscribe_authorization').
+-define(NS_PUBSUB_SUBSCRIBE_OPTIONS,
+  'http://jabber.org/protocol/pubsub#subscribe_options').
+-define(NS_PUBSUB_NODE_CONFIG,
+  'http://jabber.org/protocol/pubsub#node_config').
+-define(NS_PUBSUB_META_DATA,
+  'http://jabber.org/protocol/pubsub#meta-data').
+-define(NS_PUBSUB_PUBLISH_OPTIONS,
+  'http://jabber.org/protocol/pubsub#publish-options').
 -define(NS_PUBSUB_s,
   "http://jabber.org/protocol/pubsub").
 -define(NS_PUBSUB_ERRORS_s,
@@ -143,6 +153,16 @@
   "http://jabber.org/protocol/pubsub#event").
 -define(NS_PUBSUB_OWNER_s,
   "http://jabber.org/protocol/pubsub#owner").
+-define(NS_PUBSUB_SUBSCRIBE_AUTH_s,
+  "http://jabber.org/protocol/pubsub#subscribe_authorization").
+-define(NS_PUBSUB_SUBSCRIBE_OPTIONS_s,
+  "http://jabber.org/protocol/pubsub#subscribe_options").
+-define(NS_PUBSUB_NODE_CONFIG_s,
+  "http://jabber.org/protocol/pubsub#node_config").
+-define(NS_PUBSUB_META_DATA_s,
+  "http://jabber.org/protocol/pubsub#meta-data").
+-define(NS_PUBSUB_PUBLISH_OPTIONS_s,
+  "http://jabber.org/protocol/pubsub#publish-options").
 
 % Defined by XEP-0065: SOCKS5 Bytestreams.
 -define(NS_BYTESTREAMS,              'http://jabber.org/protocol/bytestreams'.
