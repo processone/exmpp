@@ -1,3 +1,8 @@
+2008-12-05  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_xmlstream.erl (start/3): Fix a bug where 'endtag' was
+	not renamed to 'emit_endtag'.
+
 2008-12-01  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* README: Add LibXML2 as an optional dependency.

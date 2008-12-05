@@ -52,7 +52,7 @@
 %%     Parser = exmpp_xml:xmlparser()
 %% @doc Start a new stream handler.
 %%
-%% The XML parser is reset and options `{root_depth, 1}' and `endtag'
+%% The XML parser is reset and options `{root_depth, 1}' and `emit_endtag'
 %% are set.
 %%
 %% The stream will use the old xmlstreamstart tuple.
@@ -71,7 +71,7 @@ start(Callback, Parser) ->
 %%     Stream_Option = {xmlstreamstart, old | new}
 %% @doc Start a new stream handler.
 %%
-%% The XML parser is reset and options `{root_depth, 1}' and `endtag'
+%% The XML parser is reset and options `{root_depth, 1}' and `emit_endtag'
 %% are set.
 %%
 %% The stream will use the old xmlstreamstart tuple by default.
@@ -84,7 +84,8 @@ start(Callback, Parser, Stream_Options) ->
         Pid when is_pid(Pid) -> {process, Pid};
         _                    -> Callback
     end,
-    New_Parser = exmpp_xml:reset_parser(Parser, [{root_depth, 1}, endtag]),
+    New_Parser = exmpp_xml:reset_parser(Parser,
+      [{root_depth, 1}, emit_endtag]),
     Stream_Start = case lists:keysearch(xmlstreamstart, 1, Stream_Options) of
         {value, {_, new}} -> new;
         {value, {_, old}} -> old;
