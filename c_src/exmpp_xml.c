@@ -5,9 +5,9 @@
 #include "exmpp_xml.h"
 
 /* Global known lists. */
-struct exmpp_hashtable	*known_nss_index = NULL;
-struct exmpp_hashtable	*known_elems_index = NULL;
-struct exmpp_hashtable	*known_attrs_index = NULL;
+static struct exmpp_hashtable	*known_nss_index = NULL;
+static struct exmpp_hashtable	*known_elems_index = NULL;
+static struct exmpp_hashtable	*known_attrs_index = NULL;
 
 #define	KNOWN_NSS_AVG_MIN_LENGTH	 200
 #define	KNOWN_ELEMS_AVG_MIN_LENGTH	1100
@@ -16,12 +16,9 @@ struct exmpp_hashtable	*known_attrs_index = NULL;
 #define	XML_NAMESPACE			"http://www.w3.org/XML/1998/namespace"
 #define	XML_NAMESPACE_LEN		36
 
-static int		add_known_nss(struct exmpp_xml_ctx *ctx,
-			    const char *buf, int index);
-static int		add_known_elems(struct exmpp_xml_ctx *ctx,
-			    const char *buf, int index);
-static int		add_known_attrs(struct exmpp_xml_ctx *ctx,
-			    const char *buf, int index);
+static int		add_known_nss(const char *buf, int index);
+static int		add_known_elems(const char *buf, int index);
+static int		add_known_attrs(const char *buf, int index);
 static int		select_known_nss(struct exmpp_xml_ctx *ctx,
 			    const char *buf, int index);
 static int		select_known_elems(struct exmpp_xml_ctx *ctx,
@@ -133,7 +130,7 @@ control(struct exmpp_xml_ctx *ctx, unsigned int command,
 	case COMMAND_ADD_KNOWN_NSS:
 		index = exmpp_skip_version(buf);
 
-		if (add_known_nss(ctx, buf, index) != 0) {
+		if (add_known_nss(buf, index) != 0) {
 			ei_x_encode_atom(to_return, "add_known_nss_failed");
 
 			return (RET_ERROR);
@@ -143,7 +140,7 @@ control(struct exmpp_xml_ctx *ctx, unsigned int command,
 	case COMMAND_ADD_KNOWN_ELEMS:
 		index = exmpp_skip_version(buf);
 
-		if (add_known_elems(ctx, buf, index) != 0) {
+		if (add_known_elems(buf, index) != 0) {
 			ei_x_encode_atom(to_return, "add_known_elems_failed");
 
 			return (RET_ERROR);
@@ -153,7 +150,7 @@ control(struct exmpp_xml_ctx *ctx, unsigned int command,
 	case COMMAND_ADD_KNOWN_ATTRS:
 		index = exmpp_skip_version(buf);
 
-		if (add_known_attrs(ctx, buf, index) != 0) {
+		if (add_known_attrs(buf, index) != 0) {
 			ei_x_encode_atom(to_return, "add_known_attrs_failed");
 
 			return (RET_ERROR);
@@ -677,8 +674,7 @@ make_attribute_legacy(struct exmpp_xml_ctx *ctx,
 }
 
 int
-exit_element_legacy(struct exmpp_xml_ctx *ctx,
-    const char *elem, int elem_len)
+exit_element_legacy(struct exmpp_xml_ctx *ctx)
 {
 	ei_x_buff *tree;
 
@@ -725,8 +721,7 @@ get_known_list_name(const char *buf, int *index,
 }
 
 static struct exmpp_hashtable *
-lookup_known_nss(struct exmpp_xml_ctx *ctx,
-    const char *list_name, int list_name_len)
+lookup_known_nss(const char *list_name, int list_name_len)
 {
 	struct exmpp_hashtable *kl;
 
@@ -757,8 +752,7 @@ lookup_known_nss(struct exmpp_xml_ctx *ctx,
 }
 
 static struct exmpp_hashtable *
-lookup_known_elems(struct exmpp_xml_ctx *ctx,
-    const char *list_name, int list_name_len)
+lookup_known_elems(const char *list_name, int list_name_len)
 {
 	struct exmpp_hashtable *kl;
 
@@ -782,8 +776,7 @@ lookup_known_elems(struct exmpp_xml_ctx *ctx,
 }
 
 static struct exmpp_hashtable *
-lookup_known_attrs(struct exmpp_xml_ctx *ctx,
-    const char *list_name, int list_name_len)
+lookup_known_attrs(const char *list_name, int list_name_len)
 {
 	struct exmpp_hashtable *kl;
 
@@ -807,8 +800,7 @@ lookup_known_attrs(struct exmpp_xml_ctx *ctx,
 }
 
 static int
-update_list(struct exmpp_xml_ctx *ctx, struct exmpp_hashtable *kl,
-    const char *buf, int *index)
+update_list(struct exmpp_hashtable *kl, const char *buf, int *index)
 {
 	int nb_items, i, type, item_len;
 	char item[MAXATOMLEN];
@@ -836,7 +828,7 @@ update_list(struct exmpp_xml_ctx *ctx, struct exmpp_hashtable *kl,
 }
 
 static int
-add_known_nss(struct exmpp_xml_ctx *ctx, const char *buf, int index)
+add_known_nss(const char *buf, int index)
 {
 	int list_name_len;
 	char list_name[MAXATOMLEN];
@@ -848,19 +840,19 @@ add_known_nss(struct exmpp_xml_ctx *ctx, const char *buf, int index)
 
 	/* We can lookup the list (it will be created if it doesn't
 	 * already exist. */
-	kl = lookup_known_nss(ctx, list_name, list_name_len);
+	kl = lookup_known_nss(list_name, list_name_len);
 	if (kl == NULL)
 		return (RET_ERROR);
 
 	/* Update the list. */
-	if (update_list(ctx, kl, buf, &index) != 0)
+	if (update_list(kl, buf, &index) != 0)
 		return (RET_ERROR);
 
 	return (RET_OK);
 }
 
 static int
-add_known_elems(struct exmpp_xml_ctx *ctx, const char *buf, int index)
+add_known_elems(const char *buf, int index)
 {
 	int list_name_len;
 	char list_name[MAXATOMLEN];
@@ -872,19 +864,19 @@ add_known_elems(struct exmpp_xml_ctx *ctx, const char *buf, int index)
 
 	/* We can lookup the list (it will be created if it doesn't
 	 * already exist. */
-	kl = lookup_known_elems(ctx, list_name, list_name_len);
+	kl = lookup_known_elems(list_name, list_name_len);
 	if (kl == NULL)
 		return (RET_ERROR);
 
 	/* Update the list. */
-	if (update_list(ctx, kl, buf, &index) != 0)
+	if (update_list(kl, buf, &index) != 0)
 		return (RET_ERROR);
 
 	return (RET_OK);
 }
 
 static int
-add_known_attrs(struct exmpp_xml_ctx *ctx, const char *buf, int index)
+add_known_attrs(const char *buf, int index)
 {
 	int list_name_len;
 	char list_name[MAXATOMLEN];
@@ -896,12 +888,12 @@ add_known_attrs(struct exmpp_xml_ctx *ctx, const char *buf, int index)
 
 	/* We can lookup the list (it will be created if it doesn't
 	 * already exist. */
-	kl = lookup_known_attrs(ctx, list_name, list_name_len);
+	kl = lookup_known_attrs(list_name, list_name_len);
 	if (kl == NULL)
 		return (RET_ERROR);
 
 	/* Update the list. */
-	if (update_list(ctx, kl, buf, &index) != 0)
+	if (update_list(kl, buf, &index) != 0)
 		return (RET_ERROR);
 
 	return (RET_OK);

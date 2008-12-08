@@ -47,7 +47,8 @@ static const unsigned int primes[] = {
 	50331653, 100663319, 201326611, 402653189,
 	805306457, 1610612741
 };
-const unsigned int prime_table_length = sizeof(primes) / sizeof(primes[0]);
+static const unsigned int prime_table_length =
+  sizeof(primes) / sizeof(primes[0]);
 
 #define	MAX_LOAD_FACTOR 0.65f
 
@@ -305,7 +306,7 @@ exmpp_ht_dump_keys(struct exmpp_hashtable *ht)
 		j = 0;
 		while (entry != NULL) {
 			if (j == 0)
-				printf("  %3d: '%s'\r\n", i, entry->key);
+				printf("  %3u: '%s'\r\n", i, entry->key);
 			else
 				printf("       '%s'\r\n", entry->key);
 			entry = entry->next;

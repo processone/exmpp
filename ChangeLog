@@ -1,3 +1,29 @@
+2008-12-08  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	Fixed several warnings issued by Intel C Compiler.
+
+	NOTE: With current options, code produced by this compiler is much
+	bigger for no performance gain.
+
+	* c_src/exmpp_driver.h, c_src/exmpp_xml.h: Fix "old-style" prototypes.
+
+	* c_src/exmpp_driver.c: prime_table_length must be static.
+	(exmpp_ht_dump_keys): Fix a printf(3) format string to properly handle
+	an unsigned int.
+
+	* c_src/exmpp_xml.h, c_src/exmpp_xml.c,
+	c_src/exmpp_xml_expat_legacy.c: Remove unused arguments.
+
+	* c_src/exmpp_xml.c: known_*_index must be static.
+
+	* c_src/exmpp_xml_expat.c, c_src/exmpp_xml_expat_legacy.c:
+	exmpp_xml_cb_make_attributes must be static. Expat error code is an
+	enum, not a generic integer.
+	
+	* c_src/exmpp_xml_expat.c, c_src/exmpp_xml_expat_legacy.c,
+	c_src/exmpp_xml_libxml2.c: When affecting bin->orig_bytes[0], cast the
+	original integer to char to acknowledge the loss of precision.
+
 2008-12-05  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_xmlstream.erl (start/3): Fix a bug where 'endtag' was

@@ -70,8 +70,8 @@ struct exmpp_xml_ctx {
 	int			 complete_trees_ready;
 };
 
-int		init_known_lists();
-void		free_known_lists();
+int		init_known_lists(void);
+void		free_known_lists(void);
 
 int		control(struct exmpp_xml_ctx *ctx, unsigned int command,
 		    const char *buf, ei_x_buff *to_return);
@@ -116,7 +116,6 @@ int		enter_element_legacy(struct exmpp_xml_ctx *ctx,
 int		make_attribute_legacy(struct exmpp_xml_ctx *ctx,
 		    const char *attr, int attr_len,
 		    const char *value, int value_len);
-int		exit_element_legacy(struct exmpp_xml_ctx *ctx,
-		    const char *elem, int elem_len);
+int		exit_element_legacy(struct exmpp_xml_ctx *ctx);
 
 #endif /* !defined(EXMPP_XML_H) */

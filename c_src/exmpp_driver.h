@@ -54,7 +54,7 @@ void				exmpp_ht_dump_keys(struct exmpp_hashtable *ht);
  */
 
 int		exmpp_skip_version(const char *buf);
-ei_x_buff *	exmpp_new_xbuf();
+ei_x_buff *	exmpp_new_xbuf(void);
 void		exmpp_free_xbuf(ei_x_buff *xbuf);
 
 /* This function uses driver_alloc() but behaves as strdup(3) otherwise. */

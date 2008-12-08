@@ -29,7 +29,7 @@ static void		expat_cb_end_element(void *user_data,
 static void		expat_cb_character_data(void *user_data,
 			    const char *data, int len);
 
-make_attributes_cb	exmpp_xml_cb_make_attributes;
+static make_attributes_cb exmpp_xml_cb_make_attributes;
 
 static int		create_parser(struct exmpp_xml_data *edd);
 static void		init_parser(struct exmpp_xml_data *edd);
@@ -170,13 +170,13 @@ exmpp_xml_control(ErlDrvData drv_data, unsigned int command,
 		    command == COMMAND_PARSE_FINAL);
 
 		if (!ret) {
-			int errcode;
-			char *errmsg;
+			enum XML_Error errcode;
+			const char *errmsg;
 
 			/* An error occured during parsing; most probably,
 			 * XML wasn't well-formed. */
 			errcode = XML_GetErrorCode(edd->parser);
-			errmsg = (char *)XML_ErrorString(errcode);
+			errmsg = XML_ErrorString(errcode);
 
 			to_return = exmpp_new_xbuf();
 			if (to_return == NULL)
@@ -203,7 +203,7 @@ exmpp_xml_control(ErlDrvData drv_data, unsigned int command,
 			bin = driver_alloc_binary(size);
 			if (bin == NULL)
 				return (-1);
-			bin->orig_bytes[0] = ret;
+			bin->orig_bytes[0] = (char)ret;
 			memcpy(bin->orig_bytes + 1,
 			    to_return->buff, to_return->index);
 		} else {
@@ -272,7 +272,7 @@ exmpp_xml_control(ErlDrvData drv_data, unsigned int command,
 			bin = driver_alloc_binary(size);
 			if (bin == NULL)
 				return (-1);
-			bin->orig_bytes[0] = ret;
+			bin->orig_bytes[0] = (char)ret;
 			if (to_return->index > 0)
 				memcpy(bin->orig_bytes + 1,
 				    to_return->buff, to_return->index);

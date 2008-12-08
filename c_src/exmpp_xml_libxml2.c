@@ -208,7 +208,7 @@ exmpp_xml_control(ErlDrvData drv_data, unsigned int command,
 			bin = driver_alloc_binary(size);
 			if (bin == NULL)
 				return (-1);
-			bin->orig_bytes[0] = ret;
+			bin->orig_bytes[0] = (char)ret;
 			memcpy(bin->orig_bytes + 1,
 			    to_return->buff, to_return->index);
 		} else {
@@ -273,7 +273,7 @@ exmpp_xml_control(ErlDrvData drv_data, unsigned int command,
 			bin = driver_alloc_binary(size);
 			if (bin == NULL)
 				return (-1);
-			bin->orig_bytes[0] = ret;
+			bin->orig_bytes[0] = (char)ret;
 			if (to_return->index > 0)
 				memcpy(bin->orig_bytes + 1,
 				    to_return->buff, to_return->index);
