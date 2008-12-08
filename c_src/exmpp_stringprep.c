@@ -2,15 +2,12 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <erl_driver.h>
-#include <ei.h>
 
+#include "exmpp_driver.h"
 #include "stringprep_uni_data.h"
 #include "stringprep_uni_norm.h"
 
 #define	DRIVER_NAME	exmpp_stringprep
-#define	_S(s)		#s
-#define	S(s)		_S(s)
 
 /* Hangul constants */
 #define SBase 0xAC00
@@ -25,15 +22,11 @@
 
 /* Control operations. */
 enum {
-	NAMEPREP_COMMAND = 1,
-	NODEPREP_COMMAND,
-	RESOURCEPREP_COMMAND,
-	SVN_REVISION_COMMAND
-};
-
-/* Driver data. */
-struct exmpp_stringprep_data {
-	ErlDrvPort port;
+	COMMAND_LOWERCASE = 0,
+	COMMAND_NAMEPREP,
+	COMMAND_NODEPREP,
+	COMMAND_RESOURCEPREP,
+	COMMAND_PORT_REVISION
 };
 
 static void	canonical_ordering(int *str, int len);
@@ -105,29 +98,6 @@ static int	compose(int ch1, int ch2);
  * Erlang port driver callbacks.
  * ------------------------------------------------------------------- */
 
-static ErlDrvData
-exmpp_stringprep_start(ErlDrvPort port, char *command)
-{
-	struct exmpp_stringprep_data* ed;
-
-	/* Allocate driver data structure. */
-	ed = driver_alloc(sizeof(*ed));
-	if (ed == NULL)
-		return (NULL);
-
-	/* Fill in the structure. */
-	ed->port = port;
-
-	return (ErlDrvData)ed;
-}
-
-static void
-exmpp_stringprep_stop(ErlDrvData drv_data)
-{
-
-	driver_free(drv_data);
-}
-
 static int
 exmpp_stringprep_control(ErlDrvData drv_data, unsigned int command,
     char *buf, int len, char **rbuf, int rlen)
@@ -166,27 +136,27 @@ exmpp_stringprep_control(ErlDrvData drv_data, unsigned int command,
 	str32 = driver_alloc(str32len * sizeof(int));
 
 	switch (command) {
-	case 0:
+	case COMMAND_LOWERCASE:
 		prohibit = ACMask;
 		tolower = 1;
 		break;
 
-	case NAMEPREP_COMMAND:
+	case COMMAND_NAMEPREP:
 		prohibit = ACMask;
 		tolower = 1;
 		break;
 
-	case NODEPREP_COMMAND:
+	case COMMAND_NODEPREP:
 		prohibit = ACMask | C11Mask | C21Mask | XNPMask;
 		tolower = 1;
 		break;
 
-	case RESOURCEPREP_COMMAND:
+	case COMMAND_RESOURCEPREP:
 		prohibit = ACMask | C21Mask;
 		tolower = 0;
 		break;
 
-	case SVN_REVISION_COMMAND:
+	case COMMAND_PORT_REVISION:
 		rstring[0] = 1;
 		rstring[1] = 0;
 #if defined(_MSC_VER)
@@ -407,23 +377,22 @@ compose(int ch1, int ch2)
  * Driver declaration.
  * ------------------------------------------------------------------- */
 
-static ErlDrvEntry stringprep_driver_entry = {
-	NULL,				/* init */
-	exmpp_stringprep_start,		/* start */
-	exmpp_stringprep_stop,		/* stop */
-	NULL,				/* output */
-	NULL,				/* ready_input */
-	NULL,				/* ready_output */
-	S(DRIVER_NAME),			/* driver name */
-	NULL,				/* finish */
-	NULL,				/* handle */
-	exmpp_stringprep_control,	/* control */
-	NULL,				/* timeout */
-	NULL				/* outputv */
+static ErlDrvEntry driver_entry = {
+	.driver_name = S(DRIVER_NAME),
+	.control = exmpp_stringprep_control,
+
+#if defined(ERL_DRV_EXTENDED_MARKER)
+	.extended_marker = 0,
+	.major_version = 0,
+	.minor_version = 0,
+	.driver_flags = 0,
+	.handle2 = NULL,
+	.process_exit = NULL
+#endif
 };
 
 DRIVER_INIT(DRIVER_NAME)
 {
 
-	return &stringprep_driver_entry;
+	return (&driver_entry);
 }

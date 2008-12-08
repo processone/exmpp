@@ -82,7 +82,11 @@ exmpp_stringprep_la_CPPFLAGS = $(EI_CPPFLAGS)
 exmpp_stringprep_la_LDFLAGS = -module -avoid-version			\
 			      $(ERL_DRIVER_LDFLAGS)			\
 			      $(EI_LDFLAGS) $(EI_LIBS)
-exmpp_stringprep_la_SOURCES = exmpp_stringprep.c
+exmpp_stringprep_la_SOURCES = exmpp_driver.h				\
+			      exmpp_driver.c				\
+			      stringprep_uni_data.h			\
+			      stringprep_uni_norm.h			\
+			      exmpp_stringprep.c
 
 # OpenSSL TLS port driver.
 exmpp_tls_openssl_la_CPPFLAGS = $(EI_CPPFLAGS)				\
