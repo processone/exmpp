@@ -1,5 +1,11 @@
 2008-12-08  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
+	* c_src/exmpp_compress.h, c_src/exmpp_compress_zlib.c,
+	c_src/exmpp_tls.h, c_src/exmpp_tls_openssl.c, c_src/Makefile.am: Use
+	exmpp_driver.c and remove duplicate code.
+
+2008-12-08  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
 	Fixed several warnings issued by Intel C Compiler.
 
 	NOTE: With current options, code produced by this compiler is much

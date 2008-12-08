@@ -1,5 +1,16 @@
 /* $Id$ */
 
+#ifndef EXMPP_COMPRESS_H
+#define	EXMPP_COMPRESS_H 1
+
+#include "exmpp_driver.h"
+
+/* Return codes. */
+enum {
+	RET_OK = 0,
+	RET_ERROR
+};
+
 /* Control operations. */
 enum {
 	COMMAND_SET_COMPRESS_METHOD = 1,
@@ -11,8 +22,4 @@ enum {
 	COMMAND_SVN_REVISION
 };
 
-/* Return codes. */
-enum {
-	RET_OK = 0,
-	RET_ERROR
-};
+#endif /* !defined(EXMPP_COMPRESS_H) */

@@ -1,5 +1,10 @@
 /* $Id$ */
 
+#ifndef EXMPP_TLS_H
+#define	EXMPP_TLS_H 1
+
+#include "exmpp_driver.h"
+
 /* Control operations. */
 enum {
 	COMMAND_SET_MODE = 1,
@@ -36,3 +41,5 @@ enum {
 };
 
 int	match_hostname(const char *cert_id, const char *expected_id);
+
+#endif /* !defined(EXMPP_TLS_H) */

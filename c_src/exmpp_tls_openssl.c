@@ -1,8 +1,6 @@
 /* $Id$ */
 
 #include <string.h>
-#include <erl_driver.h>
-#include <ei.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <openssl/x509v3.h>
@@ -10,8 +8,6 @@
 #include "exmpp_tls.h"
 
 #define	DRIVER_NAME	exmpp_tls_openssl
-#define	_S(s)		#s
-#define	S(s)		_S(s)
 
 #define	BUF_SIZE	1024
 
@@ -47,25 +43,13 @@ static int	verify_callback(int preverify_ok, X509_STORE_CTX *x509_ctx);
 
 static int	ssl_ex_index;
 
-#define	SKIP_VERSION(buf, index, version)	do {			\
-	index = 0;							\
-	ei_decode_version(buf, &index, &version);			\
-} while (0)
-
-#define	NEW_SEND_BUF(to_send)						\
-	(to_send) = driver_alloc(sizeof(ei_x_buff));			\
-	if ((to_send) == NULL)						\
-		return (-1);						\
-	ei_x_new_with_version((to_send));
-
 #define	COPY_AND_FREE_BUF(to_send, size, b, ret)			\
 	(size) = (to_send)->index + 1;					\
 	(b) = driver_alloc_binary((size));				\
 	(b)->orig_bytes[0] = (ret);					\
 	memcpy((b)->orig_bytes + 1, (to_send)->buff,			\
 	    (to_send)->index);						\
-	ei_x_free((to_send));						\
-	driver_free((to_send));
+	exmpp_free_xbuf((to_send));
 
 /* -------------------------------------------------------------------
  * Erlang port driver callbacks.
@@ -123,7 +107,7 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
     char *buf, int len, char **rbuf, int rlen)
 {
 	struct exmpp_tls_openssl_data *edd;
-	int ret, index, version, arity, type, type_size, flag;
+	int ret, index, arity, type, type_size, flag;
 	char atom[MAXATOMLEN];
 	size_t size;
 	long mode, verify_result;
@@ -146,7 +130,7 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 
 	switch (command) {
 	case COMMAND_SET_MODE:
-		SKIP_VERSION(buf, index, version);
+		index = exmpp_skip_version(buf);
 
 		/* Get the mode (client vs. server). */
 		ei_decode_long(buf, &index, &mode);
@@ -154,14 +138,16 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 
 		break;
 	case COMMAND_SET_IDENTITY:
-		SKIP_VERSION(buf, index, version);
+		index = exmpp_skip_version(buf);
 
 		/* Get auth method. */
 		ei_decode_tuple_header(buf, &index, &arity);
 		ei_decode_atom(buf, &index, atom);
 		if (strcmp(atom, "x509") != 0) {
 			/* Only X.509 is supported by this port driver. */
-			NEW_SEND_BUF(to_send);
+			to_send = exmpp_new_xbuf();
+			if (to_send == NULL)
+				return (-1);
 			ei_x_encode_tuple_header(to_send, 2);
 			ei_x_encode_atom(to_send, "unsupported_auth_method");
 			ei_x_encode_string(to_send, atom);
@@ -187,7 +173,7 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 
 		break;
 	case COMMAND_SET_PEER_VERIF:
-		SKIP_VERSION(buf, index, version);
+		index = exmpp_skip_version(buf);
 
 		/* Check if the identity of the remote peer must be
 		 * verified. */
@@ -211,14 +197,16 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 
 		break;
 	case COMMAND_SET_TRUSTED_CERTS:
-		SKIP_VERSION(buf, index, version);
+		index = exmpp_skip_version(buf);
 
 		/* Get auth method. */
 		ei_decode_tuple_header(buf, &index, &arity);
 		ei_decode_atom(buf, &index, atom);
 		if (strcmp(atom, "x509") != 0) {
 			/* Only X.509 is supported by this port driver. */
-			NEW_SEND_BUF(to_send);
+			to_send = exmpp_new_xbuf();
+			if (to_send == NULL)
+				return (-1);
 			ei_x_encode_tuple_header(to_send, 2);
 			ei_x_encode_atom(to_send, "unsupported_auth_method");
 			ei_x_encode_string(to_send, atom);
@@ -237,7 +225,7 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 
 		break;
 	case COMMAND_SET_OPTIONS:
-		SKIP_VERSION(buf, index, version);
+		index = exmpp_skip_version(buf);
 
 		/* Get auth method. */
 		ei_decode_tuple_header(buf, &index, &arity);
@@ -255,7 +243,9 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 		else if (strcmp(atom, "accept_corrupted_cert") == 0)
 			edd->accept_corrupted_cert = flag;
 		else {
-			NEW_SEND_BUF(to_send);
+			to_send = exmpp_new_xbuf();
+			if (to_send == NULL)
+				return (-1);
 			ei_x_encode_tuple_header(to_send, 2);
 			ei_x_encode_atom(to_send, "unsupported_option");
 			ei_x_encode_atom(to_send, atom);
@@ -290,7 +280,9 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 				/* An error occured. */
 				ret = ERR_get_error();
 
-				NEW_SEND_BUF(to_send);
+				to_send = exmpp_new_xbuf();
+				if (to_send == NULL)
+					return (-1);
 				ei_x_encode_tuple_header(to_send, 2);
 				ei_x_encode_long(to_send, ret);
 				ei_x_encode_string(to_send,
@@ -306,7 +298,7 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 
 		break;
 	case COMMAND_GET_DECRYPTED_INPUT:
-		SKIP_VERSION(buf, index, version);
+		index = exmpp_skip_version(buf);
 
 		/* Get data length the caller is waiting for. */
 		ei_decode_ulong(buf, &index, &data_len);
@@ -340,7 +332,9 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 				break;
 			default:
 				/* An error occured. */
-				NEW_SEND_BUF(to_send);
+				to_send = exmpp_new_xbuf();
+				if (to_send == NULL)
+					return (-1);
 				ei_x_encode_atom(to_send, "decrypt_failed");
 
 				COPY_AND_FREE_BUF(to_send, size, b, RET_ERROR);
@@ -361,7 +355,9 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 				break;
 			default:
 				/* An error occured. */
-				NEW_SEND_BUF(to_send);
+				to_send = exmpp_new_xbuf();
+				if (to_send == NULL)
+					return (-1);
 				ei_x_encode_atom(to_send, "encrypt_failed");
 
 				COPY_AND_FREE_BUF(to_send, size, b, RET_ERROR);
@@ -392,7 +388,9 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 		/* Get the peer certificate. */
 		cert = SSL_get_peer_certificate(edd->ssl);
 		if (cert == NULL) {
-			NEW_SEND_BUF(to_send);
+			to_send = exmpp_new_xbuf();
+			if (to_send == NULL)
+				return (-1);
 			ei_x_encode_atom(to_send, "no_certificate");
 
 			COPY_AND_FREE_BUF(to_send, size, b, RET_ERROR);
@@ -417,7 +415,9 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 	case COMMAND_GET_VERIFY_RESULT:
 		verify_result = SSL_get_verify_result(edd->ssl);
 
-		NEW_SEND_BUF(to_send);
+		to_send = exmpp_new_xbuf();
+		if (to_send == NULL)
+			return (-1);
 		ei_x_encode_long(to_send, verify_result);
 
 		COPY_AND_FREE_BUF(to_send, size, b, RET_OK);
@@ -466,7 +466,9 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 				/* An error occured. */
 				ret = ERR_get_error();
 
-				NEW_SEND_BUF(to_send);
+				to_send = exmpp_new_xbuf();
+				if (to_send == NULL)
+					return (-1);
 				ei_x_encode_tuple_header(to_send, 2);
 				ei_x_encode_long(to_send, ret);
 				ei_x_encode_string(to_send,
@@ -484,7 +486,9 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 		break;
 	case COMMAND_SVN_REVISION:
 		/* Store the revision in the buffer. */
-		NEW_SEND_BUF(to_send);
+		to_send = exmpp_new_xbuf();
+		if (to_send == NULL)
+			return (-1);
 		ei_x_encode_string(to_send, "$Revision$");
 
 		COPY_AND_FREE_BUF(to_send, size, b, RET_ERROR);
@@ -492,7 +496,9 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 		break;
 	default:
 		/* Commad not recognized. */
-		NEW_SEND_BUF(to_send);
+		to_send = exmpp_new_xbuf();
+		if (to_send == NULL)
+			return (-1);
 		ei_x_encode_tuple_header(to_send, 2);
 		ei_x_encode_atom(to_send, "unknown_command");
 		ei_x_encode_ulong(to_send, command);
@@ -524,7 +530,9 @@ init_library(struct exmpp_tls_openssl_data *edd,
 	/* Create an SSL context. */
 	edd->ctx = SSL_CTX_new(SSLv23_method());
 	if (edd->ctx == NULL) {
-		NEW_SEND_BUF(*to_send);
+		*to_send = exmpp_new_xbuf();
+		if (*to_send == NULL)
+			return (-1);
 		ei_x_encode_atom(*to_send,
 		    "ssl_context_init_failed");
 
@@ -538,7 +546,9 @@ init_library(struct exmpp_tls_openssl_data *edd,
 		ret = SSL_CTX_use_certificate_chain_file(edd->ctx,
 		    edd->certificate);
 		if (ret != 1) {
-			NEW_SEND_BUF(*to_send);
+			*to_send = exmpp_new_xbuf();
+			if (*to_send == NULL)
+				goto err;
 			ei_x_encode_atom(*to_send,
 			    "load_cert_failed");
 
@@ -553,7 +563,9 @@ init_library(struct exmpp_tls_openssl_data *edd,
 		ret = SSL_CTX_use_PrivateKey_file(edd->ctx,
 		    edd->private_key, SSL_FILETYPE_PEM);
 		if (ret != 1) {
-			NEW_SEND_BUF(*to_send);
+			*to_send = exmpp_new_xbuf();
+			if (*to_send == NULL)
+				goto err;
 			ei_x_encode_atom(*to_send,
 			    "load_pk_failed");
 
@@ -575,7 +587,9 @@ init_library(struct exmpp_tls_openssl_data *edd,
 		ret = SSL_CTX_load_verify_locations(edd->ctx,
 		    edd->trusted_certs, NULL);
 		if (ret != 1) {
-			NEW_SEND_BUF(*to_send);
+			*to_send = exmpp_new_xbuf();
+			if (*to_send == NULL)
+				goto err;
 			ei_x_encode_atom(*to_send,
 			    "load_trusted_certs_failed");
 
@@ -588,7 +602,9 @@ init_library(struct exmpp_tls_openssl_data *edd,
 	/* Create an SSL connection handle. */
 	edd->ssl = SSL_new(edd->ctx);
 	if (edd->ssl == NULL) {
-		NEW_SEND_BUF(*to_send);
+		*to_send = exmpp_new_xbuf();
+		if (*to_send == NULL)
+			goto err;
 		ei_x_encode_atom(*to_send,
 		    "ssl_init_failed");
 
