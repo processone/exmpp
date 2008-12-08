@@ -7,6 +7,11 @@
 	* c_src/exmpp_xml_expat_legacy.c, c_src/exmpp_xml_libxml2.c,
 	c_src/exmpp_xml_expat.c: style(9).
 
+	* src/core/exmpp_stringprep.erl: When a binary() is given in argument,
+	return a binary() too. If the result of STRINGPREP is the same as the
+	original string, return the latter and throw away the former; thanks
+	to Pablo Polvorin.
+
 2008-12-08  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Fixed several warnings issued by Intel C Compiler.

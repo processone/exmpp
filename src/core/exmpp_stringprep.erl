@@ -55,11 +55,11 @@
 -define(DRIVER_NAME, exmpp_stringprep).
 -define(PORT_REGISTERED_NAME, exmpp_stringprep_port).
 
--define(COMMAND_LOWERCASE,    0).
--define(COMMAND_NAMEPREP,     1).
--define(COMMAND_NODEPREP,     2).
--define(COMMAND_RESOURCEPREP, 3).
--define(COMMAND_SVN_REVISION, 4).
+-define(COMMAND_LOWERCASE,     0).
+-define(COMMAND_NAMEPREP,      1).
+-define(COMMAND_NODEPREP,      2).
+-define(COMMAND_RESOURCEPREP,  3).
+-define(COMMAND_PORT_REVISION, 4).
 
 % --------------------------------------------------------------------
 % Initialization.
@@ -80,14 +80,14 @@ start_link() ->
 % --------------------------------------------------------------------
 
 %% @spec (String) -> Prepd_String
-%%     String = string()
-%%     Prepd_String = string()
+%%     String = binary() | string()
+%%     Prepd_String = binary() | string()
 %% @throws {stringprep, nodeprep, exmpp_not_started, String} |
 %%         {stringprep, nodeprep, invalid_string, String}
 %% @doc Apply the NODEPREP stringprep profile to `String'.
 
 nodeprep(String) ->
-    case control(?COMMAND_NODEPREP, String) of
+    case control_reuse_arg(?COMMAND_NODEPREP, String) of
         {error, Reason} ->
             throw({stringprep, nodeprep, Reason, String});
         Result ->
@@ -95,14 +95,14 @@ nodeprep(String) ->
     end.
 
 %% @spec (String) -> Prepd_String
-%%     String = string()
-%%     Prepd_String = string()
+%%     String = binary() | string()
+%%     Prepd_String = binary() | string()
 %% @throws {stringprep, nameprep, exmpp_not_started, String} |
 %%         {stringprep, nameprep, invalid_string, String}
 %% @doc Apply the NAMEPREP stringprep profile to `String'.
 
 nameprep(String) ->
-    case control(?COMMAND_NAMEPREP, String) of
+    case control_reuse_arg(?COMMAND_NAMEPREP, String) of
         {error, Reason} ->
             throw({stringprep, nameprep, Reason, String});
         Result ->
@@ -110,14 +110,14 @@ nameprep(String) ->
     end.
 
 %% @spec (String) -> Prepd_String
-%%     String = string()
-%%     Prepd_String = string()
+%%     String = binary() | string()
+%%     Prepd_String = binary() | string()
 %% @throws {stringprep, resourceprep, exmpp_not_started, String} |
 %%         {stringprep, resourceprep, invalid_string, String}
 %% @doc Apply the RESOURCEPREP stringprep profile to `String'.
 
 resourceprep(String) ->
-    case control(?COMMAND_RESOURCEPREP, String) of
+    case control_reuse_arg(?COMMAND_RESOURCEPREP, String) of
         {error, Reason} ->
             throw({stringprep, resourceprep, Reason, String});
         Result ->
@@ -129,10 +129,12 @@ resourceprep(String) ->
 % --------------------------------------------------------------------
 
 %% @spec (String) -> bool()
-%%     String = string()
+%%     String = binary() | string()
 %% @throws {stringprep, nodeprep, exmpp_not_started, String}
 %% @doc Tell if `String' conforms the NODEPREP stringprep profile.
 
+is_node(<<>>) ->
+    false;
 is_node("") ->
     false;
 is_node(String) ->
@@ -145,10 +147,12 @@ is_node(String) ->
     end.
 
 %% @spec (String) -> bool()
-%%     String = string()
+%%     String = binary() | string()
 %% @throws {stringprep, nameprep, exmpp_not_started, String}
 %% @doc Tell if `String' conforms the NAMEPREP stringprep profile.
 
+is_name(<<>>) ->
+    false;
 is_name("") ->
     false;
 is_name(String) ->
@@ -161,10 +165,12 @@ is_name(String) ->
     end.
 
 %% @spec (String) -> bool()
-%%     String = string()
+%%     String = binary() | string()
 %% @throws {stringprep, resourceprep, exmpp_not_started, String}
 %% @doc Tell if `String' conforms the RESOURCEPREP stringprep profile.
 
+is_resource(<<>>) ->
+    false;
 is_resource("") ->
     false;
 is_resource(String) ->
@@ -177,14 +183,14 @@ is_resource(String) ->
     end.
 
 %% @spec (String) -> Lowered_String
-%%     String = string()
-%%     Lowered_String = string()
+%%     String = binary() | string()
+%%     Lowered_String = binary() | string()
 %% @throws {stringprep, lowercase, exmpp_not_started, String} |
 %%         {stringprep, lowercase, invalid_string, String}
 %% @doc Convert `String' to lowercase.
 
 to_lower(String) ->
-    case control(?COMMAND_LOWERCASE, String) of
+    case control_reuse_arg(?COMMAND_LOWERCASE, String) of
         {error, Reason} ->
             throw({stringprep, lowercase, Reason, String});
         Result ->
@@ -194,7 +200,7 @@ to_lower(String) ->
 %% @hidden
 
 port_revision() ->
-    case control(?COMMAND_SVN_REVISION, "") of
+    case control(?COMMAND_PORT_REVISION, "") of
         {error, Reason} ->
             throw({stringprep, port_revision, Reason, ""});
         Result ->
@@ -219,6 +225,21 @@ control(Command, String) ->
                 undefined ->
                     {error, exmpp_not_started}
             end
+    end.
+
+control_reuse_arg(Command, String) ->
+    % If applying a STRINGPREP profile doesn't modify the original string,
+    % keep the former and throw away the returned string.
+    case control(Command, String) of
+        Result when is_binary(String) ->
+            case list_to_binary(Result) of
+                String   -> String;
+                Result_B -> Result_B
+            end;
+        String ->
+            String;
+        Other ->
+            Other
     end.
 
 % --------------------------------------------------------------------
