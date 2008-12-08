@@ -16,6 +16,8 @@
 	Remove start/stop callbacks and the private data structure as they're
 	unused. Rename commands to COMMAND_*.
 
+	* c_src/exmpp_stringprep.c: style(9).
+
 2008-12-08  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Fixed several warnings issued by Intel C Compiler.

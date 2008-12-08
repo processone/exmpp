@@ -79,7 +79,6 @@ static int	compose(int ch1, int ch2);
 	pos++;								\
 } while (0)
 
-
 #define ADD_DECOMP(ruc) do {						\
 	info = GetUniCharDecompInfo(ruc);				\
 	if (info >= 0) {						\
