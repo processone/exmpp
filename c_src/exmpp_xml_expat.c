@@ -511,5 +511,5 @@ static ErlDrvEntry driver_entry = {
 DRIVER_INIT(DRIVER_NAME)
 {
 
-	return &driver_entry;
+	return (&driver_entry);
 }
