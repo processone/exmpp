@@ -10,7 +10,10 @@ BEGIN {
 }
 
 /^[^#]/ {
-	print "  '" $1 "',";
+	if (!already_processed[$1]) {
+		print "  '" $1 "',";
+		already_processed[$1] = 1;
+	}
 }
 
 END {
