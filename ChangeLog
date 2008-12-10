@@ -24,6 +24,10 @@
 	as get_names_as_atom/1 when the name_as_atom option was renamed to
 	names_as_atom.
 
+	* src/core/exmpp_tls.erl, c_src/exmpp_tls_openssl.c,
+	c_src/exmpp_tls.h: Rename COMMAND_SVN_REVISION to
+	COMMAND_PORT_REVISION.
+
 2008-12-09  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/internal/exmpp_known_nss.hrl.awk,

@@ -101,7 +101,7 @@
 -define(COMMAND_GET_VERIFY_RESULT,    13).
 -define(COMMAND_SHUTDOWN,             14).
 -define(COMMAND_QUIET_SHUTDOWN,       15).
--define(COMMAND_SVN_REVISION,         16).
+-define(COMMAND_PORT_REVISION,        16).
 
 % --------------------------------------------------------------------
 % Initialization.
@@ -957,7 +957,7 @@ engine_quiet_shutdown(Port) ->
     end.
 
 engine_port_revision(Port) ->
-    case control(Port, ?COMMAND_SVN_REVISION, <<>>) of
+    case control(Port, ?COMMAND_PORT_REVISION, <<>>) of
         {error, Reason} ->
             throw({tls, port_revision, port_revision, Reason});
         Revision ->

@@ -484,7 +484,7 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 		    SSL_SENT_SHUTDOWN | SSL_RECEIVED_SHUTDOWN);
 
 		break;
-	case COMMAND_SVN_REVISION:
+	case COMMAND_PORT_REVISION:
 		/* Store the revision in the buffer. */
 		to_send = exmpp_new_xbuf();
 		if (to_send == NULL)
