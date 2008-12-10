@@ -17,6 +17,9 @@
 	(node_to_list/3, node_to_binary/3): Remove specific code and use
 	node_to_iolist/3.
 
+	* src/network/exmpp_session.erl: Update parser options; they were left
+	behind after exmpp_xml updates.
+
 2008-12-09  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/internal/exmpp_known_nss.hrl.awk,
