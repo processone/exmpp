@@ -18,7 +18,11 @@
 	node_to_iolist/3.
 
 	* src/network/exmpp_session.erl: Update parser options; they were left
-	behind after exmpp_xml updates.
+	behind after exmpp_xml updates. Thanks to Pablo Polvorin.
+
+	* src/core/exmpp_xml.erl: Restore get_name_as_atom/1; it was renamed
+	as get_names_as_atom/1 when the name_as_atom option was renamed to
+	names_as_atom.
 
 2008-12-09  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 

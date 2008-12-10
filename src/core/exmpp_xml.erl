@@ -107,7 +107,7 @@
 % Element handling.
 -export([
   get_name_as_list/1,
-  get_names_as_atom/1,
+  get_name_as_atom/1,
   element_matches/2,
   element_matches/3,
   element_matches_by_ns/2,
@@ -1319,9 +1319,9 @@ get_name_as_list(#xmlelement{name = Name}) ->
 %% @doc Return the name of an element as atom, regardless of the
 %% original encoding.
 
-get_names_as_atom(#xmlel{name = Name}) ->
+get_name_as_atom(#xmlel{name = Name}) ->
     as_atom(Name);
-get_names_as_atom(#xmlelement{name = Name}) ->
+get_name_as_atom(#xmlelement{name = Name}) ->
     as_atom(Name).
 
 %% @spec (XML_Element, Name) -> bool()
