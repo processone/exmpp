@@ -2446,10 +2446,7 @@ unresolve_xmlel_nss(#xmlel{ns = NS, name = Name, attrs = Attrs,
     {New_Attrs, Prefixed_NS2} = xmlnsattributes_to_xmlattributes(Attrs1,
       Prefixed_NS1),
     % We can now proceed with the modification of the name.
-    Name_S = if
-        is_atom(Name) -> atom_to_list(Name);
-        true          -> Name
-    end,
+    Name_S = exmpp_known_elems:elem_as_list(Name),
     New_Name = case Prefix of
         none -> Name_S;
         _    -> Prefix ++ ":" ++ Name_S
@@ -2458,10 +2455,7 @@ unresolve_xmlel_nss(#xmlel{ns = NS, name = Name, attrs = Attrs,
 
 unresolve_endtag_nss(#xmlendtag{ns = NS, name = Name},
   Default_NS, Prefixed_NS) ->
-    Name_S = if
-        is_atom(Name) -> atom_to_list(Name);
-        true          -> Name
-    end,
+    Name_S = exmpp_known_nss:ns_as_list(Name),
     Use_Default_NS = use_default_ns(NS, Default_NS),
     case Use_Default_NS of
         true ->
@@ -2487,10 +2481,7 @@ xmlnsattributes_to_xmlattributes(Attrs, Prefixed_NS) ->
 xmlnsattributes_to_xmlattributes2([#xmlattr{ns = NS, name = Name,
   value = Value} | Rest],
   Prefixed_NS, Converted_Attrs) ->
-    Name_S = if
-        is_atom(Name) -> atom_to_list(Name);
-        true          -> Name
-    end,
+    Name_S = exmpp_known_attrs:attr_as_list(Name),
     {New_Name, Converted_Attrs1, Prefixed_NS1} = case NS of
         undefined ->
             {
@@ -2503,10 +2494,7 @@ xmlnsattributes_to_xmlattributes2([#xmlattr{ns = NS, name = Name,
                 undefined ->
                     % Never declared. A prefix must be generated.
                     Prefix = new_auto_prefix(Prefixed_NS),
-                    NS_S = if
-                        is_atom(NS) -> atom_to_list(NS);
-                        true        -> NS
-                    end,
+                    NS_S = exmpp_known_nss:ns_as_list(NS),
                     NS_Decl = {"xmlns:" ++ Prefix, NS_S},
                     {
                       Prefix ++ ":" ++ Name_S,
@@ -2581,11 +2569,7 @@ forward_declare_ns(undefined = Curr_NS, Declared_NS,
 forward_declare_ns(Curr_NS, [{NS, none} | Rest],
   Attrs, Default_NS, Prefixed_NS) ->
     % Forward-declare a default namespace.
-    NS_S = if
-        NS == undefined -> "";
-        is_atom(NS)     -> atom_to_list(NS);
-        true            -> NS
-    end,
+    NS_S = exmpp_known_nss:ns_as_list(NS),
     NS_Decl = #xmlattr{name = "xmlns", value = NS_S},
     New_Attrs = [NS_Decl | Attrs],
     New_Default_NS = [NS | Default_NS],
@@ -2600,10 +2584,7 @@ forward_declare_ns(Curr_NS, [{NS, Prefix} = PNS | Rest],
               Default_NS, Prefixed_NS);
         _ ->
             % Forward-declare a prefixed namespace.
-            NS_S = if
-                is_atom(NS) -> atom_to_list(NS);
-                true        -> NS
-            end,
+            NS_S = exmpp_known_nss:ns_as_list(NS),
             NS_Decl = #xmlattr{name = "xmlns:" ++ Prefix, value = NS_S},
             New_Attrs = [NS_Decl | Attrs],
             Prefixed_NS1 = [PNS | Prefixed_NS],
@@ -2624,11 +2605,7 @@ forward_declare_ns(Curr_NS, [], Attrs, Default_NS, Prefixed_NS) ->
                 undefined ->
                     % This element uses a new namespace: it'll become
                     % the new default one.
-                    Curr_NS_S = if
-                        Curr_NS == undefined -> "";
-                        is_atom(Curr_NS)     -> atom_to_list(Curr_NS);
-                        true                 -> Curr_NS
-                    end,
+                    Curr_NS_S = exmpp_known_nss:ns_as_list(Curr_NS),
                     NS_Decl = #xmlattr{name = "xmlns", value = Curr_NS_S},
                     New_Attrs = [NS_Decl | Attrs],
                     Default_NS1 = [Curr_NS | Default_NS],
@@ -2713,10 +2690,7 @@ xmlelement_to_xmlel_and_ns_tables(
     New_Children = xmlelements_to_xmlels(Children,
       Default_NS1, Prefixed_NS1),
     % Check the element namespace and convert it to the new format.
-    Name_S = if
-        is_atom(Name) -> atom_to_list(Name);
-        true          -> Name
-    end,
+    Name_S = exmpp_known_elems:elem_as_list(Name),
     XML_NS_Element = case string:tokens(Name_S, ":") of
         [Prefix, Real_Name] ->
             Real_Name_A = list_to_atom(Real_Name),
@@ -2765,10 +2739,7 @@ xmlelement_to_xmlel_and_ns_tables(
     {XML_NS_Element, Default_NS1, Prefixed_NS1};
 xmlelement_to_xmlel_and_ns_tables(
   #xmlendtag{name = Name}, Default_NS, Prefixed_NS) ->
-    Name_S = if
-        is_atom(Name) -> atom_to_list(Name);
-        true          -> Name
-    end,
+    Name_S = exmpp_known_elems:elem_as_list(Name),
     XML_NS_Element = case string:tokens(Name_S, ":") of
         [Prefix, Real_Name] ->
             Real_Name_A = list_to_atom(Real_Name),
@@ -2843,10 +2814,7 @@ xmlattributes_to_xmlnsattributes(Attrs, Prefixed_NS) ->
 
 xmlattributes_to_xmlnsattributes([{Name, Value} | Rest],
   Prefixed_NS, Converted_Attrs) ->
-    Name_S = if
-        is_atom(Name) -> atom_to_list(Name);
-        true          -> Name
-    end,
+    Name_S = exmpp_known_elems:elem_as_list(Name),
     New_Attr = case string:tokens(Name_S, ":") of
         [Prefix, Real_Name] ->
             Real_Name_A = list_to_atom(Real_Name),
@@ -2926,62 +2894,9 @@ search_prefix_in_prefixed_ns(Prefix, Prefixed_NS) ->
 %% important: declarations are sorted from the most recent one to the
 %% oldest one.
 
-node_to_list(El, Default_NS, Prefixed_NS) when is_list(El) ->
-    lists:append([node_to_list(E, Default_NS, Prefixed_NS) || E <- El]);
-
 node_to_list(El, Default_NS, Prefixed_NS) ->
-    case El of
-        #xmlel{children = Children} ->
-            {Name, Attrs, Default_NS1, Prefixed_NS1} = unresolve_xmlel_nss(El,
-              Default_NS, Prefixed_NS),
-            element_to_list(Name, Attrs, Children, Default_NS1, Prefixed_NS1);
-        #xmlelement{name = Name, attrs = Attrs, children = Children} ->
-            element_to_list(Name, Attrs, Children, Default_NS, Prefixed_NS);
-        #xmlendtag{ns = undefined, name = Name} ->
-            endtag_to_list(Name);
-        #xmlendtag{} ->
-            Name = unresolve_endtag_nss(El, Default_NS, Prefixed_NS),
-            endtag_to_list(Name);
-        #xmlpi{target = Target, value = Value} ->
-            pi_to_list(Target, Value);
-        #xmlcdata{cdata = CData} ->
-            binary_to_list(?ESCAPE(CData))
-    end.
-
-element_to_list(Name, Attrs, Children, Default_NS, Prefixed_NS)
-  when is_atom(Name) ->
-    element_to_list(atom_to_list(Name), Attrs, Children,
-      Default_NS, Prefixed_NS);
-element_to_list(Name, Attrs, undefined, _Default_NS, _Prefixed_NS) ->
-    % Children may come later, we don't close the tag.
-    lists:append(["<", Name, attrs_to_list(Attrs), ">"]);
-element_to_list(Name, Attrs, Children, Default_NS, Prefixed_NS) ->
-    Norm = normalize_cdata_in_list(Children),
-    case Norm of
-	[] ->
-	    lists:append(["<", Name, attrs_to_list(Attrs), "/>"]);
-	_ ->
-	    Content = lists:append(
-			[node_to_list(E, Default_NS, Prefixed_NS) || E <- Norm]),
-	    lists:append(
-	      ["<", Name, attrs_to_list(Attrs), ">", Content, "</", Name, ">"])
-    end.
-
-endtag_to_list(Name) when is_atom(Name) ->
-    endtag_to_list(atom_to_list(Name));
-endtag_to_list(Name) ->
-    lists:append(["</", Name, ">"]).
-
-pi_to_list(Target, Value) when is_atom(Target) ->
-    pi_to_list(atom_to_list(Target), Value);
-pi_to_list(Target, Value) ->
-    lists:append(["<?", Target, " ", Value, "?>"]).
-
-attrs_to_list(Attrs) ->
-    lists:append([attr_to_list(A) || A <- Attrs]).
-
-attr_to_list({Name, Value}) ->
-    lists:append([" ", Name, "=\"", escape_using_entities(Value), "\""]).
+    Binary = node_to_binary(El, Default_NS, Prefixed_NS),
+    binary_to_list(Binary).
 
 %% @spec (XML_Element) -> XML_Text
 %%     XML_Element = xmlel() | xmlelement() | list()
@@ -3004,81 +2919,9 @@ document_to_list(El) ->
 %% Converting to binary is about 15% to 20% faster than converting to a
 %% list.
 
-node_to_binary(El, Default_NS, Prefixed_NS) when is_list(El) ->
-    node_to_binary2(El, Default_NS, Prefixed_NS, <<>>);
 node_to_binary(El, Default_NS, Prefixed_NS) ->
-    node_to_binary2([El], Default_NS, Prefixed_NS, <<>>).
-
-node_to_binary2([El | Rest], Default_NS, Prefixed_NS, Buf) ->
-    New_Buf = case El of
-        #xmlel{children = Children} ->
-            {Name, Attrs, Default_NS1, Prefixed_NS1} = unresolve_xmlel_nss(El,
-              Default_NS, Prefixed_NS),
-            element_to_binary(Name, Attrs, Children,
-              Default_NS1, Prefixed_NS1, Buf);
-        #xmlelement{name = Name, attrs = Attrs, children = Children} ->
-            element_to_binary(Name, Attrs, Children,
-              Default_NS, Prefixed_NS, Buf);
-        #xmlendtag{ns = undefined, name = Name} ->
-            endtag_to_binary(Name, Buf);
-        #xmlendtag{} ->
-            Name = unresolve_endtag_nss(El, Default_NS, Prefixed_NS),
-            endtag_to_binary(Name, Buf);
-        #xmlpi{target = Target, value = Value} ->
-            pi_to_binary(Target, Value, Buf);
-        #xmlcdata{cdata = CData} ->
-            Escaped = ?ESCAPE(CData),
-            <<Buf/binary, Escaped/binary>>
-    end,
-    node_to_binary2(Rest, Default_NS, Prefixed_NS, New_Buf);
-node_to_binary2([], _Default_NS, _Prefixed_NS, Buf) ->
-    Buf.
-
-element_to_binary(Name, Attrs, Children, Default_NS, Prefixed_NS, Buf)
-  when is_atom(Name) ->
-    element_to_binary(atom_to_list(Name), Attrs, Children,
-      Default_NS, Prefixed_NS, Buf);
-element_to_binary(Name, Attrs, undefined, _Default_NS, _Prefixed_NS, Buf) ->
-    % Children may come later, we don't close the tag.
-    Name_B = list_to_binary(Name),
-    New_Buf = attrs_to_binary(Attrs, <<Buf/binary, "<", Name_B/binary>>),
-    <<New_Buf/binary, ">">>;
-element_to_binary(Name, Attrs, [], _Default_NS, _Prefixed_NS, Buf) ->
-    Name_B = list_to_binary(Name),
-    New_Buf = attrs_to_binary(Attrs, <<Buf/binary, "<", Name_B/binary>>),
-    <<New_Buf/binary, "/>">>;
-element_to_binary(Name, Attrs, Children, Default_NS, Prefixed_NS, Buf) ->
-    Name_B = list_to_binary(Name),
-    New_Buf = attrs_to_binary(Attrs, <<Buf/binary, "<", Name_B/binary>>),
-    Norm = normalize_cdata_in_list(Children),
-    New_Buf2 = node_to_binary2(Norm, Default_NS, Prefixed_NS,
-      <<New_Buf/binary, ">">>),
-    <<New_Buf2/binary, "</", Name_B/binary, ">">>.
-
-endtag_to_binary(Name, Buf) when is_atom(Name) ->
-    endtag_to_binary(atom_to_list(Name), Buf);
-endtag_to_binary(Name, Buf) ->
-    Name_B = list_to_binary(Name),
-    <<Buf/binary, "</", Name_B/binary, ">">>.
-
-pi_to_binary(Target, Value, Buf) when is_atom(Target) ->
-    pi_to_binary(atom_to_list(Target), Value, Buf);
-pi_to_binary(Target, Value, Buf) ->
-    Target_B = list_to_binary(Target),
-    Value_B = list_to_binary(Value),
-    <<Buf/binary, "<?", Target_B/binary, " ", Value_B/binary, "?>">>.
-
-attrs_to_binary([{Name, Value} | Rest], Buf) ->
-    attrs_to_binary(Rest, attr_to_binary(Name, Value, Buf));
-attrs_to_binary([], Buf) ->
-    Buf.
-
-attr_to_binary(Name, Value, Buf) when is_atom(Name) ->
-    attr_to_binary(atom_to_list(Name), Value, Buf);
-attr_to_binary(Name, Value, Buf) ->
-    Name_B = list_to_binary(Name),
-    Value_B = list_to_binary(escape_using_entities(Value)),
-    <<Buf/binary, " ", Name_B/binary, "=\"", Value_B/binary, "\"">>.
+    IO_List = node_to_iolist(El, Default_NS, Prefixed_NS),
+    iolist_to_binary(IO_List).
 
 %% @spec (XML_Element) -> XML_Text
 %%     XML_Element = xmlel() | xmlelement() | list()

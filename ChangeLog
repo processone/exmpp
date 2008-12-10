@@ -4,6 +4,17 @@
 	include/internal/exmpp_known_elems.hrl.js,
 	include/internal/exmpp_known_attrs.hrl.js: Fixed the "usage" string.
 
+	* src/core/exmpp_known_nss.erl.awk, src/core/exmpp_known_nss.erl.js,
+	src/core/exmpp_known_elems.erl.awk, src/core/exmpp_known_elems.erl.js,
+	src/core/exmpp_known_attrs.erl.awk, src/core/exmpp_known_attrs.erl.js,
+	src/Makefile.am, src/Emakefile.in, ebin/Makefile.am: Generate Erlang
+	modules to convert known namespaces/elements/attributes to list. This
+	benefits from Erlang constants handling and decreases memory
+	footprint. Thanks to Pablo Polvorin.
+
+	* src/core/exmpp_xml.erl: Use the new modules to convert known
+	namespaces/elements/attributes. Thanks to Pablo Polvorin.
+
 2008-12-09  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/internal/exmpp_known_nss.hrl.awk,

@@ -16,6 +16,12 @@ EXTRA_DIST = core/exmpp.erl						\
 	     core/exmpp_presence.erl					\
 	     core/exmpp_tls.erl						\
 	     core/exmpp_compress.erl					\
+	     core/exmpp_known_nss.erl.awk				\
+	     core/exmpp_known_nss.erl.js				\
+	     core/exmpp_known_elems.erl.awk				\
+	     core/exmpp_known_elems.erl.js				\
+	     core/exmpp_known_attrs.erl.awk				\
+	     core/exmpp_known_attrs.erl.js				\
 	     network/exmpp_session.erl					\
 	     network/exmpp_ssl.erl					\
 	     network/exmpp_tcp.erl					\
@@ -43,6 +49,29 @@ EXTRA_DIST = core/exmpp.erl						\
 	     compat/tls.erl						\
 	     compat/xml.erl						\
 	     compat/xml_stream.erl
+
+KNOWN_NSS_SOURCE = $(top_srcdir)/include/internal/exmpp_known_nss.in
+KNOWN_ELEMS_SOURCE = $(top_srcdir)/include/internal/exmpp_known_elems.in
+KNOWN_ATTRS_SOURCE = $(top_srcdir)/include/internal/exmpp_known_attrs.in
+
+BUILT_SOURCES = exmpp_known_nss.erl					\
+		exmpp_known_elems.erl					\
+		exmpp_known_attrs.erl
+
+CLEANFILES = $(BUILT_SOURCES)
+
+# --------------------------------------------------------------------
+# Known namespaces/names/attributes headers generation.
+# --------------------------------------------------------------------
+
+exmpp_known_nss.erl: $(srcdir)/core/exmpp_known_nss.erl.awk $(KNOWN_NSS_SOURCE)
+	$(AWK) -f $(srcdir)/core/exmpp_known_nss.erl.awk $(KNOWN_NSS_SOURCE) > $@
+
+exmpp_known_elems.erl: $(srcdir)/core/exmpp_known_elems.erl.awk $(KNOWN_ELEMS_SOURCE)
+	$(AWK) -f $(srcdir)/core/exmpp_known_elems.erl.awk $(KNOWN_ELEMS_SOURCE) > $@
+
+exmpp_known_attrs.erl: $(srcdir)/core/exmpp_known_attrs.erl.awk $(KNOWN_ATTRS_SOURCE)
+	$(AWK) -f $(srcdir)/core/exmpp_known_attrs.erl.awk $(KNOWN_ATTRS_SOURCE) > $@
 
 all-local:
 	@$(ERL) +B -noshell -pa @top_builddir@/ebin			\
