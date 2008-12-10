@@ -4,7 +4,7 @@ var fso, fd, line, re;
 
 if (WScript.Arguments.length  != 1) {
 	WScript.Echo("Syntax: cscript " +
-	    "exmpp_known_attrs.hrl.js <exmpp_known_attrs.hrl.in>");
+	    "exmpp_known_attrs.hrl.js <exmpp_known_attrs.in>");
 } else {
 	/* Open the input file for reading (1). */
 	fso = new ActiveXObject("Scripting.FileSystemObject");

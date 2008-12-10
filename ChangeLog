@@ -1,3 +1,9 @@
+2008-12-10  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* include/internal/exmpp_known_nss.hrl.js,
+	include/internal/exmpp_known_elems.hrl.js,
+	include/internal/exmpp_known_attrs.hrl.js: Fixed the "usage" string.
+
 2008-12-09  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/internal/exmpp_known_nss.hrl.awk,
