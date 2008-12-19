@@ -1,6 +1,15 @@
-2008-12-19  Pablo Polvorin  <pablo.polvorin@process-one.net>
+2008-12-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_presence.erl: style(9).
+
+	* c_src/exmpp_stringprep.c, c_src/exmpp_xml_expat.c,
+	c_src/exmpp_xml_legacy.erl, c_src/exmpp_xml_libxml2.c: Change the way
+	structures are initialized because the previous initializing style was
+	C99 and Visual C++ (and other C++ compilers) doesn't understand this
+	standard.
+
+	* c_src/Makefile.win32: Update this makefile for Visual C++ to include
+	new port drivers and remove the old built sources.
 
 2008-12-17  Pablo Polvorin  <pablo.polvorin@process-one.net>
 

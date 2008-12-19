@@ -376,22 +376,13 @@ compose(int ch1, int ch2)
  * Driver declaration.
  * ------------------------------------------------------------------- */
 
-static ErlDrvEntry driver_entry = {
-	.driver_name = S(DRIVER_NAME),
-	.control = exmpp_stringprep_control,
-
-#if defined(ERL_DRV_EXTENDED_MARKER)
-	.extended_marker = 0,
-	.major_version = 0,
-	.minor_version = 0,
-	.driver_flags = 0,
-	.handle2 = NULL,
-	.process_exit = NULL
-#endif
-};
+static ErlDrvEntry driver_entry;
 
 DRIVER_INIT(DRIVER_NAME)
 {
+
+	driver_entry.driver_name = S(DRIVER_NAME);
+	driver_entry.control = exmpp_stringprep_control;
 
 	return (&driver_entry);
 }

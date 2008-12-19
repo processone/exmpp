@@ -284,7 +284,7 @@ expat_cb_start_element(void *user_data,
 
 	enter_element_legacy(&edd->ctx,
 	    elem, strlen(elem),
-	    attrs);
+	    (void *)attrs);
 }
 
 static void
@@ -383,33 +383,24 @@ destroy_parser(struct exmpp_xml_data *edd)
  * Driver declaration.
  * ------------------------------------------------------------------- */
 
-static ErlDrvEntry driver_entry = {
-	.driver_name = S(DRIVER_NAME),
-	.init = exmpp_xml_init,
-	.finish = exmpp_xml_finish,
-	.start = exmpp_xml_start,
-	.stop = exmpp_xml_stop,
-	.control = exmpp_xml_control,
-
-#if defined(SMP_SUPPORT)
-	.extended_marker = ERL_DRV_EXTENDED_MARKER,
-	.major_version = ERL_DRV_EXTENDED_MAJOR_VERSION,
-	.minor_version = ERL_DRV_EXTENDED_MINOR_VERSION,
-	.driver_flags = ERL_DRV_FLAG_USE_PORT_LOCKING,
-	.handle2 = NULL,
-	.process_exit = NULL
-#elif defined(ERL_DRV_EXTENDED_MARKER)
-	.extended_marker = 0,
-	.major_version = 0,
-	.minor_version = 0,
-	.driver_flags = 0,
-	.handle2 = NULL,
-	.process_exit = NULL
-#endif
-};
+static ErlDrvEntry driver_entry;
 
 DRIVER_INIT(DRIVER_NAME)
 {
+
+	driver_entry.driver_name = S(DRIVER_NAME);
+	driver_entry.init = exmpp_xml_init;
+	driver_entry.finish = exmpp_xml_finish;
+	driver_entry.start = exmpp_xml_start;
+	driver_entry.stop = exmpp_xml_stop;
+	driver_entry.control = exmpp_xml_control;
+
+#if defined(SMP_SUPPORT)
+	driver_entry.extended_marker = ERL_DRV_EXTENDED_MARKER;
+	driver_entry.major_version = ERL_DRV_EXTENDED_MAJOR_VERSION;
+	driver_entry.minor_version = ERL_DRV_EXTENDED_MINOR_VERSION;
+	driver_entry.driver_flags = ERL_DRV_FLAG_USE_PORT_LOCKING;
+#endif
 
 	return (&driver_entry);
 }
