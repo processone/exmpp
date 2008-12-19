@@ -1,4 +1,9 @@
-2008-12-17	Pablo Polvorin	<pablo.polvorin@process-one.net>
+2008-12-19  Pablo Polvorin  <pablo.polvorin@process-one.net>
+
+	* src/core/exmpp_presence.erl: style(9).
+
+2008-12-17  Pablo Polvorin  <pablo.polvorin@process-one.net>
+
 	* src/core/exmpp_presence.erl: Bug fix in get_type/1.
 
 2008-12-10  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
