@@ -1,3 +1,15 @@
+2009-01-03	Pablo Polvorin	<pablo.polvorin@process-one.net>
+	* src/core/exmpp_jid.erl: Change #jid structure to use binary() storage
+	for node, domain and resource.
+
+	* testsuite/jid.erl: Update testsuite.
+
+	* src/network/exmpp_session.erl: Update to new parser options and JID API.
+
+	* include/exmpp_jid.hrl, exmpp_xmpp.hrl: Prepate to hide #jid record
+	definition. 
+	
+
 2008-12-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_presence.erl: style(9).
