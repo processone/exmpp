@@ -3,7 +3,17 @@
 % --------------------------------------------------------------------
 % Records to represent XMPP/Jabber specific structures.
 % --------------------------------------------------------------------
-
+ 
+% JID.
+-record(jid, {
+  node,
+  domain,
+  resource,
+  lnode,
+  ldomain,
+  lresource
+}).
+ 
 % IQ stanza.
 -record(iq, {
   kind,    % 'request' or 'response'.
@@ -16,15 +26,6 @@
   iq_ns    % Namespace of the IQ (eg. 'jabber:client').
 }).
 
-% JID.
--record(jid, {
-  node,
-  domain,
-  resource,
-  lnode,
-  ldomain,
-  lresource
-}).
 
 % --------------------------------------------------------------------
 % Macros for common tests.
@@ -58,5 +59,5 @@
 
 % Guard expression to test a JID.
 -define(IS_JID(Jid),
-  record(Jid, jid)
+  (element(1,Jid) =:= 'jid' andalso tuple_size(Jid) =:= 7)
 ).

@@ -10,9 +10,11 @@
 -vsn('$Revision$').
 
 -include("exmpp.hrl").
+-include("exmpp_jid.hrl").
 
 % Conversion.
 -export([
+  make_jid/0,
   make_jid/1,
   make_jid/2,
   make_jid/3,
@@ -52,6 +54,25 @@
   compare_bare_jids/2,
   compare_domains/2
 ]).
+
+% List Accessors.
+-export([
+    node_as_list/1,
+    lnode_as_list/1,
+    domain_as_list/1,
+    ldomain_as_list/1,
+    resource_as_list/1,
+    lresource_as_list/1]).
+
+% raw binary() accessors.
+-export([
+    node/1,
+    lnode/1,
+    domain/1,
+    ldomain/1,
+    resource/1,
+    lresource/1]).
+
 
 % Checks.
 -export([
@@ -94,15 +115,19 @@ make_bare_jid(Node, Domain)
 make_bare_jid("", Domain) ->
     % This clause is here because ejabberd uses empty string.
     make_bare_jid(undefined, Domain);
+make_bare_jid(<<>>, Domain) ->
+    % This clause is here because ejabberd uses empty string.
+    make_bare_jid(undefined, Domain);
 make_bare_jid(undefined, Domain) ->
     try
         LDomain = exmpp_stringprep:nameprep(Domain),
+        {Domain_B, LDomain_B} = to_shared_binary(Domain, LDomain),
         #jid{
           node = undefined,
-          domain = Domain,
+          domain = Domain_B,
           resource = undefined,
           lnode = undefined,
-          ldomain = LDomain,
+          ldomain = LDomain_B,
           lresource = undefined
         }
     catch
@@ -112,18 +137,25 @@ make_bare_jid(undefined, Domain) ->
             throw({jid, make, invalid_domain, {undefined, Domain, undefined}})
     end;
 make_bare_jid(Node, Domain)
-  when length(Node) > ?NODE_MAX_LENGTH ->
+  when is_list(Node), length(Node) > ?NODE_MAX_LENGTH ->
+    throw({jid, make, node_too_long, {Node, Domain, undefined}});
+make_bare_jid(Node, Domain)
+  when is_binary(Node), size(Node) > ?NODE_MAX_LENGTH ->
     throw({jid, make, node_too_long, {Node, Domain, undefined}});
 make_bare_jid(Node, Domain) ->
     try
         LNode = exmpp_stringprep:nodeprep(Node),
         LDomain = exmpp_stringprep:nameprep(Domain),
+
+        {Domain_B, LDomain_B} = to_shared_binary(Domain, LDomain),
+        {Node_B, LNode_B} = to_shared_binary(Node, LNode),
+
         #jid{
-          node = Node,
-          domain = Domain,
+          node = Node_B,
+          domain = Domain_B,
           resource = undefined,
-          lnode = LNode,
-          ldomain = LDomain,
+          lnode = LNode_B,
+          ldomain = LDomain_B,
           lresource = undefined
         }
     catch
@@ -134,6 +166,11 @@ make_bare_jid(Node, Domain) ->
         throw:{stringprep, nameprep, invalid_string, _} ->
             throw({jid, make, invalid_domain, {Node, Domain, undefined}})
     end.
+
+%% @spec () -> Jid
+%%   Jid = jid()
+make_jid() ->
+    #jid{}.
 
 %% @spec (Domain) -> Jid
 %%     Domain = string()
@@ -162,6 +199,9 @@ make_jid(Node, Domain) ->
 make_jid(Node, Domain, undefined) ->
     make_bare_jid(Node, Domain);
 make_jid(Node, Domain, "") ->
+    % This clause is here because ejabberd uses empty string.
+    make_bare_jid(Node, Domain);
+make_jid(Node, Domain, <<>>) ->
     % This clause is here because ejabberd uses empty string.
     make_bare_jid(Node, Domain);
 make_jid(Node, Domain, random) ->
@@ -202,16 +242,24 @@ bare_jid_to_jid(Jid, undefined) ->
 bare_jid_to_jid(Jid, "") ->
     % This clause is here because ejabberd uses empty string.
     Jid;
+bare_jid_to_jid(Jid, <<>>) ->
+    % This clause is here because ejabberd uses empty string.
+    Jid;
 bare_jid_to_jid(Jid, Resource)
-  when length(Resource) > ?RESOURCE_MAX_LENGTH ->
+  when is_list(Resource), length(Resource) > ?RESOURCE_MAX_LENGTH ->
+    throw({jid, convert, resource_too_long,
+        {Jid#jid.node, Jid#jid.domain, Resource}});
+bare_jid_to_jid(Jid, Resource)
+  when is_binary(Resource), size(Resource) > ?RESOURCE_MAX_LENGTH ->
     throw({jid, convert, resource_too_long,
         {Jid#jid.node, Jid#jid.domain, Resource}});
 bare_jid_to_jid(Jid, Resource) ->
     try
         LResource = exmpp_stringprep:resourceprep(Resource),
+        {Resource_B, LResource_B} = to_shared_binary(Resource, LResource),
         Jid#jid{
-          resource = Resource,
-          lresource = LResource
+          resource = Resource_B,
+          lresource = LResource_B
         }
     catch
         throw:{stringprep, _, exmpp_not_started, _} = E ->
@@ -349,12 +397,7 @@ jid_to_list(Node, Domain) ->
 %% @doc Stringify a full JID.
 
 jid_to_list(Node, Domain, Resource) ->
-    S1 = bare_jid_to_list(Node, Domain),
-    case Resource of
-        ""        -> S1;
-        undefined -> S1;
-        _         -> S1 ++ "/" ++ Resource
-    end.
+    binary_to_list(jid_to_binary(Node, Domain, Resource)).
 
 %% @spec (Jid) -> String
 %%     Jid = jid()
@@ -380,12 +423,7 @@ bare_jid_to_list(#jid{node = Node, domain = Domain}) ->
 %% @doc Stringify a full JID.
 
 bare_jid_to_list(Node, Domain) ->
-    S1 = case Node of
-        ""        -> "";
-        undefined -> "";
-        _         -> Node ++ "@"
-    end,
-    S1 ++ Domain.
+    binary_to_list(bare_jid_to_binary(Node, Domain)).
 
 %% @spec (Jid) -> String
 %%     Jid = jid()
@@ -419,15 +457,17 @@ jid_to_binary(Node, Domain) ->
 %%     Resource = string() | undefined
 %%     String = binary()
 %% @doc Stringify a full JID.
-
+jid_to_binary(N, D, R) when is_list(N) ; is_list(D) ; is_list(R) ->
+    jid_to_binary(as_binary_or_undefined(N),
+                  as_binary_or_undefined(D),
+                  as_binary_or_undefined(R));
 jid_to_binary(Node, Domain, Resource) ->
     S1 = bare_jid_to_binary(Node, Domain),
     if
-        Resource == "" orelse Resource == undefined ->
+        Resource == <<>> orelse Resource == undefined ->
             S1;
         true ->
-            Resource_B = list_to_binary(Resource),
-            <<S1/binary, "/", Resource_B/binary>>
+            <<S1/binary, "/", Resource/binary>>
     end.
 
 %% @spec (Jid) -> String
@@ -453,14 +493,16 @@ bare_jid_to_binary(#jid{node = Node, domain = Domain}) ->
 %%     String = binary()
 %% @doc Stringify a full JID.
 
+bare_jid_to_binary(Node, Domain) when is_list(Node); is_list(Domain) ->
+    bare_jid_to_binary(as_binary_or_undefined(Node),
+                       as_binary_or_undefined(Domain));
+    
 bare_jid_to_binary(Node, Domain) ->
-    Domain_B = list_to_binary(Domain),
     if
-        Node == "" orelse Node == undefined ->
-            Domain_B;
+        Node == <<>> orelse Node == undefined ->
+            Domain;
         true ->
-            Node_B = list_to_binary(Node),
-            <<Node_B/binary, "@", Domain_B/binary>>
+            <<Node/binary, "@", Domain/binary>>
     end.
 
 %% @spec (Jid) -> String
@@ -527,6 +569,82 @@ is_jid(JID) when ?IS_JID(JID) ->
 is_jid(_) ->
     false.
 
+
+% --------------------------------------------------------------------
+% JID members getters.
+% --------------------------------------------------------------------
+%%
+%% @spec (Jid) -> Node
+%%  Jid = jid()
+%%  Node = binary()
+node(#jid{node = N}) -> N.
+
+%% @spec (Jid) -> Node
+%%  Jid = jid()
+%%  Node = binary()
+lnode(#jid{lnode = N}) -> N.
+
+%% @spec (Jid) -> Domain
+%%  Jid = jid()
+%%  Domain = binary()
+domain(#jid{domain = D}) -> D.
+
+%% @spec (Jid) -> Domain
+%%  Jid = jid()
+%%  Domain = binary()
+ldomain(#jid{ldomain = D}) -> D.
+
+%% @spec (Jid) -> Resource
+%%  Jid = jid()
+%%  Resource = binary()
+resource(#jid{resource = R}) -> R.
+
+%% @spec (Jid) -> Resource
+%%  Jid = jid()
+%%  Resource = binary()
+lresource(#jid{lresource = R}) -> R.
+
+%%
+%% @spec (Jid) -> Node
+%%  Jid = jid()
+%%  Node = list()
+node_as_list(JID) -> as_list_or_undefined(exmpp_jid:node(JID)).
+
+%% @spec (Jid) -> Node
+%%  Jid = jid()
+%%  Node = list()
+lnode_as_list(JID) -> as_list_or_undefined(lnode(JID)).
+
+%% @spec (Jid) -> Domain
+%%  Jid = jid()
+%%  Domain = list()
+domain_as_list(JID) -> as_list_or_undefined(domain(JID)).
+
+%% @spec (Jid) -> Domain
+%%  Jid = jid()
+%%  Domain = list()
+ldomain_as_list(JID) -> as_list_or_undefined(ldomain(JID)).
+
+%% @spec (Jid) -> Resource
+%%  Jid = jid()
+%%  Resource = list()
+resource_as_list(JID) -> as_list_or_undefined(resource(JID)).
+
+%% @spec (Jid) -> Resource
+%%  Jid = jid()
+%%  Resource = list()
+lresource_as_list(JID) -> as_list_or_undefined(lresource(JID)).
+
+
+as_list_or_undefined(V) when is_binary(V) ->
+    binary_to_list(V);
+as_list_or_undefined(V) ->
+    V.
+
+as_binary_or_undefined(V) when is_list(V) ->
+    list_to_binary(V);
+as_binary_or_undefined(V) ->
+    V.
 % --------------------------------------------------------------------
 % Helper functions
 % --------------------------------------------------------------------
@@ -540,6 +658,18 @@ generate_resource() ->
       integer_to_list(B),
       integer_to_list(C)]
     ).
+
+%% If both lists are equal, don't waste memory creating two separate
+%% binary copies.
+to_shared_binary(A,A) when is_list(A) ->
+    B = list_to_binary(A),
+    {B,B};
+to_shared_binary(A,B) when is_binary(A) ->
+    case B of
+        X when X == A ->
+            {A,A};
+        X -> {A,X}
+    end.
 
 % --------------------------------------------------------------------
 % Documentation / type definitions.

@@ -621,12 +621,12 @@ when atom(StreamId) ->
 %% Extraction functions
 
 %% Extract domain from Auth Method
-get_domain({basic, _Method, JID, _Password}) when record(JID, jid) ->
-    JID#jid.domain.
-get_username({basic, _Method, JID, _Password}) when record(JID, jid) ->
-    JID#jid.node.
-get_resource({basic, _Method, JID, _Password}) when record(JID, jid) ->
-    JID#jid.resource.
+get_domain({basic, _Method, JID, _Password}) when ?IS_JID(JID) ->
+    exmpp_jid:domain_as_list(JID).
+get_username({basic, _Method, JID, _Password}) when ?IS_JID(JID) ->
+    exmpp_jid:node_as_list(JID).
+get_resource({basic, _Method, JID, _Password}) when ?IS_JID(JID) ->
+    exmpp_jid:resource_as_list(JID).
 get_password({basic, _Method, _JID, Password}) when list(Password) ->
     Password.
 get_method({basic, Method, _JID, _Password}) when atom(Method) ->
@@ -637,10 +637,11 @@ get_method({basic, Method, _JID, _Password}) when atom(Method) ->
 %% Define parser options
 %% No compatibility mode: We use all the nice optimisation of exmpp:
 -define(PARSER_OPTIONS,
-	[{names_as_atom, true},
-	 {check_nss, true},
-	 {check_elems, true},
-	 {check_attrs, true},
+	[
+	 {names_as_atom, true},
+	 {check_nss, xmpp},
+	 {check_elems, xmpp},
+	 {check_attrs, xmpp},
 	 {emit_endtag, false},
 	 {root_depth, 0},
 	 {max_size, infinity}]).
