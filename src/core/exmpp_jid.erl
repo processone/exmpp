@@ -27,7 +27,9 @@
 % Parsing.
 -export([
   list_to_jid/1,
-  list_to_bare_jid/1
+  list_to_bare_jid/1,
+  binary_to_jid/1,
+  binary_to_bare_jid/1
 ]).
 
 % Serialization.
@@ -121,13 +123,12 @@ make_bare_jid(<<>>, Domain) ->
 make_bare_jid(undefined, Domain) ->
     try
         LDomain = exmpp_stringprep:nameprep(Domain),
-        {Domain_B, LDomain_B} = to_shared_binary(Domain, LDomain),
         #jid{
           node = undefined,
-          domain = Domain_B,
+          domain = to_binary(Domain),
           resource = undefined,
           lnode = undefined,
-          ldomain = LDomain_B,
+          ldomain = to_binary(LDomain),
           lresource = undefined
         }
     catch
@@ -147,15 +148,12 @@ make_bare_jid(Node, Domain) ->
         LNode = exmpp_stringprep:nodeprep(Node),
         LDomain = exmpp_stringprep:nameprep(Domain),
 
-        {Domain_B, LDomain_B} = to_shared_binary(Domain, LDomain),
-        {Node_B, LNode_B} = to_shared_binary(Node, LNode),
-
         #jid{
-          node = Node_B,
-          domain = Domain_B,
+          node = to_binary(Node),
+          domain = to_binary(Domain),
           resource = undefined,
-          lnode = LNode_B,
-          ldomain = LDomain_B,
+          lnode = to_binary(LNode),
+          ldomain = to_binary(LDomain),
           lresource = undefined
         }
     catch
@@ -256,10 +254,9 @@ bare_jid_to_jid(Jid, Resource)
 bare_jid_to_jid(Jid, Resource) ->
     try
         LResource = exmpp_stringprep:resourceprep(Resource),
-        {Resource_B, LResource_B} = to_shared_binary(Resource, LResource),
         Jid#jid{
-          resource = Resource_B,
-          lresource = LResource_B
+          resource = to_binary(Resource),
+          lresource = to_binary(LResource)
         }
     catch
         throw:{stringprep, _, exmpp_not_started, _} = E ->
@@ -367,6 +364,94 @@ parse_jid(bare, [], Node, Domain) ->
 parse_jid(full, [], Node, Domain) ->
     % Valid JID of the form "Node@Domain".
     make_jid(Node, lists:reverse(Domain), undefined).
+
+
+
+% --------------------------------------------------------------------
+% JID parsing (Binary).
+% --------------------------------------------------------------------
+
+%% @spec (Binary) -> Jid
+%%     Binary = binary()
+%%     Jid = jid()
+%% @throws {jid, parse, jid_too_long, {Binary, undefined, undefined}} |
+%%         {jid, parse, Reason,       {Binary, undefined, undefined}}
+%% @doc Parse a string and create a full JID.
+
+binary_to_jid(String)
+  when size(String) > ?JID_MAX_LENGTH ->
+    throw({jid, parse, jid_too_long, {String, undefined, undefined}});
+binary_to_jid(String) ->
+    case b_parse_jid(String, <<>>) of
+        {error, Reason} ->
+            throw({jid, parse, Reason, {String, undefined, undefined}});
+        Jid ->
+            Jid
+    end.
+
+%% @spec (String) -> Bare_Jid
+%%     String = string()
+%%     Bare_Jid = jid()
+%% @throws {jid, parse, jid_too_long, {String, undefined, undefined}} |
+%%         {jid, parse, Reason,       {String, undefined, undefined}}
+%% @doc Parse a string and create a bare JID.
+
+binary_to_bare_jid(String) ->
+  jid_to_bare_jid(binary_to_jid(String)).
+  %% we discard the resource, but still need to parse it to check that
+  %% the jid is valid. So it's basically the same than for binary_to_jid/1.
+
+
+    % Invalid JID of the form "Node@Domain/".
+
+b_parse_jid(<<$@, _Rest/binary>>, <<>>) ->
+    % Invalid JID of the form "@Domain".
+    {error, unexpected_node_separator};
+b_parse_jid(<<$@, Rest/binary>>, Node) ->
+    % JID of the form "Node@Domain".
+    b_parse_jid(Rest, Node, <<>>);
+b_parse_jid(<<$/, _Rest/binary>>, <<>>) ->
+    % Invalid JID of the form "/Resource".
+    {error, unexpected_resource_separator};
+b_parse_jid(<<$/>>, _Domain) ->
+    % Invalid JID of the form "Domain/".
+    {error, unexpected_end_of_string};
+b_parse_jid(<<$/ , Resource/binary>>, Domain) ->
+    % Valid JID of the form "Domain/Resource".
+    make_jid(undefined, Domain, Resource);
+b_parse_jid(<<C, Rest/binary>>, Node_Or_Domain) ->
+    % JID of the form "Node@Domain" or "Node@Domain/Resource".
+    b_parse_jid(Rest, <<Node_Or_Domain/binary, C>>);
+b_parse_jid(<<>>, <<>>) ->
+    % Invalid JID of the form "".
+    {error, unexpected_end_of_string};
+b_parse_jid(<<>>, Domain) ->
+    % Valid JID of the form "Domain".
+    make_jid(undefined, Domain, undefined).
+
+b_parse_jid(<<$@,  _Rest/binary>>, _Node, _Domain) ->
+    % Invalid JID of the form "Node@Domain@Domain".
+    {error, unexpected_node_separator};
+b_parse_jid(<<$/, _Rest/binary>>, _Node, <<>>) ->
+    % Invalid JID of the form "Node@/Resource".
+    {error, unexpected_resource_separator};
+b_parse_jid(<<$/>>, _Node, _Domain) ->
+    % Invalid JID of the form "Node@Domain/".
+    {error, unexpected_end_of_string};
+b_parse_jid(<<$/, Resource/binary>>, Node, Domain) ->
+    % Valid JID of the form "Node@Domain/Resource".
+    make_jid(Node, Domain, Resource);
+b_parse_jid(<<C, Rest/binary>>, Node, Domain) ->
+    % JID of the form "Node@Domain" or "Node@Domain/Resource".
+    b_parse_jid(Rest, Node, <<Domain/binary, C>>);
+b_parse_jid(<<>>, _Node, <<>>) ->
+    % Invalid JID of the form "Node@".
+    {error, unexpected_end_of_string};
+b_parse_jid(<<>>, Node, Domain) ->
+    % Valid JID of the form "Node@Domain".
+    make_jid(Node, Domain, undefined).
+
+
 
 % --------------------------------------------------------------------
 % JID serialization.
@@ -661,15 +746,10 @@ generate_resource() ->
 
 %% If both lists are equal, don't waste memory creating two separate
 %% binary copies.
-to_shared_binary(A,A) when is_list(A) ->
-    B = list_to_binary(A),
-    {B,B};
-to_shared_binary(A,B) when is_binary(A) ->
-    case B of
-        X when X == A ->
-            {A,A};
-        X -> {A,X}
-    end.
+to_binary(A) when is_list(A) ->
+    list_to_binary(A);
+to_binary(B) when is_binary(B) ->
+    B.
 
 % --------------------------------------------------------------------
 % Documentation / type definitions.

@@ -66,7 +66,7 @@ get(NS, Request) ->
 %% @doc Prepare an `<iq/>' to transport the given `get' request.
 
 get(NS, Request, ID) ->
-    Attrs1 = exmpp_stanza:set_type_in_attrs([], "get"),
+    Attrs1 = exmpp_stanza:set_type_in_attrs([], <<"get">>),
     Attrs2 = exmpp_stanza:set_id_in_attrs(Attrs1, ID),
     #xmlel{
       ns = NS,
@@ -92,7 +92,7 @@ set(NS, Request) ->
 %% @doc Prepare an `<iq/>' to transport the given `set' request.
 
 set(NS, Request, ID) ->
-    Attrs1 = exmpp_stanza:set_type_in_attrs([], "set"),
+    Attrs1 = exmpp_stanza:set_type_in_attrs([], <<"set">>),
     Attrs2 = exmpp_stanza:set_id_in_attrs(Attrs1, ID),
     #xmlel{
       ns = NS,
@@ -108,7 +108,7 @@ set(NS, Request, ID) ->
 
 result(Request_IQ) when ?IS_IQ(Request_IQ) ->
     Attrs1 = exmpp_stanza:reply_from_attrs(Request_IQ#xmlel.attrs),
-    Attrs2 = exmpp_stanza:set_type_in_attrs(Attrs1, "result"),
+    Attrs2 = exmpp_stanza:set_type_in_attrs(Attrs1, <<"result">>),
     #xmlel{
       ns = Request_IQ#xmlel.ns,
       name = 'iq',
@@ -365,7 +365,7 @@ is_error(#iq{type = Type}) ->
     Type == 'error'.
 
 %% @spec (IQ) -> Request | undefined
-%%     IQ = exmpp_xml:xmlel() | iq()
+%     IQ = exmpp_xml:xmlel() | iq()
 %%     Request = exmpp_xml:xmlel()
 %% @throws {iq, get_request, unexpected_iq, IQ} |
 %%         {iq, get_request, invalid_iq, IQ}

@@ -87,6 +87,12 @@
   get_attribute_from_list/4,
   get_attribute/3,
   get_attribute/4,
+
+  get_attribute_as_binary/3,
+  get_attribute_as_binary/4,
+  get_attribute_from_list_as_binary/3,
+  get_attribute_from_list_as_binary/4,
+
   set_attribute_in_list/2,
   set_attribute_in_list/3,
   set_attribute_in_list/4,
@@ -885,9 +891,9 @@ get_attribute_node(undefined, _NS, _Name) ->
 get_attribute_from_list(Attrs, Attr_Name, Default) ->
     case get_attribute_node_from_list(Attrs, Attr_Name) of
         #xmlattr{value = Value} ->
-            Value;
+            binary_to_list(Value);
         {_Name, Value} ->
-            Value;
+            binary_to_list(Value);
         _ ->
             Default
     end.
@@ -906,7 +912,7 @@ get_attribute_from_list(Attrs, Attr_Name, Default) ->
 get_attribute_from_list(Attrs, NS, Attr_Name, Default) ->
     case get_attribute_node_from_list(Attrs, NS, Attr_Name) of
         #xmlattr{value = Value} ->
-            Value;
+            binary_to_list(Value);
         _ ->
             Default
     end.
@@ -942,6 +948,32 @@ get_attribute(#xmlel{attrs = Attrs} = _XML_Element, NS, Name, Default) ->
     get_attribute_from_list(Attrs, NS, Name, Default);
 get_attribute(undefined, _NS, _Name, Default) ->
     Default.
+
+
+get_attribute_as_binary(#xmlel{attrs = Attrs} = _XML_Element, Name, Default) ->
+    get_attribute_from_list_as_binary(Attrs, Name, Default);
+get_attribute_as_binary(undefined, _Name, Default) ->
+    Default.
+get_attribute_as_binary(#xmlel{attrs = Attrs} = _XML_Element, NS, Name, Default) ->
+    get_attribute_from_list_as_binary(Attrs, NS, Name, Default);
+get_attribute_as_binary(undefined, _NS, _Name, Default) ->
+    Default.
+get_attribute_from_list_as_binary(Attrs, NS, Attr_Name, Default) ->
+    case get_attribute_node_from_list(Attrs, NS, Attr_Name) of
+        #xmlattr{value = Value} ->
+            Value;
+        _ ->
+            Default
+    end.
+get_attribute_from_list_as_binary(Attrs, Attr_Name, Default) ->
+    case get_attribute_node_from_list(Attrs, Attr_Name) of
+        #xmlattr{value = Value} ->
+            Value;
+        {_Name, Value} ->
+            Value;
+        _ ->
+            Default
+    end.
 
 %% @spec (Attrs, Attr_Name) -> bool()
 %%     Attrs = [xmlattribute() | xmlattribute()]
@@ -1040,11 +1072,13 @@ set_attribute_in_list2([], New_Attr, New_Attrs) ->
 %% other attributes.
 
 set_attribute_in_list(Attrs, Name, Value) when is_atom(Value) ->
-    set_attribute_in_list(Attrs, Name, atom_to_list(Value));
+    set_attribute_in_list(Attrs, Name, list_to_binary(atom_to_list(Value)));
 set_attribute_in_list(Attrs, Name, Value) when is_integer(Value) ->
-    set_attribute_in_list(Attrs, Name, integer_to_list(Value));
+    set_attribute_in_list(Attrs, Name, list_to_binary(integer_to_list(Value)));
+set_attribute_in_list(Attrs, Name, Value) when is_list(Value) ->
+    set_attribute_in_list(Attrs, Name, list_to_binary(Value));
 
-set_attribute_in_list(Attrs, Name, Value) ->
+set_attribute_in_list(Attrs, Name, Value) when is_binary(Value)->
     set_attribute_in_list2(Attrs, Name, Value, []).
 
 set_attribute_in_list2([Attr | Rest], Name, Value, New_Attrs) ->
@@ -1086,8 +1120,10 @@ set_attribute_in_list(Attrs, NS, Name, Value) when is_atom(Value) ->
     set_attribute_in_list(Attrs, NS, Name, atom_to_list(Value));
 set_attribute_in_list(Attrs, NS, Name, Value) when is_integer(Value) ->
     set_attribute_in_list(Attrs, NS, Name, integer_to_list(Value));
+set_attribute_in_list(Attrs, NS, Name, Value) when list(Value) ->
+    set_attribute_in_list(Attrs, NS, Name, list_to_binary(Value));
 
-set_attribute_in_list(Attrs, NS, Name, Value) ->
+set_attribute_in_list(Attrs, NS, Name, Value) when is_binary(Value) ->
     set_attribute_in_list2(Attrs, NS, Name, Value, []).
 
 set_attribute_in_list2([Attr | Rest], NS, Name, Value, New_Attrs) ->
@@ -1126,11 +1162,13 @@ set_attribute(#xmlelement{attrs = Attrs} = XML_Element, Attr) ->
 %% @doc Add a new attribute or change the value of an existing attribute.
 
 set_attribute(XML_Element, Name, Value) when is_atom(Value) ->
-    set_attribute(XML_Element, Name, atom_to_list(Value));
+    set_attribute(XML_Element, Name, list_to_binary(atom_to_list(Value)));
 set_attribute(XML_Element, Name, Value) when is_integer(Value) ->
-    set_attribute(XML_Element, Name, integer_to_list(Value));
+    set_attribute(XML_Element, Name, list_to_binary(integer_to_list(Value)));
+set_attribute(XML_Element, Name, Value) when is_list(Value) ->
+    set_attribute(XML_Element, Name, list_to_binary(Value));
 
-set_attribute(#xmlel{attrs = Attrs} = XML_Element, Name, Value) ->
+set_attribute(#xmlel{attrs = Attrs} = XML_Element, Name, Value) when is_binary(Value)->
     New_Attrs = set_attribute_ns2(Attrs, Name, Value, []),
     XML_Element#xmlel{attrs = New_Attrs};
 
@@ -1170,11 +1208,14 @@ set_attribute2([], Name, Value, New_Attrs) ->
 %% with the same name and the `NS' namespace URI.
 
 set_attribute(XML_Element, NS, Name, Value) when is_atom(Value) ->
-    set_attribute(XML_Element, NS, Name, atom_to_list(Value));
+    set_attribute(XML_Element, NS, Name, list_to_binary(atom_to_list(Value)));
 set_attribute(XML_Element, NS, Name, Value) when is_integer(Value) ->
-    set_attribute(XML_Element, NS, Name, integer_to_list(Value));
+    set_attribute(XML_Element, NS, Name, list_to_binary(integer_to_list(Value)));
+set_attribute(XML_Element, NS, Name, Value) when is_list(Value) ->
+    set_attribute(XML_Element, NS, Name, list_to_binary(Value));
 
-set_attribute(#xmlel{attrs = Attrs} = XML_Element, NS, Name, Value) ->
+set_attribute(#xmlel{attrs = Attrs} = XML_Element, NS, Name, Value) 
+        when is_binary(Value)->
     New_Attrs = set_attribute_ns2(Attrs, NS, Name, Value, []),
     XML_Element#xmlel{attrs = New_Attrs}.
 

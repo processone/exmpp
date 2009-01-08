@@ -108,7 +108,7 @@ get_error(#iq{}) ->
 
 %% @spec (Stanza) -> Sender | undefined
 %%     Stanza = exmpp_xml:xmlel()
-%%     Sender = string()
+%%     Sender = binary()
 %% @doc Return the sender.
 %%
 %% The return value should be a JID and may be parsed with
@@ -119,14 +119,14 @@ get_sender(#xmlel{attrs = Attrs} = _Stanza) ->
 
 %% @spec (Attrs) -> Sender | undefined
 %%     Attrs = [exmpp_xml:xmlnsattribute()]
-%%     Sender = string()
+%%     Sender = binary()
 %% @doc Return the sender.
 %%
 %% The return value should be a JID and may be parsed with
 %% {@link exmpp_jid:list_to_jid/1}.
 
 get_sender_from_attrs(Attrs) ->
-    exmpp_xml:get_attribute_from_list(Attrs, 'from', undefined).
+    exmpp_xml:get_attribute_from_list_as_binary(Attrs, 'from', undefined).
 
 %% @spec (Stanza, Sender) -> New_Stanza
 %%     Stanza = exmpp_xml:xmlel()
@@ -174,7 +174,7 @@ remove_sender_in_attrs(Attrs) ->
 
 %% @spec (Stanza) -> Recipient | undefined
 %%     Stanza = exmpp_xml:xmlel()
-%%     Recipient = string()
+%%     Recipient = binary()
 %% @doc Return the recipient.
 %%
 %% The return value should be a JID and may be parsed with
@@ -185,14 +185,14 @@ get_recipient(#xmlel{attrs = Attrs} = _Stanza) ->
 
 %% @spec (Attrs) -> Recipient | undefined
 %%     Attrs = [exmpp_xml:xmlnsattribute()]
-%%     Recipient = string()
+%%     Recipient = binary()
 %% @doc Return the recipient.
 %%
 %% The return value should be a JID and may be parsed with
 %% {@link exmpp_jid:list_to_jid/1}.
 
 get_recipient_from_attrs(Attrs) ->
-    exmpp_xml:get_attribute_from_list(Attrs, 'to', undefined).
+    exmpp_xml:get_attribute_from_list_as_binary(Attrs, 'to', undefined).
 
 %% @spec (Stanza, Recipient) -> New_Stanza
 %%     Stanza = exmpp_xml:xmlel()
@@ -320,7 +320,7 @@ set_id_in_attrs(Attrs, ID) ->
 get_type(#xmlel{attrs = Attrs} = _Stanza) ->
     get_type_from_attrs(Attrs);
 get_type(#iq{type = Type}) ->
-    atom_to_list(Type).
+    list_to_binary(atom_to_list(Type)).
 
 %% @spec (Attrs) -> Type | undefined
 %%     Attrs = [exmpp_xml:xmlnsattribute()]

@@ -1,3 +1,12 @@
+2009-01-08	Pablo Polvorin	<pablo.polvorin@process-one.net>
+	* c_src/exmpp_xml.c, src/core/exmpp_iq.erl, src/core/exmpp_jid.erl
+	src/core/exmpp_stanza.erl, src/core/exmpp_xml.erl, testsuite/iq.erl
+	,testsuite/jid.erl, testsuite/stanza.erl: Use binary to represent
+	attribute values.
+	
+	* src/core/stringprep.erl, src/core/exmpp_jid: Fix shared binary
+	managment.
+
 2009-01-03	Pablo Polvorin	<pablo.polvorin@process-one.net>
 	* src/core/exmpp_jid.erl: Change #jid structure to use binary() storage
 	for node, domain and resource.

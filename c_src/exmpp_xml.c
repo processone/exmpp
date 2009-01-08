@@ -478,9 +478,11 @@ make_attribute(struct exmpp_xml_ctx *ctx,
 
 	/* Encode the value. */
 	if (value_len == -1)
-		ei_x_encode_string(tree, value);
+//		ei_x_encode_string(tree, value);
+        ei_x_encode_binary(tree, value, 0);
 	else
-		ei_x_encode_string_len(tree, value, value_len);
+        ei_x_encode_binary(tree, value, value_len);
+//		ei_x_encode_string_len(tree, value, value_len);
 
 	return (0);
 }

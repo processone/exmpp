@@ -113,6 +113,7 @@
 % Defined by XEP-0050: Ad-Hoc Commands.
 -define(NS_ADHOC,                    'http://jabber.org/protocol/commands').
 -define(NS_ADHOC_s,                  "http://jabber.org/protocol/commands").
+-define(NS_ADHOC_b,                  <<"http://jabber.org/protocol/commands">>).
 
 % Defined by XEP-0054: vcard-temp.
 -define(NS_VCARD,                    'vcard-temp').

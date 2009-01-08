@@ -19,11 +19,11 @@
     ns = ?NS_JABBER_CLIENT,
     name = 'message',
     attrs = [
-      #xmlattr{name = 'from', value = "sender"},
-      #xmlattr{name = 'to', value = "recipient"},
-      #xmlattr{name = 'type', value = "chat"},
-      #xmlattr{name = 'id', value = "message-2"},
-      #xmlattr{ns = ?NS_XML, name = 'lang', value = "en"}
+      #xmlattr{name = 'from', value = <<"sender">>},
+      #xmlattr{name = 'to', value = <<"recipient">>},
+      #xmlattr{name = 'type', value = <<"chat">>},
+      #xmlattr{name = 'id', value = <<"message-2">>},
+      #xmlattr{ns = ?NS_XML, name = 'lang', value = <<"en">>}
     ]
   }).
 

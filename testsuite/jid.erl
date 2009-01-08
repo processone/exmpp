@@ -180,10 +180,88 @@ jid_creation_with_bad_syntax_test_() ->
         exmpp_jid:list_to_jid("/Resource")
       )
     ],
-    {setup, ?SETUP, ?CLEANUP, Tests}.
+
+    TestsBinaryParsing =  [
+      ?_assertThrow(
+        {jid, parse, unexpected_end_of_string,
+          {<<"">>, undefined, undefined}},
+        exmpp_jid:binary_to_jid(<<"">>)
+      ),
+      ?_assertThrow(
+        {jid, parse, unexpected_node_separator,
+          {<<"@">>, undefined, undefined}},
+        exmpp_jid:binary_to_jid(<<"@">>)
+      ),
+      ?_assertThrow(
+        {jid, parse, unexpected_node_separator,
+          {<<"@Domain">>, undefined, undefined}},
+        exmpp_jid:binary_to_jid(<<"@Domain">>)
+      ),
+      ?_assertThrow(
+        {jid, parse, unexpected_node_separator,
+          {<<"@Domain@Domain">>, undefined, undefined}},
+        exmpp_jid:binary_to_jid(<<"@Domain@Domain">>)
+      ),
+      ?_assertThrow(
+        {jid, parse, unexpected_node_separator,
+          {<<"@Domain/Resource">>, undefined, undefined}},
+        exmpp_jid:binary_to_jid(<<"@Domain/Resource">>)
+      ),
+      ?_assertThrow(
+        {jid, parse, unexpected_end_of_string,
+          {<<"Node@">>, undefined, undefined}},
+        exmpp_jid:binary_to_jid(<<"Node@">>)
+      ),
+      ?_assertThrow(
+        {jid, parse, unexpected_node_separator,
+          {<<"Node@Domain@">>, undefined, undefined}},
+        exmpp_jid:binary_to_jid(<<"Node@Domain@">>)
+      ),
+      ?_assertThrow(
+        {jid, parse, unexpected_node_separator,
+          {<<"Node@@Domain">>, undefined, undefined}},
+        exmpp_jid:binary_to_jid(<<"Node@@Domain">>)
+      ),
+      ?_assertThrow(
+        {jid, parse, unexpected_end_of_string,
+          {<<"Domain/">>, undefined, undefined}},
+        exmpp_jid:binary_to_jid(<<"Domain/">>)
+      ),
+      ?_assertThrow(
+        {jid, parse, unexpected_end_of_string,
+          {<<"Node@Domain/">>, undefined, undefined}},
+        exmpp_jid:binary_to_jid(<<"Node@Domain/">>)
+      ),
+      ?_assertThrow(
+        {jid, parse, unexpected_node_separator,
+          {<<"@/">>, undefined, undefined}},
+        exmpp_jid:binary_to_jid(<<"@/">>)
+      ),
+      ?_assertThrow(
+        {jid, parse, unexpected_resource_separator,
+          {<<"Node@/">>, undefined, undefined}},
+        exmpp_jid:binary_to_jid(<<"Node@/">>)
+      ),
+      ?_assertThrow(
+        {jid, parse, unexpected_resource_separator,
+          {<<"Node@/Resource">>, undefined, undefined}},
+        exmpp_jid:binary_to_jid(<<"Node@/Resource">>)
+      ),
+      ?_assertThrow(
+        {jid, parse, unexpected_resource_separator,
+          {<<"/">>, undefined, undefined}},
+        exmpp_jid:binary_to_jid(<<"/">>)
+      ),
+      ?_assertThrow(
+        {jid, parse, unexpected_resource_separator,
+          {<<"/Resource">>, undefined, undefined}},
+        exmpp_jid:binary_to_jid(<<"/Resource">>)
+      )
+    ],
+
+    {setup, ?SETUP, ?CLEANUP, Tests ++ TestsBinaryParsing}.
 
 jid_creation_with_bad_chars_test_() ->
-ith_bad_chars_test_() ->
     Tests = [
       ?_assertThrow(
         {jid, make, invalid_node, _},
@@ -218,7 +296,41 @@ ith_bad_chars_test_() ->
         exmpp_jid:list_to_jid(?BJ2_S_BAD1)
       )
     ],
-    {setup, ?SETUP, ?CLEANUP, Tests}.
+    TestsBinaryParsing = [
+      ?_assertThrow(
+        {jid, make, invalid_node, _},
+        exmpp_jid:binary_to_jid(list_to_binary(?FJ1_S_BAD1))
+      ),
+      ?_assertThrow(
+        {jid, make, invalid_domain, _},
+        exmpp_jid:binary_to_jid(list_to_binary(?FJ1_S_BAD2))
+      ),
+      ?_assertThrow(
+        {jid, make, invalid_resource, _},
+        exmpp_jid:binary_to_jid(list_to_binary(?FJ1_S_BAD3))
+      ),
+      ?_assertThrow(
+        {jid, make, invalid_domain, _},
+        exmpp_jid:binary_to_jid(list_to_binary(?FJ2_S_BAD1))
+      ),
+      ?_assertThrow(
+        {jid, make, invalid_resource, _},
+        exmpp_jid:binary_to_jid(list_to_binary(?FJ2_S_BAD2))
+      ),
+      ?_assertThrow(
+        {jid, make, invalid_node, _},
+        exmpp_jid:binary_to_jid(list_to_binary(?BJ1_S_BAD1))
+      ),
+      ?_assertThrow(
+        {jid, make, invalid_domain, _},
+        exmpp_jid:binary_to_jid(list_to_binary(?BJ1_S_BAD2))
+      ),
+      ?_assertThrow(
+        {jid, make, invalid_domain, _},
+        exmpp_jid:binary_to_jid(list_to_binary(?BJ2_S_BAD1))
+      )
+    ],
+    {setup, ?SETUP, ?CLEANUP, Tests ++ TestsBinaryParsing}.
 
 good_jid_creation_test_() ->
     Tests = [

@@ -24,11 +24,11 @@
     ns = ?NS_JABBER_CLIENT,
     name = 'iq',
     attrs = [
-      #xmlattr{name = 'from', value = "sender"},
-      #xmlattr{name = 'to', value = "recipient"},
-      #xmlattr{name = 'type', value = "get"},
-      #xmlattr{name = 'id', value = "iq-2"},
-      #xmlattr{ns = ?NS_XML, name = 'lang', value = "en"}
+      #xmlattr{name = 'from', value = <<"sender">>},
+      #xmlattr{name = 'to', value = <<"recipient">>},
+      #xmlattr{name = 'type', value = <<"get">>},
+      #xmlattr{name = 'id', value = <<"iq-2">>},
+      #xmlattr{ns = ?NS_XML, name = 'lang', value = <<"en">>}
     ],
     children = [
       #xmlcdata{cdata = <<"\n  ">>},
@@ -40,22 +40,22 @@
     ns = ?NS_JABBER_CLIENT,
     name = 'iq',
     attrs = [
-      #xmlattr{name = 'from', value = "recipient"},
-      #xmlattr{name = 'to', value = "sender"},
-      #xmlattr{name = 'type', value = "result"},
-      #xmlattr{name = 'id', value = "iq-2"},
-      #xmlattr{ns = ?NS_XML, name = 'lang', value = "en"}
+      #xmlattr{name = 'from', value = <<"recipient">>},
+      #xmlattr{name = 'to', value = <<"sender">>},
+      #xmlattr{name = 'type', value = <<"result">>},
+      #xmlattr{name = 'id', value = <<"iq-2">>},
+      #xmlattr{ns = ?NS_XML, name = 'lang', value = <<"en">>}
     ]
   }).
 -define(IQ_4, #xmlel{
     ns = ?NS_JABBER_CLIENT,
     name = 'iq',
     attrs = [
-      #xmlattr{name = 'from', value = "recipient"},
-      #xmlattr{name = 'to', value = "sender"},
-      #xmlattr{name = 'type', value = "result"},
-      #xmlattr{name = 'id', value = "iq-2"},
-      #xmlattr{ns = ?NS_XML, name = 'lang', value = "en"}
+      #xmlattr{name = 'from', value = <<"recipient">>},
+      #xmlattr{name = 'to', value = <<"sender">>},
+      #xmlattr{name = 'type', value = <<"result">>},
+      #xmlattr{name = 'id', value = <<"iq-2">>},
+      #xmlattr{ns = ?NS_XML, name = 'lang', value = <<"en">>}
     ],
     children = [?PAYLOAD]
   }).
@@ -63,11 +63,11 @@
     ns = ?NS_JABBER_CLIENT,
     name = 'iq',
     attrs = [
-      #xmlattr{name = 'from', value = "recipient"},
-      #xmlattr{name = 'to', value = "sender"},
-      #xmlattr{name = 'type', value = "error"},
-      #xmlattr{name = 'id', value = "iq-2"},
-      #xmlattr{ns = ?NS_XML, name = 'lang', value = "en"}
+      #xmlattr{name = 'from', value = <<"recipient">>},
+      #xmlattr{name = 'to', value = <<"sender">>},
+      #xmlattr{name = 'type', value = <<"error">>},
+      #xmlattr{name = 'id', value = <<"iq-2">>},
+      #xmlattr{ns = ?NS_XML, name = 'lang', value = <<"en">>}
     ],
     children = [
       ?ERROR
@@ -77,11 +77,11 @@
     ns = ?NS_JABBER_CLIENT,
     name = 'iq',
     attrs = [
-      #xmlattr{name = 'from', value = "recipient"},
-      #xmlattr{name = 'to', value = "sender"},
-      #xmlattr{name = 'type', value = "error"},
-      #xmlattr{name = 'id', value = "iq-2"},
-      #xmlattr{ns = ?NS_XML, name = 'lang', value = "en"}
+      #xmlattr{name = 'from', value = <<"recipient">>},
+      #xmlattr{name = 'to', value = <<"sender">>},
+      #xmlattr{name = 'type', value = <<"error">>},
+      #xmlattr{name = 'id', value = <<"iq-2">>},
+      #xmlattr{ns = ?NS_XML, name = 'lang', value = <<"en">>}
     ],
     children = [
       #xmlcdata{cdata = <<"\n  ">>},
