@@ -1,3 +1,18 @@
+2009-01-09	Pablo Polvorin	<pablo.polvorin@process-one.net>
+	* src/core/exmpp_stanza: get_type/1, get_lang/1, get_id/1 returns
+	binary().
+
+	* src/core/exmpp_stream.erl: get_id/1, get_lang/1, get_initiating_entity/1,
+	get_receiving_entity/1 returns binary().
+
+	* src/core/exmpp_iq.erl : get_type/1 work on binary attributes.
+
+	* src/core/exmpp_message.erl: Likewise.
+
+	* src/core/exmpp_presence.erl: Likewise.
+
+	* src/networ/exmpp_session.erl: Update to newer interfaces.
+
 2009-01-08	Pablo Polvorin	<pablo.polvorin@process-one.net>
 	* c_src/exmpp_xml.c, src/core/exmpp_iq.erl, src/core/exmpp_jid.erl
 	src/core/exmpp_stanza.erl, src/core/exmpp_xml.erl, testsuite/iq.erl

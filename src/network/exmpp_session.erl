@@ -496,11 +496,11 @@ wait_for_legacy_auth_method(?streamerror, State) ->
 %% TODO: We should be able to match on iq type directly on the first
 %% level record
 wait_for_auth_result(?iq_no_attrs, State = #state{from_pid=From}) ->
-    case exmpp_xml:get_attribute(IQElement, type, undefined) of
- 	"result" ->
+    case exmpp_xml:get_attribute_as_binary(IQElement, type, undefined) of
+ 	<<"result">> ->
             gen_fsm:reply(From, ok),
             {next_state, logged_in, State#state{from_pid=undefined}};
-        "error" ->
+    <<"error">> ->
             Reason = exmpp_stanza:get_condition(IQElement),
             gen_fsm:reply(From, {auth_error, Reason}),
             {next_state, stream_opened, State#state{from_pid=undefined}}
@@ -511,11 +511,11 @@ wait_for_auth_result(?iq_no_attrs, State = #state{from_pid=From}) ->
 %% requirements. Check that a client can get the list of fields and
 %% override this simple method of registration.
 wait_for_register_result(?iq_no_attrs, State = #state{from_pid=From}) ->
-    case exmpp_xml:get_attribute(IQElement, type, undefined) of
- 	"result" ->
+    case exmpp_xml:get_attribute_as_binary(IQElement, type, undefined) of
+ 	<<"result">> ->
             gen_fsm:reply(From, ok),
             {next_state, stream_opened, State#state{from_pid=undefined}};
-        "error" ->
+    <<"error">> ->
             Reason = exmpp_stanza:get_condition(IQElement),
             gen_fsm:reply(From, {register_error, Reason}),
             {next_state, stream_opened, State#state{from_pid=undefined}}
@@ -655,8 +655,8 @@ start_parser() ->
 %% Authentication functions
 check_auth_method(Method, IQElement) ->
     %% Check auth method if we have the IQ result
-    case exmpp_xml:get_attribute(IQElement, type, undefined) of
-	"result" ->
+    case exmpp_xml:get_attribute_as_binary(IQElement, type, undefined) of
+	<<"result">> ->
 	    check_auth_method2(Method, IQElement);
 	_ ->
 	    {error, not_auth_method_result}
@@ -711,8 +711,8 @@ process_iq(ClientPid, Attrs, Packet) ->
 %% This function uses {@link random:uniform/1}. It's up to the caller to
 %% seed the generator.
 check_id(Attrs) ->
-    case exmpp_xml:get_attribute_from_list(Attrs, id, "") of
-	"" ->
+    case exmpp_xml:get_attribute_from_list_as_binary(Attrs, id, <<>>) of
+	<<>> ->
 	    Id = exmpp_utils:random_id("session"),
 	    {exmpp_xml:set_attribute_in_list(Attrs, id, Id), Id};
         Id -> {Attrs, Id}
@@ -726,21 +726,21 @@ get_attribute_value(Attrs, Attr, Default) ->
 %% Internal operations
 %% send_packet: actually format and send the packet:
 send_packet(?iqattrs, Module, ConnRef) ->
-    Type = exmpp_xml:get_attribute_from_list(Attrs, type, undefined),
+    Type = exmpp_xml:get_attribute_from_list_as_binary(Attrs, type, undefined),
     case Type of
-	"error" ->
+	<<"error">> ->
 	    {Attrs2, PacketId} = check_id(Attrs),
 	    Module:send(ConnRef, IQElement#xmlel{attrs=Attrs2}),
 	    PacketId;
-	"result" ->
+	<<"result">> ->
 	    {Attrs2, PacketId} = check_id(Attrs),
 	    Module:send(ConnRef, IQElement#xmlel{attrs=Attrs2}),
 	    PacketId;
-	"set" ->
+	<<"set">> ->
 	    {Attrs2, PacketId} = check_id(Attrs),
 	    Module:send(ConnRef, IQElement#xmlel{attrs=Attrs2}),
 	    PacketId;
-	"get" ->
+	<<"get">> ->
 	    {Attrs2, PacketId} = check_id(Attrs),
 	    Module:send(ConnRef, IQElement#xmlel{attrs=Attrs2}),
 	    PacketId

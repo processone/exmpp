@@ -266,7 +266,7 @@ set_jids_in_attrs(Attrs, From, To) ->
 
 %% @spec (Stanza) -> ID | undefined
 %%     Stanza = exmpp_xml:xmlel() | iq()
-%%     ID = string()
+%%     ID = binary()
 %% @doc Return the stanza ID.
 
 get_id(#xmlel{attrs = Attrs} = _Stanza) ->
@@ -276,11 +276,11 @@ get_id(#iq{id = ID}) ->
 
 %% @spec (Attrs) -> ID | undefined
 %%     Attrs = [exmpp_xml:xmlnsattribute()]
-%%     ID = string()
+%%     ID = binary()
 %% @doc Return the stanza ID.
 
 get_id_from_attrs(Attrs) ->
-    exmpp_xml:get_attribute_from_list(Attrs, 'id', undefined).
+    exmpp_xml:get_attribute_from_list_as_binary(Attrs, 'id', undefined).
 
 %% @spec (Stanza, ID) -> New_Stanza
 %%     Stanza = exmpp_xml:xmlel() | iq()
@@ -314,7 +314,7 @@ set_id_in_attrs(Attrs, ID) ->
 
 %% @spec (Stanza) -> Type | undefined
 %%     Stanza = exmpp_xml:xmlel() | iq()
-%%     Type = string()
+%%     Type = binary()
 %% @doc Return the type of the stanza.
 
 get_type(#xmlel{attrs = Attrs} = _Stanza) ->
@@ -328,7 +328,7 @@ get_type(#iq{type = Type}) ->
 %% @doc Return the type of the stanza.
 
 get_type_from_attrs(Attrs) ->
-    exmpp_xml:get_attribute_from_list(Attrs, 'type', undefined).
+    exmpp_xml:get_attribute_from_list_as_binary(Attrs, 'type', undefined).
 
 %% @spec (Stanza, Type) -> New_Stanza
 %%     Stanza = exmpp_xml:xmlel() | iq()
@@ -363,7 +363,7 @@ set_type_in_attrs(Attrs, Type) ->
 
 %% @spec (Stanza) -> Lang | undefined
 %%     Stanza = exmpp_xml:xmlel() | iq()
-%%     Lang = string()
+%%     Lang = binary()
 %% @doc Return the language of the stanza.
 
 get_lang(#xmlel{attrs = Attrs} = _Stanza) ->
@@ -373,11 +373,11 @@ get_lang(#iq{lang = Lang}) ->
 
 %% @spec (Attrs) -> Lang | undefined
 %%     Attrs = [exmpp_xml:xmlnsattribute()]
-%%     Lang = string()
+%%     Lang = binary()
 %% @doc Return the language of the stanza.
 
 get_lang_from_attrs(Attrs) ->
-    exmpp_xml:get_attribute_from_list(Attrs, ?NS_XML, 'lang', undefined).
+    exmpp_xml:get_attribute_from_list_as_binary(Attrs, ?NS_XML, 'lang', undefined).
 
 %% @spec (Stanza, Lang) -> New_Stanza
 %%     Stanza = exmpp_xml:xmlel() | iq()
@@ -575,13 +575,13 @@ stanza_error_without_original(Stanza, Error) ->
 
 is_stanza_error(Stanza) ->
     case get_type(Stanza) of
-        "error" -> true;
-        _       -> false
+        <<"error">> -> true;
+        _           -> false
     end.
 
 %% @spec (Stanza) -> Type
 %%     Stanza = exmpp_xml:xmlel()
-%%     Type = string()
+%%     Type = binary()
 %% @throws {stanza_error, error_type, no_error_element_found, Stanza}
 %% @doc Return the type of the error element.
 
@@ -594,7 +594,7 @@ get_error_type(Stanza) ->
     end.
 
 get_error_type_from_error(Error) ->
-    exmpp_xml:get_attribute(Error, 'type', "").
+    exmpp_xml:get_attribute_as_binary(Error, 'type', <<>>).
 
 %% @spec (Stanza, Type) -> New_Stanza
 %%     Stanza = exmpp_xml:xmlel()

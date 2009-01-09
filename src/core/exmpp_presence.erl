@@ -139,15 +139,15 @@ is_presence(_El)                                  -> false.
 
 get_type(Presence) when ?IS_PRESENCE(Presence) ->
     case exmpp_stanza:get_type(Presence) of
-        undefined      -> 'available';
-        "unavailable"  -> 'unavailable';
-        "subscribe"    -> 'subscribe';
-        "subscribed"   -> 'subscribed';
-        "unsubscribe"  -> 'unsubscribe';
-        "unsubscribed" -> 'unsubscribed';
-        "probe"        -> 'probe';
-        "error"        -> 'error';
-        _              -> undefined
+        undefined          -> 'available';
+        <<"unavailable">>  -> 'unavailable';
+        <<"subscribe">>    -> 'subscribe';
+        <<"subscribed">>   -> 'subscribed';
+        <<"unsubscribe">>  -> 'unsubscribe';
+        <<"unsubscribed">> -> 'unsubscribed';
+        <<"probe">>        -> 'probe';
+        <<"error">>        -> 'error';
+        _                  -> undefined
     end.
 
 %% @spec (Presence, Type) -> New_Presence

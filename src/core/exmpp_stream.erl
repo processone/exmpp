@@ -322,11 +322,11 @@ closing(#xmlel{ns = NS, name = Name}) ->
 
 %% @spec (Opening) -> Hostname | undefined
 %%     Opening = exmpp_xml:xmlel()
-%%     Hostname = string()
+%%     Hostname = binary()
 %% @doc Return the receiving entity hostname.
 
 get_receiving_entity(Opening) ->
-    exmpp_xml:get_attribute(Opening, 'to', undefined).
+    exmpp_xml:get_attribute_as_binary(Opening, 'to', undefined).
 
 %% @spec (Opening, Hostname) -> New_Opening
 %%     Opening = exmpp_xml:xmlel()
@@ -345,11 +345,11 @@ set_receiving_entity_in_attrs(Attrs, Hostname) ->
 
 %% @spec (Opening) -> Hostname | undefined
 %%     Opening = exmpp_xml:xmlel()
-%%     Hostname = string()
+%%     Hostname = binary()
 %% @doc Return the initiating entity hostname.
 
 get_initiating_entity(Opening) ->
-    exmpp_xml:get_attribute(Opening, 'from', undefined).
+    exmpp_xml:get_attribute_as_binary(Opening, 'from', undefined).
 
 %% @spec (Opening, Hostname) -> New_Opening
 %%     Opening = exmpp_xml:xmlel()
@@ -398,7 +398,7 @@ set_default_ns(#xmlel{declared_ns = Declared_NS} = Opening, NS) ->
 %% @doc Return the version of the stream.
 
 get_version(Opening) ->
-    parse_version(exmpp_xml:get_attribute(Opening, 'version', "")).
+    parse_version(exmpp_xml:get_attribute_as_binary(Opening, 'version', <<>>)).
 
 %% @spec (Opening, Version) -> New_Opening
 %%     Opening = exmpp_xml:xmlel()
@@ -423,11 +423,11 @@ set_version_in_attrs(Attrs, Version) ->
 
 %% @spec (Opening) -> ID | undefined
 %%     Opening = exmpp_xml:xmlel()
-%%     ID = string()
+%%     ID = binary()
 %% @doc Return the stream ID.
 
 get_id(Opening) ->
-    exmpp_xml:get_attribute(Opening, 'id', undefined).
+    exmpp_xml:get_attribute_as_binary(Opening, 'id', undefined).
 
 %% @spec (Opening, ID) -> New_Opening
 %%     Opening = exmpp_xml:xmlel()
@@ -446,11 +446,11 @@ set_id_in_attrs(Attrs, ID) ->
 
 %% @spec (Opening) -> Lang | undefined
 %%     Opening = exmpp_xml:xmlel()
-%%     Lang = string()
+%%     Lang = binary()
 %% @doc Return the language of the stream.
 
 get_lang(Opening) ->
-    exmpp_xml:get_attribute(Opening, ?NS_XML, 'lang', undefined).
+    exmpp_xml:get_attribute_as_binary(Opening, ?NS_XML, 'lang', undefined).
 
 %% @spec (Opening, Lang) -> New_Opening
 %%     Opening = exmpp_xml:xmlel()
@@ -478,10 +478,10 @@ set_lang_in_attrs(Attrs, Lang) ->
 
 parse_version(undefined) ->
     {0, 0};
-parse_version("") ->
+parse_version(<<>>) ->
     {0, 0};
 parse_version(String) ->
-    case string:to_integer(String) of
+    case string:to_integer(binary_to_list(String)) of
         {Major, [$. | Rest]} ->
             case string:to_integer(Rest) of
                 {Minor, []} -> {Major, Minor};

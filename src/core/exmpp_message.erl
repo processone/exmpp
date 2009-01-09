@@ -319,11 +319,11 @@ is_message(_El)                               -> false.
 
 get_type(Message) when ?IS_MESSAGE(Message) ->
     case exmpp_stanza:get_type(Message) of
-        "chat"      -> 'chat';
-        "groupchat" -> 'groupchat';
-        "headline"  -> 'headline';
-        "normal"    -> 'normal';
-        "error"     -> 'error';
+        <<"chat">>      -> 'chat';
+        <<"groupchat">> -> 'groupchat';
+        <<"headline">>  -> 'headline';
+        <<"normal">>    -> 'normal';
+        <<"error">>     -> 'error';
         _           -> 'normal'
     end.
 

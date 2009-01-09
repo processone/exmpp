@@ -291,10 +291,10 @@ is_iq_record(_El)                       -> false.
 
 get_type(IQ) when ?IS_IQ(IQ) ->
     case exmpp_stanza:get_type(IQ) of
-        "get"    -> 'get';
-        "set"    -> 'set';
-        "result" -> 'result';
-        "error"  -> 'error';
+        <<"get">>    -> 'get';
+        <<"set">>    -> 'set';
+        <<"result">> -> 'result';
+        <<"error">>  -> 'error';
         _        -> undefined
     end;
 get_type(#iq{type = Type}) ->
