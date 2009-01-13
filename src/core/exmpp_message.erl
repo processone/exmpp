@@ -324,7 +324,7 @@ get_type(Message) when ?IS_MESSAGE(Message) ->
         <<"headline">>  -> 'headline';
         <<"normal">>    -> 'normal';
         <<"error">>     -> 'error';
-        _           -> 'normal'
+        _               -> 'normal'
     end.
 
 %% @spec (Message, Type) -> New_Message
