@@ -1,11 +1,18 @@
-2009-01-09	Pablo Polvorin	<pablo.polvorin@process-one.net>
-	* src/core/exmpp_stanza: get_type/1, get_lang/1, get_id/1 returns
-	binary().
+2009-01-13  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
-	* src/core/exmpp_stream.erl: get_id/1, get_lang/1, get_initiating_entity/1,
-	get_receiving_entity/1 returns binary().
+	* c_src/xmpp_nss.h.awk, c_src/xmpp_nss.h.js, c_src/xmpp_names.h.awk,
+	c_src/xmpp_names.h.js, c_src/xmpp_attrs.h.awk, c_src/xmpp_attrs.h.js:
+	Remove unused files.
 
-	* src/core/exmpp_iq.erl : get_type/1 work on binary attributes.
+2009-01-09  Pablo Polvorin  <pablo.polvorin@process-one.net>
+
+	* src/core/exmpp_stanza.erl: get_type/1, get_lang/1 and get_id/1
+	return binary().
+
+	* src/core/exmpp_stream.erl: get_id/1, get_lang/1,
+	get_initiating_entity/1 and get_receiving_entity/1 return binary().
+
+	* src/core/exmpp_iq.erl : get_type/1 works on binary attributes.
 
 	* src/core/exmpp_message.erl: Likewise.
 
@@ -13,26 +20,28 @@
 
 	* src/networ/exmpp_session.erl: Update to newer interfaces.
 
-2009-01-08	Pablo Polvorin	<pablo.polvorin@process-one.net>
-	* c_src/exmpp_xml.c, src/core/exmpp_iq.erl, src/core/exmpp_jid.erl
-	src/core/exmpp_stanza.erl, src/core/exmpp_xml.erl, testsuite/iq.erl
-	,testsuite/jid.erl, testsuite/stanza.erl: Use binary to represent
-	attribute values.
-	
-	* src/core/stringprep.erl, src/core/exmpp_jid: Fix shared binary
-	managment.
+2009-01-08  Pablo Polvorin  <pablo.polvorin@process-one.net>
 
-2009-01-03	Pablo Polvorin	<pablo.polvorin@process-one.net>
-	* src/core/exmpp_jid.erl: Change #jid structure to use binary() storage
-	for node, domain and resource.
+	* c_src/exmpp_xml.c, src/core/exmpp_iq.erl, src/core/exmpp_jid.erl,
+	src/core/exmpp_stanza.erl, src/core/exmpp_xml.erl, testsuite/iq.erl,
+	testsuite/jid.erl, testsuite/stanza.erl: Use binary to represent
+	attribute values.
+
+	* src/core/exmpp_stringprep.erl, src/core/exmpp_jid.erl: Fix shared
+	binary managment.
+
+2009-01-03  Pablo Polvorin  <pablo.polvorin@process-one.net>
+
+	* src/core/exmpp_jid.erl: Change #jid structure to use binary()
+	storage for node, domain and resource.
 
 	* testsuite/jid.erl: Update testsuite.
 
-	* src/network/exmpp_session.erl: Update to new parser options and JID API.
+	* src/network/exmpp_session.erl: Update to new parser options and JID
+	API.
 
-	* include/exmpp_jid.hrl, exmpp_xmpp.hrl: Prepate to hide #jid record
+	* include/exmpp_jid.hrl, exmpp_xmpp.hrl: Prepare to hide #jid record
 	definition. 
-	
 
 2008-12-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
