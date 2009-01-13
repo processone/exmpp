@@ -7,6 +7,11 @@
 	* include/exmpp_xmpp.hrl, src/core/exmpp_iq.erl,
 	src/core/exmpp_message.erl: Style.
 
+	* src/core/exmpp_stream.erl: Update documentation.
+	(set_version_in_attrs/2, set_id_in_attrs/2): Treat the empty binary
+	the same way the empty string is treated.
+	(parse_version/1): Accept string() again.
+
 2009-01-09  Pablo Polvorin  <pablo.polvorin@process-one.net>
 
 	* src/core/exmpp_stanza.erl: get_type/1, get_lang/1 and get_id/1

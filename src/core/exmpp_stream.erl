@@ -170,7 +170,7 @@
 %% @spec (To, Default_NS, Version) -> Opening
 %%     To = string() | undefined
 %%     Default_NS = atom() | string()
-%%     Version = string() | {Major, Minor}
+%%     Version = binary() | string() | {Major, Minor}
 %%     Major = integer()
 %%     Minor = integer()
 %%     Opening = exmpp_xml:xmlel()
@@ -330,7 +330,7 @@ get_receiving_entity(Opening) ->
 
 %% @spec (Opening, Hostname) -> New_Opening
 %%     Opening = exmpp_xml:xmlel()
-%%     Hostname = string()
+%%     Hostname = binary() | string()
 %%     New_Opening = exmpp_xml:xmlel()
 %% @doc Set the receiving entity in the `to' attribute.
 
@@ -353,7 +353,7 @@ get_initiating_entity(Opening) ->
 
 %% @spec (Opening, Hostname) -> New_Opening
 %%     Opening = exmpp_xml:xmlel()
-%%     Hostname = string()
+%%     Hostname = binary() | string()
 %%     New_Opening = exmpp_xml:xmlel()
 %% @doc Set the initiating entity in the `from' attribute.
 
@@ -402,7 +402,7 @@ get_version(Opening) ->
 
 %% @spec (Opening, Version) -> New_Opening
 %%     Opening = exmpp_xml:xmlel()
-%%     Version = string() | {Major, Minor} | undefined
+%%     Version = binary() | string() | {Major, Minor} | undefined
 %%     Major = integer()
 %%     Minor = integer()
 %%     New_Opening = exmpp_xml:xmlel()
@@ -413,7 +413,8 @@ set_version(#xmlel{attrs = Attrs} = Opening, Version) ->
     Opening#xmlel{attrs = New_Attrs}.
 
 set_version_in_attrs(Attrs, Version)
-  when Version == undefined; Version == ""; Version == {0, 0} ->
+  when Version == undefined;
+  Version == ""; Version == <<>>; Version == {0, 0} ->
     exmpp_xml:remove_attribute_from_list(Attrs, 'version');
 set_version_in_attrs(Attrs, {_, _} = Version) ->
     Version_S = serialize_version(Version),
@@ -431,7 +432,7 @@ get_id(Opening) ->
 
 %% @spec (Opening, ID) -> New_Opening
 %%     Opening = exmpp_xml:xmlel()
-%%     ID = string() | undefined
+%%     ID = binary() | string() | undefined
 %%     New_Opening = exmpp_xml:xmlel()
 %% @doc Set the stream ID.
 
@@ -439,7 +440,7 @@ set_id(#xmlel{attrs = Attrs} = Opening, ID) ->
     New_Attrs = set_id_in_attrs(Attrs, ID),
     Opening#xmlel{attrs = New_Attrs}.
 
-set_id_in_attrs(Attrs, ID) when ID == undefined; ID == "" ->
+set_id_in_attrs(Attrs, ID) when ID == undefined; ID == ""; ID == <<>> ->
     set_id_in_attrs(Attrs, exmpp_utils:random_id("stream"));
 set_id_in_attrs(Attrs, ID) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'id', ID).
@@ -454,7 +455,7 @@ get_lang(Opening) ->
 
 %% @spec (Opening, Lang) -> New_Opening
 %%     Opening = exmpp_xml:xmlel()
-%%     Lang = string()
+%%     Lang = binary() | string()
 %%     New_Opening = exmpp_xml:xmlel()
 %% @doc Set the default language.
 
@@ -470,7 +471,7 @@ set_lang_in_attrs(Attrs, Lang) ->
 % --------------------------------------------------------------------
 
 %% @spec (String) -> Version
-%%     String = string() | undefined
+%%     String = binary() | string() | undefined
 %%     Version = {Major, Minor}
 %%     Major = integer()
 %%     Minor = integer()
@@ -478,10 +479,14 @@ set_lang_in_attrs(Attrs, Lang) ->
 
 parse_version(undefined) ->
     {0, 0};
+parse_version("") ->
+    {0, 0};
 parse_version(<<>>) ->
     {0, 0};
+parse_version(String) when is_binary(String) ->
+    parse_version(binary_to_list(String));
 parse_version(String) ->
-    case string:to_integer(binary_to_list(String)) of
+    case string:to_integer(String) of
         {Major, [$. | Rest]} ->
             case string:to_integer(Rest) of
                 {Minor, []} -> {Major, Minor};
