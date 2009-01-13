@@ -295,7 +295,7 @@ get_type(IQ) when ?IS_IQ(IQ) ->
         <<"set">>    -> 'set';
         <<"result">> -> 'result';
         <<"error">>  -> 'error';
-        _        -> undefined
+        _            -> undefined
     end;
 get_type(#iq{type = Type}) ->
     Type.
@@ -365,7 +365,7 @@ is_error(#iq{type = Type}) ->
     Type == 'error'.
 
 %% @spec (IQ) -> Request | undefined
-%     IQ = exmpp_xml:xmlel() | iq()
+%%     IQ = exmpp_xml:xmlel() | iq()
 %%     Request = exmpp_xml:xmlel()
 %% @throws {iq, get_request, unexpected_iq, IQ} |
 %%         {iq, get_request, invalid_iq, IQ}
