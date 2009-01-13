@@ -3064,7 +3064,7 @@ node_to_iolist2([], _Default_NS, _Prefixed_NS, IO_List) ->
 
 element_to_iolist(Name, Attrs, Children, Default_NS, Prefixed_NS)
   when is_atom(Name) ->
-    element_to_iolist(atom_to_list(Name), Attrs, Children,
+    element_to_iolist(exmpp_known_elems:elem_as_list(Name), Attrs, Children,
       Default_NS, Prefixed_NS);
 element_to_iolist(Name, Attrs, undefined, _Default_NS, _Prefixed_NS) ->
     % Children may come later, we don't close the tag.
@@ -3076,7 +3076,7 @@ element_to_iolist(Name, Attrs, Children, Default_NS, Prefixed_NS) ->
     [$<, Name, attrs_to_iolist(Attrs), $>, Content, $<, $/, Name, $>].
 
 endtag_to_iolist(Name) when is_atom(Name) ->
-    endtag_to_iolist(atom_to_list(Name));
+    endtag_to_iolist(exmpp_known_elems:elem_as_list(Name));
 endtag_to_iolist(Name) ->
     [$<, $/, Name, $>].
 

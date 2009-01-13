@@ -329,23 +329,32 @@ get_type(Message) when ?IS_MESSAGE(Message) ->
 
 %% @spec (Message, Type) -> New_Message
 %%     Message = exmpp_xml:xmlel()
-%%     Type = chat | groupchat | headline | normal | error
+%%     Type = chat | groupchat | headline | normal | error | binary()
 %%     New_Message = exmpp_xml:xmlel()
 %% @doc Set the type of the given `<message/>'.
 
-set_type(Message, Type) when is_atom(Type) ->
-    set_type(Message, atom_to_list(Type));
-set_type(Message, Type) when ?IS_MESSAGE(Message) ->
+set_type(Message, Type) when ?IS_MESSAGE(Message), is_atom(Type) ->
+    T = case Type of
+        'chat' -> <<"chat">>;
+        'groupchat' -> <<"groupchat">>;
+        'headline' -> <<"headline">>;
+        'normal' -> <<"normal">>;
+        'error' -> <<"error">>;
+        _ -> <<"normal">>
+    end,
+    exmpp_stanza:set_type(Message, T);
+
+set_type(Message, Type) when ?IS_MESSAGE(Message), is_binary(Type) ->
     Valid_Types = [
-      "chat",
-      "groupchat",
-      "headline",
-      "normal",
-      "error"
+      <<"chat">>,
+      <<"groupchat">>,
+      <<"headline">>,
+      <<"normal">>,
+      <<"error">>
     ],
     case lists:member(Type, Valid_Types) of
         true  -> exmpp_stanza:set_type(Message, Type);
-        false -> exmpp_stanza:set_type(Message, "normal")
+        false -> exmpp_stanza:set_type(Message, <<"normal">>)
     end.
 
 %% @spec (Message) -> Subject | undefined

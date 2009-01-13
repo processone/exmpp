@@ -320,7 +320,18 @@ set_id_in_attrs(Attrs, ID) ->
 get_type(#xmlel{attrs = Attrs} = _Stanza) ->
     get_type_from_attrs(Attrs);
 get_type(#iq{type = Type}) ->
-    list_to_binary(atom_to_list(Type)).
+    type_to_binary(Type).
+
+
+type_to_binary(Type) when is_atom(Type) ->
+    case Type of
+        'get' -> <<"get">>;
+        'set' -> <<"set">>;
+        'result' -> <<"result">>;
+        'error' -> <<"error">>;
+        'undefined' -> 'undefined';
+        _ -> list_to_binary(atom_to_list(Type))
+    end.
 
 %% @spec (Attrs) -> Type | undefined
 %%     Attrs = [exmpp_xml:xmlnsattribute()]
@@ -357,7 +368,7 @@ set_type(#iq{} = Stanza, Type) when is_list(Type) ->
 %% @doc Set the type of the stanza.
 
 set_type_in_attrs(Attrs, Type) when is_atom(Type) ->
-    set_type_in_attrs(Attrs, atom_to_list(Type));
+    set_type_in_attrs(Attrs, type_to_binary(Type));
 set_type_in_attrs(Attrs, Type) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'type', Type).
 

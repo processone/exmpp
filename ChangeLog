@@ -1,3 +1,14 @@
+2009-01-13	Pablo Polvorin	<pablo.polvorin@process-one.net>
+
+	* src/core/exmpp_xml.erl: use exmpp_known_elems:elem_as_list/1 in
+	two places where atom_to_list/1 was still used.
+
+	* src/core/exmpp_stanza.erl: Table to convert from type(atom) to 
+	the corresponding binary value (instead of using atom_to_list/1 and
+	list_to_binary/1.
+
+	* src/core/exmpp_message: Likewise
+
 2009-01-13  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* c_src/xmpp_nss.h.awk, c_src/xmpp_nss.h.js, c_src/xmpp_names.h.awk,
