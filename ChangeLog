@@ -18,6 +18,9 @@
 
 	* src/core/exmpp_xml.erl: Add documentation to new functions. Style.
 
+	* c_src/exmpp_xml.c (make_attribute): Fix the case where the
+	attribute's value length isn't provided.
+
 2009-01-09  Pablo Polvorin  <pablo.polvorin@process-one.net>
 
 	* src/core/exmpp_stanza.erl: get_type/1, get_lang/1 and get_id/1
