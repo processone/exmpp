@@ -12,6 +12,10 @@
 	the same way the empty string is treated.
 	(parse_version/1): Accept string() again.
 
+	* src/core/exmpp_stringprep.erl (control_reuse_arg/2): Don't treat
+	errors from control specially. Reformulate a comment more positively.
+	Style.
+
 2009-01-09  Pablo Polvorin  <pablo.polvorin@process-one.net>
 
 	* src/core/exmpp_stanza.erl: get_type/1, get_lang/1 and get_id/1

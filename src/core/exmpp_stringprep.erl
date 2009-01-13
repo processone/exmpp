@@ -230,22 +230,19 @@ control(Command, String) ->
 control_reuse_arg(Command, String) ->
     % If applying a STRINGPREP profile doesn't modify the original string,
     % keep the former and throw away the returned string.
+    %
+    % Guard expressions (eg. Result =:= String) must be used instead of
+    % pattern matching, otherwise the two copies are still maintained.
     case control(Command, String) of
-        {error, _ } = Error ->  
-                Error;
-
         Result when is_binary(String) ->
             case list_to_binary(Result) of
-                SS when SS =:= String   -> String;
-                Result_B -> Result_B
+                Result_B when Result_B =:= String -> String;
+                Result_B                          -> Result_B
             end;
-        SSS when SSS =:= String ->   
+        Result when Result =:= String ->   
             String;
         Other ->
             Other
-        %% It's ugly, but must use guards instead of pattern match
-        %%(ex. in SSS =:= String), otherwise the two copies are still
-        %%mantained
     end.
 
 % --------------------------------------------------------------------
