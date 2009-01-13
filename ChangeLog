@@ -29,6 +29,9 @@
 	although it may not work for now (I'm unable to test right now).
 	Style.
 
+	* include/exmpp_jid.hrl: Remove this empty header. A new one may added
+	later as an internal header.
+
 2009-01-09  Pablo Polvorin  <pablo.polvorin@process-one.net>
 
 	* src/core/exmpp_stanza.erl: get_type/1, get_lang/1 and get_id/1
