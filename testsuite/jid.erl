@@ -6,7 +6,6 @@
 -include_lib("eunit/include/eunit.hrl").
 
 -include("exmpp.hrl").
--include("exmpp_jid.hrl").
 
 -define(SETUP, fun()  -> exmpp:start(), error_logger:tty(false) end).
 -define(CLEANUP, fun(_) -> application:stop(exmpp) end).
@@ -74,34 +73,34 @@
 -define(RES, "Work").
 -define(RES_BAD, "Work" ++ [0]).
 
-%too_long_identifiers_test_() ->
-%    Too_Long_JID1 = ?NODE_TOO_LONG ++ [$@] ++ ?DOMAIN_TOO_LONG,
-%    Too_Long_JID2 = ?NODE_TOO_LONG ++ [$@] ++ ?DOMAIN_TOO_LONG ++ [$/] ++
-%        ?RESOURCE_TOO_LONG,
-%    Tests = [
-%      ?_assertThrow(
-%        {jid, make, domain_too_long, {?NODE, _DOMAIN_TOO_LONG, undefined}},
-%        exmpp_jid:make_jid(?NODE, ?DOMAIN_TOO_LONG, ?RESOURCE)
-%      ),
-%      ?_assertThrow(
-%        {jid, make, node_too_long, {_NODE_TOO_LONG, ?DOMAIN, undefined}},
-%        exmpp_jid:make_jid(?NODE_TOO_LONG, ?DOMAIN, ?RESOURCE)
-%      ),
-%      ?_assertThrow(
-%        {jid, make, resource_too_long, {?NODE, ?DOMAIN, _RESOURCE_TOO_LONG}},
-%        exmpp_jid:make_jid(?NODE, ?DOMAIN, ?RESOURCE_TOO_LONG)
-%      ),
-%      ?_assertThrow(
-%        {jid, parse, jid_too_long, {Too_Long_JID1, undefined, undefined}},
-%        exmpp_jid:list_to_bare_jid(Too_Long_JID1)
-%      ),
-%      ?_assertThrow(
-%        {jid, parse, jid_too_long, {Too_Long_JID2, undefined, undefined}},
-%        exmpp_jid:list_to_jid(Too_Long_JID2)
-%      )
-%    ],
-%    {setup, ?SETUP, ?CLEANUP, Tests}.
-%
+too_long_identifiers_test_() ->
+    Too_Long_JID1 = ?NODE_TOO_LONG ++ [$@] ++ ?DOMAIN_TOO_LONG,
+    Too_Long_JID2 = ?NODE_TOO_LONG ++ [$@] ++ ?DOMAIN_TOO_LONG ++ [$/] ++
+        ?RESOURCE_TOO_LONG,
+    Tests = [
+      ?_assertThrow(
+        {jid, make, domain_too_long, {?NODE, _DOMAIN_TOO_LONG, undefined}},
+        exmpp_jid:make_jid(?NODE, ?DOMAIN_TOO_LONG, ?RESOURCE)
+      ),
+      ?_assertThrow(
+        {jid, make, node_too_long, {_NODE_TOO_LONG, ?DOMAIN, undefined}},
+        exmpp_jid:make_jid(?NODE_TOO_LONG, ?DOMAIN, ?RESOURCE)
+      ),
+      ?_assertThrow(
+        {jid, make, resource_too_long, {?NODE, ?DOMAIN, _RESOURCE_TOO_LONG}},
+        exmpp_jid:make_jid(?NODE, ?DOMAIN, ?RESOURCE_TOO_LONG)
+      ),
+      ?_assertThrow(
+        {jid, parse, jid_too_long, {Too_Long_JID1, undefined, undefined}},
+        exmpp_jid:list_to_bare_jid(Too_Long_JID1)
+      ),
+      ?_assertThrow(
+        {jid, parse, jid_too_long, {Too_Long_JID2, undefined, undefined}},
+        exmpp_jid:list_to_jid(Too_Long_JID2)
+      )
+    ],
+    {setup, ?SETUP, ?CLEANUP, Tests}.
+
 jid_creation_with_bad_syntax_test_() ->
     Tests = [
       ?_assertThrow(
@@ -180,7 +179,6 @@ jid_creation_with_bad_syntax_test_() ->
         exmpp_jid:list_to_jid("/Resource")
       )
     ],
-
     TestsBinaryParsing =  [
       ?_assertThrow(
         {jid, parse, unexpected_end_of_string,
@@ -258,7 +256,6 @@ jid_creation_with_bad_syntax_test_() ->
         exmpp_jid:binary_to_jid(<<"/Resource">>)
       )
     ],
-
     {setup, ?SETUP, ?CLEANUP, Tests ++ TestsBinaryParsing}.
 
 jid_creation_with_bad_chars_test_() ->
@@ -386,15 +383,16 @@ jid_stringification_test_() ->
 
 jid_arg_stringification_test_() ->
     [
-      ?_assertMatch("d", exmpp_jid:jid_to_list(undefined,"d")),
+      ?_assertMatch("d", exmpp_jid:jid_to_list(undefined, "d")),
       ?_assertMatch("n@d", exmpp_jid:jid_to_list("n", "d")),
       ?_assertMatch("n@d/r", exmpp_jid:jid_to_list("n", "d", "r")),
-      ?_assertMatch(<<"d">>, exmpp_jid:jid_to_binary(undefined,"d")),
+      ?_assertMatch(<<"d">>, exmpp_jid:jid_to_binary(undefined, "d")),
       ?_assertMatch(<<"n@d">>, exmpp_jid:jid_to_binary("n", "d")),
       ?_assertMatch(<<"n@d/r">>, exmpp_jid:jid_to_binary("n", "d", "r")),
-      ?_assertMatch(<<"d">>, exmpp_jid:jid_to_binary(undefined,<<"d">>)),
+      ?_assertMatch(<<"d">>, exmpp_jid:jid_to_binary(undefined, <<"d">>)),
       ?_assertMatch(<<"n@d">>, exmpp_jid:jid_to_binary(<<"n">>, <<"d">>)),
-      ?_assertMatch(<<"n@d/r">>, exmpp_jid:jid_to_binary(<<"n">>, <<"d">>, <<"r">>))
+      ?_assertMatch(<<"n@d/r">>, exmpp_jid:jid_to_binary(<<"n">>, <<"d">>,
+          <<"r">>))
     ].
 
 bare_jid_stringification_test_() ->

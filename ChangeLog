@@ -25,6 +25,10 @@
 	(bare_jid_to_jid/2): Add support for an automatically generated random
 	resource.
 
+	* testsuite/jid.erl: Restore the too_long_identifiers_test_ test
+	although it may not work for now (I'm unable to test right now).
+	Style.
+
 2009-01-09  Pablo Polvorin  <pablo.polvorin@process-one.net>
 
 	* src/core/exmpp_stanza.erl: get_type/1, get_lang/1 and get_id/1
