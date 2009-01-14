@@ -22,11 +22,11 @@
   ]).
 
 -define(ATTRS3_1, [
-    {xmlattr, undefined, "version", "1.0"}
+    {xmlattr, undefined, "version", <<"1.0">>}
   ]).
 -define(ATTRS3_2, [
-    {xmlattr, undefined, "version", "1.0"},
-    {xmlattr, ?NS_XML, "lang", "fr"}
+    {xmlattr, undefined, "version", <<"1.0">>},
+    {xmlattr, ?NS_XML, "lang", <<"fr">>}
   ]).
 
 -define(ATTRS4, [
@@ -183,7 +183,7 @@ get_attribute_node_from_list_test_() ->
         undefined,
         exmpp_xml:get_attribute_node_from_list(?ATTRS3_1, "lang")),
       ?_assertMatch(
-        {xmlattr, ?NS_XML, "lang", "fr"},
+        {xmlattr, ?NS_XML, "lang", <<"fr">>},
         exmpp_xml:get_attribute_node_from_list(?ATTRS3_2, "lang")),
       ?_assertMatch(
         undefined,
@@ -196,7 +196,7 @@ get_attribute_node_from_list_test_() ->
         undefined,
         exmpp_xml:get_attribute_node_from_list(?ATTRS3_1, ?NS_XML, "lang")),
       ?_assertMatch(
-        {xmlattr, ?NS_XML, "lang", "fr"},
+        {xmlattr, ?NS_XML, "lang", <<"fr">>},
         exmpp_xml:get_attribute_node_from_list(?ATTRS3_2, ?NS_XML, "lang")),
       ?_assertMatch(
         undefined,
@@ -222,7 +222,7 @@ get_attribute_node_test_() ->
         undefined,
         exmpp_xml:get_attribute_node(?ELEMENT3_1, "lang")),
       ?_assertMatch(
-        {xmlattr, ?NS_XML, "lang", "fr"},
+        {xmlattr, ?NS_XML, "lang", <<"fr">>},
         exmpp_xml:get_attribute_node(?ELEMENT3_2, "lang")),
       ?_assertMatch(
         undefined,
@@ -239,7 +239,7 @@ get_attribute_node_test_() ->
         undefined,
         exmpp_xml:get_attribute_node(?ELEMENT3_1, ?NS_XML, "lang")),
       ?_assertMatch(
-        {xmlattr, ?NS_XML, "lang", "fr"},
+        {xmlattr, ?NS_XML, "lang", <<"fr">>},
         exmpp_xml:get_attribute_node(?ELEMENT3_2, ?NS_XML, "lang")),
       ?_assertMatch(
         undefined,
@@ -265,7 +265,7 @@ get_attribute_from_list_test_() ->
         exmpp_xml:get_attribute_from_list(?ATTRS3_1, "lang",
           default_value)),
       ?_assertMatch(
-        "fr",
+        <<"fr">>,
         exmpp_xml:get_attribute_from_list(?ATTRS3_2, "lang",
           default_value)),
       ?_assertMatch(
@@ -282,7 +282,7 @@ get_attribute_from_list_test_() ->
         exmpp_xml:get_attribute_from_list(?ATTRS3_1, ?NS_XML, "lang",
           default_value)),
       ?_assertMatch(
-        "fr",
+        <<"fr">>,
         exmpp_xml:get_attribute_from_list(?ATTRS3_2, ?NS_XML, "lang",
           default_value)),
       ?_assertMatch(
@@ -310,7 +310,7 @@ get_attribute_test_() ->
         default_value,
         exmpp_xml:get_attribute(?ELEMENT3_1, "lang", default_value)),
       ?_assertMatch(
-        "fr",
+        <<"fr">>,
         exmpp_xml:get_attribute(?ELEMENT3_2, "lang", default_value)),
       ?_assertMatch(
         default_value,
@@ -327,7 +327,7 @@ get_attribute_test_() ->
         default_value,
         exmpp_xml:get_attribute(?ELEMENT3_1, ?NS_XML, "lang", default_value)),
       ?_assertMatch(
-        "fr",
+        <<"fr">>,
         exmpp_xml:get_attribute(?ELEMENT3_2, ?NS_XML, "lang", default_value)),
       ?_assertMatch(
         default_value,
@@ -370,7 +370,7 @@ set_attribute_in_list_test_() ->
     [
       ?_assertMatch(
         [
-          #xmlattr{name = "lang", value = "en"}
+          #xmlattr{name = "lang", value = <<"en">>}
         ],
         exmpp_xml:set_attribute_in_list(?ATTRS1, "lang", "en")),
       ?_assertMatch(
@@ -387,52 +387,52 @@ set_attribute_in_list_test_() ->
         exmpp_xml:set_attribute_in_list(?ATTRS2_2, "xml:lang", "en")),
       ?_assertMatch(
         [
-          #xmlattr{name = "version", value = "1.0"},
-          #xmlattr{name = "lang", value = "en"}
+          #xmlattr{name = "version", value = <<"1.0">>},
+          #xmlattr{name = "lang", value = <<"en">>}
         ],
         exmpp_xml:set_attribute_in_list(?ATTRS3_1, "lang", "en")),
       ?_assertMatch(
         [
-          #xmlattr{name = "version", value = "1.0"},
-          #xmlattr{ns = ?NS_XML, name = "lang", value = "en"}
+          #xmlattr{name = "version", value = <<"1.0">>},
+          #xmlattr{ns = ?NS_XML, name = "lang", value = <<"en">>}
         ],
         exmpp_xml:set_attribute_in_list(?ATTRS3_2, "lang", "en")),
       ?_assertMatch(
         [
           bad_data,
-          #xmlattr{name = "lang", value = "en"}
+          #xmlattr{name = "lang", value = <<"en">>}
         ],
         exmpp_xml:set_attribute_in_list(?ATTRS4, "lang", "en")),
 
       ?_assertMatch(
         [
-          #xmlattr{ns = ?NS_XML, name = "lang", value = "en"}
+          #xmlattr{ns = ?NS_XML, name = "lang", value = <<"en">>}
         ],
         exmpp_xml:set_attribute_in_list(?ATTRS1, ?NS_XML, "lang", "en")),
       ?_assertMatch(
         [
-          #xmlattr{name = "version", value = "1.0"},
-          #xmlattr{ns = ?NS_XML, name = "lang", value = "en"}
+          #xmlattr{name = "version", value = <<"1.0">>},
+          #xmlattr{ns = ?NS_XML, name = "lang", value = <<"en">>}
         ],
         exmpp_xml:set_attribute_in_list(?ATTRS3_1, ?NS_XML, "lang", "en")),
       ?_assertMatch(
         [
-          #xmlattr{name = "version", value = "1.0"},
-          #xmlattr{ns = ?NS_XML, name = "lang", value = "en"}
+          #xmlattr{name = "version", value = <<"1.0">>},
+          #xmlattr{ns = ?NS_XML, name = "lang", value = <<"en">>}
         ],
         exmpp_xml:set_attribute_in_list(?ATTRS3_2, ?NS_XML, "lang", "en")),
       ?_assertMatch(
         [
-          #xmlattr{name = "version", value = "1.0"},
-          #xmlattr{ns = ?NS_XML, name = "lang", value = "fr"},
-          #xmlattr{ns = 'some_other_ns', name = "lang", value = "en"}
+          #xmlattr{name = "version", value = <<"1.0">>},
+          #xmlattr{ns = ?NS_XML, name = "lang", value = <<"fr">>},
+          #xmlattr{ns = 'some_other_ns', name = "lang", value = <<"en">>}
         ],
         exmpp_xml:set_attribute_in_list(?ATTRS3_2,
           'some_other_ns', "lang", "en")),
       ?_assertMatch(
         [
           bad_data,
-          #xmlattr{ns = ?NS_XML, name = "lang", value = "en"}
+          #xmlattr{ns = ?NS_XML, name = "lang", value = <<"en">>}
         ],
         exmpp_xml:set_attribute_in_list(?ATTRS4, ?NS_XML, "lang", "en"))
     ].
@@ -441,7 +441,7 @@ set_attribute_test_() ->
     [
       ?_assertMatch(
         #xmlel{name = "element", attrs = [
-            #xmlattr{name = "lang", value = "en"}
+            #xmlattr{name = "lang", value = <<"en">>}
           ]},
         exmpp_xml:set_attribute(?ELEMENT1, "lang", "en")),
       ?_assertMatch(
@@ -458,20 +458,20 @@ set_attribute_test_() ->
         exmpp_xml:set_attribute(?ELEMENT2_2, "xml:lang", "en")),
       ?_assertMatch(
         #xmlel{name = "element", attrs = [
-            #xmlattr{name = "version", value = "1.0"},
-            #xmlattr{name = "lang", value = "en"}
+            #xmlattr{name = "version", value = <<"1.0">>},
+            #xmlattr{name = "lang", value = <<"en">>}
           ]},
         exmpp_xml:set_attribute(?ELEMENT3_1, "lang", "en")),
       ?_assertMatch(
         #xmlel{name = "element", attrs = [
-            #xmlattr{name = "version", value = "1.0"},
-            #xmlattr{ns = ?NS_XML, name = "lang", value = "en"}
+            #xmlattr{name = "version", value = <<"1.0">>},
+            #xmlattr{ns = ?NS_XML, name = "lang", value = <<"en">>}
           ]},
         exmpp_xml:set_attribute(?ELEMENT3_2, "lang", "en")),
       ?_assertMatch(
         #xmlel{name = "bad_element", attrs = [
             bad_data,
-            #xmlattr{name = "lang", value = "en"}
+            #xmlattr{name = "lang", value = <<"en">>}
           ]},
         exmpp_xml:set_attribute(?ELEMENT4, "lang", "en"))
     ].

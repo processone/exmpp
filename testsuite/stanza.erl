@@ -37,14 +37,14 @@ sender_test_() ->
         undefined,
         exmpp_stanza:get_sender(?MESSAGE_1)),
       ?_assertMatch(
-        "sender",
+        <<"sender">>,
         exmpp_stanza:get_sender(?MESSAGE_2)),
       ?_assertMatch(
-        "new_sender",
+        <<"new_sender">>,
         exmpp_stanza:get_sender(
           exmpp_stanza:set_sender(?MESSAGE_1, "new_sender"))),
       ?_assertMatch(
-        "new_sender",
+        <<"new_sender">>,
         exmpp_stanza:get_sender(
           exmpp_stanza:set_sender(?MESSAGE_2, "new_sender"))),
       ?_assertMatch(
@@ -63,14 +63,14 @@ recipient_test_() ->
         undefined,
         exmpp_stanza:get_recipient(?MESSAGE_1)),
       ?_assertMatch(
-        "recipient",
+        <<"recipient">>,
         exmpp_stanza:get_recipient(?MESSAGE_2)),
       ?_assertMatch(
-        "new_recipient",
+        <<"new_recipient">>,
         exmpp_stanza:get_recipient(
           exmpp_stanza:set_recipient(?MESSAGE_1, "new_recipient"))),
       ?_assertMatch(
-        "new_recipient",
+        <<"new_recipient">>,
         exmpp_stanza:get_recipient(
           exmpp_stanza:set_recipient(?MESSAGE_2, "new_recipient"))),
       ?_assertMatch(
@@ -86,11 +86,11 @@ recipient_test_() ->
 jids_test_() ->
     [
       ?_assertMatch(
-        "new_sender",
+        <<"new_sender">>,
         exmpp_stanza:get_sender(exmpp_stanza:set_jids(?MESSAGE_1,
             "new_sender", "new_recipient"))),
       ?_assertMatch(
-        "new_recipient",
+        <<"new_recipient">>,
         exmpp_stanza:get_recipient(exmpp_stanza:set_jids(?MESSAGE_1,
             "new_sender", "new_recipient")))
     ].
@@ -101,13 +101,13 @@ id_test_() ->
         undefined,
         exmpp_stanza:get_id(?MESSAGE_1)),
       ?_assertMatch(
-        "message-2",
+        <<"message-2">>,
         exmpp_stanza:get_id(?MESSAGE_2)),
       ?_assertMatch(
-        "new_message-1",
+        <<"new_message-1">>,
         exmpp_stanza:get_id(exmpp_stanza:set_id(?MESSAGE_1, "new_message-1"))),
       ?_assertMatch(
-        "new_message-2",
+        <<"new_message-2">>,
         exmpp_stanza:get_id(exmpp_stanza:set_id(?MESSAGE_2, "new_message-2")))
     ].
 
@@ -117,13 +117,13 @@ type_test_() ->
         undefined,
         exmpp_stanza:get_type(?MESSAGE_1)),
       ?_assertMatch(
-        "chat",
+        <<"chat">>,
         exmpp_stanza:get_type(?MESSAGE_2)),
       ?_assertMatch(
-        "headline",
+        <<"headline">>,
         exmpp_stanza:get_type(exmpp_stanza:set_type(?MESSAGE_1, "headline"))),
       ?_assertMatch(
-        "headline",
+        <<"headline">>,
         exmpp_stanza:get_type(exmpp_stanza:set_type(?MESSAGE_2, "headline")))
     ].
 
@@ -133,12 +133,12 @@ lang_test_() ->
         undefined,
         exmpp_stanza:get_lang(?MESSAGE_1)),
       ?_assertMatch(
-        "en",
+        <<"en">>,
         exmpp_stanza:get_lang(?MESSAGE_2)),
       ?_assertMatch(
-        "fr",
+        <<"fr">>,
         exmpp_stanza:get_lang(exmpp_stanza:set_lang(?MESSAGE_1, "fr"))),
       ?_assertMatch(
-        "fr",
+        <<"fr">>,
         exmpp_stanza:get_lang(exmpp_stanza:set_lang(?MESSAGE_2, "fr")))
     ].

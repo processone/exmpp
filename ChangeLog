@@ -33,9 +33,13 @@
 
 	* testsuite/jid.erl: The test works again.
 
-	* testsuite/eunit_tty.erl (format_test_error/1): Display unexpected
+	* testsuite/eunit_tty.erl (format_test_error/1): Include unexpected
 	exceptions if present.
 	(beautify_expr/1): Fix to accept non-string() terms.
+
+	* testsuite/stanza.erl, testsuite/xml_attributes.erl,
+	testsuite/iq.erl, testsuite/xml_parser.erl: Update to use or expect
+	binary() values in new-format attributes.
 
 2009-01-13  Pablo Polvorin  <pablo.polvorin@process-one.net>
 

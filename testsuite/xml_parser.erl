@@ -42,7 +42,7 @@
   {xmlel, "ns_stream", [{"ns_stream", "stream"}, {"ns_default", none}],
     "stream", [], [
     {xmlel, "ns_default", [], "iq", [
-      {xmlattr, ?NS_XML_s, "lang", "fr"}
+      {xmlattr, ?NS_XML_s, "lang", <<"fr">>}
     ], [
       {xmlcdata, <<"Content">>}
     ]}
@@ -53,7 +53,7 @@
   {xmlel, 'ns_stream', [{'ns_stream', "stream"}, {'ns_default', none}],
     'stream', [], [
     {xmlel, 'ns_default', [], 'iq', [
-      {xmlattr, ?NS_XML, 'lang', "fr"}
+      {xmlattr, ?NS_XML, 'lang', <<"fr">>}
     ], [
       {xmlcdata, <<"Content">>}
     ]}
@@ -76,7 +76,7 @@
   {xmlel, "ns_stream", [{"ns_stream", "stream"}, {"ns_default", none}],
     "stream", [], undefined},
   {xmlel, "ns_default", [], "iq", [
-    {xmlattr, ?NS_XML_s, "lang", "fr"}
+    {xmlattr, ?NS_XML_s, "lang", <<"fr">>}
   ], [
     {xmlcdata, <<"Content">>}
   ]}
@@ -86,7 +86,7 @@
   {xmlel, "ns_stream", [{"ns_stream", "stream"}, {"ns_default", none}],
     "stream", [], undefined},
   {xmlel, "ns_default", [], "iq", [
-    {xmlattr, ?NS_XML_s, "lang", "fr"}
+    {xmlattr, ?NS_XML_s, "lang", <<"fr">>}
   ], [
     {xmlcdata, <<"Content">>}
   ]},
@@ -99,8 +99,8 @@
   {xmlel, "unknown_ns",
     [{"unknown_ns", none}, {'http://etherx.jabber.org/streams',"stream"}],
     element, [
-    {xmlattr, ?NS_XML, lang, "fr"},
-    {xmlattr, ?NS_XMPP, version, "1.0"}
+    {xmlattr, ?NS_XML, lang, <<"fr">>},
+    {xmlattr, ?NS_XMPP, version, <<"1.0">>}
   ], []}
 ]).
 
@@ -121,8 +121,8 @@
 
 -define(TREE4_NS_CHECK, [
   {xmlel, undefined, [], 'stream', [
-    {xmlattr, undefined, 'version', "1.0"},
-    {xmlattr, undefined, "foo", "bar"}
+    {xmlattr, undefined, 'version', <<"1.0">>},
+    {xmlattr, undefined, "foo", <<"bar">>}
   ], []}
 ]).
 
@@ -134,8 +134,8 @@
 -define(CHUNK2_TREE, continue).
 -define(CHUNK3_TREE, [
     {xmlel, undefined, [], "stream", [
-    {xmlattr, ?NS_XML_s, "lang", "fr"},
-    {xmlattr, undefined, "version", "1.0"}
+    {xmlattr, ?NS_XML_s, "lang", <<"fr">>},
+    {xmlattr, undefined, "version", <<"1.0">>}
   ], [
     {xmlcdata, <<"Content">>}
   ]}

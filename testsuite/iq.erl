@@ -94,25 +94,25 @@
 -define(IQ_REC_2, #iq{
     kind = request,
     type = 'get',
-    id = "iq-2",
+    id = <<"iq-2">>,
     ns = ?NS_ROSTER,
     payload = ?PAYLOAD,
     error = undefined,
-    lang = "en",
+    lang = <<"en">>,
     iq_ns = ?NS_JABBER_CLIENT
   }).
 -define(IQ_REC_3, #iq{
     kind = response,
     type = 'result',
-    id = "iq-2",
-    lang = "en",
+    id = <<"iq-2">>,
+    lang = <<"en">>,
     iq_ns = ?NS_JABBER_CLIENT
   }).
 -define(IQ_REC_4, #iq{
     kind = response,
     type = 'result',
-    id = "iq-2",
-    lang = "en",
+    id = <<"iq-2">>,
+    lang = <<"en">>,
     iq_ns = ?NS_JABBER_CLIENT,
     ns = ?NS_ROSTER,
     payload = ?PAYLOAD
@@ -120,16 +120,16 @@
 -define(IQ_REC_5, #iq{
     kind = response,
     type = 'error',
-    id = "iq-2",
-    lang = "en",
+    id = <<"iq-2">>,
+    lang = <<"en">>,
     iq_ns = ?NS_JABBER_CLIENT,
     error = ?ERROR
   }).
 -define(IQ_REC_6, #iq{
     kind = response,
     type = 'error',
-    id = "iq-2",
-    lang = "en",
+    id = <<"iq-2">>,
+    lang = <<"en">>,
     iq_ns = ?NS_JABBER_CLIENT,
     ns = ?NS_ROSTER,
     payload = ?PAYLOAD,
