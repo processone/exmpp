@@ -322,15 +322,14 @@ get_type(#xmlel{attrs = Attrs} = _Stanza) ->
 get_type(#iq{type = Type}) ->
     type_to_binary(Type).
 
-
 type_to_binary(Type) when is_atom(Type) ->
     case Type of
-        'get' -> <<"get">>;
-        'set' -> <<"set">>;
-        'result' -> <<"result">>;
-        'error' -> <<"error">>;
-        'undefined' -> 'undefined';
-        _ -> list_to_binary(atom_to_list(Type))
+        'get'     -> <<"get">>;
+        'set'     -> <<"set">>;
+        'result'  -> <<"result">>;
+        'error'   -> <<"error">>;
+        undefined -> undefined;
+        _         -> list_to_binary(atom_to_list(Type))
     end.
 
 %% @spec (Attrs) -> Type | undefined

@@ -332,18 +332,19 @@ get_type(Message) when ?IS_MESSAGE(Message) ->
 %%     Type = chat | groupchat | headline | normal | error | binary()
 %%     New_Message = exmpp_xml:xmlel()
 %% @doc Set the type of the given `<message/>'.
+%%
+%% If `Type' isn't a valid, the type is set to `normal'.
 
 set_type(Message, Type) when ?IS_MESSAGE(Message), is_atom(Type) ->
-    T = case Type of
-        'chat' -> <<"chat">>;
+    Type_B = case Type of
+        'chat'      -> <<"chat">>;
         'groupchat' -> <<"groupchat">>;
-        'headline' -> <<"headline">>;
-        'normal' -> <<"normal">>;
-        'error' -> <<"error">>;
-        _ -> <<"normal">>
+        'headline'  -> <<"headline">>;
+        'normal'    -> <<"normal">>;
+        'error'     -> <<"error">>;
+        _           -> <<"normal">>
     end,
-    exmpp_stanza:set_type(Message, T);
-
+    exmpp_stanza:set_type(Message, Type_B);
 set_type(Message, Type) when ?IS_MESSAGE(Message), is_binary(Type) ->
     Valid_Types = [
       <<"chat">>,
