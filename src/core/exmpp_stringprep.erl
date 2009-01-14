@@ -234,6 +234,8 @@ control_reuse_arg(Command, String) ->
     % Guard expressions (eg. Result =:= String) must be used instead of
     % pattern matching, otherwise the two copies are still maintained.
     case control(Command, String) of
+        {error, _} = Error ->
+            Error;
         Result when is_binary(String) ->
             case list_to_binary(Result) of
                 Result_B when Result_B =:= String -> String;
