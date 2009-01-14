@@ -342,25 +342,47 @@ format_test_error({error, {error, {Type, Props}, _}}) ->
         assertThrow_failed -> "Exception doesn't match";
         _                  -> atom_to_list(Type)
     end,
-    Expression = beautify_expr(proplists:get_value(expression, Props, "n/a")),
-    Expected = beautify_expr(proplists:get_value(expected, Props, "n/a")),
-    Value = beautify_expr(proplists:get_value(value, Props, "n/a")),
-    lists:flatten(io_lib:format(
-        "~s:~n"
-        "  Expression:~n"
-        "    ~s~n"
-        "  Expected:~n"
-        "    ~s~n"
-        "  Value:~n"
-        "    ~p",
-        [Type_For_Human, Expression, Expected, Value]));
+    Expression = proplists:get_value(expression, Props),
+    Expected = proplists:get_value(expected, Props),
+    Value = proplists:get_value(value, Props),
+    Unexpected_Exception = proplists:get_value(unexpected_exception, Props),
+    Output0 = io_lib:format(
+      "~s:~n"
+      "  Expression:~n"
+      "    ~s~n"
+      "  Expected:~n"
+      "    ~s~n",
+      [beautify_expr(Type_For_Human), beautify_expr(Expression),
+        beautify_expr(Expected)]),
+    Output1 = case Value of
+        undefined ->
+            Output0;
+        _ ->
+            Output0 ++ io_lib:format(
+              "  Value:~n"
+              "    ~s~n", [beautify_expr(Value)])
+    end,
+    Output2 = case Unexpected_Exception of
+        undefined ->
+            Output1;
+        _ ->
+            Output1 ++ io_lib:format(
+              "  Unexpected exception:~n"
+              "    ~s~n", [beautify_expr(Unexpected_Exception)])
+    end,
+    lists:flatten(Output2);
 format_test_error({error, Exception}) ->
     eunit_lib:format_exception(Exception).
 
-beautify_expr(Expr) when is_atom(Expr) ->
-    atom_to_list(Expr);
+%beautify_expr({Type, Exception, _Stacktrace})
+%  when Type == error; Type == throw ->
+%    atom_to_list(Type) ++ ":" ++ beautify_expr(Exception);
 beautify_expr(Expr) ->
-    Tokens = string:tokens(Expr, ","),
+    Expr1 = case io_lib:deep_char_list(Expr) of
+        true  -> Expr;
+        false -> lists:flatten(io_lib:format("~p", [Expr]))
+    end,
+    Tokens = string:tokens(Expr1, ","),
     Fun = fun(S) -> string:join(string:tokens(S, " "), "") end,
     New_Tokens = lists:map(Fun, Tokens),
     string:join(New_Tokens, ", ").

@@ -33,6 +33,10 @@
 
 	* testsuite/jid.erl: The test works again.
 
+	* testsuite/eunit_tty.erl (format_test_error/1): Display unexpected
+	exceptions if present.
+	(beautify_expr/1): Fix to accept non-string() terms.
+
 2009-01-13  Pablo Polvorin  <pablo.polvorin@process-one.net>
 
 	* src/core/exmpp_xml.erl: Use exmpp_known_elems:elem_as_list/1 in
