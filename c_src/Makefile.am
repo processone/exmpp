@@ -23,12 +23,7 @@ EXTRA_DIST = stringprep_uni_data.h stringprep_uni_norm.h
 EI_CPPFLAGS = -I$(ERLANG_ERTS_DIR)/include				\
 	      -I$(ERLANG_LIB_DIR_erl_interface)/include
 EI_LDFLAGS = -L$(ERLANG_LIB_DIR_erl_interface)/lib
-
-if HOST_WIN32
-EI_LIBS = -lei_md
-else
 EI_LIBS = -lei_st
-endif
 
 execdriversdir = $(ERLANG_INSTALL_LIB_DIR_exmpp)/priv/lib
 

@@ -41,6 +41,16 @@
 	testsuite/iq.erl, testsuite/xml_parser.erl: Update to use or expect
 	binary() values in new-format attributes.
 
+	* configure.ac, m4/colored-echo.m4: Move the code to output bold text
+	during configure to a dedicated M4 file.
+
+	* configure.ac, c_src/Makefile.am, README: Drop cross-compile support
+	because native build for Windows will be better.
+
+	* README: Explain what to do if the developer must use autoconf 2.62
+	or autoconf 2.63. Add or update informations regarding requirements
+	and how to use an alternate Erlang environment.
+
 2009-01-13  Pablo Polvorin  <pablo.polvorin@process-one.net>
 
 	* src/core/exmpp_xml.erl: Use exmpp_known_elems:elem_as_list/1 in

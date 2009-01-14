@@ -1,7 +1,7 @@
 dnl $Id$
 
 dnl ------------------------------------------------------------------
-dnl Autoconf initialisation.
+dnl Autoconf initialization.
 dnl ------------------------------------------------------------------
 
 AC_INIT([exmpp], [0.9.1], [js.pedron@meetic-corp.com], [exmpp])
@@ -11,67 +11,12 @@ AC_CONFIG_AUX_DIR([ac-aux])
 
 AM_INIT_AUTOMAKE([foreign])
 
-AC_CANONICAL_HOST
-
 AC_PREREQ([2.60])
 AC_REVISION([$Revision$])
 
 dnl ------------------------------------------------------------------
 dnl Internal functions for this configure script.
 dnl ------------------------------------------------------------------
-
-dnl Prepare fancy console output, taken from GNU shtools.
-term_bold=''
-term_norm=''
-
-case $TERM in
-xterm|xterm*|vt220|vt220*)
-	dnl For the most important terminal types we directly know the
-	dnl sequences.
-	term_bold=`awk 'BEGIN { printf("%c%c%c%c", 27, 91, 49, 109); }' </dev/null 2>/dev/null`
-	term_norm=`awk 'BEGIN { printf("%c%c%c", 27, 91, 109); }' </dev/null 2>/dev/null`
-	;;
-vt100|vt100*|cygwin)
-	term_bold=`awk 'BEGIN { printf("%c%c%c%c%c%c", 27, 91, 49, 109, 0, 0); }' </dev/null 2>/dev/null`
-	term_norm=`awk 'BEGIN { printf("%c%c%c%c%c", 27, 91, 109, 0, 0); }' </dev/null 2>/dev/null`
-	;;
-* )
-	dnl For all others, we try to use a possibly existing `tput' or
-	dnl `tcout' utility.
-	paths=`echo $PATH | sed -e 's/:/ /g'`
-	for tool in tput tcout; do
-		for dir in $paths; do
-			if test -r "$dir/$tool" ; then
-				for seq in bold md smso; do
-					bold="`$dir/$tool $seq 2>/dev/null`"
-					if test ".$bold" != . ; then
-						term_bold="$bold"
-						break
-					fi
-				done
-				if test ".$term_bold" != . ; then
-					for seq in sgr0 me rmso init reset; do
-						norm="`$dir/$tool $seq 2>/dev/null`"
-						if test ".$norm" != . ; then
-							term_norm="$norm"
-							break
-						fi
-					done
-				fi
-				break
-			fi
-		done
-		if test ".$term_bold" != . && test ".$term_norm" != . ; then
-			break;
-		fi
-	done
-	;;
-esac
-
-bold () {
-        text=`echo $seo "$1" | sed -e "s/%B/${term_bold}/g" -e "s/%b/${term_norm}/g" 2>/dev/null`
-        echo $seo "$text"
-}
 
 dnl EMKOPTS is used by Emakefile(s).
 append_to_EMKOPTS () {
@@ -91,42 +36,8 @@ expand_var () {
 	echo [$]v
 }
 
-dnl Extract Erlang application version from its directory name.
-erlang_guess_version () {
-	echo "[$]1" | sed -e 's/.*-\([[0-9.]]\{1,\}\)[$]/\1/'
-}
-
-dnl Find an Erlang application without running erl(1).
-erlang_check_lib_noexec () {
-	local dir="not found"
-	local ver="0"
-
-	AC_MSG_CHECKING([for Erlang/OTP '[$]2' library subdirectory])
-	if test -d "[$]1/lib"; then
-		for d in `ls -d [$]1/lib/[$]2-* 2> /dev/null`; do
-			v=`erlang_guess_version [$]d`
-			AX_COMPARE_VERSION([[$]v], [gt], [[$]ver],
-			    [dir=[$]d; ver=[$]v])
-		done
-	fi
-
-	if test "x[$]{dir}" = "xnot found"; then
-		ver="not found"
-	fi
-
-	AC_MSG_RESULT([[$]dir])
-	AC_MSG_CHECKING([for Erlang/OTP '[$]2' library version])
-	AC_MSG_RESULT([[$]ver])
-
-	eval "ERLANG_LIB_DIR_[$]2='[$]dir'"
-	eval "ERLANG_LIB_VER_[$]2='[$]ver'"
-
-	AC_SUBST(ERLANG_LIB_DIR_[$]2)
-	AC_SUBST(ERLANG_LIB_VER_[$]2)
-}
-
 dnl ------------------------------------------------------------------
-dnl Versionning
+dnl Versionning.
 dnl ------------------------------------------------------------------
 
 dnl Release date.
@@ -152,12 +63,8 @@ if test $is_release -eq 0; then
 	fi
 fi
 
-dnl Compile environment and parameters.
-EXMPP_BUILD_ARCH="$build"
-EXMPP_HOST_ARCH="$host"
-
 dnl ------------------------------------------------------------------
-dnl Compilateur/outils
+dnl Compilater and other tools.
 dnl ------------------------------------------------------------------
 
 AC_PROG_CC_STDC
@@ -167,8 +74,10 @@ AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AC_PROG_SED
 
+COLORED_ECHO_INIT
+
 dnl ------------------------------------------------------------------
-dnl libtool
+dnl Libtool.
 dnl ------------------------------------------------------------------
 
 dnl Hack to skip C++/Fortran tests (stolen from Beep Media Player)
@@ -179,7 +88,6 @@ m4_defun([AC_PROG_F77],[])
 
 AM_DISABLE_STATIC
 AM_ENABLE_SHARED
-AC_LIBTOOL_WIN32_DLL
 
 AM_PROG_LIBTOOL
 
@@ -266,7 +174,7 @@ dnl Erlang environment.
 dnl ------------------------------------------------------------------
 
 echo
-bold "%BErlang environment%b"
+COLORED_ECHO([%BErlang environment%b])
 
 dnl Available flags.
 AC_ARG_WITH([erlang],
@@ -275,15 +183,7 @@ AC_ARG_WITH([erlang],
 	with_erlang=${withval%/},
 	with_erlang="")
 
-dnl Available flags (when cross-compiling only).
-AC_ARG_WITH([host-erlang],
-	AC_HELP_STRING([--with-host-erlang=PREFIX],
-	    [prefix where host machine's Erlang is installed ]
-	    [(mandatory when cross-compiling)]),
-	with_host_erlang=${withval%/},
-	with_host_erlang="")
-
-dnl erl(1) is used to compile Erlang modules (regardless of the host).
+dnl erl(1) is used to compile Erlang modules.
 if test "x${with_erlang}" = "x"; then
 	AC_ERLANG_PATH_ERL
 	AC_ERLANG_PATH_ERLC
@@ -297,22 +197,6 @@ if test "x${ERL}" = "x"; then
 	AC_MSG_ERROR([
 Erlang not found. Fill the ERL variable with erl(1) path or provide
 Erlang prefix with --with-erlang.])
-fi
-
-dnl When cross-compiling, we need to access the host machine Erlang root
-dnl directory.
-if test "x${cross_compiling}" = "xyes" -a "x${with_host_erlang}" = "x"; then
-	AC_MSG_ERROR([
-Host machine's Erlang not found. When cross-compiling, indicate host's
-Erlang path using --with-host-erlang. Build machine's and host's Erlang
-versions are supposed to match.])
-fi
-
-dnl When NOT cross-compiling, the use of --with-host-erlang isn't allowed.
-if test "x${cross_compiling}" = "xno" -a "x${with_host_erlang}" != "x"; then
-	AC_MSG_ERROR([
-If you're not cross-compiling, do not use --with-host-erlang. Please
-use --with-erlang instead.])
 fi
 
 dnl escript(1) is used by the testsuite.
@@ -338,56 +222,33 @@ you want to use the testsuite.])
 fi
 
 dnl Get Erlang $ROOT dir and lib dir.
-dnl
-dnl A bug in erlang.m4 in Autoconf prevents us from using Erlang macros
-dnl while cross-compiling.
-if test "x${cross_compiling}" = "xno"; then
-	AC_ERLANG_SUBST_ROOT_DIR
-	AC_ERLANG_SUBST_LIB_DIR
-else
-	ERLANG_ROOT_DIR=$with_host_erlang
-	ERLANG_LIB_DIR="${ERLANG_ROOT_DIR}/lib"
-	AC_SUBST(ERLANG_ROOT_DIR)
-	AC_SUBST(ERLANG_LIB_DIR)
-fi
+AC_ERLANG_SUBST_ROOT_DIR
+AC_ERLANG_SUBST_LIB_DIR
+
 dnl For ERTS, take the default path under Erlang ROOT directory.
 ERLANG_ERTS_DIR="${ERLANG_ROOT_DIR}/usr"
 AC_SUBST(ERLANG_ERTS_DIR)
 
 dnl Check for Erlang applications.
-if test "x${cross_compiling}" = "xno"; then
-	dnl Check for erl_interface (used by port drivers).
-	AC_ERLANG_CHECK_LIB([erl_interface],,
-	    [AC_MSG_ERROR([erl_interface was not found!])])
 
-	dnl Check for kernel (to verify if erl_ddll is broken).
-	AC_ERLANG_CHECK_LIB([kernel],,)
+dnl Check for erl_interface (used by port drivers).
+AC_ERLANG_CHECK_LIB([erl_interface],,
+    [AC_MSG_ERROR([erl_interface was not found!])])
 
-	dnl Check for inets (to verify if http_base_64 is present).
-	AC_ERLANG_CHECK_LIB([inets],,)
+dnl Check for kernel (to verify if erl_ddll is broken).
+AC_ERLANG_CHECK_LIB([kernel],,)
 
-	dnl Check for EUnit (used for the testsuite).
-	if test "x${ESCRIPT}" = "x"; then
-		AC_ERLANG_CHECK_LIB([eunit],,)
-	fi
-else
-	dnl Check for erl_interface (used by port drivers).
-	erlang_check_lib_noexec "${ERLANG_ROOT_DIR}" erl_interface
-	if test "x${ERLANG_LIB_DIR_erl_interface}" = "xnot found"; then
-		AC_MSG_ERROR([erl_interface was not found!])
-	fi
+dnl Check for inets (to verify if http_base_64 is present).
+AC_ERLANG_CHECK_LIB([inets],,)
 
-	dnl Check for kernel (to verify if erl_ddll is broken).
-	erlang_check_lib_noexec "${ERLANG_ROOT_DIR}" kernel
-
-	dnl Check for inets (to verify if http_base_64 is present).
-	erlang_check_lib_noexec "${ERLANG_ROOT_DIR}" inets
+dnl Check for EUnit (used for the testsuite).
+if test "x${ESCRIPT}" = "x"; then
+	AC_ERLANG_CHECK_LIB([eunit],,)
 fi
 
 dnl Determine directories for installation.
 if test "x${prefix}" = "xNONE"; then
 	dnl Inside Erlang lib directory.
-	dnl If cross-compiling, the host's Erlang lib directory is used.
 	ERLANG_INSTALL_LIB_DIR="${ERLANG_LIB_DIR}"
 else
 	dnl Under $prefix
@@ -539,26 +400,11 @@ fi
 AM_CONDITIONAL([ENABLE_TESTSUITE], [test "x${enable_testsuite}" = "xyes"])
 
 dnl ------------------------------------------------------------------
-dnl Plateform-specific cases.
-dnl ------------------------------------------------------------------
-
-case $host_os in
-	*mingw*)
-		dnl To compile a Win32 DLL, libtool requires -no-undefined.
-		ERL_DRIVER_LDFLAGS="${ERL_DRIVER_LDFLAGS% } -no-undefined"
-
-		canonical_host="win32"
-		;;
-esac
-
-AM_CONDITIONAL([HOST_WIN32], [test "x${canonical_host}" = "xwin32"])
-
-dnl ------------------------------------------------------------------
 dnl Dependencies.
 dnl ------------------------------------------------------------------
 
 echo
-bold "%BXML parsers dependencies%b"
+COLORED_ECHO([%BXML parsers dependencies%b])
 
 dnl Expat port driver.
 EXMPP_EXPAT(build_with_expat="yes", build_with_expat="no")
@@ -576,7 +422,7 @@ if test "x${build_with_libxml2}" = "xyes"; then
 fi
 
 echo
-bold "%BTLS engines dependencies%b"
+COLORED_ECHO([%BTLS engines dependencies%b])
 
 dnl OpenSSL TLS port driver.
 EXMPP_OPENSSL(build_with_openssl="yes", build_with_openssl="no")
@@ -586,7 +432,7 @@ if test "x${build_with_openssl}" = "xyes"; then
 fi
 
 echo
-bold "%BCompression engines dependencies%b"
+COLORED_ECHO([%BCompression engines dependencies%b])
 
 dnl Zlib compression port driver.
 EXMPP_ZLIB(build_with_zlib="yes", build_with_zlib="no")
@@ -653,30 +499,30 @@ dnl Configuration report
 dnl --------------------------------------------------
 
 echo
-bold " %B== exmpp ${EXMPP_VERSION} ==%b"
+COLORED_ECHO([ %B== exmpp ${PACKAGE_VERSION}${EXMPP_DISTSUFFIX} ==%b])
 echo
-echo "Configuration:"
-echo "    Prefix:             ${prefix}"
-echo "    Application dir.:   ${exp_ERLANG_INSTALL_LIB_DIR_exmpp}"
+COLORED_ECHO([Configuration:])
+COLORED_ECHO([    Prefix:             ${prefix}])
+COLORED_ECHO([    Application dir.:   ${exp_ERLANG_INSTALL_LIB_DIR_exmpp}])
 echo
-echo "    C compiler:         ${CC} ${CFLAGS}"
-echo "    Erlang emulator:    ${ERL}"
-echo "    Erlang compiler:    ${ERLC}"
-echo "    Erlang interpreter: ${ESCRIPT}"
+COLORED_ECHO([    C compiler:         ${CC} ${CFLAGS}])
+COLORED_ECHO([    Erlang emulator:    ${ERL}])
+COLORED_ECHO([    Erlang compiler:    ${ERLC}])
+COLORED_ECHO([    Erlang interpreter: ${ESCRIPT}])
 echo
-echo "    Debug/warnings:     ${enable_debug}/${enable_warnings}"
-echo "    Compat modules:     ${enable_compat}"
-echo "    Documentation:      ${enable_documentation}"
-echo "    Testsuite:          ${enable_testsuite}"
-echo "    Examples:           ${enable_examples}"
+COLORED_ECHO([    Debug/warnings:     ${enable_debug}/${enable_warnings}])
+COLORED_ECHO([    Compat modules:     ${enable_compat}])
+COLORED_ECHO([    Documentation:      ${enable_documentation}])
+COLORED_ECHO([    Testsuite:          ${enable_testsuite}])
+COLORED_ECHO([    Examples:           ${enable_examples}])
 echo
-echo "    XML parsers:"
-echo "      . Expat:          ${build_with_expat}"
-echo "      . LibXML2:        ${build_with_libxml2}"
+COLORED_ECHO([    XML parsers:])
+COLORED_ECHO([      . Expat:          ${build_with_expat}])
+COLORED_ECHO([      . LibXML2:        ${build_with_libxml2}])
 echo
-echo "    TLS engines:"
-echo "      . OpenSSL:        ${build_with_openssl}"
+COLORED_ECHO([    TLS engines:])
+COLORED_ECHO([      . OpenSSL:        ${build_with_openssl}])
 echo
-echo "    Compression engines:"
-echo "      . Zlib:           ${build_with_zlib}"
+COLORED_ECHO([    Compression engines:])
+COLORED_ECHO([      . Zlib:           ${build_with_zlib}])
 echo
