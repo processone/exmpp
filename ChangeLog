@@ -6,6 +6,18 @@
 
 	* src/core/exmpp_stanza.erl, src/core/exmpp_message.erl: Style.
 
+	* src/core/exmpp_xml.erl: The old attribute tuple requires that the
+	value is a string(), not a binary(). Therefore the get_attribute*
+	functions family changes:
+	  o  get_attribute_from_list/3 and get_attribute/3 will return a
+	     string() with an old-format attribute and a binary() otherwise.
+	  o  get_attribute_from_list/4 and get_attribute/4 don't change
+	     because they only work on the new format.
+	  o  get_attribute_from_list_as_list/{3,4} and
+	     get_attribute_as_list/{3,4} will always return a string().
+	  o  get_attribute_from_list_as_binary/{3,4} and
+	     get_attribute_as_binary/{3,4} will always return a binary().
+
 2009-01-13  Pablo Polvorin  <pablo.polvorin@process-one.net>
 
 	* src/core/exmpp_xml.erl: Use exmpp_known_elems:elem_as_list/1 in

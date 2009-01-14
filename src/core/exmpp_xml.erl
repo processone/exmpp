@@ -87,10 +87,14 @@
   get_attribute_from_list/4,
   get_attribute/3,
   get_attribute/4,
-  get_attribute_as_binary/3,
-  get_attribute_as_binary/4,
+  get_attribute_from_list_as_list/3,
+  get_attribute_from_list_as_list/4,
+  get_attribute_as_list/3,
+  get_attribute_as_list/4,
   get_attribute_from_list_as_binary/3,
   get_attribute_from_list_as_binary/4,
+  get_attribute_as_binary/3,
+  get_attribute_as_binary/4,
   set_attribute_in_list/2,
   set_attribute_in_list/3,
   set_attribute_in_list/4,
@@ -881,17 +885,23 @@ get_attribute_node(undefined, _NS, _Name) ->
 %%     Attrs = [xmlnsattribute() | xmlattribute()]
 %%     Attr_Name = atom() | string()
 %%     Default = term()
-%%     Attr_Value = string()
+%%     Attr_Value = binary() | string()
 %% @doc Return the value of the attribute named `Attr_Name' from the list.
+%%
+%% The return type depends on `Attrs' type:
+%% <ul>
+%% <li>`binary()' with {@link xmlnsattribute()}</li>
+%% <li>`list()' with {@link xmlattribute()}</li>
+%% </ul>
 %%
 %% Return `Default' if the attribute isn't found.
 
 get_attribute_from_list(Attrs, Attr_Name, Default) ->
     case get_attribute_node_from_list(Attrs, Attr_Name) of
         #xmlattr{value = Value} ->
-            binary_to_list(Value);
+            Value;
         {_Name, Value} ->
-            binary_to_list(Value);
+            Value;
         _ ->
             Default
     end.
@@ -901,7 +911,7 @@ get_attribute_from_list(Attrs, Attr_Name, Default) ->
 %%     NS = atom() | string()
 %%     Attr_Name = atom() | string()
 %%     Default = term()
-%%     Attr_Value = string()
+%%     Attr_Value = binary()
 %% @doc Return the value of the attribute named `Attr_Name' from the
 %% list with the `NS' namespace URI.
 %%
@@ -910,7 +920,7 @@ get_attribute_from_list(Attrs, Attr_Name, Default) ->
 get_attribute_from_list(Attrs, NS, Attr_Name, Default) ->
     case get_attribute_node_from_list(Attrs, NS, Attr_Name) of
         #xmlattr{value = Value} ->
-            binary_to_list(Value);
+            Value;
         _ ->
             Default
     end.
@@ -919,8 +929,14 @@ get_attribute_from_list(Attrs, NS, Attr_Name, Default) ->
 %%     XML_Element = xmlel() | xmlelement() | undefined
 %%     Attr_Name = atom() | string()
 %%     Default = term()
-%%     Attr_Value = string()
+%%     Attr_Value = binary() | string()
 %% @doc Return the value of the attribute named `Attr_Name'.
+%%
+%% The return type depends on attributes type in `XML_Element':
+%% <ul>
+%% <li>`binary()' with {@link xmlnsattribute()}</li>
+%% <li>`list()' with {@link xmlattribute()}</li>
+%% </ul>
 %%
 %% Return `Default' if the attribute isn't found.
 
@@ -936,7 +952,7 @@ get_attribute(undefined, _Name, Default) ->
 %%     NS = atom() | string()
 %%     Attr_Name = atom() | string()
 %%     Default = term()
-%%     Attr_Value = string()
+%%     Attr_Value = binary()
 %% @doc Return the value of the attribute named `Attr_Name' with the
 %% `NS' namespace URI.
 %%
@@ -951,15 +967,16 @@ get_attribute(undefined, _NS, _Name, Default) ->
 %%     Attrs = [xmlnsattribute() | xmlattribute()]
 %%     Attr_Name = atom() | string()
 %%     Default = term()
-%%     Attr_Value = binary()
-%% @doc Return the value of the attribute named `Attr_Name' from the list.
+%%     Attr_Value = list()
+%% @doc Return the value of the attribute named `Attr_Name' from the
+%% list, as a list().
 %%
 %% Return `Default' if the attribute isn't found.
 
-get_attribute_from_list_as_binary(Attrs, Attr_Name, Default) ->
+get_attribute_from_list_as_list(Attrs, Attr_Name, Default) ->
     case get_attribute_node_from_list(Attrs, Attr_Name) of
         #xmlattr{value = Value} ->
-            Value;
+            binary_to_list(Value);
         {_Name, Value} ->
             Value;
         _ ->
@@ -971,9 +988,81 @@ get_attribute_from_list_as_binary(Attrs, Attr_Name, Default) ->
 %%     NS = atom() | string()
 %%     Attr_Name = atom() | string()
 %%     Default = term()
+%%     Attr_Value = list()
+%% @doc Return the value of the attribute named `Attr_Name' with the
+%% `NS' namespace URI from the list, as a list().
+%%
+%% Return `Default' if the attribute isn't found.
+
+get_attribute_from_list_as_list(Attrs, NS, Attr_Name, Default) ->
+    case get_attribute_node_from_list(Attrs, NS, Attr_Name) of
+        #xmlattr{value = Value} ->
+            binary_to_list(Value);
+        _ ->
+            Default
+    end.
+
+%% @spec (XML_Element, Attr_Name, Default) -> Attr_Value | Default
+%%     XML_Element = xmlel() | undefined
+%%     Attr_Name = atom() | string()
+%%     Default = term()
+%%     Attr_Value = list()
+%% @doc Return the value of the attribute named `Attr_Name', as a
+%% list().
+%%
+%% Return `Default' if the attribute isn't found.
+
+get_attribute_as_list(#xmlel{attrs = Attrs} = _XML_Element, Name,
+  Default) ->
+    get_attribute_from_list_as_list(Attrs, Name, Default);
+get_attribute_as_list(undefined, _Name, Default) ->
+    Default.
+
+%% @spec (XML_Element, NS, Attr_Name, Default) -> Attr_Value | Default
+%%     XML_Element = xmlel() | undefined
+%%     NS = atom() | string()
+%%     Attr_Name = atom() | string()
+%%     Default = term()
+%%     Attr_Value = list()
+%% @doc Return the value of the attribute named `Attr_Name' with the
+%% `NS' namespace URI, as a list().
+%%
+%% Return `Default' if the attribute isn't found.
+
+get_attribute_as_list(#xmlel{attrs = Attrs} = _XML_Element, NS, Name,
+  Default) ->
+    get_attribute_from_list_as_list(Attrs, NS, Name, Default);
+get_attribute_as_list(undefined, _NS, _Name, Default) ->
+    Default.
+
+%% @spec (Attrs, Attr_Name, Default) -> Attr_Value | Default
+%%     Attrs = [xmlnsattribute() | xmlattribute()]
+%%     Attr_Name = atom() | string()
+%%     Default = term()
 %%     Attr_Value = binary()
 %% @doc Return the value of the attribute named `Attr_Name' from the
-%% list with the `NS' namespace URI.
+%% list, as a binary().
+%%
+%% Return `Default' if the attribute isn't found.
+
+get_attribute_from_list_as_binary(Attrs, Attr_Name, Default) ->
+    case get_attribute_node_from_list(Attrs, Attr_Name) of
+        #xmlattr{value = Value} ->
+            Value;
+        {_Name, Value} ->
+            list_to_binary(Value);
+        _ ->
+            Default
+    end.
+
+%% @spec (Attrs, NS, Attr_Name, Default) -> Attr_Value | Default
+%%     Attrs = [xmlnsattribute()]
+%%     NS = atom() | string()
+%%     Attr_Name = atom() | string()
+%%     Default = term()
+%%     Attr_Value = binary()
+%% @doc Return the value of the attribute named `Attr_Name' with the
+%% `NS' namespace URI from the list, as a binary().
 %%
 %% Return `Default' if the attribute isn't found.
 
@@ -990,7 +1079,8 @@ get_attribute_from_list_as_binary(Attrs, NS, Attr_Name, Default) ->
 %%     Attr_Name = atom() | string()
 %%     Default = term()
 %%     Attr_Value = binary()
-%% @doc Return the value of the attribute named `Attr_Name'.
+%% @doc Return the value of the attribute named `Attr_Name', as a
+%% binary().
 %%
 %% Return `Default' if the attribute isn't found.
 
@@ -1007,7 +1097,7 @@ get_attribute_as_binary(undefined, _Name, Default) ->
 %%     Default = term()
 %%     Attr_Value = binary()
 %% @doc Return the value of the attribute named `Attr_Name' with the
-%% `NS' namespace URI.
+%% `NS' namespace URI, as a binary().
 %%
 %% Return `Default' if the attribute isn't found.
 
@@ -1129,7 +1219,7 @@ set_attribute_in_list2([Attr | Rest], Name, Value, New_Attrs) ->
             New_Attr = Attr#xmlattr{value = Value},
             New_Attrs ++ [New_Attr] ++ Rest;
         true when is_tuple(Attr), size(Attr) == 2 ->
-            New_Attr = {Name, Value},
+            New_Attr = {Name, binary_to_list(Value)},
             New_Attrs ++ [New_Attr] ++ Rest;
         false ->
             set_attribute_in_list2(Rest, Name, Value,
@@ -1140,7 +1230,7 @@ set_attribute_in_list2([], Name, Value, New_Attrs) ->
         [#xmlattr{} | _] ->
             #xmlattr{name = Name, value = Value};
         [{_, _} | _] ->
-            {Name, Value};
+            {Name, binary_to_list(Value)};
         _ ->
             #xmlattr{name = Name, value = Value}
     end,
@@ -1233,13 +1323,13 @@ set_attribute_ns2([], Name, Value, New_Attrs) ->
 set_attribute2([Attr | Rest], Name, Value, New_Attrs) ->
     case attribute_matches(Attr, Name) of
         true when is_tuple(Attr), size(Attr) == 2 ->
-            New_Attr = {Name, Value},
+            New_Attr = {Name, binary_to_list(Value)},
             New_Attrs ++ [New_Attr] ++ Rest;
         false ->
             set_attribute2(Rest, Name, Value, New_Attrs ++ [Attr])
     end;
 set_attribute2([], Name, Value, New_Attrs) ->
-    New_Attrs ++ [{Name, Value}].
+    New_Attrs ++ [{Name, binary_to_list(Value)}].
 
 %% @spec (XML_Element, NS, Attr_Name, Attr_Value) -> New_XML_Element
 %%     XML_Element = xmlel() | xmlelement()
@@ -2597,7 +2687,7 @@ xmlnsattributes_to_xmlattributes2([#xmlattr{ns = NS, name = Name,
             end
     end,
     xmlnsattributes_to_xmlattributes2(Rest, Prefixed_NS1,
-      [{New_Name, Value} | Converted_Attrs1]);
+      [{New_Name, binary_to_list(Value)} | Converted_Attrs1]);
 xmlnsattributes_to_xmlattributes2([], Prefixed_NS, Converted_Attrs) ->
     {lists:reverse(Converted_Attrs), Prefixed_NS}.
 
@@ -2910,13 +3000,13 @@ xmlattributes_to_xmlnsattributes([{Name, Value} | Rest],
                     #xmlattr{
                       ns = undefined,
                       name = Real_Name_A,
-                      value = Value
+                      value = list_to_binary(Value)
                     };
                 NS ->
                     #xmlattr{
                       ns = NS,
                       name = Real_Name_A,
-                      value = Value
+                      value = list_to_binary(Value)
                     }
             end;
         [Real_Name] ->
@@ -2925,7 +3015,7 @@ xmlattributes_to_xmlnsattributes([{Name, Value} | Rest],
             #xmlattr{
               ns = undefined,
               name = Real_Name_A,
-              value = Value
+              value = list_to_binary(Value)
             }
     end,
     xmlattributes_to_xmlnsattributes(Rest, Prefixed_NS,
@@ -3749,7 +3839,7 @@ terminate(_Reason, _State) ->
 %% @type xmlnsattribute() = {xmlattr, NS, Name, Value}
 %%     NS = atom() | string()
 %%     Name = atom() | string()
-%%     Value = string().
+%%     Value = binary().
 %% Represents an tag attribute.
 
 %% @type xmlendtag() = {xmlendtag, NS, Name}
