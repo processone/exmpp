@@ -112,7 +112,7 @@ get_error(#iq{}) ->
 %% @doc Return the sender.
 %%
 %% The return value should be a JID and may be parsed with
-%% {@link exmpp_jid:list_to_jid/1}.
+%% {@link exmpp_jid:parse_jid/1}.
 
 get_sender(#xmlel{attrs = Attrs} = _Stanza) ->
     get_sender_from_attrs(Attrs).
@@ -123,7 +123,7 @@ get_sender(#xmlel{attrs = Attrs} = _Stanza) ->
 %% @doc Return the sender.
 %%
 %% The return value should be a JID and may be parsed with
-%% {@link exmpp_jid:list_to_jid/1}.
+%% {@link exmpp_jid:parse_jid/1}.
 
 get_sender_from_attrs(Attrs) ->
     exmpp_xml:get_attribute_from_list_as_binary(Attrs, 'from', undefined).
@@ -178,7 +178,7 @@ remove_sender_in_attrs(Attrs) ->
 %% @doc Return the recipient.
 %%
 %% The return value should be a JID and may be parsed with
-%% {@link exmpp_jid:list_to_jid/1}.
+%% {@link exmpp_jid:parse_jid/1}.
 
 get_recipient(#xmlel{attrs = Attrs} = _Stanza) ->
     get_recipient_from_attrs(Attrs).
@@ -189,7 +189,7 @@ get_recipient(#xmlel{attrs = Attrs} = _Stanza) ->
 %% @doc Return the recipient.
 %%
 %% The return value should be a JID and may be parsed with
-%% {@link exmpp_jid:list_to_jid/1}.
+%% {@link exmpp_jid:parse_jid/1}.
 
 get_recipient_from_attrs(Attrs) ->
     exmpp_xml:get_attribute_from_list_as_binary(Attrs, 'to', undefined).

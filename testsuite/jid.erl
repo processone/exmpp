@@ -14,10 +14,6 @@
 -define(DOMAIN, "d").
 -define(RESOURCE, "r").
 
--define(NODE_TOO_LONG, "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn").
--define(DOMAIN_TOO_LONG, "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd").
--define(RESOURCE_TOO_LONG, "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr").
-
 -define(FJ1, #jid{
     node = <<"John">>,
     domain = <<"example.org">>,
@@ -74,29 +70,49 @@
 -define(RES_BAD, "Work" ++ [0]).
 
 too_long_identifiers_test_() ->
-    Too_Long_JID1 = ?NODE_TOO_LONG ++ [$@] ++ ?DOMAIN_TOO_LONG,
-    Too_Long_JID2 = ?NODE_TOO_LONG ++ [$@] ++ ?DOMAIN_TOO_LONG ++ [$/] ++
-        ?RESOURCE_TOO_LONG,
+    Node_TL = string:chars($n, 1024),
+    Domain_TL = string:chars($d, 1024),
+    Resource_TL = string:chars($r, 1024),
+    JID_TL = Node_TL ++ [$@] ++ Domain_TL ++ [$/] ++ Resource_TL,
+    Node_TL_B = list_to_binary(Node_TL),
+    Domain_TL_B = list_to_binary(Domain_TL),
+    Resource_TL_B = list_to_binary(Resource_TL),
+    JID_TL_B = list_to_binary(JID_TL),
     Tests = [
       ?_assertThrow(
-        {jid, make, domain_too_long, {?NODE, _DOMAIN_TOO_LONG, undefined}},
-        exmpp_jid:make_jid(?NODE, ?DOMAIN_TOO_LONG, ?RESOURCE)
+        {jid, make, too_long, {domain, Domain_TL}},
+        exmpp_jid:make_jid(?NODE, Domain_TL, ?RESOURCE)
       ),
       ?_assertThrow(
-        {jid, make, node_too_long, {_NODE_TOO_LONG, ?DOMAIN, undefined}},
-        exmpp_jid:make_jid(?NODE_TOO_LONG, ?DOMAIN, ?RESOURCE)
+        {jid, make, too_long, {node, Node_TL}},
+        exmpp_jid:make_jid(Node_TL, ?DOMAIN, ?RESOURCE)
       ),
       ?_assertThrow(
-        {jid, make, resource_too_long, {?NODE, ?DOMAIN, _RESOURCE_TOO_LONG}},
-        exmpp_jid:make_jid(?NODE, ?DOMAIN, ?RESOURCE_TOO_LONG)
+        {jid, make, too_long, {resource, Resource_TL}},
+        exmpp_jid:make_jid(?NODE, ?DOMAIN, Resource_TL)
       ),
       ?_assertThrow(
-        {jid, parse, jid_too_long, {Too_Long_JID1, undefined, undefined}},
-        exmpp_jid:list_to_bare_jid(Too_Long_JID1)
+        {jid, parse, too_long, {jid, JID_TL}},
+        exmpp_jid:parse_jid(JID_TL)
       ),
       ?_assertThrow(
-        {jid, parse, jid_too_long, {Too_Long_JID2, undefined, undefined}},
-        exmpp_jid:list_to_jid(Too_Long_JID2)
+        {jid, make, too_long, {domain, Domain_TL_B}},
+        exmpp_jid:make_jid(list_to_binary(?NODE),
+          Domain_TL_B, list_to_binary(?RESOURCE))
+      ),
+      ?_assertThrow(
+        {jid, make, too_long, {node, Node_TL_B}},
+        exmpp_jid:make_jid(Node_TL_B,
+          list_to_binary(?DOMAIN), list_to_binary(?RESOURCE))
+      ),
+      ?_assertThrow(
+        {jid, make, too_long, {resource, Resource_TL_B}},
+        exmpp_jid:make_jid(list_to_binary(?NODE),
+          list_to_binary(?DOMAIN), Resource_TL_B)
+      ),
+      ?_assertThrow(
+        {jid, parse, too_long, {jid, JID_TL_B}},
+        exmpp_jid:parse_jid(JID_TL_B)
       )
     ],
     {setup, ?SETUP, ?CLEANUP, Tests}.
@@ -104,156 +120,127 @@ too_long_identifiers_test_() ->
 jid_creation_with_bad_syntax_test_() ->
     Tests = [
       ?_assertThrow(
-        {jid, parse, unexpected_end_of_string,
-          {"", undefined, undefined}},
-        exmpp_jid:list_to_jid("")
+        {jid, parse, unexpected_end_of_string, {jid, ""}},
+        exmpp_jid:parse_jid("")
       ),
       ?_assertThrow(
-        {jid, parse, unexpected_node_separator,
-          {"@", undefined, undefined}},
-        exmpp_jid:list_to_jid("@")
+        {jid, parse, unexpected_node_separator, {jid, "@"}},
+        exmpp_jid:parse_jid("@")
       ),
       ?_assertThrow(
-        {jid, parse, unexpected_node_separator,
-          {"@Domain", undefined, undefined}},
-        exmpp_jid:list_to_jid("@Domain")
+        {jid, parse, unexpected_node_separator, {jid, "@Domain"}},
+        exmpp_jid:parse_jid("@Domain")
       ),
       ?_assertThrow(
-        {jid, parse, unexpected_node_separator,
-          {"@Domain@Domain", undefined, undefined}},
-        exmpp_jid:list_to_jid("@Domain@Domain")
+        {jid, parse, unexpected_node_separator, {jid, "@Domain@Domain"}},
+        exmpp_jid:parse_jid("@Domain@Domain")
       ),
       ?_assertThrow(
-        {jid, parse, unexpected_node_separator,
-          {"@Domain/Resource", undefined, undefined}},
-        exmpp_jid:list_to_jid("@Domain/Resource")
+        {jid, parse, unexpected_node_separator, {jid, "@Domain/Resource"}},
+        exmpp_jid:parse_jid("@Domain/Resource")
       ),
       ?_assertThrow(
-        {jid, parse, unexpected_end_of_string,
-          {"Node@", undefined, undefined}},
-        exmpp_jid:list_to_jid("Node@")
+        {jid, parse, unexpected_end_of_string, {jid, "Node@"}},
+        exmpp_jid:parse_jid("Node@")
       ),
       ?_assertThrow(
-        {jid, parse, unexpected_node_separator,
-          {"Node@Domain@", undefined, undefined}},
-        exmpp_jid:list_to_jid("Node@Domain@")
+        {jid, parse, unexpected_node_separator, {jid, "Node@Domain@"}},
+        exmpp_jid:parse_jid("Node@Domain@")
       ),
       ?_assertThrow(
-        {jid, parse, unexpected_node_separator,
-          {"Node@@Domain", undefined, undefined}},
-        exmpp_jid:list_to_jid("Node@@Domain")
+        {jid, parse, unexpected_node_separator, {jid, "Node@@Domain"}},
+        exmpp_jid:parse_jid("Node@@Domain")
       ),
       ?_assertThrow(
-        {jid, parse, unexpected_end_of_string,
-          {"Domain/", undefined, undefined}},
-        exmpp_jid:list_to_jid("Domain/")
+        {jid, parse, unexpected_end_of_string, {jid, "Domain/"}},
+        exmpp_jid:parse_jid("Domain/")
       ),
       ?_assertThrow(
-        {jid, parse, unexpected_end_of_string,
-          {"Node@Domain/", undefined, undefined}},
-        exmpp_jid:list_to_jid("Node@Domain/")
+        {jid, parse, unexpected_end_of_string, {jid, "Node@Domain/"}},
+        exmpp_jid:parse_jid("Node@Domain/")
       ),
       ?_assertThrow(
-        {jid, parse, unexpected_node_separator,
-          {"@/", undefined, undefined}},
-        exmpp_jid:list_to_jid("@/")
+        {jid, parse, unexpected_node_separator, {jid, "@/"}},
+        exmpp_jid:parse_jid("@/")
       ),
       ?_assertThrow(
-        {jid, parse, unexpected_resource_separator,
-          {"Node@/", undefined, undefined}},
-        exmpp_jid:list_to_jid("Node@/")
+        {jid, parse, unexpected_resource_separator, {jid, "Node@/"}},
+        exmpp_jid:parse_jid("Node@/")
       ),
       ?_assertThrow(
-        {jid, parse, unexpected_resource_separator,
-          {"Node@/Resource", undefined, undefined}},
-        exmpp_jid:list_to_jid("Node@/Resource")
+        {jid, parse, unexpected_resource_separator, {jid, "Node@/Resource"}},
+        exmpp_jid:parse_jid("Node@/Resource")
       ),
       ?_assertThrow(
-        {jid, parse, unexpected_resource_separator,
-          {"/", undefined, undefined}},
-        exmpp_jid:list_to_jid("/")
+        {jid, parse, unexpected_resource_separator, {jid, "/"}},
+        exmpp_jid:parse_jid("/")
       ),
       ?_assertThrow(
-        {jid, parse, unexpected_resource_separator,
-          {"/Resource", undefined, undefined}},
-        exmpp_jid:list_to_jid("/Resource")
+        {jid, parse, unexpected_resource_separator, {jid, "/Resource"}},
+        exmpp_jid:parse_jid("/Resource")
       )
     ],
     TestsBinaryParsing =  [
       ?_assertThrow(
-        {jid, parse, unexpected_end_of_string,
-          {<<"">>, undefined, undefined}},
-        exmpp_jid:binary_to_jid(<<"">>)
+        {jid, parse, unexpected_end_of_string, {jid, <<>>}},
+        exmpp_jid:parse_jid(<<>>)
       ),
       ?_assertThrow(
-        {jid, parse, unexpected_node_separator,
-          {<<"@">>, undefined, undefined}},
-        exmpp_jid:binary_to_jid(<<"@">>)
+        {jid, parse, unexpected_node_separator, {jid, <<"@">>}},
+        exmpp_jid:parse_jid(<<"@">>)
       ),
       ?_assertThrow(
-        {jid, parse, unexpected_node_separator,
-          {<<"@Domain">>, undefined, undefined}},
-        exmpp_jid:binary_to_jid(<<"@Domain">>)
+        {jid, parse, unexpected_node_separator, {jid, <<"@Domain">>}},
+        exmpp_jid:parse_jid(<<"@Domain">>)
       ),
       ?_assertThrow(
-        {jid, parse, unexpected_node_separator,
-          {<<"@Domain@Domain">>, undefined, undefined}},
-        exmpp_jid:binary_to_jid(<<"@Domain@Domain">>)
+        {jid, parse, unexpected_node_separator, {jid, <<"@Domain@Domain">>}},
+        exmpp_jid:parse_jid(<<"@Domain@Domain">>)
       ),
       ?_assertThrow(
-        {jid, parse, unexpected_node_separator,
-          {<<"@Domain/Resource">>, undefined, undefined}},
-        exmpp_jid:binary_to_jid(<<"@Domain/Resource">>)
+        {jid, parse, unexpected_node_separator, {jid, <<"@Domain/Resource">>}},
+        exmpp_jid:parse_jid(<<"@Domain/Resource">>)
       ),
       ?_assertThrow(
-        {jid, parse, unexpected_end_of_string,
-          {<<"Node@">>, undefined, undefined}},
-        exmpp_jid:binary_to_jid(<<"Node@">>)
+        {jid, parse, unexpected_end_of_string, {jid, <<"Node@">>}},
+        exmpp_jid:parse_jid(<<"Node@">>)
       ),
       ?_assertThrow(
-        {jid, parse, unexpected_node_separator,
-          {<<"Node@Domain@">>, undefined, undefined}},
-        exmpp_jid:binary_to_jid(<<"Node@Domain@">>)
+        {jid, parse, unexpected_node_separator, {jid, <<"Node@Domain@">>}},
+        exmpp_jid:parse_jid(<<"Node@Domain@">>)
       ),
       ?_assertThrow(
-        {jid, parse, unexpected_node_separator,
-          {<<"Node@@Domain">>, undefined, undefined}},
-        exmpp_jid:binary_to_jid(<<"Node@@Domain">>)
+        {jid, parse, unexpected_node_separator, {jid, <<"Node@@Domain">>}},
+        exmpp_jid:parse_jid(<<"Node@@Domain">>)
       ),
       ?_assertThrow(
-        {jid, parse, unexpected_end_of_string,
-          {<<"Domain/">>, undefined, undefined}},
-        exmpp_jid:binary_to_jid(<<"Domain/">>)
+        {jid, parse, unexpected_end_of_string, {jid, <<"Domain/">>}},
+        exmpp_jid:parse_jid(<<"Domain/">>)
       ),
       ?_assertThrow(
-        {jid, parse, unexpected_end_of_string,
-          {<<"Node@Domain/">>, undefined, undefined}},
-        exmpp_jid:binary_to_jid(<<"Node@Domain/">>)
+        {jid, parse, unexpected_end_of_string, {jid, <<"Node@Domain/">>}},
+        exmpp_jid:parse_jid(<<"Node@Domain/">>)
       ),
       ?_assertThrow(
-        {jid, parse, unexpected_node_separator,
-          {<<"@/">>, undefined, undefined}},
-        exmpp_jid:binary_to_jid(<<"@/">>)
+        {jid, parse, unexpected_node_separator, {jid, <<"@/">>}},
+        exmpp_jid:parse_jid(<<"@/">>)
+      ),
+      ?_assertThrow(
+        {jid, parse, unexpected_resource_separator, {jid, <<"Node@/">>}},
+        exmpp_jid:parse_jid(<<"Node@/">>)
       ),
       ?_assertThrow(
         {jid, parse, unexpected_resource_separator,
-          {<<"Node@/">>, undefined, undefined}},
-        exmpp_jid:binary_to_jid(<<"Node@/">>)
+          {jid, <<"Node@/Resource">>}},
+        exmpp_jid:parse_jid(<<"Node@/Resource">>)
       ),
       ?_assertThrow(
-        {jid, parse, unexpected_resource_separator,
-          {<<"Node@/Resource">>, undefined, undefined}},
-        exmpp_jid:binary_to_jid(<<"Node@/Resource">>)
+        {jid, parse, unexpected_resource_separator, {jid, <<"/">>}},
+        exmpp_jid:parse_jid(<<"/">>)
       ),
       ?_assertThrow(
-        {jid, parse, unexpected_resource_separator,
-          {<<"/">>, undefined, undefined}},
-        exmpp_jid:binary_to_jid(<<"/">>)
-      ),
-      ?_assertThrow(
-        {jid, parse, unexpected_resource_separator,
-          {<<"/Resource">>, undefined, undefined}},
-        exmpp_jid:binary_to_jid(<<"/Resource">>)
+        {jid, parse, unexpected_resource_separator, {jid, <<"/Resource">>}},
+        exmpp_jid:parse_jid(<<"/Resource">>)
       )
     ],
     {setup, ?SETUP, ?CLEANUP, Tests ++ TestsBinaryParsing}.
@@ -261,111 +248,80 @@ jid_creation_with_bad_syntax_test_() ->
 jid_creation_with_bad_chars_test_() ->
     Tests = [
       ?_assertThrow(
-        {jid, make, invalid_node, _},
-        exmpp_jid:list_to_jid(?FJ1_S_BAD1)
+        {jid, make, invalid, _},
+        exmpp_jid:parse_jid(?FJ1_S_BAD1)
       ),
       ?_assertThrow(
-        {jid, make, invalid_domain, _},
-        exmpp_jid:list_to_jid(?FJ1_S_BAD2)
+        {jid, make, invalid, _},
+        exmpp_jid:parse_jid(?FJ1_S_BAD2)
       ),
       ?_assertThrow(
-        {jid, make, invalid_resource, _},
-        exmpp_jid:list_to_jid(?FJ1_S_BAD3)
+        {jid, make, invalid, _},
+        exmpp_jid:parse_jid(?FJ1_S_BAD3)
       ),
       ?_assertThrow(
-        {jid, make, invalid_domain, _},
-        exmpp_jid:list_to_jid(?FJ2_S_BAD1)
+        {jid, make, invalid, _},
+        exmpp_jid:parse_jid(?FJ2_S_BAD1)
       ),
       ?_assertThrow(
-        {jid, make, invalid_resource, _},
-        exmpp_jid:list_to_jid(?FJ2_S_BAD2)
+        {jid, make, invalid, _},
+        exmpp_jid:parse_jid(?FJ2_S_BAD2)
       ),
       ?_assertThrow(
-        {jid, make, invalid_node, _},
-        exmpp_jid:list_to_jid(?BJ1_S_BAD1)
+        {jid, make, invalid, _},
+        exmpp_jid:parse_jid(?BJ1_S_BAD1)
       ),
       ?_assertThrow(
-        {jid, make, invalid_domain, _},
-        exmpp_jid:list_to_jid(?BJ1_S_BAD2)
+        {jid, make, invalid, _},
+        exmpp_jid:parse_jid(?BJ1_S_BAD2)
       ),
       ?_assertThrow(
-        {jid, make, invalid_domain, _},
-        exmpp_jid:list_to_jid(?BJ2_S_BAD1)
+        {jid, make, invalid, _},
+        exmpp_jid:parse_jid(?BJ2_S_BAD1)
       )
     ],
     TestsBinaryParsing = [
       ?_assertThrow(
-        {jid, make, invalid_node, _},
-        exmpp_jid:binary_to_jid(list_to_binary(?FJ1_S_BAD1))
+        {jid, make, invalid, _},
+        exmpp_jid:parse_jid(list_to_binary(?FJ1_S_BAD1))
       ),
       ?_assertThrow(
-        {jid, make, invalid_domain, _},
-        exmpp_jid:binary_to_jid(list_to_binary(?FJ1_S_BAD2))
+        {jid, make, invalid, _},
+        exmpp_jid:parse_jid(list_to_binary(?FJ1_S_BAD2))
       ),
       ?_assertThrow(
-        {jid, make, invalid_resource, _},
-        exmpp_jid:binary_to_jid(list_to_binary(?FJ1_S_BAD3))
+        {jid, make, invalid, _},
+        exmpp_jid:parse_jid(list_to_binary(?FJ1_S_BAD3))
       ),
       ?_assertThrow(
-        {jid, make, invalid_domain, _},
-        exmpp_jid:binary_to_jid(list_to_binary(?FJ2_S_BAD1))
+        {jid, make, invalid, _},
+        exmpp_jid:parse_jid(list_to_binary(?FJ2_S_BAD1))
       ),
       ?_assertThrow(
-        {jid, make, invalid_resource, _},
-        exmpp_jid:binary_to_jid(list_to_binary(?FJ2_S_BAD2))
+        {jid, make, invalid, _},
+        exmpp_jid:parse_jid(list_to_binary(?FJ2_S_BAD2))
       ),
       ?_assertThrow(
-        {jid, make, invalid_node, _},
-        exmpp_jid:binary_to_jid(list_to_binary(?BJ1_S_BAD1))
+        {jid, make, invalid, _},
+        exmpp_jid:parse_jid(list_to_binary(?BJ1_S_BAD1))
       ),
       ?_assertThrow(
-        {jid, make, invalid_domain, _},
-        exmpp_jid:binary_to_jid(list_to_binary(?BJ1_S_BAD2))
+        {jid, make, invalid, _},
+        exmpp_jid:parse_jid(list_to_binary(?BJ1_S_BAD2))
       ),
       ?_assertThrow(
-        {jid, make, invalid_domain, _},
-        exmpp_jid:binary_to_jid(list_to_binary(?BJ2_S_BAD1))
+        {jid, make, invalid, _},
+        exmpp_jid:parse_jid(list_to_binary(?BJ2_S_BAD1))
       )
     ],
     {setup, ?SETUP, ?CLEANUP, Tests ++ TestsBinaryParsing}.
 
 good_jid_creation_test_() ->
     Tests = [
-      ?_assertMatch(?FJ1, exmpp_jid:list_to_jid(?FJ1_S)),
-      ?_assertMatch(?FJ2, exmpp_jid:list_to_jid(?FJ2_S)),
-      ?_assertMatch(?BJ1, exmpp_jid:list_to_jid(?BJ1_S)),
-      ?_assertMatch(?BJ2, exmpp_jid:list_to_jid(?BJ2_S))
-    ],
-    {setup, ?SETUP, ?CLEANUP, Tests}.
-
-bare_jid_creation_with_bad_chars_test_() ->
-    Tests = [
-      ?_assertThrow(
-        {jid, make, invalid_node, _},
-        exmpp_jid:list_to_bare_jid(?FJ1_S_BAD1)
-      ),
-      ?_assertThrow(
-        {jid, make, invalid_domain, _},
-        exmpp_jid:list_to_bare_jid(?FJ1_S_BAD2)
-      ),
-      ?_assertMatch(?BJ1, exmpp_jid:list_to_bare_jid(?FJ1_S_BAD3)),
-      ?_assertThrow(
-        {jid, make, invalid_domain, _},
-        exmpp_jid:list_to_bare_jid(?FJ2_S_BAD1)
-      ),
-      ?_assertMatch(?BJ2, exmpp_jid:list_to_bare_jid(?FJ2_S_BAD2)),
-      ?_assertThrow(
-        {jid, make, invalid_node, _},
-        exmpp_jid:list_to_bare_jid(?BJ1_S_BAD1)
-      ),
-      ?_assertThrow(
-        {jid, make, invalid_domain, _},
-        exmpp_jid:list_to_bare_jid(?BJ1_S_BAD2)
-      ),
-      ?_assertThrow(
-        {jid, make, invalid_domain, _},
-        exmpp_jid:list_to_bare_jid(?BJ2_S_BAD1)
-      )
+      ?_assertMatch(?FJ1, exmpp_jid:parse_jid(?FJ1_S)),
+      ?_assertMatch(?FJ2, exmpp_jid:parse_jid(?FJ2_S)),
+      ?_assertMatch(?BJ1, exmpp_jid:parse_jid(?BJ1_S)),
+      ?_assertMatch(?BJ2, exmpp_jid:parse_jid(?BJ2_S))
     ],
     {setup, ?SETUP, ?CLEANUP, Tests}.
 
@@ -427,38 +383,39 @@ bare_jid_conversion_test_() ->
     {setup, ?SETUP, ?CLEANUP, Tests}.
 
 bare_jid_conversion_with_bad_resource_test_() ->
+    Resource_TL = string:chars($r, 1024),
     Tests = [
       ?_assertThrow(
-        {jid, convert, invalid_resource, _},
+        {jid, convert, invalid, _},
         exmpp_jid:bare_jid_to_jid(?FJ1, ?RES_BAD)
       ),
       ?_assertThrow(
-        {jid, convert, resource_too_long, _},
-        exmpp_jid:bare_jid_to_jid(?FJ1, ?RESOURCE_TOO_LONG)
+        {jid, convert, too_long, _},
+        exmpp_jid:bare_jid_to_jid(?FJ1, Resource_TL)
       ),
       ?_assertThrow(
-        {jid, convert, invalid_resource, _},
+        {jid, convert, invalid, _},
         exmpp_jid:bare_jid_to_jid(?BJ1, ?RES_BAD)
       ),
       ?_assertThrow(
-        {jid, convert, resource_too_long, _},
-        exmpp_jid:bare_jid_to_jid(?BJ1, ?RESOURCE_TOO_LONG)
+        {jid, convert, too_long, _},
+        exmpp_jid:bare_jid_to_jid(?BJ1, Resource_TL)
       ),
       ?_assertThrow(
-        {jid, convert, invalid_resource, _},
+        {jid, convert, invalid, _},
         exmpp_jid:bare_jid_to_jid(?FJ2, ?RES_BAD)
       ),
       ?_assertThrow(
-        {jid, convert, resource_too_long, _},
-        exmpp_jid:bare_jid_to_jid(?FJ2, ?RESOURCE_TOO_LONG)
+        {jid, convert, too_long, _},
+        exmpp_jid:bare_jid_to_jid(?FJ2, Resource_TL)
       ),
       ?_assertThrow(
-        {jid, convert, invalid_resource, _},
+        {jid, convert, invalid, _},
         exmpp_jid:bare_jid_to_jid(?BJ2, ?RES_BAD)
       ),
       ?_assertThrow(
-        {jid, convert, resource_too_long, _},
-        exmpp_jid:bare_jid_to_jid(?BJ2, ?RESOURCE_TOO_LONG)
+        {jid, convert, too_long, _},
+        exmpp_jid:bare_jid_to_jid(?BJ2, Resource_TL)
       )
     ],
     {setup, ?SETUP, ?CLEANUP, Tests}.

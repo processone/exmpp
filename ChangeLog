@@ -18,6 +18,21 @@
 	  o  get_attribute_from_list_as_binary/{3,4} and
 	     get_attribute_as_binary/{3,4} will always return a binary().
 
+	* src/core/exmpp_jid.erl: When parsing a JID, the caller doesn't have
+	to care if it's a binary() or a string(). Thus, the parsing API is
+	changed to provide a single entry point:
+	  o  parse_jid/1 accepts both binary() and string() input.
+	  o  list_to_jid/1 and binary_to_jid/1 are removed.
+	At the same time, simplify exception thrown.  Remove support for bare
+	JID parsing. Remove make_bare_jid/{1,2} because make_jid/{1,2} provide
+	the same thing.
+
+	* src/compat/jlib.erl, src/core/exmpp_stanza.erl,
+	src/client/exmpp_client_binding.erl: Update to use
+	exmpp_jid:parse_jid/1.
+
+	* testsuite/jid.erl: The test works again.
+
 2009-01-13  Pablo Polvorin  <pablo.polvorin@process-one.net>
 
 	* src/core/exmpp_xml.erl: Use exmpp_known_elems:elem_as_list/1 in
