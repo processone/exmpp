@@ -24,6 +24,8 @@ BUILT_SOURCES = exmpp_known_nss.hrl					\
 
 CLEANFILES = $(BUILT_SOURCES)
 
+noinst_HEADERS = exmpp_xmpp.hrl
+
 # --------------------------------------------------------------------
 # Known namespaces/names/attributes headers generation.
 # --------------------------------------------------------------------

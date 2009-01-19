@@ -1,3 +1,11 @@
+2009-01-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* include/exmpp_xmpp.hrl, include/internal/exmpp_xmpp.hrl,
+	include/internal/Makefile.am: Definition of #jid is moved to an
+	internal header.
+
+	* src/core/exmpp_jid.erl: Include internal/exmpp_xml.hrl.
+
 2009-01-14  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_stringprep.erl (control_reuse_arg/2): Treat errors

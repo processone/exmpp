@@ -10,6 +10,7 @@
 -vsn('$Revision$').
 
 -include("exmpp.hrl").
+-include("internal/exmpp_xmpp.hrl").
 
 % Conversion.
 -export([

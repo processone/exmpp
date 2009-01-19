@@ -4,16 +4,6 @@
 % Records to represent XMPP/Jabber specific structures.
 % --------------------------------------------------------------------
 
-% JID.
--record(jid, {
-  node,
-  domain,
-  resource,
-  lnode,
-  ldomain,
-  lresource
-}).
-
 % IQ stanza.
 -record(iq, {
   kind,    % 'request' or 'response'.
