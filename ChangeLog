@@ -16,6 +16,13 @@
 	calls by exmpp_xml:get_attribute*_as_list/3 to be sure nothing was
 	broken by the API changes.
 
+	* src/core/exmpp_xml.erl: Replace make_attribute/{1,2} by
+	attribute/{2,3} to handle the value. These new functions are now used
+	through the module instead of direct #xmlattr creation. Rename
+	make_element/{1,2} to element/{1,2} and add element/4. Like
+	attribute/{2,3}, cdata/1 is now used instead of direct #xmlcdata
+	creation.
+
 2009-01-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp_xmpp.hrl, include/internal/exmpp_xmpp.hrl,

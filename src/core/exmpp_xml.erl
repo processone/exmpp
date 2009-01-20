@@ -77,8 +77,8 @@
 -export([
   attribute_matches/2,
   attribute_matches/3,
-  make_attribute/1,
-  make_attribute/2,
+  attribute/2,
+  attribute/3,
   get_attribute_node_from_list/2,
   get_attribute_node_from_list/3,
   get_attribute_node/2,
@@ -119,8 +119,9 @@
   element_matches/2,
   element_matches/3,
   element_matches_by_ns/2,
-  make_element/1,
-  make_element/2,
+  element/1,
+  element/2,
+  element/4,
   get_element/2,
   get_element/3,
   get_elements/3,
@@ -727,6 +728,48 @@ as_atom(V) when is_list(V) -> list_to_atom(V).
 % This is similar to the DOM interface but NOT compliant.
 % --------------------------------------------------------------------
 
+%% @spec (Name, Value) -> Attr
+%%     Name = atom() | string()
+%%     Value = binary() | string() | atom() | integer()
+%%     Attr = xmlnsattribute()
+%% @doc Create an XML attribute with the name `Name'.
+%%
+%% This is almost the same as:
+%% ```
+%% Attr = #xmlattr{name = Name, value = Value}.
+%% '''
+
+attribute(Name, Value) ->
+    set_attr_value(#xmlattr{name = Name}, Value).
+
+set_attr_value(Attr, Value) when is_atom(Value) ->
+    set_attr_value(Attr, atom_to_list(Value));
+set_attr_value(Attr, Value) when is_integer(Value) ->
+    set_attr_value(Attr, integer_to_list(Value));
+
+set_attr_value(#xmlattr{} = Attr, Value) when is_list(Value) ->
+    set_attr_value(Attr, list_to_binary(Value));
+set_attr_value(#xmlattr{} = Attr, Value) when is_binary(Value) ->
+    Attr#xmlattr{value = Value};
+
+set_attr_value({Name, _}, Value) when is_list(Value) ->
+    {Name, Value}.
+
+%% @spec (NS, Name, Value) -> Attr
+%%     NS = atom() | string() | undefined
+%%     Name = atom() | string()
+%%     Value = binary() | string() | atom() | integer()
+%%     Attr = xmlnsattribute()
+%% @doc Create an XML attribute with the name `Name' in the namespace `NS'.
+%%
+%% This is almost the same as:
+%% ```
+%% Attr = #xmlattr{ns = NS, name = Name, value = Value}.
+%% '''
+
+attribute(NS, Name, Value) ->
+    set_attr_value(#xmlattr{ns = NS, name = Name}, Value).
+
 %% @spec (Attr, Name) -> bool()
 %%     Attr = xmlnsattribute() | xmlattribute()
 %%     Name = atom() | string()
@@ -790,33 +833,6 @@ attribute_matches(#xmlattr{ns = NS, name = Name}, NS, Name_A)
 
 attribute_matches(_Attr, _NS, _Name) ->
     false.
-
-%% @spec (Name) -> Attr
-%%     Name = atom() | string()
-%%     Attr = xmlnsattribute()
-%% @doc Create an XML attribute with the name `Name'.
-%%
-%% This is the same as:
-%% ```
-%% Attr = #xmlattr{name = Name}.
-%% '''
-
-make_attribute(Name) ->
-    #xmlattr{name = Name}.
-
-%% @spec (NS, Name) -> Attr
-%%     NS = atom() | string() | undefined
-%%     Name = atom() | string()
-%%     Attr = xmlnsattribute()
-%% @doc Create an XML attribute with the name `Name' in the namespace `NS'.
-%%
-%% This is the same as:
-%% ```
-%% Attr = #xmlattr{ns = NS, name = Name}.
-%% '''
-
-make_attribute(NS, Name) ->
-    #xmlattr{ns = NS, name = Name}.
 
 %% @spec (Attrs, Attr_Name) -> Attr | undefined
 %%     Attrs = [xmlnsattribute() | xmlattribute()]
@@ -1159,7 +1175,7 @@ has_attribute(undefined, _NS, _Name) ->
 %%     Attrs = [xmlnsattribute() | xmlattribute()]
 %%     Attr = xmlnsattribute() | xmlattribute()
 %%     Attr_Name = atom() | string()
-%%     Attr_Value = string() | atom() | integer()
+%%     Attr_Value = binary() | string() | atom() | integer()
 %%     New_Attrs = [xmlnsattribute() | xmlattribute()]
 %% @doc Add a new attribute or change the value of an existing attribute
 %% with the same name.
@@ -1194,7 +1210,7 @@ set_attribute_in_list2([], New_Attr, New_Attrs) ->
 %% @spec (Attrs, Attr_Name, Attr_Value) -> New_Attrs
 %%     Attrs = [xmlnsattribute() | xmlattribute()]
 %%     Attr_Name = atom() | string()
-%%     Attr_Value = string() | atom() | integer()
+%%     Attr_Value = binary() | string() | atom() | integer()
 %%     New_Attrs = [xmlnsattribute() | xmlattribute()]
 %% @doc Add a new attribute or change the value of an existing attribute
 %% with the same name.
@@ -1203,23 +1219,13 @@ set_attribute_in_list2([], New_Attr, New_Attrs) ->
 %% xmlnsattribute()} record if it can't determine the type from the
 %% other attributes.
 
-set_attribute_in_list(Attrs, Name, Value) when is_atom(Value) ->
-    set_attribute_in_list(Attrs, Name, list_to_binary(atom_to_list(Value)));
-set_attribute_in_list(Attrs, Name, Value) when is_integer(Value) ->
-    set_attribute_in_list(Attrs, Name, list_to_binary(integer_to_list(Value)));
-set_attribute_in_list(Attrs, Name, Value) when is_list(Value) ->
-    set_attribute_in_list(Attrs, Name, list_to_binary(Value));
-
-set_attribute_in_list(Attrs, Name, Value) when is_binary(Value)->
+set_attribute_in_list(Attrs, Name, Value) ->
     set_attribute_in_list2(Attrs, Name, Value, []).
 
 set_attribute_in_list2([Attr | Rest], Name, Value, New_Attrs) ->
     case attribute_matches(Attr, Name) of
-        true when is_record(Attr, xmlattr) ->
-            New_Attr = Attr#xmlattr{value = Value},
-            New_Attrs ++ [New_Attr] ++ Rest;
-        true when is_tuple(Attr), size(Attr) == 2 ->
-            New_Attr = {Name, binary_to_list(Value)},
+        true ->
+            New_Attr = set_attr_value(Attr, Value),
             New_Attrs ++ [New_Attr] ++ Rest;
         false ->
             set_attribute_in_list2(Rest, Name, Value,
@@ -1228,11 +1234,11 @@ set_attribute_in_list2([Attr | Rest], Name, Value, New_Attrs) ->
 set_attribute_in_list2([], Name, Value, New_Attrs) ->
     New_Attr = case New_Attrs of
         [#xmlattr{} | _] ->
-            #xmlattr{name = Name, value = Value};
+            attribute(Name, Value);
         [{_, _} | _] ->
-            {Name, binary_to_list(Value)};
+            set_attr_value({Name, undefined}, Value);
         _ ->
-            #xmlattr{name = Name, value = Value}
+            attribute(Name, Value)
     end,
     New_Attrs ++ [New_Attr].
 
@@ -1240,7 +1246,7 @@ set_attribute_in_list2([], Name, Value, New_Attrs) ->
 %%     Attrs = [xmlnsattribute()]
 %%     NS = atom() | string()
 %%     Attr_Name = atom() | string()
-%%     Attr_Value = string() | atom() | integer()
+%%     Attr_Value = binary() | string() | atom() | integer()
 %%     New_Attrs = [xmlnsattribute()]
 %% @doc Add a new attribute or change the value of an existing attribute
 %% with the same name and the `NS' namespace URI.
@@ -1248,26 +1254,19 @@ set_attribute_in_list2([], Name, Value, New_Attrs) ->
 %% If the attribute is to be added, this function use the {@link
 %% xmlnsattribute()} record.
 
-set_attribute_in_list(Attrs, NS, Name, Value) when is_atom(Value) ->
-    set_attribute_in_list(Attrs, NS, Name, atom_to_list(Value));
-set_attribute_in_list(Attrs, NS, Name, Value) when is_integer(Value) ->
-    set_attribute_in_list(Attrs, NS, Name, integer_to_list(Value));
-set_attribute_in_list(Attrs, NS, Name, Value) when list(Value) ->
-    set_attribute_in_list(Attrs, NS, Name, list_to_binary(Value));
-
-set_attribute_in_list(Attrs, NS, Name, Value) when is_binary(Value) ->
+set_attribute_in_list(Attrs, NS, Name, Value) ->
     set_attribute_in_list2(Attrs, NS, Name, Value, []).
 
 set_attribute_in_list2([Attr | Rest], NS, Name, Value, New_Attrs) ->
     case attribute_matches(Attr, NS, Name) of
-        true when is_record(Attr, xmlattr) ->
-            New_Attr = Attr#xmlattr{value = Value},
+        true ->
+            New_Attr = set_attr_value(Attr, Value),
             New_Attrs ++ [New_Attr] ++ Rest;
         false ->
             set_attribute_in_list2(Rest, NS, Name, Value, New_Attrs ++ [Attr])
     end;
 set_attribute_in_list2([], NS, Name, Value, New_Attrs) ->
-    New_Attrs ++ [#xmlattr{ns = NS, name = Name, value = Value}].
+    New_Attrs ++ [attribute(NS, Name, Value)].
 
 %% @spec (XML_Element, Attr) -> New_XML_Element
 %%     XML_Element = xmlel() | xmlelement()
@@ -1289,88 +1288,69 @@ set_attribute(#xmlelement{attrs = Attrs} = XML_Element, Attr) ->
 %% @spec (XML_Element, Attr_Name, Attr_Value) -> New_XML_Element
 %%     XML_Element = xmlel() | xmlelement()
 %%     Attr_Name = atom() | string()
-%%     Attr_Value = string() | atom() | integer()
+%%     Attr_Value = binary() | string() | atom() | integer()
 %%     New_XML_Element = xmlel() | xmlelement()
 %% @doc Add a new attribute or change the value of an existing attribute.
 
-set_attribute(XML_Element, Name, Value) when is_atom(Value) ->
-    set_attribute(XML_Element, Name, list_to_binary(atom_to_list(Value)));
-set_attribute(XML_Element, Name, Value) when is_integer(Value) ->
-    set_attribute(XML_Element, Name, list_to_binary(integer_to_list(Value)));
-set_attribute(XML_Element, Name, Value) when is_list(Value) ->
-    set_attribute(XML_Element, Name, list_to_binary(Value));
-
-set_attribute(#xmlel{attrs = Attrs} = XML_Element, Name, Value)
-  when is_binary(Value)->
+set_attribute(#xmlel{attrs = Attrs} = XML_Element, Name, Value) ->
     New_Attrs = set_attribute_ns2(Attrs, Name, Value, []),
     XML_Element#xmlel{attrs = New_Attrs};
-
 set_attribute(#xmlelement{attrs = Attrs} = XML_Element, Name, Value) ->
     New_Attrs = set_attribute2(Attrs, Name, Value, []),
     XML_Element#xmlelement{attrs = New_Attrs}.
 
 set_attribute_ns2([Attr | Rest], Name, Value, New_Attrs) ->
     case attribute_matches(Attr, Name) of
-        true when is_record(Attr, xmlattr) ->
-            New_Attr = Attr#xmlattr{value = Value},
+        true ->
+            New_Attr = set_attr_value(Attr, Value),
             New_Attrs ++ [New_Attr] ++ Rest;
         false ->
             set_attribute_ns2(Rest, Name, Value, New_Attrs ++ [Attr])
     end;
 set_attribute_ns2([], Name, Value, New_Attrs) ->
-    New_Attrs ++ [#xmlattr{name = Name, value = Value}].
+    New_Attrs ++ [attribute(Name, Value)].
 
 set_attribute2([Attr | Rest], Name, Value, New_Attrs) ->
     case attribute_matches(Attr, Name) of
-        true when is_tuple(Attr), size(Attr) == 2 ->
-            New_Attr = {Name, binary_to_list(Value)},
+        true ->
+            New_Attr = set_attr_value(Attr, Value),
             New_Attrs ++ [New_Attr] ++ Rest;
         false ->
             set_attribute2(Rest, Name, Value, New_Attrs ++ [Attr])
     end;
 set_attribute2([], Name, Value, New_Attrs) ->
-    New_Attrs ++ [{Name, binary_to_list(Value)}].
+    New_Attrs ++ [set_attr_value({Name, undefined}, Value)].
 
 %% @spec (XML_Element, NS, Attr_Name, Attr_Value) -> New_XML_Element
 %%     XML_Element = xmlel() | xmlelement()
 %%     NS = atom() | string()
 %%     Attr_Name = atom() | string()
-%%     Attr_Value = string() | atom() | integer()
+%%     Attr_Value = binary() | string() | atom() | integer()
 %%     New_XML_Element = xmlel() | xmlelement()
 %% @doc Add a new attribute or change the value of an existing attribute
 %% with the same name and the `NS' namespace URI.
 
-set_attribute(XML_Element, NS, Name, Value) when is_atom(Value) ->
-    set_attribute(XML_Element, NS, Name,
-      list_to_binary(atom_to_list(Value)));
-set_attribute(XML_Element, NS, Name, Value) when is_integer(Value) ->
-    set_attribute(XML_Element, NS, Name,
-      list_to_binary(integer_to_list(Value)));
-set_attribute(XML_Element, NS, Name, Value) when is_list(Value) ->
-    set_attribute(XML_Element, NS, Name, list_to_binary(Value));
-
-set_attribute(#xmlel{attrs = Attrs} = XML_Element, NS, Name, Value) 
-  when is_binary(Value)->
+set_attribute(#xmlel{attrs = Attrs} = XML_Element, NS, Name, Value) ->
     New_Attrs = set_attribute_ns2(Attrs, NS, Name, Value, []),
     XML_Element#xmlel{attrs = New_Attrs}.
 
 set_attribute_ns2([Attr | Rest], NS, Name, Value, New_Attrs) ->
     case attribute_matches(Attr, NS, Name) of
-        true when is_record(Attr, xmlattr) ->
-            New_Attr = Attr#xmlattr{value = Value},
+        true ->
+            New_Attr = set_attr_value(Attr, Value),
             New_Attrs ++ [New_Attr] ++ Rest;
         false ->
             set_attribute_ns2(Rest, NS, Name, Value, New_Attrs ++ [Attr])
     end;
 set_attribute_ns2([], NS, Name, Value, New_Attrs) ->
-    New_Attrs ++ [#xmlattr{ns = NS, name = Name, value = Value}].
+    New_Attrs ++ [attribute(NS, Name, Value)].
 
 %% @spec (XML_Element, Attrs_Spec) -> New_XML_Element
 %%     XML_Element = xmlel() | xmlelement()
 %%     Attrs_Spec = [{Name, Value} | {NS, Name, Value} | xmlattribute() | xmlnsattribute()]
 %%       NS = atom() | string()
 %%       Name = atom() | string()
-%%       Value = string()
+%%       Value = binary() | string() | atom() | integer()
 %%     New_XML_Element = xmlel() | xmlelement()
 %% @doc Set multiple attributes at a time.
 %%
@@ -1478,6 +1458,52 @@ remove_attribute(#xmlel{attrs = Attrs} = XML_Element, NS, Name) ->
 % This is similar to the DOM interface but NOT compliant.
 % --------------------------------------------------------------------
 
+%% @spec (Name) -> XML_Element
+%%     Name = atom() | string()
+%%     XML_Element = xmlel()
+%% @doc Create an XML element with the name `Name' but no namespace.
+%%
+%% Caution: be sure you do not want to set a namespace: it won't be
+%% inherited from the parent node!
+%%
+%% This is the same as:
+%% ```
+%% XML_Element = #xmlel{name = Name}.
+%% '''
+
+element(Name) ->
+    #xmlel{name = Name}.
+
+%% @spec (NS, Name) -> XML_Element
+%%     NS = atom() | string() | undefined
+%%     Name = atom() | string()
+%%     XML_Element = xmlel()
+%% @doc Create an XML element with the name `Name' in the namespace `NS'.
+%%
+%% This is the same as:
+%% ```
+%% XML_Element = #xmlel{ns = NS, name = Name}.
+%% '''
+
+element(NS, Name) ->
+    #xmlel{ns = NS, name = Name}.
+
+%% @spec (NS, Name, Attrs, Children) -> XML_Element
+%%     NS = atom() | string() | undefined
+%%     Name = atom() | string()
+%%     Attrs = [xmlnsattribute()]
+%%     Children = [xmlcdata()]
+%%     XML_Element = xmlel()
+%% @doc Create an XML element with the name `Name' in the namespace `NS'.
+%%
+%% This is the same as:
+%% ```
+%% XML_Element = #xmlel{ns = NS, name = Name}.
+%% '''
+
+element(NS, Name, Attrs, Children) ->
+    #xmlel{ns = NS, name = Name, attrs = Attrs, children = Children}.
+
 %% @spec (XML_Element) -> Name
 %%     XML_Element = xmlel() | xmlelement()
 %%     Name = list()
@@ -1583,33 +1609,6 @@ element_matches_by_ns(#xmlel{ns = NS}, NS_A)
 
 element_matches_by_ns(_XML_Element, _NS) ->
     false.
-
-%% @spec (Name) -> XML_Element
-%%     Name = atom() | string()
-%%     XML_Element = xmlel()
-%% @doc Create an XML element with the name `Name' but no namespace.
-%%
-%% This is the same as:
-%% ```
-%% XML_Element = #xmlel{name = Name}.
-%% '''
-
-make_element(Name) ->
-    #xmlel{name = Name}.
-
-%% @spec (NS, Name) -> XML_Element
-%%     NS = atom() | string() | undefined
-%%     Name = atom() | string()
-%%     XML_Element = xmlel()
-%% @doc Create an XML element with the name `Name' in the namespace `NS'.
-%%
-%% This is the same as:
-%% ```
-%% XML_Element = #xmlel{ns = NS, name = Name}.
-%% '''
-
-make_element(NS, Name) ->
-    #xmlel{ns = NS, name = Name}.
 
 %% @spec (XML_Element, Name) -> XML_Subelement | undefined
 %%     XML_Element = xmlel() | xmlelement() | undefined
@@ -2196,20 +2195,20 @@ map2(_Fun, _XML_Element, []) ->
 % This is similar to the DOM interface but NOT compliant.
 % --------------------------------------------------------------------
 
-
 %% @spec (Value) -> CData
 %%     Value = binary() | string() | atom() | integer()
 %%     CData = xmlcdata()
 %% @doc Create a CData node from a value.
+
 cdata(CData) when is_atom(CData) ->
     cdata(atom_to_list(CData));
 cdata(CData) when is_integer(CData) ->
     cdata(integer_to_list(CData));
 cdata(CData) when is_list(CData) ->
     cdata(list_to_binary(CData));
+
 cdata(CData) when is_binary(CData) ->
     #xmlcdata{cdata = CData}.
-
 
 %% @spec (Children) -> CData
 %%     Children = [xmlel() | xmlelement() | xmlcdata()] | undefined
@@ -2292,7 +2291,7 @@ normalize_cdata_in_list2([#xmlcdata{cdata = CData} | Rest], Current_CDatas,
 normalize_cdata_in_list2([XML_Node | Rest], Current_CDatas, New_Children) ->
     New_Children1 = case list_to_binary(lists:reverse(Current_CDatas)) of
         <<>>  -> [XML_Node | New_Children];
-        CData -> [XML_Node, #xmlcdata{cdata = CData} | New_Children]
+        CData -> [XML_Node, cdata(CData) | New_Children]
     end,
     normalize_cdata_in_list2(Rest, [], New_Children1).
 
@@ -2320,21 +2319,11 @@ normalize_cdata(#xmlelement{children = Children} = XML_Element) ->
 %%
 %% The new `CData' is placed at the end of the children list.
 
-set_cdata_in_list(Children, CData) when is_atom(CData) ->
-    set_cdata_in_list(Children, atom_to_list(CData));
-set_cdata_in_list(Children, CData) when is_integer(CData) ->
-    set_cdata_in_list(Children, integer_to_list(CData));
-
-set_cdata_in_list(undefined, CData) when is_list(CData) ->
-    [#xmlcdata{cdata = list_to_binary(CData)}];
 set_cdata_in_list(undefined, CData) ->
-    [#xmlcdata{cdata = CData}];
-set_cdata_in_list(Children, CData) when is_list(CData) ->
-    Purged_Children = remove_cdata_from_list(Children),
-    Purged_Children ++ [#xmlcdata{cdata = list_to_binary(CData)}];
+    [cdata(CData)];
 set_cdata_in_list(Children, CData) ->
     Purged_Children = remove_cdata_from_list(Children),
-    Purged_Children ++ [#xmlcdata{cdata = CData}].
+    Purged_Children ++ [cdata(CData)].
 
 %% @spec (XML_Element, CData) -> New_XML_Element
 %%     XML_Element = xmlel() | xmlelement()
@@ -2750,8 +2739,8 @@ forward_declare_ns(Curr_NS, [{NS, none} | Rest],
   Attrs, Default_NS, Prefixed_NS) ->
     % Forward-declare a default namespace.
     % XXX This would benefit the addition of exmpp_known_*:*_as_binary/1.
-    NS_B = list_to_binary(exmpp_known_nss:ns_as_list(NS)),
-    NS_Decl = #xmlattr{name = "xmlns", value = NS_B},
+    NS_S = exmpp_known_nss:ns_as_list(NS),
+    NS_Decl = attribute("xmlns", NS_S),
     New_Attrs = [NS_Decl | Attrs],
     New_Default_NS = [NS | Default_NS],
     forward_declare_ns(Curr_NS, Rest, New_Attrs, New_Default_NS, Prefixed_NS);
@@ -2767,8 +2756,8 @@ forward_declare_ns(Curr_NS, [{NS, Prefix} = PNS | Rest],
             % Forward-declare a prefixed namespace.
             % XXX This would benefit the addition of
             % exmpp_known_*:*_as_binary/1.
-            NS_B = list_to_binary(exmpp_known_nss:ns_as_list(NS)),
-            NS_Decl = #xmlattr{name = "xmlns:" ++ Prefix, value = NS_B},
+            NS_S = exmpp_known_nss:ns_as_list(NS),
+            NS_Decl = attribute("xmlns:" ++ Prefix, NS_S),
             New_Attrs = [NS_Decl | Attrs],
             Prefixed_NS1 = [PNS | Prefixed_NS],
             forward_declare_ns(Curr_NS, Rest, New_Attrs,
@@ -2790,9 +2779,8 @@ forward_declare_ns(Curr_NS, [], Attrs, Default_NS, Prefixed_NS) ->
                     % the new default one.
                     % XXX This would benefit the addition of
                     % exmpp_known_*:*_as_binary/1.
-                    Curr_NS_B = list_to_binary(exmpp_known_nss:ns_as_list(
-                        Curr_NS)),
-                    NS_Decl = #xmlattr{name = "xmlns", value = Curr_NS_B},
+                    Curr_NS_S = exmpp_known_nss:ns_as_list(Curr_NS),
+                    NS_Decl = attribute("xmlns", Curr_NS_S),
                     New_Attrs = [NS_Decl | Attrs],
                     Default_NS1 = [Curr_NS | Default_NS],
                     {none, New_Attrs, Default_NS1, Prefixed_NS};
@@ -3007,26 +2995,14 @@ xmlattributes_to_xmlnsattributes([{Name, Value} | Rest],
             case search_prefix_in_prefixed_ns(Prefix, Prefixed_NS) of
                 undefined ->
                     % Namespace never declared.
-                    #xmlattr{
-                      ns = undefined,
-                      name = Real_Name_A,
-                      value = list_to_binary(Value)
-                    };
+                    attribute(Real_Name_A, Value);
                 NS ->
-                    #xmlattr{
-                      ns = NS,
-                      name = Real_Name_A,
-                      value = list_to_binary(Value)
-                    }
+                    attribute(NS, Real_Name_A, Value)
             end;
         [Real_Name] ->
             % Not attached to any namespace.
             Real_Name_A = list_to_atom(Real_Name),
-            #xmlattr{
-              ns = undefined,
-              name = Real_Name_A,
-              value = list_to_binary(Value)
-            }
+            attribute(Real_Name_A, Value)
     end,
     xmlattributes_to_xmlnsattributes(Rest, Prefixed_NS,
       Converted_Attrs ++ [New_Attr]);
@@ -3221,7 +3197,7 @@ deindent_children2([Child | Rest], Result)
     New_Child = deindent_document(Child),
     deindent_children2(Rest, [New_Child | Result]);
 deindent_children2([#xmlcdata{cdata = CData} | Rest], Result) ->
-    New_Child = #xmlcdata{cdata = exmpp_utils:strip(CData)},
+    New_Child = cdata(exmpp_utils:strip(CData)),
     deindent_children2(Rest, [New_Child | Result]);
 deindent_children2([], Result) ->
     lists:reverse(Result).
@@ -3264,15 +3240,15 @@ indent_children(undefined, _Indent, _Previous_Total) ->
     undefined;
 indent_children(Children, Indent, Previous_Total) ->
     New_Previous_Total = list_to_binary([Previous_Total, Indent]),
-    Before = #xmlcdata{cdata = list_to_binary([<<"\n">>, New_Previous_Total])},
-    End = #xmlcdata{cdata = list_to_binary([<<"\n">>, Previous_Total])},
+    Before = cdata(list_to_binary([<<"\n">>, New_Previous_Total])),
+    End = cdata(list_to_binary([<<"\n">>, Previous_Total])),
     indent_children2(Children, Indent, New_Previous_Total, Before, End, []).
 
 indent_children2([], _Indent, _Previous_Total, _Before, _End, []) ->
     [];
 indent_children2([#xmlcdata{cdata = CData}], _Indent, _Previous_Total,
   _Before, _End, []) ->
-    [#xmlcdata{cdata = exmpp_utils:strip(CData)}];
+    [cdata(exmpp_utils:strip(CData))];
 indent_children2([Child | Rest], Indent, Previous_Total, Before, End, Result)
   when is_record(Child, xmlel); is_record(Child, xmlelement) ->
     New_Child = indent_document2(Child, Indent, Previous_Total),
@@ -3280,7 +3256,7 @@ indent_children2([Child | Rest], Indent, Previous_Total, Before, End, Result)
     indent_children2(Rest, Indent, Previous_Total, Before, End, New_Result);
 indent_children2([#xmlcdata{cdata = CData} | Rest], Indent, Previous_Total,
   Before, End, Result) ->
-    New_Child = #xmlcdata{cdata = exmpp_utils:strip(CData)},
+    New_Child = cdata(exmpp_utils:strip(CData)),
     New_Result = [New_Child, Before | Result],
     indent_children2(Rest, Indent, Previous_Total, Before, End, New_Result);
 indent_children2([], _Indent, _Previous_Total, _Before, End, Result) ->
