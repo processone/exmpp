@@ -1,3 +1,11 @@
+2009-01-20  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_xml.erl: When converting an XML element from #xmlel
+	to #xmlelement, the added xmlns attribute must have its value as
+	binary(), not string(); this was a bug. Also add a comment to note
+	that converting #xmlattr value to string() during document_to_iolist/1
+	is a waste of time in this context.
+
 2009-01-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp_xmpp.hrl, include/internal/exmpp_xmpp.hrl,

@@ -2686,6 +2686,10 @@ xmlnsattributes_to_xmlattributes2([#xmlattr{ns = NS, name = Name,
                     }
             end
     end,
+    % XXX The value is converted from binary() to list() because
+    % the old format required it. But this function is also used by
+    % document_to_iolist/1 & friends. In this context, the call to
+    % binary_to_list/1 is a waste of time.
     xmlnsattributes_to_xmlattributes2(Rest, Prefixed_NS1,
       [{New_Name, binary_to_list(Value)} | Converted_Attrs1]);
 xmlnsattributes_to_xmlattributes2([], Prefixed_NS, Converted_Attrs) ->
@@ -2745,8 +2749,9 @@ forward_declare_ns(undefined = Curr_NS, Declared_NS,
 forward_declare_ns(Curr_NS, [{NS, none} | Rest],
   Attrs, Default_NS, Prefixed_NS) ->
     % Forward-declare a default namespace.
-    NS_S = exmpp_known_nss:ns_as_list(NS),
-    NS_Decl = #xmlattr{name = "xmlns", value = NS_S},
+    % XXX This would benefit the addition of exmpp_known_*:*_as_binary/1.
+    NS_B = list_to_binary(exmpp_known_nss:ns_as_list(NS)),
+    NS_Decl = #xmlattr{name = "xmlns", value = NS_B},
     New_Attrs = [NS_Decl | Attrs],
     New_Default_NS = [NS | Default_NS],
     forward_declare_ns(Curr_NS, Rest, New_Attrs, New_Default_NS, Prefixed_NS);
@@ -2760,8 +2765,10 @@ forward_declare_ns(Curr_NS, [{NS, Prefix} = PNS | Rest],
               Default_NS, Prefixed_NS);
         _ ->
             % Forward-declare a prefixed namespace.
-            NS_S = exmpp_known_nss:ns_as_list(NS),
-            NS_Decl = #xmlattr{name = "xmlns:" ++ Prefix, value = NS_S},
+            % XXX This would benefit the addition of
+            % exmpp_known_*:*_as_binary/1.
+            NS_B = list_to_binary(exmpp_known_nss:ns_as_list(NS)),
+            NS_Decl = #xmlattr{name = "xmlns:" ++ Prefix, value = NS_B},
             New_Attrs = [NS_Decl | Attrs],
             Prefixed_NS1 = [PNS | Prefixed_NS],
             forward_declare_ns(Curr_NS, Rest, New_Attrs,
@@ -2781,8 +2788,11 @@ forward_declare_ns(Curr_NS, [], Attrs, Default_NS, Prefixed_NS) ->
                 undefined ->
                     % This element uses a new namespace: it'll become
                     % the new default one.
-                    Curr_NS_S = exmpp_known_nss:ns_as_list(Curr_NS),
-                    NS_Decl = #xmlattr{name = "xmlns", value = Curr_NS_S},
+                    % XXX This would benefit the addition of
+                    % exmpp_known_*:*_as_binary/1.
+                    Curr_NS_B = list_to_binary(exmpp_known_nss:ns_as_list(
+                        Curr_NS)),
+                    NS_Decl = #xmlattr{name = "xmlns", value = Curr_NS_B},
                     New_Attrs = [NS_Decl | Attrs],
                     Default_NS1 = [Curr_NS | Default_NS],
                     {none, New_Attrs, Default_NS1, Prefixed_NS};
