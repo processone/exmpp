@@ -6,6 +6,9 @@
 	that converting #xmlattr value to string() during document_to_iolist/1
 	is a waste of time in this context.
 
+	* src/compat/xml.erl: Use exmpp_xml:get_attribute*_as_list/3 because
+	the xml module always returned string().
+
 2009-01-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp_xmpp.hrl, include/internal/exmpp_xmpp.hrl,
