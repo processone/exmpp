@@ -23,6 +23,10 @@
 	attribute/{2,3}, cdata/1 is now used instead of direct #xmlcdata
 	creation.
 
+	* include/exmpp_xml.hrl: Add macros to ease calls to
+	exmpp_xml:attribute/2, exmpp_xml:element/{1,2,4} and
+	exmpp_xml:cdata/1.
+
 2009-01-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp_xmpp.hrl, include/internal/exmpp_xmpp.hrl,
