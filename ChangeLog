@@ -9,6 +9,9 @@
 	* src/compat/xml.erl: Use exmpp_xml:get_attribute*_as_list/3 because
 	the xml module always returned string().
 
+	* src/server/exmpp_server_sasl.erl: Document that mechanism names are
+	accepted as binary() and will be returned as binary().
+
 2009-01-19  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp_xmpp.hrl, include/internal/exmpp_xmpp.hrl,

@@ -35,7 +35,7 @@
 % --------------------------------------------------------------------
 
 %% @spec (Mechanisms) -> Feature
-%%     Mechanisms = [string()]
+%%     Mechanisms = [binary() | string()]
 %%     Feature = exmpp_xml:xmlel()
 %% @throws {sasl, feature_announcement, invalid_mechanisms_list, []} |
 %%         {sasl, feature_announcement, invalid_mechanism, Mechanism}
@@ -140,6 +140,7 @@ failure(Condition) ->
 %%     El = exmpp_xml:xmlel()
 %%     Type = Auth | Response | Abort
 %%     Auth = {auth, Mechanism, none | string()}
+%%     Mechanism = binary()
 %%     Response = {response, string()}
 %%     Abort = abort
 %% @throws {sasl, next_step, unexpected_element, El}
