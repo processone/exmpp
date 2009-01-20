@@ -398,7 +398,7 @@ wait_for_stream(Start = ?stream, State = #state{connection = _Module,
 						auth_method = _Auth,
 						from_pid = From}) ->
     %% Get StreamID
-    StreamId = exmpp_xml:get_attribute(Start#xmlstreamstart.element, id, ""),
+    StreamId = exmpp_xml:get_attribute_as_list(Start#xmlstreamstart.element, id, ""),
     gen_fsm:reply(From, StreamId),
     {next_state, stream_opened, State#state{from_pid=undefined,
 					    stream_id = StreamId}}.
@@ -721,7 +721,7 @@ check_id(Attrs) ->
 %% Try getting a given atribute from a list of xmlattr records
 %% Return default value if attribute is not found
 get_attribute_value(Attrs, Attr, Default) ->
-    exmpp_xml:get_attribute_from_list(Attrs, Attr, Default).
+    exmpp_xml:get_attribute_from_list_as_list(Attrs, Attr, Default).
 
 %% Internal operations
 %% send_packet: actually format and send the packet:
