@@ -102,70 +102,70 @@
 creation_test_() ->
     [
       ?_assertMatch(
-        {xmlattr, undefined, "name", undefined},
-        exmpp_xml:make_attribute("name")
+        {xmlattr, undefined, "name", <<>>},
+        exmpp_xml:attribute("name", <<>>)
       ),
       ?_assertMatch(
-        {xmlattr, "ns", "name", undefined},
-        exmpp_xml:make_attribute("ns", "name")
+        {xmlattr, "ns", "name", <<>>},
+        exmpp_xml:attribute("ns", "name", <<>>)
       )
     ].
 
 match_test_() ->
     [
       ?_assert(exmpp_xml:attribute_matches(
-          exmpp_xml:make_attribute("name"), "name")),
+          exmpp_xml:attribute("name", <<>>), "name")),
       ?_assert(exmpp_xml:attribute_matches(
-          exmpp_xml:make_attribute('name'), 'name')),
+          exmpp_xml:attribute('name', <<>>), 'name')),
       ?_assert(exmpp_xml:attribute_matches(
-          exmpp_xml:make_attribute("name"), 'name')),
+          exmpp_xml:attribute("name", <<>>), 'name')),
       ?_assert(exmpp_xml:attribute_matches(
-          exmpp_xml:make_attribute('name'), "name")),
+          exmpp_xml:attribute('name', <<>>), "name")),
 
       ?_assert(exmpp_xml:attribute_matches(
-          exmpp_xml:make_attribute('ns', "name"), 'ns', "name")),
+          exmpp_xml:attribute('ns', "name", <<>>), 'ns', "name")),
       ?_assert(exmpp_xml:attribute_matches(
-          exmpp_xml:make_attribute('ns', 'name'), 'ns', 'name')),
+          exmpp_xml:attribute('ns', 'name', <<>>), 'ns', 'name')),
       ?_assert(exmpp_xml:attribute_matches(
-          exmpp_xml:make_attribute('ns', "name"), 'ns', 'name')),
+          exmpp_xml:attribute('ns', "name", <<>>), 'ns', 'name')),
       ?_assert(exmpp_xml:attribute_matches(
-          exmpp_xml:make_attribute('ns', 'name'), 'ns', "name")),
+          exmpp_xml:attribute('ns', 'name', <<>>), 'ns', "name")),
 
       ?_assert(exmpp_xml:attribute_matches(
-          exmpp_xml:make_attribute("ns", 'name'), "ns", 'name')),
+          exmpp_xml:attribute("ns", 'name', <<>>), "ns", 'name')),
       ?_assert(exmpp_xml:attribute_matches(
-          exmpp_xml:make_attribute('ns', 'name'), 'ns', 'name')),
+          exmpp_xml:attribute('ns', 'name', <<>>), 'ns', 'name')),
       ?_assert(exmpp_xml:attribute_matches(
-          exmpp_xml:make_attribute("ns", 'name'), 'ns', 'name')),
+          exmpp_xml:attribute("ns", 'name', <<>>), 'ns', 'name')),
       ?_assert(exmpp_xml:attribute_matches(
-          exmpp_xml:make_attribute('ns', 'name'), "ns", 'name')),
+          exmpp_xml:attribute('ns', 'name', <<>>), "ns", 'name')),
 
       ?_assertNot(exmpp_xml:attribute_matches(
-          exmpp_xml:make_attribute("name"), "other")),
+          exmpp_xml:attribute("name", <<>>), "other")),
       ?_assertNot(exmpp_xml:attribute_matches(
-          exmpp_xml:make_attribute('name'), 'other')),
+          exmpp_xml:attribute('name', <<>>), 'other')),
       ?_assertNot(exmpp_xml:attribute_matches(
-          exmpp_xml:make_attribute("name"), 'other')),
+          exmpp_xml:attribute("name", <<>>), 'other')),
       ?_assertNot(exmpp_xml:attribute_matches(
-          exmpp_xml:make_attribute('name'), "other")),
+          exmpp_xml:attribute('name', <<>>), "other")),
 
       ?_assertNot(exmpp_xml:attribute_matches(
-          exmpp_xml:make_attribute('ns', "name"), 'ns', "other")),
+          exmpp_xml:attribute('ns', "name", <<>>), 'ns', "other")),
       ?_assertNot(exmpp_xml:attribute_matches(
-          exmpp_xml:make_attribute('ns', 'name'), 'ns', 'other')),
+          exmpp_xml:attribute('ns', 'name', <<>>), 'ns', 'other')),
       ?_assertNot(exmpp_xml:attribute_matches(
-          exmpp_xml:make_attribute('ns', "name"), 'ns', 'other')),
+          exmpp_xml:attribute('ns', "name", <<>>), 'ns', 'other')),
       ?_assertNot(exmpp_xml:attribute_matches(
-          exmpp_xml:make_attribute('ns', 'name'), 'ns', "other")),
+          exmpp_xml:attribute('ns', 'name', <<>>), 'ns', "other")),
 
       ?_assertNot(exmpp_xml:attribute_matches(
-          exmpp_xml:make_attribute("ns", 'name'), "other", 'name')),
+          exmpp_xml:attribute("ns", 'name', <<>>), "other", 'name')),
       ?_assertNot(exmpp_xml:attribute_matches(
-          exmpp_xml:make_attribute('ns', 'name'), 'other', 'name')),
+          exmpp_xml:attribute('ns', 'name', <<>>), 'other', 'name')),
       ?_assertNot(exmpp_xml:attribute_matches(
-          exmpp_xml:make_attribute("ns", 'name'), 'other', 'name')),
+          exmpp_xml:attribute("ns", 'name', <<>>), 'other', 'name')),
       ?_assertNot(exmpp_xml:attribute_matches(
-          exmpp_xml:make_attribute('ns', 'name'), "other", 'name'))
+          exmpp_xml:attribute('ns', 'name', <<>>), "other", 'name'))
     ].
 
 get_attribute_node_from_list_test_() ->

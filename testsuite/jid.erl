@@ -6,6 +6,7 @@
 -include_lib("eunit/include/eunit.hrl").
 
 -include("exmpp.hrl").
+-include("internal/exmpp_xmpp.hrl").
 
 -define(SETUP, fun()  -> exmpp:start(), error_logger:tty(false) end).
 -define(CLEANUP, fun(_) -> application:stop(exmpp) end).
