@@ -2,8 +2,9 @@
 	* src/core/exmpp_message.erl: Use atoms for common message 
 	types (normal, chat, groupchat, headline).
 
-	* include/internal/exmpp_xmpp.hrl, src/core/exmpp_jid.erl,
-	testsuite/jid.erl: Change in internal JID representation.
+	* include/internal/exmpp_xmpp.hrl, include/exmpp_xmpp.hrl,
+	src/core/exmpp_jid.erl,	testsuite/jid.erl: Change in internal JID 
+	representation.	
 	Instead of storing the tree raw components by separate, we keep the 
 	original JID in one chunk. 
 	The intention is to save some memory. Most of the time we already have

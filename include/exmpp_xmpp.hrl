@@ -48,5 +48,5 @@
 
 % Guard expression to test a JID.
 -define(IS_JID(Jid), (
-  element(1, Jid) =:= 'jid' andalso tuple_size(Jid) =:= 7
+  element(1, Jid) =:= 'jid' andalso tuple_size(Jid) =:= 5
 )).
