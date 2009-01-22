@@ -16,9 +16,7 @@
 -define(RESOURCE, "r").
 
 -define(FJ1, #jid{
-    node = <<"John">>,
-    domain = <<"example.org">>,
-    resource = <<"Work">>,
+    full_jid = <<"John@example.org/Work">>,
     lnode = <<"john">>,
     ldomain = <<"example.org">>,
     lresource = <<"Work">>
@@ -30,9 +28,7 @@
 -define(FJ1_S_BAD3, "John@example.org/Work" ++ [0]).
 
 -define(FJ2, #jid{
-    node = undefined,
-    domain = <<"example2.org">>,
-    resource = <<"Work">>,
+    full_jid = <<"example2.org/Work">>,
     lnode = undefined,
     ldomain = <<"example2.org">>,
     lresource = <<"Work">>
@@ -43,9 +39,7 @@
 -define(FJ2_S_BAD2, "example2.org/Work" ++ [0]).
 
 -define(BJ1, #jid{
-    node = <<"John">>,
-    domain = <<"example.org">>,
-    resource = undefined,
+    full_jid = <<"John@example.org">>,
     lnode = <<"john">>,
     ldomain = <<"example.org">>,
     lresource = undefined
@@ -56,9 +50,7 @@
 -define(BJ1_S_BAD2, "John@example.org" ++ [128]).
 
 -define(BJ2, #jid{
-    node = undefined,
-    domain = <<"example2.org">>,
-    resource = undefined,
+    full_jid = <<"example2.org">>,
     lnode = undefined,
     ldomain = <<"example2.org">>,
     lresource = undefined
