@@ -94,7 +94,7 @@ normal(Subject, Body) ->
 %% @doc Create an empty message stanza.
 
 make_normal(NS) ->
-    set_type(?EMPTY_MESSAGE(NS), "normal").
+    set_type(?EMPTY_MESSAGE(NS), 'normal').
 
 %% @spec (NS, Body) -> Message
 %%     NS = atom() | string()
@@ -151,7 +151,7 @@ chat(Subject, Body) ->
 %% @doc Create an empty chat message stanza.
 
 make_chat(NS) ->
-    set_type(?EMPTY_MESSAGE(NS), "chat").
+    set_type(?EMPTY_MESSAGE(NS), 'chat').
 
 %% @spec (NS, Body) -> Message
 %%     NS = atom() | string()
@@ -207,7 +207,7 @@ groupchat(Subject, Body) ->
 %% @doc Create an empty groupchat message stanza.
 
 make_groupchat(NS) ->
-    set_type(?EMPTY_MESSAGE(NS), "groupchat").
+    set_type(?EMPTY_MESSAGE(NS), 'groupchat').
 
 %% @spec (NS, Body) -> Message
 %%     NS = atom() | string()
@@ -263,7 +263,7 @@ headline(Subject, Body) ->
 %% @doc Create an empty headline message stanza.
 
 make_headline(NS) ->
-    set_type(?EMPTY_MESSAGE(NS), "headline").
+    set_type(?EMPTY_MESSAGE(NS), 'headline').
 
 %% @spec (NS, Body) -> Message
 %%     NS = atom() | string()
