@@ -6,6 +6,18 @@
 	returned as a string() again. It may go back to binary() in a future
 	version but the response should be binary() too in this case.
 
+	* include/internal/exmpp_xmpp.hrl, src/core/exmpp_jid.erl,
+	testsuite/jid.erl: Rename full_jid to orig_jid because it may not
+	contain a full JID but a bare JID.
+
+	* include/internal/exmpp_xmpp.hrl: Style.
+
+	* src/core/exmpp_jid.erl: Remove the parse_list/2 function because
+	it's not used anymore; this fixes a warning. A lot of fixes and
+	updates to the documentation; this unbreak the build. Style and typos.
+	(jid_to_binary/3, bare_jid_to_binary/2): Fix a bug where a mix between
+	binary() and string() among arguments would cause a crash.
+
 2009-01-22  Pablo Polvorin  <pablo.polvorin@process-one.net>
 
 	* src/core/exmpp_message.erl: Use atoms for common message
