@@ -266,7 +266,7 @@ iq_to_xmlel2(#iq{type = Type, id = ID, lang = Lang, payload = Payload,
 % IQ standard attributes.
 % --------------------------------------------------------------------
 
-%% @spec (El) -> bool
+%% @spec (El) -> bool()
 %%     El = exmpp_xml:xmlel()
 %% @doc Tell if `El' is an IQ.
 %%
@@ -275,7 +275,7 @@ iq_to_xmlel2(#iq{type = Type, id = ID, lang = Lang, payload = Payload,
 is_iq(IQ) when ?IS_IQ(IQ) -> true;
 is_iq(_El)                -> false.
 
-%% @spec (El) -> bool
+%% @spec (El) -> bool()
 %%     El = iq()
 %% @doc Tell if `El' is an IQ record.
 %%
@@ -316,7 +316,7 @@ get_kind(IQ) when ?IS_IQ(IQ) ->
 get_kind(#iq{kind = Kind}) ->
     Kind.
 
-%% @spec (IQ) -> boolean()
+%% @spec (IQ) -> bool()
 %%     IQ = exmpp_xml:xmlel() | iq()
 %% @doc Tell if the IQ is a request.
 
@@ -328,7 +328,7 @@ is_request(IQ) when ?IS_IQ(IQ) ->
 is_request(#iq{kind = Kind}) ->
     Kind == request.
 
-%% @spec (IQ) -> boolean()
+%% @spec (IQ) -> bool()
 %%     IQ = exmpp_xml:xmlel() | iq()
 %% @doc Tell if the IQ is a response.
 
@@ -340,7 +340,7 @@ is_response(IQ) when ?IS_IQ(IQ) ->
 is_response(#iq{kind = Kind}) ->
     Kind == response.
 
-%% @spec (IQ) -> boolean()
+%% @spec (IQ) -> bool()
 %%     IQ = exmpp_xml:xmlel() | iq()
 %% @doc Tell if the IQ is a result (response of type `result').
 
@@ -352,7 +352,7 @@ is_result(IQ) when ?IS_IQ(IQ) ->
 is_result(#iq{type = Type}) ->
     Type == 'result'.
 
-%% @spec (IQ) -> boolean()
+%% @spec (IQ) -> bool()
 %%     IQ = exmpp_xml:xmlel() | iq()
 %% @doc Tell if the IQ is an error (response of type `error').
 
