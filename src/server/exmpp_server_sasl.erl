@@ -140,7 +140,7 @@ failure(Condition) ->
 %%     El = exmpp_xml:xmlel()
 %%     Type = Auth | Response | Abort
 %%     Auth = {auth, Mechanism, none | string()}
-%%     Mechanism = binary()
+%%     Mechanism = string()
 %%     Response = {response, string()}
 %%     Abort = abort
 %% @throws {sasl, next_step, unexpected_element, El}
@@ -149,7 +149,7 @@ failure(Condition) ->
 %% Any response data is Base64-decoded.
 
 next_step(#xmlel{ns = ?NS_SASL, name = 'auth'} = El) ->
-    Mechanism = exmpp_xml:get_attribute(El, 'mechanism', undefined),
+    Mechanism = exmpp_xml:get_attribute_as_list(El, 'mechanism', undefined),
     case exmpp_utils:strip(exmpp_xml:get_cdata_as_list(El)) of
         ""      -> {auth, Mechanism, none};
         "="     -> {auth, Mechanism, ""};

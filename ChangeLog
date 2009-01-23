@@ -2,6 +2,10 @@
 
 	* src/core/exmpp_iq.erl: Use correct eDoc types.
 
+	* src/server/exmpp_server_sasl.erl (next_step/1): Mechanism is
+	returned as a string() again. It may go back to binary() in a future
+	version but the response should be binary() too in this case.
+
 2009-01-22  Pablo Polvorin  <pablo.polvorin@process-one.net>
 
 	* src/core/exmpp_message.erl: Use atoms for common message
