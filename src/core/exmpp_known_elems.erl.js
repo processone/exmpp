@@ -2,7 +2,7 @@
 
 var fso, fd, line, re;
 
-if (WScript.Arguments.length  != 1) {
+if (WScript.Arguments.length != 1) {
 	WScript.Echo("Syntax: cscript " +
 	    "exmpp_known_elems.erl.js <exmpp_known_elems.in>");
 } else {

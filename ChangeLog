@@ -4,6 +4,9 @@
 	include/internal/exmpp_known_elems.hrl.js,
 	include/internal/exmpp_known_attrs.hrl.js: Style.
 
+	* src/core/exmpp_known_nss.erl.js, src/core/exmpp_known_elems.erl.js,
+	src/core/exmpp_known_attrs.erl.js: Style.
+
 2009-01-20  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_iq.erl: Use correct eDoc types.
