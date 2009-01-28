@@ -2,7 +2,7 @@
 
 var fso, fd, line, re;
 
-if (WScript.Arguments.length  != 1) {
+if (WScript.Arguments.length != 1) {
 	WScript.Echo("Syntax: cscript " +
 	    "exmpp_known_attrs.hrl.js <exmpp_known_attrs.in>");
 } else {
