@@ -1,6 +1,6 @@
 /* $Id$ */
 
-var fso, fd, line, re;
+var fso, fd, line, re_start, re, dict;
 
 if (WScript.Arguments.length != 1) {
 	WScript.Echo("Syntax: cscript " +

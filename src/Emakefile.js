@@ -1,6 +1,8 @@
 /* $Id$ */
 
-var fso, fd, line, re;
+var fso, fd, line;
+var re, re_srcdir, re_builddir, re_top_srcdir, re_top_builddir;
+var re_compat_start, re_compat, re_emkopts;
 
 if (WScript.Arguments.length != 2) {
 	WScript.Echo("Syntax: cscript " +

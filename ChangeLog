@@ -1,3 +1,14 @@
+2009-01-29  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/Emakefile.js: Renamed Emakefile.in.js to Emakefile.js.
+
+	* include/internal/exmpp_known_attrs.hrl.js,
+	include/internal/exmpp_known_nss.hrl.js,
+	include/internal/exmpp_known_elems.hrl.js,
+	src/core/exmpp_known_nss.erl.js, src/core/exmpp_known_elems.erl.js,
+	src/core/exmpp_known_attrs.erl.js, src/Emakefile.js: Declare all
+	variables.
+
 2009-01-28  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/internal/exmpp_known_nss.hrl.js,
