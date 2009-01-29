@@ -9,6 +9,13 @@
 	src/core/exmpp_known_attrs.erl.js, src/Emakefile.js: Declare all
 	variables.
 
+	* include/Makefile.win32, include/internal/Makefile.win32,
+	src/Makefile.win32, c_src/Makefile.win32, ebin/Makefile.win3,
+	Makefile.win3: Convert to Unix file format.
+
+	* src/Makefile.win32: Define HAVE_EXPAT, HAVE_LIBXML2, HAVE_OPENSSL
+	and/or HAVE_ZLIB if the user doesn't disable those features.
+
 2009-01-28  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/internal/exmpp_known_nss.hrl.js,

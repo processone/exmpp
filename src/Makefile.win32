@@ -23,10 +23,20 @@ EMKOPTS = "$(EMKOPTS), $(EMKOPTS_WARNINGS), $(EMKOPTS_DEBUG)"
 !ELSE
 EMKOPTS = "$(EMKOPTS_WARNINGS), $(EMKOPTS_DEBUG)"
 !ENDIF
+!IFNDEF DISABLE_XML_EXPAT
+EMKOPTS = "$(EMKOPTS), {d, 'HAVE_EXPAT'}"
+!ENDIF
+!IFNDEF DISABLE_XML_LIBXML2
+EMKOPTS = "$(EMKOPTS), {d, 'HAVE_LIBXML2'}"
+!ENDIF
+!IFNDEF DISABLE_TLS_OPENSSL
+EMKOPTS = "$(EMKOPTS), {d, 'HAVE_OPENSSL'}"
+!ENDIF
+!IFNDEF DISABLE_COMPRESS_ZLIB
+EMKOPTS = "$(EMKOPTS), {d, 'HAVE_ZLIB'}"
+!ENDIF
 
-BUILT_SOURCES = exmpp_known_nss.erl					\
-		exmpp_known_elems.erl					\
-		exmpp_known_attrs.erl
+BUILT_SOURCES = exmpp_known_nss.erl exmpp_known_elems.erl exmpp_known_attrs.erl
 
 all: Emakefile $(BUILT_SOURCES)
 	$(ERL) -make
@@ -34,8 +44,8 @@ all: Emakefile $(BUILT_SOURCES)
 clean:
 	-del Emakefile $(BUILT_SOURCES)
 
-Emakefile: Emakefile.in Emakefile.in.js
-	cscript /nologo Emakefile.in.js Emakefile.in $(EMKOPTS) > $@
+Emakefile: Emakefile.in Emakefile.js
+	cscript /nologo Emakefile.js Emakefile.in $(EMKOPTS) > $@
 
 {..\include\internal}.in.erl:
 	cscript /nologo core\$*.erl.js ..\include\internal\$*.in > $*.erl
