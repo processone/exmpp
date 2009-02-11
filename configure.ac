@@ -114,7 +114,9 @@ else
 fi
 
 dnl Print any warnings.
-CFLAGS="${CFLAGS% } -Wall"
+if test "x$GCC" = "xyes"; then
+	CFLAGS="${CFLAGS% } -Wall"
+fi
 append_to_EMKOPTS "report_warnings"
 append_to_EMKOPTS "{warn_format, 1}"
 append_to_EMKOPTS "warn_export_vars"

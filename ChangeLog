@@ -1,3 +1,9 @@
+2009-02-11  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* configure.ac: The '-Wall' option to the compiler is GCC-specific.
+	Only use it when we're using GCC; this fixes the build with Sun Studio
+	for instance.
+
 2009-01-29  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/Emakefile.js: Renamed Emakefile.in.js to Emakefile.js.
