@@ -259,11 +259,11 @@ enable_compression(Socket_Desc, Options) ->
         end,
 
         % Set compression level.
-        Level = prolists:get_value(compress_level, Options),
+        Level = proplists:get_value(compress_level, Options),
         engine_set_compress_level(Port, Level),
 
         % Packet mode.
-        Packet_Mode = prolists:get_value(mode, Options, binary),
+        Packet_Mode = proplists:get_value(mode, Options, binary),
 
         % Enable compression.
         engine_prepare_compress(Port),
