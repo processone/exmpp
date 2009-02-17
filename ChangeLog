@@ -3,6 +3,10 @@
 	* src/core/exmpp_compress.erl: Fix a typo in proplists module name; we
 	were using 'prolists'. Spotted by dialyzer.
 
+	* src/core/exmpp_jid.erl: Rename as_binary_or_undefined/1 to
+	as_binary/1 and remove the clause with 'undefined' because it will
+	never happen. Spotted by dialyzer.
+
 2009-02-11  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* configure.ac: The '-Wall' option to the compiler is GCC-specific.

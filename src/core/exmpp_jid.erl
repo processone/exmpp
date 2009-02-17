@@ -461,7 +461,7 @@ jid_to_binary(Node, Domain) ->
 %% @doc Stringify a full JID.
 
 jid_to_binary(Node, Domain, Resource) when is_list(Resource) ->
-    jid_to_binary(Node, Domain, as_binary_or_undefined(Resource));
+    jid_to_binary(Node, Domain, as_binary(Resource));
 
 jid_to_binary(Node, Domain, Resource)
   when Resource == undefined orelse is_binary(Resource) ->
@@ -500,9 +500,9 @@ bare_jid_to_binary(#jid{orig_jid = Orig_Jid, lresource = LResource} = Jid) ->
 %% @doc Stringify a full JID.
 
 bare_jid_to_binary(Node, Domain) when is_list(Node) ->
-    bare_jid_to_binary(as_binary_or_undefined(Node), Domain);
+    bare_jid_to_binary(as_binary(Node), Domain);
 bare_jid_to_binary(Node, Domain) when is_list(Domain) ->
-    bare_jid_to_binary(Node, as_binary_or_undefined(Domain));
+    bare_jid_to_binary(Node, as_binary(Domain));
 
 bare_jid_to_binary(Node, Domain)
   when (Node == undefined orelse is_binary(Node)) andalso
@@ -689,9 +689,7 @@ as_list_or_undefined(undefined) ->
 as_list_or_undefined(V) when is_binary(V) ->
     binary_to_list(V).
 
-as_binary_or_undefined(undefined) ->
-    undefined;
-as_binary_or_undefined(V) when is_list(V) ->
+as_binary(V) when is_list(V) ->
     list_to_binary(V).
 
 % --------------------------------------------------------------------
