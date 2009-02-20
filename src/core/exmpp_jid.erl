@@ -586,6 +586,8 @@ is_jid(_) ->
 %%     Node = binary()
 %% @doc Return the node part of a JID.
 
+node(#jid{orig_jid = undefined}) ->
+    undefined;
 node(#jid{orig_jid = Orig_Jid}) ->
     case binary_split(Orig_Jid, $@) of
         [Node, _] -> Node;
@@ -604,6 +606,8 @@ lnode(#jid{lnode = N}) -> N.
 %%     Domain = binary()
 %% @doc Return the domain part of a JID.
 
+domain(#jid{orig_jid = undefined}) -> 
+    undefined;
 domain(#jid{orig_jid = Orig_Jid}) -> 
     Domain_And_Resource = case binary_split(Orig_Jid, $@) of
         [_, Domain1] -> Domain1;
@@ -626,6 +630,8 @@ ldomain(#jid{ldomain = D}) -> D.
 %%     Resource = binary()
 %% @doc Return the resource part of a JID.
 
+resource(#jid{orig_jid = undefined}) ->
+    undefined;
 resource(#jid{orig_jid = Orig_Jid}) ->
     case binary_split(Orig_Jid, $/) of
         [_, Resource] -> Resource;
@@ -644,7 +650,8 @@ lresource(#jid{lresource = R}) -> R.
 %%     Node = string()
 %% @doc Return the node part of a JID as a list.
 
-node_as_list(Jid) -> as_list_or_undefined(exmpp_jid:node(Jid)).
+node_as_list(Jid) ->
+    as_list_or_undefined(exmpp_jid:node(Jid)).
 
 %% @spec (Jid) -> Node | undefined
 %%     Jid = jid()

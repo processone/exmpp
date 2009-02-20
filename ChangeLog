@@ -1,3 +1,8 @@
+2009-02-20  Pablo Polvorin  <pablo.polvorin@process-one.net>
+
+	* src/core/exmpp_jid.erl: Fix bug when trying to extract individual
+	components from an empty (non initialized) #jid. 
+
 2009-02-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_compress.erl: Fix a typo in proplists module name; we
