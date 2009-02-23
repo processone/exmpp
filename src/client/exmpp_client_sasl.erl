@@ -93,7 +93,7 @@ selected_mechanism(Mechanism, "") ->
     exmpp_xml:set_cdata(El, "=");
 selected_mechanism(Mechanism, Initial_Response) ->
     El = selected_mechanism(Mechanism),
-    exmpp_xml:set_cdata(El, exmpp_utils:encode_base64(Initial_Response)).
+    exmpp_xml:set_cdata(El, base64:encode_to_string(Initial_Response)).
 
 %% @spec (Response_Data) -> Response
 %%     Response_Data = string()
@@ -107,7 +107,7 @@ response(Response_Data) ->
       ns = ?NS_SASL,
       name = 'response'
     },
-    exmpp_xml:set_cdata(El, exmpp_utils:encode_base64(Response_Data)).
+    exmpp_xml:set_cdata(El, base64:encode_to_string(Response_Data)).
 
 %% @spec () -> Abort
 %%     Abort = exmpp_xml:xmlel()
@@ -133,7 +133,7 @@ abort() ->
 
 next_step(#xmlel{ns = ?NS_SASL, name = 'challenge'} = El) ->
     Encoded = exmpp_xml:get_cdata_as_list(El),
-    {challenge, exmpp_utils:decode_base64(Encoded)};
+    {challenge, base64:decode_to_string(Encoded)};
 next_step(#xmlel{ns = ?NS_SASL, name = 'failure',
   children = [#xmlel{ns = ?NS_SASL, name = Condition}]}) ->
     {failure, Condition};
@@ -141,4 +141,4 @@ next_step(#xmlel{ns = ?NS_SASL, name = 'failure'}) ->
     {failure, undefined};
 next_step(#xmlel{ns = ?NS_SASL, name = 'success'} = El) ->
     Encoded = exmpp_xml:get_cdata_as_list(El),
-    {success, exmpp_utils:decode_base64(Encoded)}.
+    {success, base64:decode_to_string(Encoded)}.

@@ -105,16 +105,9 @@ load_driver1(Driver_Name, [], Reason) ->
 %%     Driver_Name = atom()
 %% @doc Unload the port driver `Driver_Name'.
 
--ifdef(ENABLE_ERL_DDLL_WORKAROUND).
-unload_driver(_Driver_Name) ->
-    % At least until R11B-1, erl_ddll messes up its library references
-    % count, so we can't unload the driver.
-    ok.
--else.
 unload_driver(Driver_Name) ->
     erl_ddll:unload_driver(Driver_Name),
     ok.
--endif.
 
 %% @spec (Driver_Name) -> Port
 %%     Driver_Name = atom()

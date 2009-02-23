@@ -1,6 +1,18 @@
 2009-02-23  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
+	Erlang R12B is now the minimum version to build and use Exmpp.
+
 	* m4/erlang.m4: Add macros to check Erlang release and ERTS version.
+
+	* configure.ac: Check the Erlang release to be R12B. With this new
+	requirement, http_base_64 and erl_ddll workarounds aren't neede
+	anymore.
+
+	* src/core/exmpp_internals.erl: Remove http_base_64 and erl_ddll
+	workarounds.
+
+	* src/server/exmpp_server_sasl.erl, src/client/exmpp_client_sasl.erl:
+	Use 'base64' directly now.
 
 2009-02-20  Pablo Polvorin  <pablo.polvorin@process-one.net>
 

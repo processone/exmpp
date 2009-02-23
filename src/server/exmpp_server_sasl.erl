@@ -98,7 +98,7 @@ challenge(Challenge) ->
       ns = ?NS_SASL,
       name = 'challenge'
     },
-    exmpp_xml:set_cdata(El, exmpp_utils:encode_base64(Challenge)).
+    exmpp_xml:set_cdata(El, base64:encode_to_string(Challenge)).
 
 %% @spec () -> Success_El
 %%     Success_El = exmpp_xml:xmlel()
@@ -153,11 +153,11 @@ next_step(#xmlel{ns = ?NS_SASL, name = 'auth'} = El) ->
     case exmpp_utils:strip(exmpp_xml:get_cdata_as_list(El)) of
         ""      -> {auth, Mechanism, none};
         "="     -> {auth, Mechanism, ""};
-        Encoded -> {auth, Mechanism, exmpp_utils:decode_base64(Encoded)}
+        Encoded -> {auth, Mechanism, base64:decode_to_string(Encoded)}
     end;
 next_step(#xmlel{ns = ?NS_SASL, name = 'response'} = El) ->
     Encoded = exmpp_xml:get_cdata_as_list(El),
-    {response, exmpp_utils:decode_base64(Encoded)};
+    {response, base64:decode_to_string(Encoded)};
 next_step(#xmlel{ns = ?NS_SASL, name = 'abort'}) ->
     abort;
 next_step(El) ->

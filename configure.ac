@@ -227,21 +227,24 @@ dnl Get Erlang $ROOT dir and lib dir.
 AC_ERLANG_SUBST_ROOT_DIR
 AC_ERLANG_SUBST_LIB_DIR
 
-dnl For ERTS, take the default path under Erlang ROOT directory.
-ERLANG_ERTS_DIR="${ERLANG_ROOT_DIR}/usr"
-AC_SUBST(ERLANG_ERTS_DIR)
+dnl Get ERTS version.
+ERLANG_CHECK_ERTS
+ERLANG_CHECK_RELEASE
+
+dnl Erlang R12B-0 (ERTS 5.6) is required to build Exmpp.
+AX_COMPARE_VERSION([${ERLANG_ERTS_VER}], [ge], [5.6],
+    [is_erlang_r12b="yes"],
+    [is_erlang_r12b="no"])
+if test "x${is_erlang_r12b}" = "xno"; then
+	AC_MSG_ERROR([
+Erlang R12B is required to build Exmpp but only Erlang $ERLANG_RELEASE was found!])
+fi
 
 dnl Check for Erlang applications.
 
 dnl Check for erl_interface (used by port drivers).
 AC_ERLANG_CHECK_LIB([erl_interface],,
     [AC_MSG_ERROR([erl_interface was not found!])])
-
-dnl Check for kernel (to verify if erl_ddll is broken).
-AC_ERLANG_CHECK_LIB([kernel],,)
-
-dnl Check for inets (to verify if http_base_64 is present).
-AC_ERLANG_CHECK_LIB([inets],,)
 
 dnl Check for EUnit (used for the testsuite).
 if test "x${ESCRIPT}" = "x"; then
@@ -266,18 +269,10 @@ dnl Support is enabled by default for Erlang R12B and later ; disabled
 dnl otherwise.
 AC_MSG_CHECKING([for SMP support])
 
-if test "x${ERLANG_LIB_VER_kernel}" != "xnot found"; then
-	AX_COMPARE_VERSION([${ERLANG_LIB_VER_kernel}], [ge], [2.12],
-	    [default_enable_smp_support="yes"],
-	    [default_enable_smp_support="no"])
-else
-	default_enable_smp_support="no"
-fi
-
 AC_ARG_ENABLE([smp-support],
 	AC_HELP_STRING([--enable-smp-support],
-	    [enable SMP support [[default=auto]]]),,
-	enable_smp_support=$default_enable_smp_support)
+	    [enable SMP support [[default=yes]]]),,
+	enable_smp_support="yes")
 AM_CONDITIONAL(ENABLE_SMP_SUPPORT, test "x${enable_smp_support}" = "xyes")
 
 if test "x${enable_smp_support}" = "xyes"; then
@@ -285,112 +280,9 @@ if test "x${enable_smp_support}" = "xyes"; then
 	AC_DEFINE(USE_RWLOCK, [], [Use rwlocks.])
 	AC_DEFINE(_REENTRANT, [], [_REENTRANT])
 
-	if test "x${default_enable_smp_support}" = "xyes"; then
-		AC_MSG_RESULT([yes (kernel >= 2.12)])
-	else
-		AC_MSG_RESULT([yes (forced by user)])
-	fi
+	AC_MSG_RESULT([yes (Erlang $ERLANG_RELEASE)])
 else
-	if test "x${default_enable_smp_support}" = "xno"; then
-		if test "x${ERLANG_LIB_VER_kernel}" != "xnot found"; then
-			AC_MSG_RESULT([no (kernel < 2.12)])
-		else
-			AC_MSG_RESULT([no (kernel version unknown)])
-		fi
-	else
-		AC_MSG_RESULT([no (disabled by user)])
-	fi
-fi
-
-dnl Broken erl_ddll handling.
-dnl
-dnl Before kernel-2.11, port drivers refcount is not updated correctly,
-dnl leading to premature unload of port drivers. If an older kernel is
-dnl found, port drivers are never unloaded.
-dnl
-dnl The user can for the latter behaviour with --enable-erl_ddll-workaround.
-AC_MSG_CHECKING([for the need for erl_ddll workaround])
-
-if test "x${ERLANG_LIB_VER_kernel}" != "xnot found"; then
-	AX_COMPARE_VERSION([${ERLANG_LIB_VER_kernel}], [lt], [2.11],
-	    [default_enable_erl_ddll_workaround="yes"],
-	    [default_enable_erl_ddll_workaround="no"])
-else
-	default_enable_erl_ddll_workaround="yes"
-fi
-
-AC_ARG_ENABLE([erl_ddll-workaround],
-	AC_HELP_STRING([--enable-erl_ddll-workaround],
-	    [add a workaround for broken erl_ddll [[default=auto]]]),,
-	enable_erl_ddll_workaround=$default_enable_erl_ddll_workaround)
-if test "x${enable_erl_ddll_workaround}" = "xyes"; then
-	append_to_EMKOPTS "{d, 'ENABLE_ERL_DDLL_WORKAROUND'}"
-fi
-
-if test "x${enable_erl_ddll_workaround}" = "xyes"; then
-	if test "x${default_enable_erl_ddll_workaround}" = "xyes"; then
-		if test "x${ERLANG_LIB_VER_kernel}" != "xnot found"; then
-			AC_MSG_RESULT([yes (kernel < 2.11)])
-		else
-			AC_MSG_RESULT([yes (kernel version unknown)])
-		fi
-	else
-		AC_MSG_RESULT([yes (forced by user)])
-	fi
-else
-	if test "x${default_enable_erl_ddll_workaround}" = "xno"; then
-		AC_MSG_RESULT([no (kernel >= 2.11)])
-	else
-		AC_MSG_RESULT([no (disabled by user)])
-	fi
-fi
-
-dnl Support for deprecated http_base_64 module.
-dnl
-dnl Prior to stdlib-1.14.4 (R11B-4), there was no base64 module:
-dnl http_base_64 had to be used. But starting with inets-5.0 (R12B-0),
-dnl http_base_64 doesn't exist anymore and the compiler will print a
-dnl warning.
-dnl
-dnl Here, if R12B+ is used to compile exmpp, we won't use http_base_64
-dnl at all by default. Else, exmpp will first try http_base_64 and
-dnl fallback to base64 (at runtime).
-dnl
-dnl The user can force the latter behaviour with --enable-http_base_64.
-AC_MSG_CHECKING([for the need to support http_base_64])
-
-if test "x${ERLANG_LIB_VER_inets}" != "xnot found"; then
-	AX_COMPARE_VERSION([${ERLANG_LIB_VER_inets}], [lt], [5.0],
-	    [default_enable_http_base_64="yes"],
-	    [default_enable_http_base_64="no"])
-else
-	default_enable_http_base_64="yes"
-fi
-
-AC_ARG_ENABLE([http_base_64],
-	AC_HELP_STRING([--enable-http_base_64],
-	    [use http_base_64 when base64 isn't available [[default=auto]]]),,
-	enable_http_base_64=$default_enable_http_base_64)
-if test "x${enable_http_base_64}" = "xyes"; then
-	append_to_EMKOPTS "{d, 'ENABLE_HTTP_BASE_64'}"
-fi
-
-if test "x${enable_http_base_64}" = "xyes"; then
-	if test "x${default_enable_http_base_64}" = "xyes"; then
-		if test "x${ERLANG_LIB_VER_inets}" != "xnot found"; then
-			AC_MSG_RESULT([yes (inets < 5.0)])
-		else
-			AC_MSG_RESULT([yes (inets version unknown)])
-		fi
-	else
-		AC_MSG_RESULT([yes (forced by user)])
-	fi
-else
-	if test "x${default_enable_http_base_64}" = "xno"; then
-		AC_MSG_RESULT([no (inets >= 5.0)])
-	else
-		AC_MSG_RESULT([no (disabled by user)])
-	fi
+	AC_MSG_RESULT([no (disabled by user)])
 fi
 
 dnl Do we have all the tools for the testsuite to be used.
