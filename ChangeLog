@@ -8,8 +8,10 @@
 	requirement, http_base_64 and erl_ddll workarounds aren't neede
 	anymore.
 
-	* src/core/exmpp_internals.erl: Remove http_base_64 and erl_ddll
-	workarounds.
+	* src/core/exmpp_internals.erl: Remove erl_ddll workaround.
+
+	* src/core/exmpp_utils.erl: Remove http_base_64 workaround and now
+	useless helpers.
 
 	* src/server/exmpp_server_sasl.erl, src/client/exmpp_client_sasl.erl:
 	Use 'base64' directly now.
