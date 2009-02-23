@@ -1,3 +1,9 @@
+2009-02-23  Pablo Polvorin  <pablo.polvorin@process-one.net>
+
+	* README: State R12B as minimum version.
+
+	* src/core/exmpp_stanza.erl: Use exmpp_jid:jid_to_binary/1.
+
 2009-02-23  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	Erlang R12B is now the minimum version to build and use Exmpp.
