@@ -1,3 +1,7 @@
+2009-02-23  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* m4/erlang.m4: Add macros to check Erlang release and ERTS version.
+
 2009-02-20  Pablo Polvorin  <pablo.polvorin@process-one.net>
 
 	* src/core/exmpp_jid.erl: Fix bug when trying to extract individual
