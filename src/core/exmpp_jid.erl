@@ -86,12 +86,42 @@
 -define(JID_MAX_LENGTH,      ?BARE_JID_MAX_LENGTH + 1 + ?RESOURCE_MAX_LENGTH).
 
 % --------------------------------------------------------------------
+% Documentation / type definitions.
+% --------------------------------------------------------------------
+
+%% @type jid() = {jid, Orig_Jid, Prepd_Node, Prepd_Domain, Prepd_Resource}
+%%     Orig_Jid = binary() | undefined
+%%     Prepd_Node = binary() | undefined
+%%     Prepd_Domain = binary() | undefined
+%%     Prepd_Resource = binary() | undefined.
+%% Represents a JID.
+%%
+%% <strong>`jid()' is an internal type and the structure documented
+%% herein may be changed without notice</strong>. Please use only the
+%% accessors exported by this module to get each component of a JID.
+%%
+%% `Prepd_Node' is set to the value of `Node' passed through the
+%% NODEPREP stringprep profile.
+%%
+%% `Prepd_Domain' is set to the value of `Domain' passed through the
+%% NAMEPREP stringprep profile.
+%%
+%% `Prepd_Resource' is set to the value of `Resource' passed through the
+%% RESOURCEPREP stringprep profile.
+
+-type(node_arg() :: binary() | string() | undefined).
+-type(domain_arg() :: binary() | string()).
+-type(res_arg() :: binary() | string() | undefined).
+
+% --------------------------------------------------------------------
 % JID creation & conversion.
 % --------------------------------------------------------------------
 
 %% @spec () -> Jid
 %%     Jid = jid()
 %% @doc Create a blank JID.
+
+-spec(make_jid/0 :: () -> #jid{}).
 
 make_jid() ->
     #jid{}.
@@ -102,6 +132,8 @@ make_jid() ->
 %% @throws {jid, make, too_long, {domain, Domain}} |
 %%         {jid, make, invalid,  {domain, Domain}}
 %% @doc Create a bare JID.
+
+-spec(make_jid/1 :: (domain_arg()) -> #jid{}).
 
 make_jid(Domain) ->
     make_jid(undefined, Domain).
@@ -115,6 +147,8 @@ make_jid(Domain) ->
 %%         {jid, make, too_long, {node, Node}} |
 %%         {jid, make, invalid,  {node, Node}}
 %% @doc Create a bare JID.
+
+-spec(make_jid/2 :: (node_arg(), domain_arg()) -> #jid{}).
 
 make_jid(_Node, Domain)
   when is_list(Domain), length(Domain) > ?DOMAIN_MAX_LENGTH ->
@@ -176,6 +210,8 @@ make_jid(Node, Domain) ->
 %%     Jid = jid()
 %% @doc Create a full JID.
 
+-spec(make_jid/3 :: (node_arg(), domain_arg(), res_arg()) -> #jid{}).
+
 make_jid(Node, Domain, undefined) ->
     make_jid(Node, Domain);
 make_jid(Node, Domain, "") ->
@@ -207,6 +243,8 @@ make_jid(Node, Domain, Resource) ->
 %%
 %% We reuse this value here. The intention is to save some memory, see
 %% comments on `include/internal/exmpp_xmpp.hrl'
+
+-spec(make_jid/4 :: (binary(), node_arg(), domain_arg(), res_arg()) -> #jid{}).
 
 make_jid(Orig, Node, Domain, Resource) ->
     try
@@ -241,6 +279,8 @@ make_jid(Orig, Node, Domain, Resource) ->
 %%     Bare_Jid = jid()
 %% @doc Convert a full JID to its bare version.
 
+-spec(jid_to_bare_jid/1 :: (#jid{}) -> #jid{}).
+
 jid_to_bare_jid(#jid{orig_jid = Orig_Jid} = Jid) ->
     New_Orig_Jid = case binary_split(Orig_Jid, $/) of
         [Bare_Jid, _] -> Bare_Jid;
@@ -258,6 +298,8 @@ jid_to_bare_jid(#jid{orig_jid = Orig_Jid} = Jid) ->
 %% @throws {jid, convert, too_long, {resource, Resource}} |
 %%         {jid, convert, invalid,  {resource, Resource}}
 %% @doc Convert a bare JID to its full version.
+
+-spec(bare_jid_to_jid/2 :: (#jid{}, res_arg()) -> #jid{}).
 
 bare_jid_to_jid(Jid, undefined) ->
     Jid;
@@ -305,6 +347,8 @@ bare_jid_to_jid(#jid{orig_jid = Orig_Jid} = Jid, Resource) ->
 %% @throws {jid, parse, Reason, {jid, String}}
 %% @doc Parse a string and create a full JID.
 
+-spec(parse_jid/1 :: (binary() | string()) -> #jid{}).
+
 parse_jid(String) when is_binary(String) ->
     case parse_binary(String, String, <<>>) of
         {error, Reason} ->
@@ -320,6 +364,8 @@ parse_jid(String) when is_list(String) ->
         Jid ->
             Jid
     end.
+
+-spec(parse_binary/3 :: (binary(), binary(), binary()) -> #jid{} | {error, any()}).
 
 parse_binary(_Original, String, _) when size(String) > ?JID_MAX_LENGTH ->
     % Invalid JID: too long.
@@ -379,6 +425,8 @@ parse_binary(Original, <<>>, Node, Domain) ->
 %%     String = string()
 %% @doc Stringify a full JID.
 
+-spec(jid_to_list/1 :: (#jid{}) -> string()).
+
 jid_to_list(#jid{} = JID) ->
     binary_to_list(jid_to_binary(JID)).
 
@@ -387,6 +435,8 @@ jid_to_list(#jid{} = JID) ->
 %%     Domain = binary() | string()
 %%     String = string()
 %% @doc Stringify a bare JID.
+
+-spec(jid_to_list/2 :: (node_arg(), domain_arg()) -> string()).
 
 jid_to_list(Node, Domain) ->
     bare_jid_to_list(Node, Domain).
@@ -398,6 +448,8 @@ jid_to_list(Node, Domain) ->
 %%     String = string()
 %% @doc Stringify a full JID.
 
+-spec(jid_to_list/3 :: (node_arg(), domain_arg(), res_arg()) -> string()).
+
 jid_to_list(Node, Domain, Resource) ->
     binary_to_list(jid_to_binary(Node, Domain, Resource)).
 
@@ -405,6 +457,8 @@ jid_to_list(Node, Domain, Resource) ->
 %%     Jid = jid()
 %%     String = string()
 %% @doc Stringify a full JID with STRINGPREP profiles applied.
+
+-spec(prepd_jid_to_list/1 :: (#jid{}) -> string()).
 
 prepd_jid_to_list(
   #jid{lnode = Node, ldomain = Domain, lresource = Resource}) ->
@@ -415,6 +469,8 @@ prepd_jid_to_list(
 %%     String = string()
 %% @doc Stringify a bare JID.
 
+-spec(bare_jid_to_list/1 :: (#jid{}) -> string()).
+
 bare_jid_to_list(#jid{} = JID) ->
     binary_to_list(bare_jid_to_binary(JID)).
 
@@ -424,6 +480,8 @@ bare_jid_to_list(#jid{} = JID) ->
 %%     String = string()
 %% @doc Stringify a full JID.
 
+-spec(bare_jid_to_list/2 :: (node_arg(), domain_arg()) -> string()).
+
 bare_jid_to_list(Node, Domain) ->
     binary_to_list(bare_jid_to_binary(Node, Domain)).
 
@@ -431,6 +489,8 @@ bare_jid_to_list(Node, Domain) ->
 %%     Jid = jid()
 %%     String = string()
 %% @doc Stringify a bare JID with STRINGPREP profiles applied.
+
+-spec(prepd_bare_jid_to_list/1 :: (#jid{}) -> string()).
 
 prepd_bare_jid_to_list(
   #jid{lnode = Node, ldomain = Domain}) ->
@@ -441,6 +501,8 @@ prepd_bare_jid_to_list(
 %%     String = binary()
 %% @doc Stringify a full JID.
 
+-spec(jid_to_binary/1 :: (#jid{}) -> binary()).
+
 jid_to_binary(#jid{orig_jid = Orig_Jid}) ->
     Orig_Jid.
 
@@ -449,6 +511,8 @@ jid_to_binary(#jid{orig_jid = Orig_Jid}) ->
 %%     Domain = binary() | string()
 %%     String = binary()
 %% @doc Stringify a bare JID.
+
+-spec(jid_to_binary/2 :: (node_arg(), domain_arg()) -> binary()).
 
 jid_to_binary(Node, Domain) ->
     bare_jid_to_binary(Node, Domain).
@@ -459,6 +523,8 @@ jid_to_binary(Node, Domain) ->
 %%     Resource = binary() | string() | undefined
 %%     String = binary()
 %% @doc Stringify a full JID.
+
+-spec(jid_to_binary/3 :: (node_arg(), domain_arg(), res_arg()) -> binary()).
 
 jid_to_binary(Node, Domain, Resource) when is_list(Resource) ->
     jid_to_binary(Node, Domain, as_binary(Resource));
@@ -478,6 +544,8 @@ jid_to_binary(Node, Domain, Resource)
 %%     String = binary()
 %% @doc Stringify a full JID with STRINGPREP profiles applied.
 
+-spec(prepd_jid_to_binary/1 :: (#jid{}) -> binary()).
+
 prepd_jid_to_binary(
   #jid{lnode = Node, ldomain = Domain, lresource = Resource}) ->
     jid_to_binary(Node, Domain, Resource).
@@ -486,6 +554,8 @@ prepd_jid_to_binary(
 %%     Jid = jid()
 %%     String = binary()
 %% @doc Stringify a bare JID.
+
+-spec(bare_jid_to_binary/1 :: (#jid{}) -> binary()).
 
 bare_jid_to_binary(#jid{orig_jid = Orig_Jid, lresource = LResource} = Jid) ->
     case LResource of
@@ -498,6 +568,8 @@ bare_jid_to_binary(#jid{orig_jid = Orig_Jid, lresource = LResource} = Jid) ->
 %%     Domain = binary() | string()
 %%     String = binary()
 %% @doc Stringify a full JID.
+
+-spec(bare_jid_to_binary/2 :: (node_arg(), domain_arg()) -> binary()).
 
 bare_jid_to_binary(Node, Domain) when is_list(Node) ->
     bare_jid_to_binary(as_binary(Node), Domain);
@@ -519,6 +591,8 @@ bare_jid_to_binary(Node, Domain)
 %%     String = binary()
 %% @doc Stringify a bare JID with STRINGPREP profiles applied.
 
+-spec(prepd_bare_jid_to_binary/1 :: (#jid{}) -> binary()).
+
 prepd_bare_jid_to_binary(#jid{lnode = Node, ldomain = Domain}) ->
     bare_jid_to_binary(Node, Domain).
 
@@ -530,6 +604,8 @@ prepd_bare_jid_to_binary(#jid{lnode = Node, ldomain = Domain}) ->
 %%     Jid1 = jid()
 %%     Jid2 = jid()
 %% @doc Compare full JIDs.
+
+-spec(compare_jids/2 :: (#jid{}, #jid{}) -> bool()).
 
 compare_jids(
   #jid{lnode = LNode, ldomain = LDomain, lresource = LResource},
@@ -543,6 +619,8 @@ compare_jids(_Jid1, _Jid2) ->
 %%     Jid2 = jid()
 %% @doc Compare bare JIDs.
 
+-spec(compare_bare_jids/2 :: (#jid{}, #jid{}) -> bool()).
+
 compare_bare_jids(
   #jid{lnode = LNode, ldomain = LDomain},
   #jid{lnode = LNode, ldomain = LDomain}) ->
@@ -554,6 +632,8 @@ compare_bare_jids(_Jid1, _Jid2) ->
 %%     Jid1 = jid()
 %%     Jid2 = jid()
 %% @doc Compare JID's domain.
+
+-spec(compare_domains/2 :: (#jid{}, #jid{}) -> bool()).
 
 compare_domains(
   #jid{ldomain = LDomain},
@@ -572,6 +652,8 @@ compare_domains(_Jid1, _Jid2) ->
 %%
 %% You should probably use the `IS_JID(Jid)' guard expression.
 
+-spec(is_jid/1 :: (#jid{}) -> bool()).
+
 is_jid(Jid) when ?IS_JID(Jid) ->
     true;
 is_jid(_) ->
@@ -586,6 +668,8 @@ is_jid(_) ->
 %%     Node = binary()
 %% @doc Return the node part of a JID.
 
+-spec(node/1 :: (#jid{}) -> binary() | undefined).
+
 node(#jid{orig_jid = undefined}) ->
     undefined;
 node(#jid{orig_jid = Orig_Jid}) ->
@@ -599,12 +683,16 @@ node(#jid{orig_jid = Orig_Jid}) ->
 %%     Node = binary()
 %% @doc Return the node part of a JID with NODEPREP profile applied.
 
+-spec(lnode/1 :: (#jid{}) -> binary() | undefined).
+
 lnode(#jid{lnode = N}) -> N.
 
-%% @spec (Jid) -> Domain
+%% @spec (Jid) -> Domain | undefined
 %%     Jid = jid()
 %%     Domain = binary()
 %% @doc Return the domain part of a JID.
+
+-spec(domain/1 :: (#jid{}) -> binary() | undefined).
 
 domain(#jid{orig_jid = undefined}) -> 
     undefined;
@@ -618,10 +706,12 @@ domain(#jid{orig_jid = Orig_Jid}) ->
         _            -> Domain_And_Resource
     end.
 
-%% @spec (Jid) -> Domain
+%% @spec (Jid) -> Domain | undefined
 %%     Jid = jid()
 %%     Domain = binary()
 %% @doc Return the domain part of a JID with NAMEPREP profile applied.
+
+-spec(ldomain/1 :: (#jid{}) -> binary() | undefined).
 
 ldomain(#jid{ldomain = D}) -> D.
 
@@ -629,6 +719,8 @@ ldomain(#jid{ldomain = D}) -> D.
 %%     Jid = jid()
 %%     Resource = binary()
 %% @doc Return the resource part of a JID.
+
+-spec(resource/1 :: (#jid{}) -> binary() | undefined).
 
 resource(#jid{orig_jid = undefined}) ->
     undefined;
@@ -638,10 +730,12 @@ resource(#jid{orig_jid = Orig_Jid}) ->
         _             -> undefined
     end.
 
-%% @spec (Jid) -> Resource
+%% @spec (Jid) -> Resource | undefined
 %%     Jid = jid()
 %%     Resource = binary()
 %% @doc Return the resource part of a JID with RESOURCEPREP profile applied.
+
+-spec(lresource/1 :: (#jid{}) -> binary() | undefined).
 
 lresource(#jid{lresource = R}) -> R.
 
@@ -649,6 +743,8 @@ lresource(#jid{lresource = R}) -> R.
 %%     Jid = jid()
 %%     Node = string()
 %% @doc Return the node part of a JID as a list.
+
+-spec(node_as_list/1 :: (#jid{}) -> string() | undefined).
 
 node_as_list(Jid) ->
     as_list_or_undefined(exmpp_jid:node(Jid)).
@@ -659,29 +755,41 @@ node_as_list(Jid) ->
 %% @doc Return the node part of a JID as a list with NODEPREP profile
 %% applied.
 
-lnode_as_list(Jid) -> as_list_or_undefined(lnode(Jid)).
+-spec(lnode_as_list/1 :: (#jid{}) -> string() | undefined).
 
-%% @spec (Jid) -> Domain
+lnode_as_list(Jid) ->
+    as_list_or_undefined(lnode(Jid)).
+
+%% @spec (Jid) -> Domain | undefined
 %%     Jid = jid()
 %%     Domain = string()
 %% @doc Return the domain part of a JID as a list.
 
-domain_as_list(Jid) -> as_list_or_undefined(domain(Jid)).
+-spec(domain_as_list/1 :: (#jid{}) -> string() | undefined).
 
-%% @spec (Jid) -> Domain
+domain_as_list(Jid) ->
+    as_list_or_undefined(domain(Jid)).
+
+%% @spec (Jid) -> Domain | undefined
 %%     Jid = jid()
 %%     Domain = string()
 %% @doc Return the domain part of a JID as a list with NAMEPREP profile
 %% applied.
 
-ldomain_as_list(Jid) -> as_list_or_undefined(ldomain(Jid)).
+-spec(ldomain_as_list/1 :: (#jid{}) -> string() | undefined).
+
+ldomain_as_list(Jid) ->
+    as_list_or_undefined(ldomain(Jid)).
 
 %% @spec (Jid) -> Resource | undefined
 %%     Jid = jid()
 %%     Resource = string()
 %% @doc Return the resource part of a JID as a list.
 
-resource_as_list(Jid) -> as_list_or_undefined(resource(Jid)).
+-spec(resource_as_list/1 :: (#jid{}) -> string() | undefined).
+
+resource_as_list(Jid) ->
+    as_list_or_undefined(resource(Jid)).
 
 %% @spec (Jid) -> Resource | undefined
 %%     Jid = jid()
@@ -689,7 +797,10 @@ resource_as_list(Jid) -> as_list_or_undefined(resource(Jid)).
 %% @doc Return the domain part of a JID as a list with RESOURCEPREP
 %% profile applied.
 
-lresource_as_list(Jid) -> as_list_or_undefined(lresource(Jid)).
+-spec(lresource_as_list/1 :: (#jid{}) -> string() | undefined).
+
+lresource_as_list(Jid) ->
+    as_list_or_undefined(lresource(Jid)).
 
 as_list_or_undefined(undefined) ->
     undefined;
@@ -703,8 +814,11 @@ as_binary(V) when is_list(V) ->
 % Helper functions
 % --------------------------------------------------------------------
 
-% We do not use random generator to avoid having to decide when and 
-% how to seed the Erlang random number generator.
+% We do not use random generator to avoid having to decide when and how
+% to seed the Erlang random number generator.
+
+-spec(generate_resource/0 :: () -> string()).
+
 generate_resource() ->
     {A, B, C} = erlang:now(),
     lists:flatten(["exmpp#",
@@ -715,10 +829,15 @@ generate_resource() ->
 
 % If both lists are equal, don't waste memory creating two separate
 % binary copies.
-to_binary(A) when is_list(A) ->
-    list_to_binary(A);
-to_binary(B) when is_binary(B) ->
-    B.
+
+-spec(to_binary/1 :: (binary() | string()) -> binary()).
+
+to_binary(String) when is_list(String) ->
+    list_to_binary(String);
+to_binary(Binary) when is_binary(Binary) ->
+    Binary.
+
+-spec(binary_split/2 :: (binary(), char()) -> [binary()]).
 
 binary_split(B, C) -> binary_split(B, C, <<>>, []).
 
@@ -728,27 +847,3 @@ binary_split(<<C1, Rest/binary>>, C, Acc, Tokens) ->
     binary_split(Rest, C, <<Acc/binary, C1>>, Tokens);
 binary_split(<<>>, _C, Acc, Tokens) ->
     lists:reverse([Acc | Tokens]).
-
-% --------------------------------------------------------------------
-% Documentation / type definitions.
-% --------------------------------------------------------------------
-
-%% @type jid() = {jid, Orig_Jid, Prepd_Node, Prepd_Domain, Prepd_Resource}
-%%     Orig_Jid = binary() | undefined
-%%     Prepd_Node = binary() | undefined
-%%     Prepd_Domain = binary() | undefined
-%%     Prepd_Resource = binary() | undefined.
-%% Represents a JID.
-%%
-%% <strong>`jid()' is an internal type and the structure documented
-%% herein may be changed without notice</strong>. Please use only the
-%% accessors exported by this module to get each component of a JID.
-%%
-%% `Prepd_Node' is set to the value of `Node' passed through the
-%% NODEPREP stringprep profile.
-%%
-%% `Prepd_Domain' is set to the value of `Domain' passed through the
-%% NAMEPREP stringprep profile.
-%%
-%% `Prepd_Resource' is set to the value of `Resource' passed through the
-%% RESOURCEPREP stringprep profile.

@@ -22,6 +22,8 @@
 	remove the attribute.
 	(error/3): Fix a bug where the 'Text' attribute was never used.
 
+	* src/core/exmpp_jid.erl: Add contracts. Fix documentation. Style.
+
 2009-02-23  Pablo Polvorin  <pablo.polvorin@process-one.net>
 
 	* README: State R12B as minimum version.
