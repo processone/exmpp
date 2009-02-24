@@ -6,14 +6,14 @@
 
 % IQ stanza.
 -record(iq, {
-  kind,    % 'request' or 'response'.
-  type,    % 'get', 'set', 'result' or 'error'.
-  id,      % ID of the IQ.
-  ns,      % Namespace of the payload.
-  payload, % The request or the response transported by this IQ.
-  error,   % Error element (if type == 'error').
-  lang,    % Language of this IQ.
-  iq_ns    % Namespace of the IQ (eg. 'jabber:client').
+  kind    :: request | response,
+  type    :: get | set | result | error,
+  id      :: binary() | undefined,
+  ns      :: xmlname() | undefined,
+  payload :: #xmlel{} | undefined,
+  error   :: #xmlel{} | undefined,
+  lang    :: binary() | undefined,
+  iq_ns   :: xmlname() | undefined
 }).
 
 % --------------------------------------------------------------------

@@ -24,8 +24,8 @@
 
 % JID.
 -record(jid, {
-  orig_jid,   
-  lnode,
-  ldomain,
-  lresource
+  orig_jid  :: binary() | undefined,
+  lnode     :: binary() | undefined,
+  ldomain   :: binary() | undefined,
+  lresource :: binary() | undefined
 }).

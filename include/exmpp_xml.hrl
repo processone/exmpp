@@ -1,48 +1,64 @@
 % $Id$
 
 % --------------------------------------------------------------------
+% Type definition.
+% --------------------------------------------------------------------
+
+% NS, element's name and attribute's name.
+-type(xmlname() :: atom() | string()).
+
+% Structures used by XML serialization functions.
+-type(xmldefaultnss()  :: [xmlname()]).
+-type(xmlprefixednss() :: [{xmlname(), string()}]).
+
+% --------------------------------------------------------------------
 % Records to represent XML nodes.
 % --------------------------------------------------------------------
 
-% Elements.
--record(xmlel, {
-  ns = undefined,         % Element namespace
-  declared_ns = [],       % Declared namespaces in this element
-  name,                   % Element name
-  attrs = [],             % Attributes list
-  children = []           % Children (elements or CDATA)
+% Note: The records defined here are documented in exmpp_xml.
+
+% Character data.
+-record(xmlcdata, {
+  cdata = <<>>     :: binary()
 }).
 
 % Attributes.
 -record(xmlattr, {
-  ns = undefined,
-  name,
-  value
+  ns = undefined   :: xmlname() | undefined,
+  name             :: xmlname(),
+  value            :: binary()
 }).
 
-% Character data.
--record(xmlcdata, {
-  cdata = []              % Character data
+% Old attribute isn't represented by a record.
+-type(xmlattr_old() :: {xmlname(), string()}).
+
+% Elements.
+-record(xmlel, {
+  ns = undefined   :: xmlname() | undefined,
+  declared_ns = [] :: [{xmlname(), string() | none}],
+  name             :: xmlname(),
+  attrs = []       :: [#xmlattr{} | xmlattr_old()],
+  children = []    :: [#xmlel{} | #xmlcdata{}] | undefined
 }).
 
 % XML end tag.
 % To use when 'children' is undefined in xmlel or xmlelement.
 -record(xmlendtag, {
-  ns = undefined,
-  name
-}).
-
-% Processing Instruction.
--record(xmlpi, {
-  target,
-  value
+  ns = undefined   :: xmlname() | undefined,
+  name             :: xmlname()
 }).
 
 % Old record for xmlel.
 -record(xmlelement, {
-  name,                   % Element name
-  attrs = [],             % Attributes list
-  children = []           % Children (elements or CDATA)
+  name             :: xmlname(),
+  attrs = []       :: [xmlattr_old()],
+  children = []    :: [#xmlelement{} | #xmlcdata{}] | undefined
+}).
+
+% Processing Instruction.
+-record(xmlpi, {
+  target           :: binary(),
+  value            :: binary()
 }).
 
 % --------------------------------------------------------------------

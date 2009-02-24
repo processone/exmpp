@@ -1,3 +1,9 @@
+2009-02-24  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* include/exmpp_xml.hrl, include/exmpp_xmpp.hrl,
+	include/internal/exmpp_xmpp.hrl: Add type declarations to records.
+	This is used by dialyzer.
+
 2009-02-23  Pablo Polvorin  <pablo.polvorin@process-one.net>
 
 	* README: State R12B as minimum version.
