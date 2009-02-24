@@ -8,6 +8,13 @@
 	functions to convert a string/binary/integer/atom to list and binary
 	respectively.
 
+	* src/core/exmpp_xml.erl: Rename some types in documentation:
+	  o  xmlelement() -> xmlel_old()
+	  o  xmlnsattribute() -> xmlattr()
+	  o  xmlattribute() -> xmlattr_old()
+	(set_attr_value/2, cdata/1): Use the new any_to_*/1 functions from
+	exmpp_utils.
+
 2009-02-23  Pablo Polvorin  <pablo.polvorin@process-one.net>
 
 	* README: State R12B as minimum version.
