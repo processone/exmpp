@@ -27,6 +27,9 @@
 	* src/core/exmpp_iq.erl, src/core/exmpp_dialback.erl,
 	src/core/exmpp_xmlstream.erl: Fix documentation.
 
+	* src/network/exmpp_session.erl: Fix a misuse of gen_fsm's message's
+	From. This was not tested, though. Spotted by dialyzer.
+
 2009-02-23  Pablo Polvorin  <pablo.polvorin@process-one.net>
 
 	* README: State R12B as minimum version.

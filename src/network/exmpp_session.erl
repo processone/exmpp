@@ -294,7 +294,7 @@ terminate(Reason, _StateName, #state{connection_ref = ConnRef,
 %% Send gen_fsm reply if needed
 reply(_Reply, undefined) ->
     ok;
-reply(Reply, From) when pid(From) ->
+reply(Reply, {P, _} = From) when pid(P) ->
     gen_fsm:reply(From, Reply);
 reply(_, _) ->
     ok.
