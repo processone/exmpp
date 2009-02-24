@@ -4,6 +4,10 @@
 	include/internal/exmpp_xmpp.hrl: Add type declarations to records.
 	This is used by dialyzer.
 
+	* src/core/exmpp_utils.erl (any_to_list/1, any_to_binary/1): Add new
+	functions to convert a string/binary/integer/atom to list and binary
+	respectively.
+
 2009-02-23  Pablo Polvorin  <pablo.polvorin@process-one.net>
 
 	* README: State R12B as minimum version.

@@ -16,6 +16,8 @@
 
 % Binary and string helpers.
 -export([
+  any_to_list/1,
+  any_to_binary/1,
   strip/1,
   strip/2
 ]).
@@ -58,6 +60,50 @@ keystore2(_Key, _N, [], New) ->
 % --------------------------------------------------------------------
 % Binary and string helpers.
 % --------------------------------------------------------------------
+
+%% @spec (Any) -> String
+%%     Any = binary() | string() | atom() | integer()
+%%     String = string()
+%% @doc Convert any type to its `string()' form.
+%%
+%% For an atom, {@link erlang:atom_to_list/1} is used. For an integer,
+%% {@link erlang:integer_to_list/1} is used. For a binary, {@link
+%% erlang:binary_to_list/1} is used. A string is returned as is.
+
+-spec(any_to_list/1 ::
+  (binary() | string() | integer() | atom()) -> string()).
+
+any_to_list(Atom) when is_atom(Atom) ->
+    atom_to_list(Atom);
+any_to_list(Integer) when is_integer(Integer) ->
+    integer_to_list(Integer);
+
+any_to_list(String) when is_list(String) ->
+    String;
+any_to_list(Binary) when is_binary(Binary) ->
+    binary_to_list(Binary).
+
+%% @spec (Any) -> Binary
+%%     Any = binary() | string() | atom() | integer()
+%%     Binary = binary()
+%% @doc Convert any type to its `binary()' form.
+%%
+%% For an atom, {@link erlang:atom_to_list/1} is used. For an integer,
+%% {@link erlang:integer_to_list/1} is used. For a string, {@link
+%% erlang:list_to_binary/1} is used. A binary is returned as is.
+
+-spec(any_to_binary/1 ::
+  (binary() | string() | integer() | atom()) -> binary()).
+
+any_to_binary(Atom) when is_atom(Atom) ->
+    any_to_binary(atom_to_list(Atom));
+any_to_binary(Integer) when is_integer(Integer) ->
+    any_to_binary(integer_to_list(Integer));
+
+any_to_binary(String) when is_list(String) ->
+    list_to_binary(String);
+any_to_binary(Binary) when is_binary(Binary) ->
+    Binary.
 
 %% @spec strip(Stream) -> Stripped
 %%     Stream = binary() | string()
