@@ -46,6 +46,26 @@
 ]).
 
 % --------------------------------------------------------------------
+% Documentation / type definitions.
+% --------------------------------------------------------------------
+
+%% @type iq() = {iq, Kind, Type, ID, NS, Payload, Error, Lang, IQ_NS}
+%%     Kind = request | response
+%%     Type = get | set | result | error
+%%     ID = binary() | undefined
+%%     NS = atom() | string() | undefined
+%%     Payload = exmpp_xml:xmlel() | undefined
+%%     Error = exmpp_xml:xmlel() | undefined
+%%     Lang = binary() | undefined
+%%     IQ_NS = atom() | string() | undefined.
+%% Record representing an IQ stanza.
+%%
+%% It's created from an #xmlel using {@link xmlel_to_iq/1}. This record
+%% eases matching in function clauses. It may be passed to functions in
+%% {@link exmpp_stanza} and {@link exmpp_iq}. For other operations, it
+%% must be converted back to #xmlel using {@link iq_to_xmlel/1}.
+
+% --------------------------------------------------------------------
 % IQ creation.
 % --------------------------------------------------------------------
 
@@ -61,7 +81,7 @@ get(NS, Request) ->
 %% @spec (NS, Request, ID) -> Request_IQ
 %%     NS = atom()
 %%     Request = exmpp_xml:xmlel()
-%%     ID = string()
+%%     ID = binary() | string() | random
 %%     Request_IQ = exmpp_xml:xmlel()
 %% @doc Prepare an `<iq/>' to transport the given `get' request.
 
@@ -87,7 +107,7 @@ set(NS, Request) ->
 %% @spec (NS, Request, ID) -> Request_IQ
 %%     NS = atom()
 %%     Request = exmpp_xml:xmlel()
-%%     ID = string()
+%%     ID = binary() | string() | random
 %%     Request_IQ = exmpp_xml:xmlel()
 %% @doc Prepare an `<iq/>' to transport the given `set' request.
 
@@ -444,15 +464,3 @@ get_payload(IQ) ->
         'error'  -> exmpp_stanza:get_error(IQ);
         _        -> throw({iq, get_payload, invalid_iq, IQ})
     end.
-
-% --------------------------------------------------------------------
-% Documentation / type definitions.
-% --------------------------------------------------------------------
-
-%% @type iq().
-%% Record representing an IQ stanza.
-%%
-%% It's created from an #xmlel using {@link xmlel_to_iq/1}. This record
-%% eases matching in function clauses. It may be passed to functions in
-%% {@link exmpp_stanza} and {@link exmpp_iq}. For other operations, it
-%% must be converted back to #xmlel using {@link iq_to_xmlel/1}.

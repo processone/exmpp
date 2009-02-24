@@ -257,7 +257,7 @@ send_events(Stream, []) ->
 
 %% @spec (Data) -> XML_Element | {error, Reason}
 %%     Data = string() | binary()
-%%     XML_Element = exmpp_xml:xmlelement()
+%%     XML_Element = exmpp_xml:xmlel() | exmpp_xml:xmlel_old()
 %% @doc Parse the given data.
 %%
 %% The XML parser is created with default options.
@@ -271,7 +271,7 @@ parse_element(Data) ->
 %% @spec (Data, Parser_Options) -> XML_Element
 %%     Data = string() | binary()
 %%     Parser_Options = [exmpp_xml:xmlparseroption()]
-%%     XML_Element = exmpp_xml:xmlelement()
+%%     XML_Element = exmpp_xml:xmlel() | exmpp_xml:xmlel_old()
 %% @doc Parse the given data.
 %%
 %% The XML parser is created with given `Parser_Options' options.
@@ -337,9 +337,9 @@ parse_element(Data, Parser_Options) ->
 %%     Stream_Start = {xmlstreamstart, XML_Element} | {xmlstreamstart, Name, Attrs}
 %%     Stream_Element = {xmlstreamelement, XML_Element}
 %%     Stream_End = {xmlstreamend, XML_End_Tag}
-%%       XML_Element = exmpp_xml:xmlel() | exmpp_xml:xmlelement()
+%%       XML_Element = exmpp_xml:xmlel() | exmpp_xml:xmlel_old()
 %%       XML_End_Tag = exmpp_xml:xmlendtag()
 %%       Name = atom() | string()
-%%       Attrs = [exmpp_xml:xmlattribute() | exmpp_xml:xmlnsattribute()]
+%%       Attrs = [exmpp_xml:xmlattr_old() | exmpp_xml:xmlattr()]
 %%     Stream_Error = {xmlstreamerror, Reason}.
 %% Records representing an event sent by the {@link parse/2} function.

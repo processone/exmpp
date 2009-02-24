@@ -46,7 +46,7 @@ key(From, To, Key) ->
 %% @spec (From, To, ID, Key) -> Request
 %%     From = exmpp_jid:jid() | string()
 %%     To = exmpp_jid:jid() | string()
-%%     ID = string()
+%%     ID = binary() | string() | random
 %%     Key = binary() | string()
 %%     Request = exmpp_xml:xmlel()
 %% @doc Prepare a `<db:verify/>' element to send to the Authoritative

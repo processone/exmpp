@@ -24,6 +24,9 @@
 
 	* src/core/exmpp_jid.erl: Add contracts. Fix documentation. Style.
 
+	* src/core/exmpp_iq.erl, src/core/exmpp_dialback.erl,
+	src/core/exmpp_xmlstream.erl: Fix documentation.
+
 2009-02-23  Pablo Polvorin  <pablo.polvorin@process-one.net>
 
 	* README: State R12B as minimum version.
