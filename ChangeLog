@@ -15,6 +15,13 @@
 	(set_attr_value/2, cdata/1): Use the new any_to_*/1 functions from
 	exmpp_utils.
 
+	* src/core/exmpp_stanza.erl: Add contracts. Fix documentation. Style.
+	(set_id/2, set_id_in_attrs/2): Change API: an empty ID or undefined
+	will remove the attribute. To have a random ID, specify 'random'.
+	(set_lang_in_attrs/2): Change API: an empty lang or undefined will
+	remove the attribute.
+	(error/3): Fix a bug where the 'Text' attribute was never used.
+
 2009-02-23  Pablo Polvorin  <pablo.polvorin@process-one.net>
 
 	* README: State R12B as minimum version.
