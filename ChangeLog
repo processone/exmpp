@@ -1,3 +1,9 @@
+2009-03-06  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* include/exmpp_xml.hrl: Fix xmldefaultnss() type definition. Add
+	definitions for xmldefaultns(), xmlpathcomponent(), xmlel() and
+	xmlchild() types.
+
 2009-02-24  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp_xml.hrl, include/exmpp_xmpp.hrl,

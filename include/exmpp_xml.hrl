@@ -8,8 +8,19 @@
 -type(xmlname() :: atom() | string()).
 
 % Structures used by XML serialization functions.
--type(xmldefaultnss()  :: [xmlname()]).
+-type(xmldefaultns()  :: xmlname() | [xmlname()]).
+-type(xmldefaultnss()  :: [xmldefaultns()]).
 -type(xmlprefixednss() :: [{xmlname(), string()}]).
+
+% Path description (to be used in exmpp_xml:get_path/2).
+-type(xmlpathcomponent() ::
+  {element, xmlname()} |
+  {element, xmlname(), xmlname()} |
+  {attribute, xmlname()} |
+  {attribute, xmlname(), xmlname()} |
+  cdata |
+  cdata_as_list).
+-type(xmlpath() :: [xmlpathcomponent()]).
 
 % --------------------------------------------------------------------
 % Records to represent XML nodes.
@@ -60,6 +71,9 @@
   target           :: binary(),
   value            :: binary()
 }).
+
+-type(xmlel()    :: #xmlel{} | #xmlelement{}).
+-type(xmlchild() :: #xmlel{} | #xmlelement{} | #xmlcdata{}).
 
 % --------------------------------------------------------------------
 % Macros to help creation of XML nodes.
