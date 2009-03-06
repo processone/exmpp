@@ -11,6 +11,10 @@
 	element, not on the children. For the previous behaviour, use the new
 	append_cdata_to_list/2 function.
 
+	* src/core/exmpp_stanza.erl: Fix some contracts. Remove useless
+	clauses in to_list/2, to_list/1, to_binary/2, to_binary/1, to_iolist/2
+	and to_iolist/1.
+
 2009-02-24  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp_xml.hrl, include/exmpp_xmpp.hrl,

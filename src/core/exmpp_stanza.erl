@@ -850,10 +850,9 @@ get_text_in_error(Error) ->
 %% Server Dialback `jabber:server:dialback' are included as a prefixed
 %% namespace, with the `stream' prefix.
 
--spec(to_list/2 :: (#xmlel{} | #iq{}, xmlname() | [xmlname()]) -> string()).
+-spec(to_list/2 ::
+  (#xmlel{} | #iq{}, xmldefaultns()) -> string()).
 
-to_list(#iq{} = El, Default_NS) ->
-    to_list(exmpp_iq:iq_to_xmlel(El), Default_NS);
 to_list(El, Default_NS) ->
     to_list(El, Default_NS,
       [{?NS_XMPP, ?NS_XMPP_pfx}, {?NS_DIALBACK, ?NS_DIALBACK_pfx}]).
@@ -870,7 +869,7 @@ to_list(El, Default_NS) ->
 %% To understand `Default_NS', see {@link exmpp_xml:xmlel_to_xmlelement/3}.
 
 -spec(to_list/3 ::
-  (#xmlel{} | #iq{}, xmldefaultnss(), xmlprefixednss()) -> string()).
+  (#xmlel{} | #iq{}, xmldefaultns(), xmlprefixednss()) -> string()).
 
 to_list(#iq{} = El, Default_NS, Prefixed_NS) ->
     to_list(exmpp_iq:iq_to_xmlel(El), Default_NS, Prefixed_NS);
@@ -888,8 +887,6 @@ to_list(El, Default_NS, Prefixed_NS) ->
 
 -spec(to_list/1 :: (#xmlel{} | #iq{}) -> string()).
 
-to_list(#iq{} = El) ->
-    to_list(exmpp_iq:iq_to_xmlel(El));
 to_list(El) ->
     to_list(El, [
         ?NS_JABBER_CLIENT,
@@ -910,10 +907,9 @@ to_list(El) ->
 %% Server Dialback `jabber:server:dialback' are included as a prefixed
 %% namespace, with the `stream' prefix.
 
--spec(to_binary/2 :: (#xmlel{} | #iq{}, xmlname() | [xmlname()]) -> binary()).
+-spec(to_binary/2 ::
+  (#xmlel{} | #iq{}, xmldefaultns()) -> binary()).
 
-to_binary(#iq{} = El, Default_NS) ->
-    to_binary(exmpp_iq:iq_to_xmlel(El), Default_NS);
 to_binary(El, Default_NS) ->
     to_binary(El, Default_NS,
       [{?NS_XMPP, ?NS_XMPP_pfx}, {?NS_DIALBACK, ?NS_DIALBACK_pfx}]).
@@ -930,7 +926,7 @@ to_binary(El, Default_NS) ->
 %% To understand `Default_NS', see {@link exmpp_xml:xmlel_to_xmlelement/3}.
 
 -spec(to_binary/3 ::
-  (#xmlel{} | #iq{}, xmldefaultnss(), xmlprefixednss()) -> binary()).
+  (#xmlel{} | #iq{}, xmldefaultns(), xmlprefixednss()) -> binary()).
 
 to_binary(#iq{} = El, Default_NS, Prefixed_NS) ->
     to_binary(exmpp_iq:iq_to_xmlel(El), Default_NS, Prefixed_NS);
@@ -948,8 +944,6 @@ to_binary(El, Default_NS, Prefixed_NS) ->
 
 -spec(to_binary/1 :: (#xmlel{} | #iq{}) -> binary()).
 
-to_binary(#iq{} = El) ->
-    to_binary(exmpp_iq:iq_to_xmlel(El));
 to_binary(El) ->
     to_binary(El, [
         ?NS_JABBER_CLIENT,
@@ -970,10 +964,9 @@ to_binary(El) ->
 %% Server Dialback `jabber:server:dialback' are included as a prefixed
 %% namespace, with the `stream' prefix.
 
--spec(to_iolist/2 :: (#xmlel{} | #iq{}, xmlname() | [xmlname()]) -> iolist()).
+-spec(to_iolist/2 ::
+  (#xmlel{} | #iq{}, xmldefaultns()) -> iolist()).
 
-to_iolist(#iq{} = El, Default_NS) ->
-    to_iolist(exmpp_iq:iq_to_xmlel(El), Default_NS);
 to_iolist(El, Default_NS) ->
     to_iolist(El, Default_NS,
       [{?NS_XMPP, ?NS_XMPP_pfx}, {?NS_DIALBACK, ?NS_DIALBACK_pfx}]).
@@ -990,7 +983,7 @@ to_iolist(El, Default_NS) ->
 %% To understand `Default_NS', see {@link exmpp_xml:xmlel_to_xmlelement/3}.
 
 -spec(to_iolist/3 ::
-  (#xmlel{} | #iq{}, xmldefaultnss(), xmlprefixednss()) -> iolist()).
+  (#xmlel{} | #iq{}, xmldefaultns(), xmlprefixednss()) -> iolist()).
 
 to_iolist(#iq{} = El, Default_NS, Prefixed_NS) ->
     to_iolist(exmpp_iq:iq_to_xmlel(El), Default_NS, Prefixed_NS);
@@ -1008,8 +1001,6 @@ to_iolist(El, Default_NS, Prefixed_NS) ->
 
 -spec(to_iolist/1 :: (#xmlel{} | #iq{}) -> iolist()).
 
-to_iolist(#iq{} = El) ->
-    to_iolist(exmpp_iq:iq_to_xmlel(El));
 to_iolist(El) ->
     to_iolist(El, [
         ?NS_JABBER_CLIENT,
