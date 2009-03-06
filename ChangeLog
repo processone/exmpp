@@ -4,6 +4,13 @@
 	definitions for xmldefaultns(), xmlpathcomponent(), xmlel() and
 	xmlchild() types.
 
+	* src/core/exmpp_xml.erl: Complete addition of contracts. Fix
+	documentation. Rename xmlelement_to_xmlel_and_ns_tables/3 to
+	xmlelement_to_xmlel_and_nss_tables/3.
+	(append_cdata/2): Change API: this function now works on an XML
+	element, not on the children. For the previous behaviour, use the new
+	append_cdata_to_list/2 function.
+
 2009-02-24  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp_xml.hrl, include/exmpp_xmpp.hrl,
