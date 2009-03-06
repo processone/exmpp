@@ -162,7 +162,7 @@
   normalize_cdata/1,
   set_cdata_in_list/2,
   set_cdata/2,
-  append_cdata_in_list/2,
+  append_cdata_to_list/2,
   append_cdata/2,
   remove_cdata_from_list/1,
   remove_cdata/1,
@@ -2636,13 +2636,13 @@ set_cdata(#xmlelement{children = Children} = XML_Element, CData) ->
 %%     New_Children = [xmlel() | xmlel_old() | xmlcdata()]
 %% @doc Append `CData' to `Children' list.
 
--spec(append_cdata_in_list/2 ::
+-spec(append_cdata_to_list/2 ::
   ([xmlchild()] | undefined, binary() | string() | atom() | integer()) ->
       [xmlchild()]).
 
-append_cdata_in_list(undefined, CData) ->
+append_cdata_to_list(undefined, CData) ->
     [cdata(CData)];
-append_cdata_in_list(Children, CData) ->
+append_cdata_to_list(Children, CData) ->
     Children ++ [cdata(CData)].
 
 %% @spec (XML_Element, CData) -> New_XML_Element
@@ -2655,10 +2655,10 @@ append_cdata_in_list(Children, CData) ->
   (xmlel(), binary() | string() | atom() | integer()) -> xmlel()).
 
 append_cdata(#xmlel{children = Children} = XML_Element, CData) ->
-    New_Children = append_cdata_in_list(Children, CData),
+    New_Children = append_cdata_to_list(Children, CData),
     XML_Element#xmlel{children = New_Children};
 append_cdata(#xmlelement{children = Children} = XML_Element, CData) ->
-    New_Children = append_cdata_in_list(Children, CData),
+    New_Children = append_cdata_to_list(Children, CData),
     XML_Element#xmlelement{children = New_Children}.
 
 %% @spec (Children) -> New_Children
