@@ -15,6 +15,13 @@
 	clauses in to_list/2, to_list/1, to_binary/2, to_binary/1, to_iolist/2
 	and to_iolist/1.
 
+	* src/core/exmpp_iq.erl: Add contracts. Fix documentation. Fix bugs
+	where exmpp_stanza:set_id_in_attrs/2 was called with the old
+	'undefined' atom, instead of the new 'random' atom to set a random
+	ID.
+	(xmlel_to_iq/1): Remove an unused case clause; get_payload/1 will
+	never return 'undefined'.
+
 2009-02-24  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp_xml.hrl, include/exmpp_xmpp.hrl,
