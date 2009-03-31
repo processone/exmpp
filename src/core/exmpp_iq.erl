@@ -248,7 +248,9 @@ xmlel_to_iq(#xmlel{ns = IQ_NS} = IQ) when ?IS_IQ(IQ) ->
                     {N, P, E}
             end;
         #xmlel{ns = N} = P ->
-            {N, P, undefined}
+            {N, P, undefined};
+        undefined when Type == 'result' ->
+            {undefined, undefined, undefined}
     end,
     Lang = exmpp_stanza:get_lang(IQ),
     #iq{
@@ -503,7 +505,7 @@ get_result(#iq{} = IQ_Rec) ->
 %% @throws {iq, get_payload, unexpected_iq, IQ}
 %% @doc Extract the request, the result or the error from `IQ'.
 
--spec(get_payload/1 :: (#xmlel{} | #iq{}) -> #xmlel{}).
+-spec(get_payload/1 :: (#xmlel{} | #iq{}) -> #xmlel{} | undefined).
 
 get_payload(IQ) ->
     case exmpp_iq:get_type(IQ) of
