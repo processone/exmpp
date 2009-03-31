@@ -8,7 +8,7 @@
 -type(xmlname() :: atom() | string()).
 
 % Structures used by XML serialization functions.
--type(xmldefaultns()  :: xmlname() | [xmlname()]).
+-type(xmldefaultns()   :: xmlname() | [xmlname()]).
 -type(xmldefaultnss()  :: [xmldefaultns()]).
 -type(xmlprefixednss() :: [{xmlname(), string()}]).
 
@@ -32,6 +32,7 @@
 -record(xmlcdata, {
   cdata = <<>>     :: binary()
 }).
+-type(xmlcdata() :: #xmlcdata{}).
 
 % Attributes.
 -record(xmlattr, {
@@ -39,6 +40,7 @@
   name             :: xmlname(),
   value            :: binary()
 }).
+-type(xmlattr() :: #xmlattr{}).
 
 % Old attribute isn't represented by a record.
 -type(xmlattr_old() :: {xmlname(), string()}).
@@ -48,9 +50,10 @@
   ns = undefined   :: xmlname() | undefined,
   declared_ns = [] :: [{xmlname(), string() | none}],
   name             :: xmlname(),
-  attrs = []       :: [#xmlattr{} | xmlattr_old()],
-  children = []    :: [#xmlel{} | #xmlcdata{}] | undefined
+  attrs = []       :: [xmlattr()],
+  children = []    :: [#xmlel{} | xmlcdata()] | undefined
 }).
+-type(xmlel() :: #xmlel{}).
 
 % XML end tag.
 % To use when 'children' is undefined in xmlel or xmlelement.
@@ -58,22 +61,26 @@
   ns = undefined   :: xmlname() | undefined,
   name             :: xmlname()
 }).
+-type(xmlendtag() :: #xmlendtag{}).
 
 % Old record for xmlel.
 -record(xmlelement, {
   name             :: xmlname(),
   attrs = []       :: [xmlattr_old()],
-  children = []    :: [#xmlelement{} | #xmlcdata{}] | undefined
+  children = []    :: [#xmlelement{} | xmlcdata()] | undefined
 }).
+-type(xmlel_old() :: #xmlelement{}).
 
 % Processing Instruction.
 -record(xmlpi, {
   target           :: binary(),
   value            :: binary()
 }).
+-type(xmlpi() :: #xmlpi{}).
 
--type(xmlel()    :: #xmlel{} | #xmlelement{}).
--type(xmlchild() :: #xmlel{} | #xmlelement{} | #xmlcdata{}).
+-type(xmlattr_any() :: xmlattr() | xmlattr_old()).
+-type(xmlel_any()   :: xmlel() | xmlel_old()).
+-type(xmlnode()     :: xmlel() | xmlel_old() | xmlcdata()).
 
 % --------------------------------------------------------------------
 % Macros to help creation of XML nodes.

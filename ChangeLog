@@ -3,6 +3,9 @@
 	* include/internal/Makefile.am: Install internal headers, for
 	information purpose.
 
+	* include/exmpp_xml.hrl: Declare a real type for each record. This
+	permits to reference them in modules that do not include this header.
+
 2009-03-06  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp_xml.hrl: Fix xmldefaultnss() type definition. Add
