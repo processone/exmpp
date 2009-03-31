@@ -22,9 +22,11 @@ BUILT_SOURCES = exmpp_known_nss.hrl					\
 		exmpp_known_elems.hrl					\
 		exmpp_known_attrs.hrl
 
-CLEANFILES = $(BUILT_SOURCES)
+internalheadersdir = $(ERLANG_INSTALL_LIB_DIR_exmpp)/include/internal
 
-noinst_HEADERS = exmpp_xmpp.hrl
+internalheaders_HEADERS = $(BUILT_SOURCES) exmpp_xmpp.hrl
+
+CLEANFILES = $(BUILT_SOURCES)
 
 # --------------------------------------------------------------------
 # Known namespaces/names/attributes headers generation.
