@@ -1009,7 +1009,9 @@ is_known_ns(struct exmpp_xml_ctx *ctx, const char *ns, int ns_len)
 {
 	int is_known;
 
-	if (ctx != NULL && !ctx->check_nss)
+	if (ctx == NULL)
+		return (0);
+	if (!ctx->check_nss)
 		return (1);
 	if (ctx->known_nss == NULL)
 		return (0);
@@ -1024,7 +1026,9 @@ is_known_elem(struct exmpp_xml_ctx *ctx, const char *elem, int elem_len)
 {
 	int is_known;
 
-	if (ctx != NULL && !ctx->check_elems)
+	if (ctx == NULL)
+		return (0);
+	if (!ctx->check_elems)
 		return (1);
 	if (ctx->known_elems == NULL)
 		return (0);
@@ -1039,7 +1043,9 @@ is_known_attr(struct exmpp_xml_ctx *ctx, const char *attr, int attr_len)
 {
 	int is_known;
 
-	if (ctx != NULL && !ctx->check_attrs)
+	if (ctx == NULL)
+		return (0);
+	if (!ctx->check_attrs)
 		return (1);
 	if (ctx->known_attrs == NULL)
 		return (0);

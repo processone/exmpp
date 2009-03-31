@@ -11,7 +11,7 @@
 	that may be used by other modules. Fix xmlparseroption() type
 	definition. Use types instead of record in contract. Fix many
 	contracts; add a command where contracts couldn't be fixed because of
-	dialyzer limitations. Now that R12B is required, use lists:keystore/4
+	Dialyzer limitations. Now that R12B is required, use lists:keystore/4
 	instead of the replacement function in exmpp_utils.
 
 	* src/core/exmpp_utils.erl (keystore/4): Remove this replacement
@@ -27,17 +27,20 @@
 	* src/core/exmpp_internals.erl: Add contracts. Fix documentation.
 
 	* src/core/exmpp_tls.erl (handshake/6): Fix a bug where a case clause
-	could never match. Spotted by dialyzer.
+	could never match. Spotted by Dialyzer.
 
 	* src/core/exmpp_presence.erl (get_show/1): Fix a bug where case
 	clauses could never match: the code was expecting string() from a
-	function returning binary(). Spotted by dialyzer.
+	function returning binary(). Spotted by Dialyzer.
 
 	* src/core/exmpp_iq.erl: Do not include exmpp_xml.hrl anymore and use
 	the new exmpp_stanza:jidlike() type.
 
 	* src/core/exmpp_xmlstream.erl: Declare types to be used in contracts.
-	Fix documentation. Remove a useless case clause. Spotted by dialyzer.
+	Fix documentation. Remove a useless case clause. Spotted by Dialyzer.
+
+	* c_src/exmpp_xml.c: Correct null pointer checks. Spotted by Clang
+	static analyzer.
 
 2009-03-06  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
@@ -67,7 +70,7 @@
 
 	* include/exmpp_xml.hrl, include/exmpp_xmpp.hrl,
 	include/internal/exmpp_xmpp.hrl: Add type declarations to records.
-	This is used by dialyzer.
+	This is used by Dialyzer.
 
 	* src/core/exmpp_utils.erl (any_to_list/1, any_to_binary/1): Add new
 	functions to convert a string/binary/integer/atom to list and binary
@@ -93,7 +96,7 @@
 	src/core/exmpp_xmlstream.erl: Fix documentation.
 
 	* src/network/exmpp_session.erl: Fix a misuse of gen_fsm's message's
-	From. This was not tested, though. Spotted by dialyzer.
+	From. This was not tested, though. Spotted by Dialyzer.
 
 2009-02-23  Pablo Polvorin  <pablo.polvorin@process-one.net>
 
@@ -127,11 +130,11 @@
 2009-02-17  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_compress.erl: Fix a typo in proplists module name; we
-	were using 'prolists'. Spotted by dialyzer.
+	were using 'prolists'. Spotted by Dialyzer.
 
 	* src/core/exmpp_jid.erl: Rename as_binary_or_undefined/1 to
 	as_binary/1 and remove the clause with 'undefined' because it will
-	never happen. Spotted by dialyzer.
+	never happen. Spotted by Dialyzer.
 
 2009-02-11  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
