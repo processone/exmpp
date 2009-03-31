@@ -10,7 +10,6 @@
 -vsn('$Revision$').
 
 -include("exmpp.hrl").
--include("internal/exmpp_xmpp.hrl").
 
 % Creation.
 -export([
@@ -282,8 +281,7 @@ iq_to_xmlel(IQ_Rec) when ?IS_IQ_RECORD(IQ_Rec) ->
 %% set the sender and recipient at the same time.
 
 -spec(iq_to_xmlel/3 ::
-  (#iq{}, #jid{} | binary() | string(), #jid{} | binary() | string()) ->
-      #xmlel{}).
+  (#iq{}, exmpp_stanza:jidlike(), exmpp_stanza:jidlike()) -> #xmlel{}).
 
 iq_to_xmlel(IQ_Rec, Sender, Recipient) when ?IS_IQ_RECORD(IQ_Rec) ->
     Attrs = exmpp_stanza:set_jids_in_attrs([], Sender, Recipient),

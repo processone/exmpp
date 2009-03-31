@@ -33,6 +33,9 @@
 	clauses could never match: the code was expecting string() from a
 	function returning binary(). Spotted by dialyzer.
 
+	* src/core/exmpp_iq.erl: Do not include exmpp_xml.hrl anymore and use
+	the new exmpp_stanza:jidlike() type.
+
 2009-03-06  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp_xml.hrl: Fix xmldefaultnss() type definition. Add
