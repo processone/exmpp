@@ -179,11 +179,11 @@ get_show(#xmlel{ns = NS} = Presence) when ?IS_PRESENCE(Presence) ->
             'online';
         Show_El ->
             case exmpp_utils:strip(exmpp_xml:get_cdata(Show_El)) of
-                "away" -> 'away';
-                "chat" -> 'chat';
-                "dnd"  -> 'dnd';
-                "xa"   -> 'xa';
-                _      -> undefined
+                <<"away">> -> 'away';
+                <<"chat">> -> 'chat';
+                <<"dnd">>  -> 'dnd';
+                <<"xa">>   -> 'xa';
+                _          -> undefined
             end
     end.
 

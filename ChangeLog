@@ -29,6 +29,10 @@
 	* src/core/exmpp_tls.erl (handshake/6): Fix a bug where a case clause
 	could never match. Spotted by dialyzer.
 
+	* src/core/exmpp_presence.erl (get_show/1): Fix a bug where case
+	clauses could never match: the code was expecting string() from a
+	function returning binary(). Spotted by dialyzer.
+
 2009-03-06  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp_xml.hrl: Fix xmldefaultnss() type definition. Add
