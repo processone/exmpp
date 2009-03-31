@@ -6,6 +6,14 @@
 	* include/exmpp_xml.hrl: Declare a real type for each record. This
 	permits to reference them in modules that do not include this header.
 
+	* src/core/exmpp_xml.erl: Types documentation is moved near the top of
+	the file, like other source files. Declare a real type for records
+	that may be used by other modules. Fix xmlparseroption() type
+	definition. Use types instead of record in contract. Fix many
+	contracts; add a command where contracts couldn't be fixed because of
+	dialyzer limitations. Now that R12B is required, use lists:keystore/4
+	instead of the replacement function in exmpp_utils.
+
 2009-03-06  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp_xml.hrl: Fix xmldefaultnss() type definition. Add
