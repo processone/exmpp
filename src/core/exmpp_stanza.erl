@@ -12,7 +12,6 @@
 -vsn('$Revision$').
 
 -include("exmpp.hrl").
--include("internal/exmpp_xmpp.hrl").
 
 % Stanza common components.
 -export([
@@ -88,10 +87,10 @@
 % Documentation / type definition.
 % --------------------------------------------------------------------
 
--type(jid()  :: #jid{} | binary() | string()).
--type(id()   :: binary() | string() | random | undefined).
--type(type() :: binary() | string() | integer() | atom()).
--type(lang() :: binary() | string() | undefined).
+-type(jidlike() :: exmpp_jid:jid() | binary() | string()).
+-type(id()      :: binary() | string() | random | undefined).
+-type(type()    :: binary() | string() | integer() | atom()).
+-type(lang()    :: binary() | string() | undefined).
 
 % --------------------------------------------------------------------
 % Stanza common components.
@@ -152,7 +151,8 @@ get_sender_from_attrs(Attrs) ->
 %%
 %% If `Sender' is set to `undefined', the sender is removed.
 
--spec(set_sender/2 :: (#xmlel{}, jid() | undefined) -> #xmlel{}).
+-spec(set_sender/2 ::
+  (#xmlel{}, jidlike() | undefined) -> #xmlel{}).
 
 set_sender(#xmlel{attrs = Attrs} = Stanza, Sender) ->
     New_Attrs = set_sender_in_attrs(Attrs, Sender),
@@ -167,7 +167,7 @@ set_sender(#xmlel{attrs = Attrs} = Stanza, Sender) ->
 %% If `Sender' is set to `undefined', the sender is removed.
 
 -spec(set_sender_in_attrs/2 ::
-  ([#xmlattr{}], jid() | undefined) -> [#xmlattr{}]).
+  ([#xmlattr{}], jidlike() | undefined) -> [#xmlattr{}]).
 
 set_sender_in_attrs(Attrs, undefined) ->
     remove_sender_in_attrs(Attrs);
@@ -231,7 +231,8 @@ get_recipient_from_attrs(Attrs) ->
 %%
 %% If `Recipient' is set to `undefined', the recipient is removed.
 
--spec(set_recipient/2 :: (#xmlel{}, jid() | undefined) -> #xmlel{}).
+-spec(set_recipient/2 ::
+  (#xmlel{}, jidlike() | undefined) -> #xmlel{}).
 
 set_recipient(#xmlel{attrs = Attrs} = Stanza, Recipient) ->
     New_Attrs = set_recipient_in_attrs(Attrs, Recipient),
@@ -246,7 +247,7 @@ set_recipient(#xmlel{attrs = Attrs} = Stanza, Recipient) ->
 %% If `Recipient' is set to `undefined', the recipient is removed.
 
 -spec(set_recipient_in_attrs/2 ::
-  ([#xmlattr{}], jid() | undefined) -> [#xmlattr{}]).
+  ([#xmlattr{}], jidlike() | undefined) -> [#xmlattr{}]).
 
 set_recipient_in_attrs(Attrs, undefined) ->
     remove_recipient_in_attrs(Attrs);
@@ -286,7 +287,8 @@ remove_recipient_in_attrs(Attrs) ->
 %% If `Sender' is set to `undefined', the sender is removed. If
 %% `Recipient' is set to `undefined', the recipient is removed.
 
--spec(set_jids/3 :: (#xmlel{}, jid(), jid()) -> #xmlel{}).
+-spec(set_jids/3 ::
+  (#xmlel{}, jidlike(), jidlike()) -> #xmlel{}).
 
 set_jids(Stanza, From, To) ->
     set_recipient(set_sender(Stanza, From), To).
@@ -301,7 +303,8 @@ set_jids(Stanza, From, To) ->
 %% If `Sender' is set to `undefined', the sender is removed. If
 %% `Recipient' is set to `undefined', the recipient is removed.
 
--spec(set_jids_in_attrs/3 :: ([#xmlattr{}], jid(), jid()) -> [#xmlattr{}]).
+-spec(set_jids_in_attrs/3 ::
+  ([#xmlattr{}], jidlike(), jidlike()) -> [#xmlattr{}]).
 
 set_jids_in_attrs(Attrs, From, To) ->
     set_recipient_in_attrs(set_sender_in_attrs(Attrs, From), To).
