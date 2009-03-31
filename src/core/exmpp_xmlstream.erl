@@ -35,18 +35,36 @@
   parse_element/2
 ]).
 
+-type(process()  :: pid() | atom()).
+-type(callback() ::
+  process()                      |
+  {gen_fsm, process()}           |
+  {process, process()}           |
+  {apply, atom(), atom(), any()} |
+  no_callback                    |
+  any()
+).
+
 -record(xml_stream, {
-  callback,
+  callback             :: callback(),
   parser,
-  xmlstreamstart = old,
-  opened = false
+  xmlstreamstart = old :: new | old,
+  opened = false       :: bool()
 }).
+-type(xmlstream() :: #xml_stream{}).
+
+-type(xmlstreamevent() ::
+  {xmlstreamstart, atom() | string(), [#xmlattr{} | xmlattr_old()]} |
+  #xmlstreamstart{} |
+  #xmlstreamelement{} |
+  #xmlstreamend{}
+).
 
 % --------------------------------------------------------------------
 % Stream parsing, chunk by chunk.
 % --------------------------------------------------------------------
 
-%% @spec (Callback, Parser) -> {ok, Stream} | {error, Reason}
+%% @spec (Callback, Parser) -> Stream
 %%     Callback = callback()
 %%     Stream = xmlstream()
 %%     Parser = exmpp_xml:xmlparser()
@@ -60,10 +78,13 @@
 %% @see exmpp_xml:start_parser/1.
 %% @see exmpp_xml:reset_parser/2.
 
+-spec(start/2 ::
+  (callback(), exmpp_xml:xmlparser()) -> xmlstream()).
+
 start(Callback, Parser) ->
     start(Callback, Parser, []).
 
-%% @spec (Callback, Parser, Stream_Options) -> {ok, Stream} | {error, Reason}
+%% @spec (Callback, Parser, Stream_Options) -> Stream
 %%     Callback = callback()
 %%     Stream = xmlstream()
 %%     Parser = exmpp_xml:xmlparser()
@@ -78,6 +99,10 @@ start(Callback, Parser) ->
 %%
 %% @see exmpp_xml:start_parser/1.
 %% @see exmpp_xml:reset_parser/2.
+
+-spec(start/3 ::
+  (callback(), exmpp_xml:xmlparser(), [{xmlstreamstart, new | old}]) ->
+      xmlstream()).
 
 start(Callback, Parser, Stream_Options) ->
     Callback2 = case Callback of
@@ -102,6 +127,8 @@ start(Callback, Parser, Stream_Options) ->
 %%     New_Stream = xmlstream()
 %% @doc Reset stream and the underlying XML parser.
 
+-spec(reset/1 :: (xmlstream()) -> xmlstream()).
+
 reset(#xml_stream{parser = Parser} = Stream) ->
     New_Parser = exmpp_xml:reset_parser(Parser),
     Stream#xml_stream{parser = New_Parser, opened = false}.
@@ -110,6 +137,8 @@ reset(#xml_stream{parser = Parser} = Stream) ->
 %%     Stream = xmlstream()
 %%     Parser = exmpp_xml:xmlparser()
 %% @doc Return the XML parser used.
+
+-spec(get_parser/1 :: (xmlstream()) -> exmpp_xml:xmlparser()).
 
 get_parser(#xml_stream{parser = Parser}) ->
     Parser.
@@ -127,6 +156,8 @@ get_parser(#xml_stream{parser = Parser}) ->
 %%
 %% @see get_parser/1.
 
+-spec(stop/1 :: (xmlstream()) -> ok).
+
 stop(_Stream) ->
     ok.
 
@@ -142,6 +173,11 @@ stop(_Stream) ->
 %% function may not send any event.
 %%
 %% Potential events are described by the {@link xmlstreamevent()} type.
+
+-spec(parse/2 ::
+  (xmlstream(), binary() | string()) ->
+      {ok, xmlstream()} | {ok, xmlstream(), [xmlstreamevent()]} |
+      {error, any()}).
 
 parse(#xml_stream{parser = Parser} = Stream, Data) ->
     try exmpp_xml:parse(Parser, Data) of
@@ -205,14 +241,7 @@ process_elements2(Stream, [XML_Element | Rest], Events) ->
         % Character data as <stream> child, ignore.
         % This is probably a keep-alive whitespace. 
         #xmlcdata{} ->
-            process_elements2(Stream, Rest, Events);
-
-        % Unknown tuple.
-        _ ->
-            %error_logger:info_msg(
-            %  "~s:process_elements/2: Unknown element: ~p~n",
-            %  [?MODULE, XML_Element]),
-            process_elements(Stream, Rest)
+            process_elements2(Stream, Rest, Events)
     end;
 process_elements2(Stream, [], Events) ->
     {ok, Stream, lists:reverse(Events)}.
@@ -255,9 +284,9 @@ send_events(Stream, []) ->
 % Document parsing.
 % --------------------------------------------------------------------
 
-%% @spec (Data) -> XML_Element | {error, Reason}
+%% @spec (Data) -> [XML_Element]
 %%     Data = string() | binary()
-%%     XML_Element = exmpp_xml:xmlel() | exmpp_xml:xmlel_old()
+%%     XML_Element = exmpp_xml:xmlel() | exmpp_xml:xmlel_old() | exmpp_xml:xmlcdata()
 %% @doc Parse the given data.
 %%
 %% The XML parser is created with default options.
@@ -265,19 +294,27 @@ send_events(Stream, []) ->
 %% @see exmpp_xml:start_parser/0.
 %% @see exmpp_xml:parse_document/1.
 
+-spec(parse_element/1 ::
+  (binary() | string()) ->
+      [xmlnode() | xmlendtag()]).
+
 parse_element(Data) ->
     parse_element(Data, []).
 
-%% @spec (Data, Parser_Options) -> XML_Element
+%% @spec (Data, Parser_Options) -> [XML_Element]
 %%     Data = string() | binary()
 %%     Parser_Options = [exmpp_xml:xmlparseroption()]
-%%     XML_Element = exmpp_xml:xmlel() | exmpp_xml:xmlel_old()
+%%     XML_Element = exmpp_xml:xmlel() | exmpp_xml:xmlel_old() | exmpp_xml:xmlcdata()
 %% @doc Parse the given data.
 %%
 %% The XML parser is created with given `Parser_Options' options.
 %%
 %% @see exmpp_xml:start_parser/1.
 %% @see exmpp_xml:parse_document/2.
+
+-spec(parse_element/2 ::
+  (binary() | string(), [exmpp_xml:xmlparseroption()]) ->
+      [xmlnode() | xmlendtag()]).
 
 parse_element(Data, Parser_Options) ->
     case exmpp_xml:parse_document(Data, Parser_Options) of

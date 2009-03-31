@@ -36,6 +36,9 @@
 	* src/core/exmpp_iq.erl: Do not include exmpp_xml.hrl anymore and use
 	the new exmpp_stanza:jidlike() type.
 
+	* src/core/exmpp_xmlstream.erl: Declare types to be used in contracts.
+	Fix documentation. Remove a useless case clause. Spotted by dialyzer.
+
 2009-03-06  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp_xml.hrl: Fix xmldefaultnss() type definition. Add
