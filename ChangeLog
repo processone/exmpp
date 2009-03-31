@@ -14,6 +14,9 @@
 	dialyzer limitations. Now that R12B is required, use lists:keystore/4
 	instead of the replacement function in exmpp_utils.
 
+	* src/core/exmpp_utils.erl (keystore/4): Remove this replacement
+	function now that R12B is required.
+
 2009-03-06  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp_xml.hrl: Fix xmldefaultnss() type definition. Add

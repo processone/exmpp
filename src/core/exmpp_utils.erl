@@ -9,11 +9,6 @@
 -module(exmpp_utils).
 -vsn('$Revision$').
 
-% List helpers.
--export([
-  keystore/4
-]).
-
 % Binary and string helpers.
 -export([
   any_to_list/1,
@@ -27,35 +22,6 @@
   random_id/0,
   random_id/1
 ]).
-
-% --------------------------------------------------------------------
-% List helpers.
-% --------------------------------------------------------------------
-
-%% @spec (Key, N, Tuples_List, New_Tuple) -> New_Tuples_List
-%%     Key = term()
-%%     N = integer()
-%%     Tuples_List = [Tuple]
-%%     New_Tuple = Tuple
-%%     New_Tuples_List = Tuple
-%%     Tuple = tuple()
-%% @doc Returns a copy of `Tuple_List' where the first occurrence of a
-%% tuple T whose `N'th element compares equal to `Key' is replaced with
-%% `New_Tuple', if there is such a tuple T.
-%%
-%% This feature appeared in Erlang R12B.
-%%
-%% @see lists:keystore/4.
-
-keystore(Key, N, List, New) when is_integer(N), N > 0, is_tuple(New) ->
-    keystore2(Key, N, List, New).
-
-keystore2(Key, N, [Tuple | Rest], New) when element(N, Tuple) == Key ->
-    [New | Rest];
-keystore2(Key, N, [Tuple | Rest], New) ->
-    [Tuple | keystore2(Key, N, Rest, New)];
-keystore2(_Key, _N, [], New) ->
-    [New].
 
 % --------------------------------------------------------------------
 % Binary and string helpers.
@@ -112,6 +78,11 @@ any_to_binary(Binary) when is_binary(Binary) ->
 %%
 %% @see strip/3.
 
+-spec(strip/1 ::
+  (binary()) -> binary();
+  (string()) -> string()
+).
+
 strip(Stream) ->
     strip(Stream, both).
 
@@ -127,6 +98,11 @@ strip(Stream) ->
 %% <a href="http://www.capflam.org/?p=9">stream module</a>.
 %%
 %% @see strip/3.
+
+-spec(strip/2 ::
+  (binary(), left | right | both) -> binary();
+  (string(), left | right | both) -> string()
+).
 
 strip(Stream, left) ->
     strip_left(Stream);
@@ -174,6 +150,8 @@ strip_right([]) ->
 %%
 %% @see random_id/1.
 
+-spec(random_id/0 :: () -> string()).
+
 random_id() ->
     random_id("exmpp").
 
@@ -186,6 +164,8 @@ random_id() ->
 %% seed the generator.
 %%
 %% The ID is not guaranted to be unique.
+
+-spec(random_id/1 :: (string() | undefined) -> string()).
 
 random_id(undefined) ->
     integer_to_list(random:uniform(65536 * 65536));
