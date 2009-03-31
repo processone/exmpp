@@ -17,6 +17,9 @@
 	* src/core/exmpp_utils.erl (keystore/4): Remove this replacement
 	function now that R12B is required.
 
+	* src/core/exmpp_jid.er: Declare a jid() type so that other modules
+	can reference it.
+
 2009-03-06  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/exmpp_xml.hrl: Fix xmldefaultnss() type definition. Add
