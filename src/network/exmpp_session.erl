@@ -116,8 +116,8 @@ stop(Session) ->
 
 %% Set authentication mode to basic (password)
 auth_basic(Session, JID, Password)
-  when pid(Session),
-       list(Password) ->
+  when is_pid(Session),
+       is_list(Password) ->
     case exmpp_jid:is_jid(JID) of
 	false -> erlang:error({incorrect_jid,JID});
 	true ->
@@ -127,8 +127,8 @@ auth_basic(Session, JID, Password)
 
 %% Set authentication mode to basic (digest)
 auth_basic_digest(Session, JID, Password)
-  when pid(Session),
-       list(Password) ->
+  when is_pid(Session),
+       is_list(Password) ->
     case exmpp_jid:is_jid(JID) of
 	false -> erlang:error({incorrect_jid,JID});
 	true ->
@@ -141,26 +141,26 @@ auth_basic_digest(Session, JID, Password)
 %% method. It should thus be set before.
 %% Returns StreamId (String)
 connect_TCP(Session, Server, Port)
-  when pid(Session),
-       list(Server),
-       integer(Port) ->
+  when is_pid(Session),
+       is_list(Server),
+       is_integer(Port) ->
     case gen_fsm:sync_send_event(Session, {connect_tcp, Server, Port},
 				 ?TIMEOUT) of
-	Error when tuple(Error) -> erlang:throw(Error);
+	Error when is_tuple(Error) -> erlang:throw(Error);
 	StreamId -> StreamId
     end.
 
 %% Initiate standard TCP XMPP server connection
 %% Returns StreamId (String)
 connect_TCP(Session, Server, Port, Domain)
-  when pid(Session),
-       list(Server),
-       integer(Port),
-       list(Domain) ->
+  when is_pid(Session),
+       is_list(Server),
+       is_integer(Port),
+       is_list(Domain) ->
     case gen_fsm:sync_send_event(Session,
 				 {connect_tcp, Server, Port, Domain},
 				 ?TIMEOUT) of
-	Error when tuple(Error) -> erlang:throw(Error);
+	Error when is_tuple(Error) -> erlang:throw(Error);
 	StreamId -> StreamId
     end.
 
@@ -169,26 +169,26 @@ connect_TCP(Session, Server, Port, Domain)
 %% method. It should thus be set before.
 %% Returns StreamId (String)
 connect_SSL(Session, Server, Port)
-  when pid(Session),
-       list(Server),
-       integer(Port) ->
+  when is_pid(Session),
+       is_list(Server),
+       is_integer(Port) ->
     case gen_fsm:sync_send_event(Session, {connect_ssl, Server, Port},
 				 ?TIMEOUT) of
-	Error when tuple(Error) -> erlang:throw(Error);
+	Error when is_tuple(Error) -> erlang:throw(Error);
 	StreamId -> StreamId
     end.
 
 %% Initiate SSL XMPP server connection
 %% Returns StreamId (String)
 connect_SSL(Session, Server, Port, Domain)
-  when pid(Session),
-       list(Server),
-       integer(Port),
-       list(Domain) ->
+  when is_pid(Session),
+       is_list(Server),
+       is_integer(Port),
+       is_list(Domain) ->
     case gen_fsm:sync_send_event(Session,
 				 {connect_ssl, Server, Port, Domain},
 				 ?TIMEOUT) of
-	Error when tuple(Error) -> erlang:throw(Error);
+	Error when is_tuple(Error) -> erlang:throw(Error);
 	StreamId -> StreamId
     end.
 
@@ -198,7 +198,7 @@ connect_SSL(Session, Server, Port, Domain)
 register_account(Session, Password) ->
     case gen_fsm:sync_send_event(Session, {register_account, Password}) of
 	ok -> ok;
-	Error when tuple(Error) -> erlang:throw(Error)
+	Error when is_tuple(Error) -> erlang:throw(Error)
     end.
 
 %% Try to add the session user with inband registration
@@ -208,27 +208,27 @@ register_account(Session, Username, Password) ->
     case gen_fsm:sync_send_event(Session,
 				 {register_account, Username, Password}) of
 	ok -> ok;
-	Error when tuple(Error) -> erlang:throw(Error)
+	Error when is_tuple(Error) -> erlang:throw(Error)
     end.
 
 %% Login session user
 %% Returns ok
-login(Session) when pid(Session) ->
+login(Session) when is_pid(Session) ->
     case gen_fsm:sync_send_event(Session, {login}) of
 	ok -> ok;
-	Error when tuple(Error) -> erlang:throw(Error)
+	Error when is_tuple(Error) -> erlang:throw(Error)
     end.
 
 %% Send any exmpp formatted packet
-send_packet(Session, Packet) when pid(Session) ->
+send_packet(Session, Packet) when is_pid(Session) ->
     case gen_fsm:sync_send_event(Session, {send_packet, Packet}) of
-	Error when tuple(Error) -> erlang:throw(Error);
+	Error when is_tuple(Error) -> erlang:throw(Error);
         Id -> Id
     end.
 
-set_controlling_process(Session,Client) when pid(Session), pid(Client) ->
+set_controlling_process(Session,Client) when is_pid(Session), is_pid(Client) ->
 	case gen_fsm:sync_send_all_state_event(Session, {set_controlling_process, Client}) of
-	Error when tuple(Error) -> erlang:throw(Error);
+	Error when is_tuple(Error) -> erlang:throw(Error);
         Id -> Id
     end.
 
@@ -294,7 +294,7 @@ terminate(Reason, _StateName, #state{connection_ref = ConnRef,
 %% Send gen_fsm reply if needed
 reply(_Reply, undefined) ->
     ok;
-reply(Reply, {P, _} = From) when pid(P) ->
+reply(Reply, {P, _} = From) when is_pid(P) ->
     gen_fsm:reply(From, Reply);
 reply(_, _) ->
     ok.
@@ -314,7 +314,7 @@ code_change(_OldVsn, StateName, State, _Extra) ->
 %% Setup state: Configuration
 
 %% Define JID and authentication method
-setup({set_auth, Auth}, _From, State) when tuple(Auth) ->
+setup({set_auth, Auth}, _From, State) when is_tuple(Auth) ->
     {reply, ok, setup, State#state{auth_method=Auth}};
 setup({connect_tcp, Host, Port}, From, State) ->
     case State#state.auth_method of
@@ -437,7 +437,7 @@ stream_opened({register_account, Username, Password}, From,
 %% We can define update login informations after we are connected to
 %% the XMPP server:
 %% Define JID and authentication method
-stream_opened({set_auth, Auth}, _From, State) when tuple(Auth) ->
+stream_opened({set_auth, Auth}, _From, State) when is_tuple(Auth) ->
     {reply, ok, stream_opened, State#state{auth_method=Auth}};
 stream_opened({presence, _Status, _Show}, _From, State) ->
     {reply, {error, not_logged_in}, setup, State};
@@ -607,7 +607,7 @@ do_auth(password, ConnRef, Module, Username, Password, Resource, _StreamId) ->
 		exmpp_client_legacy_auth:password_plain(Username, Password,
 						  Resource));
 do_auth(digest, ConnRef, Module, Username, Password, Resource, StreamId)
-when list(StreamId) ->
+when is_list(StreamId) ->
     Module:send(ConnRef,
 		exmpp_client_legacy_auth:password_digest(Username,
 							 Password,
@@ -615,7 +615,7 @@ when list(StreamId) ->
                              StreamId));
 %% In this case StreamId can be false
 do_auth(digest, _ConnRef, _Module, _Username, _Password, _Resource, StreamId)
-when atom(StreamId) ->
+when is_atom(StreamId) ->
     {auth_error, no_streamid_for_digest_auth}.
 
 %% Extraction functions
@@ -627,9 +627,9 @@ get_username({basic, _Method, JID, _Password}) when ?IS_JID(JID) ->
     exmpp_jid:node_as_list(JID).
 get_resource({basic, _Method, JID, _Password}) when ?IS_JID(JID) ->
     exmpp_jid:resource_as_list(JID).
-get_password({basic, _Method, _JID, Password}) when list(Password) ->
+get_password({basic, _Method, _JID, Password}) when is_list(Password) ->
     Password.
-get_method({basic, Method, _JID, _Password}) when atom(Method) ->
+get_method({basic, Method, _JID, _Password}) when is_atom(Method) ->
     Method.
 
 %% Parsing functions

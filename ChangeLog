@@ -1,3 +1,10 @@
+2009-04-01  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/network/exmpp_session.erl, src/client/exmpp_client_register.erl:
+	Use is_pid/1, is_atom/1, is_list/1, is_tuple/1 and is_integer/1
+	instead of pid/1, atom/1, list/1, tuple/1 and integer/1 respectively.
+	The latter are marked obsolete in R13B.
+
 2009-03-30  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* include/internal/Makefile.am: Install internal headers, for

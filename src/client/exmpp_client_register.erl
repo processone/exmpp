@@ -104,8 +104,8 @@ remove_account(Id) ->
 append_fields(PreparedQuery, []) ->
     PreparedQuery;
 append_fields(Query, [{Field, Value}|Fields])
-  when atom(Field),
-       list(Value) -> 
+  when is_atom(Field),
+       is_list(Value) -> 
     FieldElement = exmpp_xml:set_cdata(
 		     #xmlel{ns = ?NS_INBAND_REGISTER, name = Field},
 		     Value),
