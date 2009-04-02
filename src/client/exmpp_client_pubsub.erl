@@ -77,11 +77,11 @@ delete_node(Service, Node) ->
 delete_node(Id, Service, Node) ->
 	% Make the <delete/> element.
 	Create = exmpp_xml:set_attributes(
-	    #xmlel{ns = ?NS_PUBSUB, name = 'delete'}, [
+	    #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'delete'}, [
 	    {'node', Node}]),
 	% Prepare the final <iq/>.
 	Pubsub = exmpp_xml:append_child(
-	    #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
+	    #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'pubsub'},
 	    Create),
 	Iq = exmpp_xml:set_attributes(
 	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
