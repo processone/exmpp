@@ -55,6 +55,8 @@
 %% States
 -export([setup/3, wait_for_stream/2, wait_for_stream/3,
 	 stream_opened/2, stream_opened/3,
+	 stream_error/2, stream_error/3,
+	 stream_closed/2, stream_closed/3,
 	 wait_for_legacy_auth_method/2,
 	 wait_for_auth_result/2,
 	 wait_for_register_result/2,
@@ -72,6 +74,7 @@
 	  connection_ref,
 	  stream_ref,
 	  stream_id = false, %% XMPP StreamID (Used for digest_auth)
+	  stream_error,
 	  receiver_ref,
 	  from_pid           %% Use by gen_fsm to handle postponed replies
 	 }).
@@ -462,12 +465,27 @@ stream_opened(?message, State = #state{connection = _Module,
 stream_opened(?iq, State) ->
     process_iq(State#state.client_pid, Attrs, IQElement),
     {next_state, stream_opened, State};
-%% Handle stream error
+%% Handle stream error: We keep the process alive to be able
+%%                      return errors
 stream_opened(?streamerror, State) ->
-    {stop, {error, Reason}, State};
+    {next_state, stream_error, State#state{stream_error=Reason}};
 %% Handle end of stream
 stream_opened(?streamend, State) ->
-    {stop, normal, State}.
+    {next_state, stream_closed, State}.
+
+stream_error(_Signal, _From, State) ->
+    {reply, {stream_error, State#state.stream_error}, stream_error, State}.
+stream_error(?streamend, State) ->
+    {next_state, stream_closed, State};
+stream_error(_Signal, State) ->
+    {next_state, stream_error, State}.
+
+stream_closed(_Signal, _From, State = #state{stream_error = undefined}) ->
+    {reply, {stream_closed, undefined}, stream_closed, State};
+stream_closed(_Signal, _From, State) ->
+    {reply, {stream_error, State#state.stream_error}, stream_closed, State}.
+stream_closed(_Signal, State) ->
+    {next_state, stream_closed, State}.
 
 %% Reason comes from streamerror macro
 wait_for_legacy_auth_method(?iq_no_attrs, State = #state{connection = Module,
