@@ -3,6 +3,8 @@
 	* src/core/exmpp_presence.erl: Add contracts. Fix documentation.
 	(set_type/2, set_show/2): Support binary() and string() correctly.
 
+	* src/core/exmpp_stringprep.erl: Add contracts.
+
 2009-04-04  Mickael Remond  <mremond@process-one.net>
 
 	* src/network/exmpp_session.erl: Better handling of stream error:
