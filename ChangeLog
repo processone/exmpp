@@ -1,3 +1,18 @@
+2009-04-23  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_presence.erl: Add contracts. Fix documentation.
+	(set_type/2, set_show/2): Support binary() and string() correctly.
+
+2009-04-04  Mickael Remond  <mremond@process-one.net>
+
+	* src/network/exmpp_session.erl: Better handling of stream error:
+	Client now gets a proper exception.
+
+2009-04-02  Christophe Romain  <christophe.romain@process-one.net>
+
+	* src/client/exmpp_client_pubsub.erl: Pubsub delete node is now in
+	pubsub#owner namespace.
+
 2009-04-01  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/network/exmpp_session.erl, src/client/exmpp_client_register.erl:

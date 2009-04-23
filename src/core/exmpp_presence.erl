@@ -39,6 +39,29 @@
 -define(EMPTY_PRESENCE, #xmlel{ns = ?NS_JABBER_CLIENT, name = 'presence'}).
 
 % --------------------------------------------------------------------
+% Type definitions.
+% --------------------------------------------------------------------
+
+-type(presencetype() ::
+  available    |
+  unavailable  |
+  subscribe    |
+  subscribed   |
+  unsubscribe  |
+  unsubscribed |
+  probe        |
+  error
+).
+
+-type(presenceshow() ::
+  online |
+  away   |
+  chat   |
+  dnd    |
+  xa
+).
+
+% --------------------------------------------------------------------
 % Presence creation.
 % --------------------------------------------------------------------
 
@@ -48,6 +71,9 @@
 %%     Presence = exmpp_xml:xmlel()
 %% @doc Create a presence stanza with given type and status.
 
+-spec presence
+(presencetype(), binary() | string()) -> xmlel().
+
 presence(Type, Status) ->
     set_status(set_type(?EMPTY_PRESENCE, Type), Status).
 
@@ -55,12 +81,18 @@ presence(Type, Status) ->
 %%     Presence = exmpp_xml:xmlel()
 %% @doc Create a presence stanza to tell that the sender is available.
 
+-spec available
+() -> xmlel().
+
 available() ->
     ?EMPTY_PRESENCE.
 
 %% @spec () -> Presence
 %%     Presence = exmpp_xml:xmlel()
 %% @doc Create a presence stanza to tell that the sender is not available.
+
+-spec unavailable
+() -> xmlel().
 
 unavailable() ->
     set_type(?EMPTY_PRESENCE, "unavailable").
@@ -70,6 +102,9 @@ unavailable() ->
 %% @doc Create a presence stanza to tell that the sender wants to
 %% subscribe to the receiver's presence.
 
+-spec subscribe
+() -> xmlel().
+
 subscribe() ->
     set_type(?EMPTY_PRESENCE, "subscribe").
 
@@ -77,6 +112,9 @@ subscribe() ->
 %%     Presence = exmpp_xml:xmlel()
 %% @doc Create a presence stanza to tell that the receiver was
 %% subscribed from the sender's presence.
+
+-spec subscribed
+() -> xmlel().
 
 subscribed() ->
     set_type(?EMPTY_PRESENCE, "subscribed").
@@ -86,6 +124,9 @@ subscribed() ->
 %% @doc Create a presence stanza to tell that the sender wants to
 %% unsubscribe to the receiver's presence.
 
+-spec unsubscribe
+() -> xmlel().
+
 unsubscribe() ->
     set_type(?EMPTY_PRESENCE, "unsubscribe").
 
@@ -94,12 +135,18 @@ unsubscribe() ->
 %% @doc Create a presence stanza to tell that the receiver was
 %% unsubscribed from the sender's presence.
 
+-spec unsubscribed
+() -> xmlel().
+
 unsubscribed() ->
     set_type(?EMPTY_PRESENCE, "unsubscribed").
 
 %% @spec () -> Presence
 %%     Presence = exmpp_xml:xmlel()
 %% @doc Create a probe presence stanza.
+
+-spec probe
+() -> xmlel().
 
 probe() ->
     set_type(?EMPTY_PRESENCE, "probe").
@@ -112,6 +159,9 @@ probe() ->
 %%
 %% If `Error' is an atom, it must be a standard condition defined by
 %% XMPP Core.
+
+-spec error
+(xmlel(), xmlel() | atom()) -> xmlel().
 
 error(Presence, Condition) when is_atom(Condition) ->
     Error = exmpp_stanza:error(Presence#xmlel.ns, Condition),
@@ -129,6 +179,9 @@ error(Presence, Error) when ?IS_PRESENCE(Presence) ->
 %%
 %% You should probably use the `IS_PRESENCE(El)' guard expression.
 
+-spec is_presence
+(xmlel()) -> bool().
+
 is_presence(Presence) when ?IS_PRESENCE(Presence) -> true;
 is_presence(_El)                                  -> false.
 
@@ -136,6 +189,9 @@ is_presence(_El)                                  -> false.
 %%     Presence = exmpp_xml:xmlel()
 %%     Type = available | unavailable | subscribe | subscribed | unsubscribe | unsubscribed | probe | error | undefined
 %% @doc Return the type of the given presence stanza.
+
+-spec get_type
+(xmlel()) -> presencetype() | undefined.
 
 get_type(Presence) when ?IS_PRESENCE(Presence) ->
     case exmpp_stanza:get_type(Presence) of
@@ -152,26 +208,49 @@ get_type(Presence) when ?IS_PRESENCE(Presence) ->
 
 %% @spec (Presence, Type) -> New_Presence
 %%     Presence = exmpp_xml:xmlel()
-%%     Type = available | unavailable | subscribe | subscribed | unsubscribe | unsubscribed | probe | error
+%%     Type = available | unavailable | subscribe | subscribed | unsubscribe | unsubscribed | probe | error | binary() | string()
 %%     New_Presence = exmpp_xml:xmlel()
 %% @doc Set the type of the given presence stanza.
 
+-spec set_type
+(xmlel(), presencetype() | binary() | string()) -> xmlel().
+
+set_type(Presence, <<>>) when ?IS_PRESENCE(Presence) ->
+    exmpp_xml:remove_attribute(Presence, 'type');
 set_type(Presence, "") when ?IS_PRESENCE(Presence) ->
     exmpp_xml:remove_attribute(Presence, 'type');
 set_type(Presence, 'available') when ?IS_PRESENCE(Presence) ->
     exmpp_xml:remove_attribute(Presence, 'type');
+set_type(Presence, <<"available">>) when ?IS_PRESENCE(Presence) ->
+    exmpp_xml:remove_attribute(Presence, 'type');
 set_type(Presence, "available") when ?IS_PRESENCE(Presence) ->
     exmpp_xml:remove_attribute(Presence, 'type');
 
-set_type(Presence, Type) when is_atom(Type) ->
-    set_type(Presence, atom_to_list(Type));
+set_type(Presence, Type) when is_binary(Type) ->
+    set_type(Presence, binary_to_list(Type));
+set_type(Presence, Type) when is_list(Type) ->
+    set_type(Presence, list_to_atom(Type));
+
 set_type(Presence, Type) when ?IS_PRESENCE(Presence) ->
+    case Type of
+        'unavailable'  -> ok;
+        'subscribe'    -> ok;
+        'subscribed'   -> ok;
+        'unsubscribe'  -> ok;
+        'unsubscribed' -> ok;
+        'probe'        -> ok;
+        'error'        -> ok;
+        _              -> throw({presence, set_type, invalid_type, Type})
+    end,
     exmpp_stanza:set_type(Presence, Type).
 
 %% @spec (Presence) -> Show | undefined
 %%     Presence = exmpp_xml:xmlel()
 %%     Show = online | away | chat | dnd | xa | undefined
 %% @doc Return the show attribute of the presence.
+
+-spec get_show
+(xmlel()) -> presenceshow() | undefined.
 
 get_show(#xmlel{ns = NS} = Presence) when ?IS_PRESENCE(Presence) ->
     case exmpp_xml:get_element(Presence, NS, 'show') of
@@ -189,17 +268,35 @@ get_show(#xmlel{ns = NS} = Presence) when ?IS_PRESENCE(Presence) ->
 
 %% @spec (Presence, Show) -> New_Presence
 %%     Presence = exmpp_xml:xmlel()
-%%     Show = nil() | online | away | chat | dnd | xa
+%%     Show = online | away | chat | dnd | xa | binary() | string()
 %%     New_Presence = exmpp_xml:xmlel()
 %% @doc Set the `<show/>' field of a presence stanza.
 %%
 %% If `Type' is an empty string or the atom `online', the `<show/>'
 %% element is removed.
 
+-spec set_show
+(xmlel(), presenceshow() | binary() | string()) -> xmlel().
+
+set_show(#xmlel{ns = NS} = Presence, <<>>) when ?IS_PRESENCE(Presence)->
+    exmpp_xml:remove_element(Presence, NS, 'show');
 set_show(#xmlel{ns = NS} = Presence, "") when ?IS_PRESENCE(Presence)->
     exmpp_xml:remove_element(Presence, NS, 'show');
-set_show(#xmlel{ns = NS} = Presence, 'online') when ?IS_PRESENCE(Presence) ->
+set_show(#xmlel{ns = NS} = Presence, 'online')
+  when ?IS_PRESENCE(Presence) ->
     exmpp_xml:remove_element(Presence, NS, 'show');
+set_show(#xmlel{ns = NS} = Presence, <<"online">>)
+  when ?IS_PRESENCE(Presence) ->
+    exmpp_xml:remove_element(Presence, NS, 'show');
+set_show(#xmlel{ns = NS} = Presence, "online")
+  when ?IS_PRESENCE(Presence) ->
+    exmpp_xml:remove_element(Presence, NS, 'show');
+
+set_show(Presence, Show) when is_binary(Show) ->
+    set_show(Presence, binary_to_list(Show));
+set_show(Presence, Show) when is_list(Show) ->
+    set_show(Presence, list_to_atom(Show));
+
 set_show(#xmlel{ns = NS} = Presence, Show) when ?IS_PRESENCE(Presence) ->
     case Show of
         'away' -> ok;
@@ -221,6 +318,9 @@ set_show(#xmlel{ns = NS} = Presence, Show) when ?IS_PRESENCE(Presence) ->
 %%     Status = binary()
 %% @doc Return the status attribute of the presence.
 
+-spec get_status
+(xmlel()) -> binary() | undefined.
+
 get_status(#xmlel{ns = NS} = Presence) when ?IS_PRESENCE(Presence) ->
     case exmpp_xml:get_element(Presence, NS, 'status') of
         undefined ->
@@ -238,9 +338,15 @@ get_status(#xmlel{ns = NS} = Presence) when ?IS_PRESENCE(Presence) ->
 %% If `Status' is an empty string (or an empty binary), the previous
 %% status is removed.
 
-set_status(#xmlel{ns = NS} = Presence, "") when ?IS_PRESENCE(Presence) ->
+-spec set_status
+(xmlel(), binary() | string() | undefined) -> xmlel().
+
+set_status(#xmlel{ns = NS} = Presence, undefined)
+  when ?IS_PRESENCE(Presence) ->
     exmpp_xml:remove_element(Presence, NS, 'status');
 set_status(#xmlel{ns = NS} = Presence, <<>>) when ?IS_PRESENCE(Presence) ->
+    exmpp_xml:remove_element(Presence, NS, 'status');
+set_status(#xmlel{ns = NS} = Presence, "") when ?IS_PRESENCE(Presence) ->
     exmpp_xml:remove_element(Presence, NS, 'status');
 set_status(#xmlel{ns = NS} = Presence, Status) when ?IS_PRESENCE(Presence) ->
     New_Status_El = exmpp_xml:set_cdata(#xmlel{ns = NS, name = 'status'},
@@ -256,6 +362,9 @@ set_status(#xmlel{ns = NS} = Presence, Status) when ?IS_PRESENCE(Presence) ->
 %%     Presence = exmpp_xml:xmlel()
 %%     Priority = integer()
 %% @doc Return the priority attribute of the presence.
+
+-spec get_priority
+(xmlel()) -> integer().
 
 get_priority(#xmlel{ns = NS} = Presence) when ?IS_PRESENCE(Presence) ->
     case exmpp_xml:get_element(Presence, NS, 'priority') of
@@ -274,8 +383,11 @@ get_priority(#xmlel{ns = NS} = Presence) when ?IS_PRESENCE(Presence) ->
 %%     New_Presence = exmpp_xml:xmlel()
 %% @doc Set the `<priority/>' field of a presence stanza.
 
+-spec set_priority
+(xmlel(), integer()) -> xmlel().
+
 set_priority(#xmlel{ns = NS} = Presence, Priority)
-  when ?IS_PRESENCE(Presence) ->
+  when ?IS_PRESENCE(Presence) andalso is_integer(Priority) ->
     New_Priority_El = exmpp_xml:set_cdata(#xmlel{ns = NS, name = 'priority'},
       Priority),
     case exmpp_xml:get_element(Presence, NS, 'priority') of
