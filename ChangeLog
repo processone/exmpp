@@ -15,6 +15,9 @@
 	the 'random' atom, not 'undefined' as before.
 	(serialize_version/1): Return a binary() for consistency's sake.
 
+	* TODO, doc/overview.edoc: Update TODO to remember to rework
+	exmpp_xml:node_to_iolist/3.
+
 2009-04-23  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_presence.erl: Add contracts. Fix documentation.

@@ -1,14 +1,14 @@
 Possible bugs
 -------------
 
-o  Fix maxsize handling in the parser.
-
+o  Fix 'max_size' handling in the parser.
 
 
 Improvements
 ------------
 
-None.
+o  Rework exmpp_xml:node_to_iolist/3 to transform directly xmlel() to
+   text without converting it to xmlel_old() first.
 
 
 New features

@@ -1,4 +1,5 @@
 @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
+@author Pablo Polvorin <pablo.polvorin@process-one.net>
 @version {@vsn}
 @title exmpp
 
@@ -38,5 +39,10 @@ communication with a remote entity, nor the logical stanzas flow.
   <li>Fix `maxsize' handling in the parser.</li>
 </ul>
 <h3>Improvements</h3>
+<ul>
+  <li>Rework {@link exmpp_xml:node_to_iolist/3} serializer to transform
+  directly {@link exmpp_xml:xmlel()} to text without converting it to
+  {@link exmpp_xml:xmlel_old()} first.</li>
+</ul>
 <h3>New features</h3>
 <!-- vim:set ft=xhtml: -->
