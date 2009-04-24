@@ -231,18 +231,18 @@ set_type(Presence, Type) when is_binary(Type) ->
 set_type(Presence, Type) when is_list(Type) ->
     set_type(Presence, list_to_atom(Type));
 
-set_type(Presence, Type) when ?IS_PRESENCE(Presence) ->
-    case Type of
-        'unavailable'  -> ok;
-        'subscribe'    -> ok;
-        'subscribed'   -> ok;
-        'unsubscribe'  -> ok;
-        'unsubscribed' -> ok;
-        'probe'        -> ok;
-        'error'        -> ok;
+set_type(Presence, Type) when ?IS_PRESENCE(Presence), is_atom(Type) ->
+    Type_B = case Type of
+        'unavailable'  -> <<"unavailable">>;
+        'subscribe'    -> <<"subscribe">>;
+        'subscribed'   -> <<"subscribed">>;
+        'unsubscribe'  -> <<"unsubscribe">>;
+        'unsubscribed' -> <<"unsubscribed">>;
+        'probe'        -> <<"probe">>;
+        'error'        -> <<"error">>;
         _              -> throw({presence, set_type, invalid_type, Type})
     end,
-    exmpp_stanza:set_type(Presence, Type).
+    exmpp_stanza:set_type(Presence, Type_B).
 
 %% @spec (Presence) -> Show | undefined
 %%     Presence = exmpp_xml:xmlel()
@@ -297,15 +297,16 @@ set_show(Presence, Show) when is_binary(Show) ->
 set_show(Presence, Show) when is_list(Show) ->
     set_show(Presence, list_to_atom(Show));
 
-set_show(#xmlel{ns = NS} = Presence, Show) when ?IS_PRESENCE(Presence) ->
-    case Show of
-        'away' -> ok;
-        'chat' -> ok;
-        'dnd'  -> ok;
-        'xa'   -> ok;
+set_show(#xmlel{ns = NS} = Presence, Show)
+  when ?IS_PRESENCE(Presence), is_atom(Show) ->
+    Show_B = case Show of
+        'away' -> <<"away">>;
+        'chat' -> <<"chat">>;
+        'dnd'  -> <<"dnd">>;
+        'xa'   -> <<"xa">>;
         _      -> throw({presence, set_show, invalid_show, Show})
     end,
-    New_Show_El = exmpp_xml:set_cdata(#xmlel{ns = NS, name = 'show'}, Show),
+    New_Show_El = exmpp_xml:set_cdata(#xmlel{ns = NS, name = 'show'}, Show_B),
     case exmpp_xml:get_element(Presence, NS, 'show') of
         undefined ->
             exmpp_xml:append_child(Presence, New_Show_El);

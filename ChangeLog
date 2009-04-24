@@ -1,3 +1,9 @@
+2009-04-24  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
+
+	* src/core/exmpp_presence.erl (set_type/2, set_show/2): Instead of
+	just checking if the argument is valid, use the 'case' to convert the
+	arguemnt to binary() too.
+
 2009-04-23  Jean-Sébastien Pédron  <js.pedron@meetic-corp.com>
 
 	* src/core/exmpp_presence.erl: Add contracts. Fix documentation.
