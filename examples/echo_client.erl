@@ -21,8 +21,8 @@
 
 -module(echo_client).
 
--include_lib("exmpp.hrl").
--include_lib("exmpp_client.hrl").
+-include_lib("exmpp/include/exmpp.hrl").
+-include_lib("exmpp/include/exmpp_client.hrl").
 
 -export([start/0, stop/1]).
 -export([init/0]).
@@ -35,6 +35,7 @@ stop(EchoClientPid) ->
 
 
 init() ->    
+    application:start(exmpp),
     %% Start XMPP session: Needed to start service (Like
     %% exmpp_stringprep):
     MySession = exmpp_session:start(),
@@ -83,8 +84,8 @@ loop(MySession) ->
    
 %% Send the same packet back for each message received
 echo_packet(MySession, Packet) ->
-    From = exmpp_xml:get_attribute(Packet, from),
-    To = exmpp_xml:get_attribute(Packet, to),
+    From = exmpp_xml:get_attribute(Packet, from, <<"unknown">>),
+    To = exmpp_xml:get_attribute(Packet, to, <<"unknown">>),
     TmpPacket = exmpp_xml:set_attribute(Packet, from, To),
     TmpPacket2 = exmpp_xml:set_attribute(TmpPacket, to, From),
     NewPacket = exmpp_xml:remove_attribute(TmpPacket2, id),
