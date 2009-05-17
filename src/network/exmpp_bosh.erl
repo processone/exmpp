@@ -120,9 +120,9 @@ bosh_session_loop(State) ->
 					  pending_requests=[NewRecvPid]});
 	stop ->
 	    ok;
-	Unknown	->
+	_Unknown	->
 	    %% TODO: Use ProcessOne logging application
-	    %% io:format("Unknown message received: ~p", [Unknown]),
+	    %% io:format("Unknown message received: ~p", [_Unknown]),
 	    bosh_session_loop(State)
     end.
 
@@ -160,7 +160,7 @@ process_http_reply(BoshManagerPid, {ok, {{"HTTP/1.1", 200, "OK"},
 				    _Headers, Body}}) ->
     BoshManagerPid ! {recv, Body};
 %% TODO: Handle errors.
-process_http_reply(BoshManagerPid, _HTTPReply) ->
+process_http_reply(_BoshManagerPid, _HTTPReply) ->
     ok.
 
 %% Session creation request
