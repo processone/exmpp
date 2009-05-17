@@ -39,6 +39,7 @@
 -export([auth_basic/3, auth_basic_digest/3,
 	 connect_SSL/3, connect_SSL/4,
 	 connect_TCP/3, connect_TCP/4,
+	 connect_BOSH/4,
 	 register_account/2, register_account/3,
 	 login/1,
 	 send_packet/2,
@@ -167,6 +168,20 @@ connect_TCP(Session, Server, Port, Domain)
 	StreamId -> StreamId
     end.
 
+%% Initiate HTTP Bosh XMPP server connection
+%% If the domain is not passed we expect to find it in the authentication
+%% method. It should thus be set before.
+%% Returns StreamId (String)
+connect_BOSH(Session, URL, Server, Port)
+  when is_pid(Session),
+       is_list(Server),
+       is_integer(Port) ->
+    case gen_fsm:sync_send_event(Session, {connect_bosh, URL, Server, Port},
+                                 ?TIMEOUT) of
+        Error when is_tuple(Error) -> erlang:throw(Error);
+        StreamId -> StreamId
+    end.
+
 %% Initiate SSL XMPP server connection
 %% If the domain is not passed we expect to find it in the authentication
 %% method. It should thus be set before.
@@ -239,6 +254,7 @@ set_controlling_process(Session,Client) when is_pid(Session), is_pid(Client) ->
 %% gen_fsm callbacks
 %%====================================================================
 init([Pid]) ->
+    inets:start(),
     exmpp_stringprep:start(),
     {A1,A2,A3} = now(),
     random:seed(A1, A2, A3),
@@ -325,14 +341,22 @@ setup({connect_tcp, Host, Port}, From, State) ->
 	    {reply, {connect_error,
 		     authentication_or_domain_undefined}, setup, State};
 	_Other ->
-	    connect(exmpp_tcp, Host, Port, From, State)
+	    connect(exmpp_tcp, {Host, Port}, From, State)
     end;
 setup({connect_tcp, Host, Port, Domain}, From, State) ->
-    connect(exmpp_tcp, Host, Port, Domain, From, State);
+    connect(exmpp_tcp, {Host, Port}, Domain, From, State);
+setup({connect_bosh, URL, Host, Port}, From, State) ->
+    case State#state.auth_method of
+        undefined ->
+            {reply, {connect_error,
+                     authentication_or_domain_undefined}, setup, State};
+        _Other ->
+            connect(exmpp_bosh, {URL, Host, Port}, From, State)
+    end;
 setup({connect_ssl, Host, Port}, From, State) ->
-    connect(exmpp_ssl, Host, Port, From, State);
+    connect(exmpp_ssl, {Host, Port}, From, State);
 setup({connect_ssl, Host, Port, Domain}, From, State) ->
-    connect(exmpp_ssl, Host, Port, Domain, From, State);
+    connect(exmpp_ssl, {Host, Port}, Domain, From, State);
 setup({presence, _Status, _Show}, _From, State) ->
     {reply, {error, not_connected}, setup, State};
 setup(_UnknownMessage, _From, State) ->
@@ -584,18 +608,20 @@ logged_in(_Packet, State) ->
 %%--------------------------------------------------------------------
 
 %% Connect to server
-connect(Module, Host, Port, From, State) ->
+connect(Module, Params, From, State) ->
     Domain = get_domain(State#state.auth_method),
-    connect(Module, Host, Port, Domain, From, State).
-connect(Module, Host, Port, Domain, From, #state{client_pid=Pid} = State) ->
+    connect(Module, Params, Domain, From, State).
+connect(Module, Params, Domain, From, #state{client_pid=ClientPid} = State) ->
     try start_parser() of
 	 StreamRef ->
-	    try Module:connect(Pid, StreamRef, {Host, Port}) of
+	    try Module:connect(ClientPid, StreamRef, Params) of
 		{ConnRef, ReceiverRef} ->
 		    %% basic (legacy) authent: we do not use version
 		    %% 1.0 in stream:
 		    ok = Module:send(ConnRef,
 				     exmpp_stream:opening(Domain,?NS_JABBER_CLIENT,{0,0})),
+		    %% TODO: Add timeout on wait_for_stream to return
+		    %% meaningfull error.
 		    {next_state, wait_for_stream, State#state{
 						    domain = Domain,
 						    connection = Module,

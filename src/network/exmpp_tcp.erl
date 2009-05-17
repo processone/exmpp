@@ -23,8 +23,7 @@
 
 %% Connect to XMPP server
 %% Returns:
-%% {ok, Ref} | {error, Reason}
-%% Ref is a socket
+%% Ref or throw error
 connect(ClientPid, StreamRef, {Host, Port}) ->
     case gen_tcp:connect(Host, Port, [{packet,0},
 				      binary,

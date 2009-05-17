@@ -1,6 +1,6 @@
 # $Id$
 
-EXTRA_DIST = echo_client.erl
+EXTRA_DIST = echo_client.erl bosh_client.erl
 
 all-local:
 	@$(ERL) +B -noshell -pa @top_builddir@/ebin			\

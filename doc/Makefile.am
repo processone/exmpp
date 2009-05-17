@@ -50,6 +50,7 @@ HTML_FILES = index.html							\
 	     exmpp_stringprep.html					\
 	     exmpp_sup.html						\
 	     exmpp_tcp.html						\
+	     exmpp_bosh.html						\
 	     exmpp_tls.html						\
 	     exmpp_utils.html						\
 	     exmpp_xml.html						\

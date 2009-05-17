@@ -32,7 +32,8 @@
   parse/2,
   send_events/2,
   parse_element/1,
-  parse_element/2
+  parse_element/2,
+  set_wrapper_tagnames/2 %% Used to unwrap BOSH enclosing body
 ]).
 
 -type(process()  :: pid() | atom()).
@@ -49,7 +50,8 @@
   callback             :: callback(),
   parser,
   xmlstreamstart = old :: new | old,
-  opened = false       :: bool()
+  opened = false       :: bool(),
+  wrapper_tagnames = undefined :: undefined | [atom() | string()]
 }).
 -type(xmlstream() :: #xml_stream{}).
 
@@ -193,6 +195,29 @@ parse(#xml_stream{parser = Parser} = Stream, Data) ->
             throw(Exception)
     end.
 
+%% No wrapper tag defined:
+process_elements(#xml_stream{wrapper_tagnames=undefined} = Stream, XML_Elements) ->
+    process_elements2(Stream, XML_Elements, []);
+%% Wrapper tags defined:
+%% Remove level 1 wrapper tags.
+%% Known use case: Remove enclosing body for BOSH support
+process_elements(#xml_stream{wrapper_tagnames=TagNames} = Stream, XML_Elements) when TagNames /= undefined ->
+    New_XML_Elements = lists:map(
+			 fun(XML_Element) when is_record(XML_Element, xmlel) ->
+				 case lists:member(XML_Element#xmlel.name,
+						   TagNames) of
+				     true -> XML_Element#xmlel.children;
+				     false -> XML_Element
+				 end;
+			    (XML_Element) when is_record(XML_Element, xmlelement) ->
+				 case lists:member(XML_Element#xmlelement.name,
+						   TagNames) of
+				     true -> XML_Element#xmlelement.children;
+				     false -> XML_Element
+				 end
+			 end, XML_Elements),
+    process_elements2(Stream, lists:flatten(New_XML_Elements), []);
+%% All other cases (for example endtag)
 process_elements(Stream, XML_Elements) ->
     process_elements2(Stream, XML_Elements, []).
 
@@ -239,7 +264,7 @@ process_elements2(Stream, [XML_Element | Rest], Events) ->
             process_elements2(New_Stream, Rest, New_Events);
 
         % Character data as <stream> child, ignore.
-        % This is probably a keep-alive whitespace. 
+        % This is probably a keep-alive whitespace.
         #xmlcdata{} ->
             process_elements2(Stream, Rest, Events)
     end;
@@ -325,6 +350,18 @@ parse_element(Data, Parser_Options) ->
         XML_Element ->
             XML_Element
     end.
+
+%% @spec (Stream, TagNames) -> New_Stream
+%%     Stream = xmlstream()
+%%     TagNames =  [atom()|string()]
+%%     New_Stream = xmlstream()
+%% @doc Reset stream and the underlying XML parser.
+%% TODO: Support wrapper tag match on both namespace and name ?
+
+-spec(set_wrapper_tagnames/2 :: (xmlstream(), [atom()|string()]) -> xmlstream()).
+
+set_wrapper_tagnames(Stream, TagNames) when is_list(TagNames) ->
+    Stream#xml_stream{wrapper_tagnames = TagNames}.
 
 % --------------------------------------------------------------------
 % Documentation / type definitions.

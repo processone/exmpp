@@ -24,15 +24,15 @@
 
 %% Connect to XMPP server
 %% Returns:
-%% {ok, Ref} | {error, Reason}
+%% Ref or throw error
 %% Ref is a socket
 connect(ClientPid, StreamRef, {Host, Port}) ->
     DefaultOptions = [{packet,0}, binary, {active, once}],
-	{SetOptsModule,Opts} = 
-			case check_new_ssl() of 
+	{SetOptsModule,Opts} =
+			case check_new_ssl() of
 			   true ->  {inet,[{reuseaddr,true}|DefaultOptions]};
 			   false -> {ssl,DefaultOptions}
-			end,		
+			end,
     case ssl:connect(Host, Port, Opts, 30000) of
 	{ok, Socket} ->
 	    %% TODO: Hide receiver failures in API
@@ -44,9 +44,9 @@ connect(ClientPid, StreamRef, {Host, Port}) ->
 	    erlang:throw({socket_error, Reason})
     end.
 % if we use active-once before spawning the receiver process,
-% we can receive some data in the original process rather than 
+% we can receive some data in the original process rather than
 % in the receiver process. So {active.once} is is set explicitly
-% in the receiver process. NOTE: in this case this wouldn't make 
+% in the receiver process. NOTE: in this case this wouldn't make
 % a big difference, as the connecting client should send the
 % stream header before receiving anything
 
@@ -68,7 +68,7 @@ send(Socket, XMLPacket) ->
 %%--------------------------------------------------------------------
 receiver(ClientPid, Socket,SetOptsModule, StreamRef) ->
     receiver_loop(ClientPid, Socket,SetOptsModule, StreamRef).
-    
+
 receiver_loop(ClientPid, Socket,SetOptsModule, StreamRef) ->
 	SetOptsModule:setopts(Socket, [{active, once}]),
     receive
