@@ -108,9 +108,9 @@ start(Callback, Parser) ->
 
 start(Callback, Parser, Stream_Options) ->
     Callback2 = case Callback of
-        Pid when is_pid(Pid) -> {process, Pid};
-        _                    -> Callback
-    end,
+		    Pid when is_pid(Pid) -> {process, Pid};
+		    _                    -> Callback
+		end,
     New_Parser = exmpp_xml:reset_parser(Parser,
       [{root_depth, 1}, emit_endtag]),
     Stream_Start = case lists:keysearch(xmlstreamstart, 1, Stream_Options) of
@@ -250,7 +250,7 @@ process_elements2(Stream, [XML_Element | Rest], Events) ->
             end,
             process_elements2(New_Stream, Rest, New_Events);
         #xmlelement{} ->
-            % An "depth 1" element and its children.
+            % A "depth 1" element and its children.
             New_Events = [#xmlstreamelement{element = XML_Element} |
               Events],
             process_elements2(Stream, Rest, New_Events);

@@ -45,19 +45,19 @@ init() ->
 %% We are connected. We now log in (and try registering if authentication fails)
 session(MySession, _MyJID) ->
     %% Login with defined JID / Authentication:
-     try exmpp_session:login(MySession)
-     catch
- 	throw:{auth_error, 'not-authorized'} ->
+    try exmpp_session:login(MySession)
+    catch
+	throw:{auth_error, 'not-authorized'} ->
  	    %% Try creating a new user:
  	    io:format("Register~n",[]),
  	    %% In a real life client, we should trap error case here
- 	    %% and print the correct message.
- 	    exmpp_session:register_account(MySession, "password"),
- 	    %% After registration, retry to login:
- 	    exmpp_session:login(MySession)
-     end,
-     %% We explicitely send presence:
-     exmpp_session:send_packet(MySession,
+	    %% and print the correct message.
+	    exmpp_session:register_account(MySession, "password"),
+	    %% After registration, retry to login:
+	    exmpp_session:login(MySession)
+    end,
+    %% We explicitely send presence:
+    exmpp_session:send_packet(MySession,
  			      exmpp_presence:set_status(
  				exmpp_presence:available(), "Echo Ready")),
     loop(MySession).

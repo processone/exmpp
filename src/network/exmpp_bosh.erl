@@ -26,9 +26,17 @@
 	 bosh_send_async/5,
 	 bosh_recv_async/4]).
 
+%% Special instrumentation for testing
+%-define(TEST_API, true).
+-ifdef(TEST_API).
+-export([bosh_send/4, bosh_recv/3,
+	 get_state_key/2, test_connect/1,
+	 dispatch_loop/1]).
+-endif.
+
 -define(CONTENT_TYPE, "text/xml; charset=utf-8").
 -define(HOLD, "2").
--define(VERSION, "1.7").
+-define(VERSION, "1.8").
 -define(WAIT, "3600").
 
 -record(state, {bosh_url="",
@@ -69,6 +77,9 @@ activate(BoshManagerPid) ->
 close(BoshManagerPid, undefined) ->
     BoshManagerPid ! stop.
 
+send(SessionId, XMLPacket) when is_tuple(SessionId) ->
+    {BoshManagerPid, _} = SessionId,
+    send(BoshManagerPid, XMLPacket);
 send(BoshManagerPid, XMLPacket) ->
     BoshManagerPid ! {send, XMLPacket},
     ok.
@@ -80,7 +91,6 @@ bosh_session(State) ->
     %% Set name of wrapping level 1 tag for BOSH (body)
     XMLStream = exmpp_xmlstream:set_wrapper_tagnames(State#state.stream_ref,
 						     [body]),
-
     %% Handle repeting HTTP recv request
     process_flag(trap_exit, true),
     NewRID = State#state.rid + 1,
@@ -100,7 +110,9 @@ bosh_session_loop(State) ->
  	{send, #xmlel{ns=?NS_XMPP, name='stream'}} ->
 	    AuthId = binary_to_list(State#state.auth_id),
 	    Domain = State#state.domain,
-	    StreamStart = "<?xml version='1.0'?><stream:stream xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams' version='1.0' from='" ++ Domain ++ "' id='" ++ AuthId ++ "'>",
+	    StreamStart = "<?xml version='1.0'?><stream:stream xmlns='jabber:client'"
+		" xmlns:stream='http://etherx.jabber.org/streams' version='1.0'"
+		" from='" ++ Domain ++ "' id='" ++ AuthId ++ "'>",
 	    {ok, StreamRef}=exmpp_xmlstream:parse(State#state.stream_ref, StreamStart),
 	    bosh_session_loop(State#state{stream_ref=StreamRef});
 	{send, XMLPacket} ->
@@ -120,7 +132,11 @@ bosh_session_loop(State) ->
 					  pending_requests=[NewRecvPid]});
 	stop ->
 	    ok;
-	_Unknown	->
+	%% Debug / Testing:
+	{get_state_key, Pid, Key} when is_atom(Key) ->
+	    Pid ! {Key, get_key(State, Key)},
+	    bosh_session_loop(State);
+	_Unknown ->
 	    %% TODO: Use ProcessOne logging application
 	    %% io:format("Unknown message received: ~p", [_Unknown]),
 	    bosh_session_loop(State)
@@ -153,7 +169,7 @@ bosh_recv_async(BoshManagerPid, URL, SID, NewRID) ->
     Reply = http:request(
 	      post, {URL, [], [],
 		     exmpp_xml:document_to_binary(PostBody)}, [], []),
-    %% io:format("MREMOND recv: ~p~n",[Reply]),
+    %% io:format("Received reply: ~p~n",[Reply]),
     process_http_reply(BoshManagerPid, Reply).
 
 process_http_reply(BoshManagerPid, {ok, {{"HTTP/1.1", 200, "OK"},
@@ -188,7 +204,52 @@ session_creation(URL, Domain) ->
 	    throw({'cannot-create-session', Reason})
     end.
 
+
 %% Implementation notes. For now the design is pretty basic. The main
 %% loop spawn process to handle HTTP queries. Currently it takes care
 %% of a single HTTP receive request, that is respawned when it expire
 %% / return result.
+
+
+
+
+
+
+%% Special instrumentation for testing
+%% State: #state{}
+%% Key: atom()
+get_key(State, sid) -> State#state.sid;
+get_key(State, rid) -> State#state.rid;
+get_key(State, bosh_url) -> State#state.bosh_url.
+
+-ifdef(TEST_API).
+-define(PARSER_OPTIONS,	[{names_as_atom, true}, {check_nss, xmpp},
+			 {check_elems, xmpp}, {check_attrs, xmpp},
+			 {emit_endtag, false}, {root_depth, 0},
+			 {max_size, infinity}]).
+%% Params = {URL, Domain, Port}
+test_connect(Params) ->
+    inets:start(),
+    application:start(exmpp),
+    DispatchPid = spawn_link(?MODULE, dispatch_loop, [self()]),
+
+    Parser = exmpp_xml:start_parser(?PARSER_OPTIONS),
+    StreamRef =
+	exmpp_xmlstream:start(DispatchPid, Parser, [{xmlstreamstart,new}]),
+    SessionID = connect(self(), StreamRef, Params),
+    send(SessionID, #xmlel{ns=?NS_XMPP, name='stream'}),
+    SessionID.
+
+%% Send get_state_key
+get_state_key({BoshManagerPid, _}, Key) ->
+    BoshManagerPid ! {get_state_key, self(), Key},
+    receive
+	{Key, Value} -> Value
+    end.
+dispatch_loop(ClientPid) ->
+    receive
+	Msg ->
+	    ClientPid ! Msg,
+	    dispatch_loop(ClientPid)
+    end.
+-endif.
