@@ -19,7 +19,7 @@
 -include_lib("exmpp/include/exmpp.hrl").
 
 %% Behaviour exmpp_gen_transport ?
--export([connect/3, send/2, close/2]).
+-export([connect/3, connect/4, send/2, close/2]).
 
 %% Internal export
 -export([bosh_session/1,
@@ -29,7 +29,7 @@
 %% Special instrumentation for testing
 %-define(TEST_API, true).
 -ifdef(TEST_API).
--export([bosh_send/4, bosh_recv/3,
+-export([bosh_send/5, bosh_recv/4,
 	 get_state_key/2, test_connect/1,
 	 dispatch_loop/1]).
 -endif.
@@ -46,6 +46,7 @@
 		auth_id = <<>>,
 		client_pid,
 		stream_ref,
+		auto_recv = true,   %% When true, automatically manage a receiving process
 		pending_requests=[] %% For now, we put only one receiver
 	       }).
 
@@ -54,12 +55,15 @@
 %% Connect to XMPP server
 %% Returns: Ref
 connect(ClientPid, StreamRef, {URL, Domain, _Port}) ->
+    connect(ClientPid, StreamRef, {URL, Domain, _Port}, true).
+connect(ClientPid, StreamRef, {URL, Domain, _Port}, AutoReceive) ->
     State = session_creation(URL, Domain),
     BoshManagerPid = spawn_link(?MODULE, bosh_session,
 				[State#state{bosh_url=URL,
 					     domain=Domain,
 					     client_pid=ClientPid,
-					     stream_ref=StreamRef}]),
+					     stream_ref=StreamRef,
+					     auto_recv=AutoReceive}]),
     activate(BoshManagerPid),
     {BoshManagerPid, undefined}.
 
@@ -91,16 +95,23 @@ bosh_session(State) ->
     %% Set name of wrapping level 1 tag for BOSH (body)
     XMLStream = exmpp_xmlstream:set_wrapper_tagnames(State#state.stream_ref,
 						     [body]),
-    %% Handle repeting HTTP recv request
-    process_flag(trap_exit, true),
-    NewRID = State#state.rid + 1,
-    RecvPid = bosh_recv(State#state.bosh_url, State#state.sid, NewRID),
-
-    bosh_session_loop(State#state{rid=NewRID, stream_ref=XMLStream,
-				  pending_requests=[RecvPid]}).
+    %% Handle repeating HTTP recv request (AutoReceive)
+    if
+	State#state.auto_recv ->
+	    process_flag(trap_exit, true),
+	    NewRID = State#state.rid + 1,
+	    RecvPid = bosh_recv(self(), State#state.bosh_url, State#state.sid, NewRID),
+	    bosh_session_loop(State#state{rid=NewRID, stream_ref=XMLStream,
+					  pending_requests=[RecvPid]});
+	true ->
+	    bosh_session_loop(State#state{stream_ref=XMLStream})
+    end.
 
 bosh_session_loop(State) ->
-    [RecvPid] = State#state.pending_requests,
+    RecvPid = case State#state.pending_requests of
+		  [PendingRequestPid] -> PendingRequestPid;
+		  [] -> undefined
+	      end,
     receive
 	{activate, Pid, Ref} ->
 	    Pid ! {Ref, ok},
@@ -117,7 +128,8 @@ bosh_session_loop(State) ->
 	    bosh_session_loop(State#state{stream_ref=StreamRef});
 	{send, XMLPacket} ->
 	    NewRid = State#state.rid + 1,
-	    bosh_send(State#state.bosh_url,
+	    bosh_send(self(),
+		      State#state.bosh_url,
 		      State#state.sid,
 		      NewRid, XMLPacket),
 	    bosh_session_loop(State#state{rid=NewRid});
@@ -127,7 +139,7 @@ bosh_session_loop(State) ->
 	    bosh_session_loop(State#state{stream_ref=NewStreamRef});
 	{'EXIT',RecvPid,normal} ->
 	    NewRID = State#state.rid + 1,
-	    NewRecvPid = bosh_recv(State#state.bosh_url, State#state.sid, NewRID),
+	    NewRecvPid = bosh_recv(self(), State#state.bosh_url, State#state.sid, NewRID),
 	    bosh_session_loop(State#state{rid=NewRID,
 					  pending_requests=[NewRecvPid]});
 	stop ->
@@ -142,8 +154,10 @@ bosh_session_loop(State) ->
 	    bosh_session_loop(State)
     end.
 
-bosh_send(URL, SID, NewRID, XMLPacket) ->
-    spawn_link(?MODULE, bosh_send_async, [self(), URL, SID, NewRID, XMLPacket]).
+bosh_send({BoshManagerPid, _}, URL, SID, NewRID, XMLPacket) ->
+    bosh_send(BoshManagerPid, URL, SID, NewRID, XMLPacket);
+bosh_send(BoshManagerPid, URL, SID, NewRID, XMLPacket) ->
+    spawn_link(?MODULE, bosh_send_async, [BoshManagerPid, URL, SID, NewRID, XMLPacket]).
 
 bosh_send_async(BoshManagerPid, URL, SID, NewRID, XMLPacket) ->
     %% TODO: Make sure root element as xmlns = jabber:client
@@ -159,8 +173,10 @@ bosh_send_async(BoshManagerPid, URL, SID, NewRID, XMLPacket) ->
     %% io:format("send Reply =~p~n",[Reply]),
     process_http_reply(BoshManagerPid, Reply).
 
-bosh_recv(URL, SID, NewRID) ->
-    spawn_link(?MODULE, bosh_recv_async, [self(), URL, SID, NewRID]).
+bosh_recv({BoshManagerPid, _}, URL, SID, NewRID) ->
+    bosh_recv(BoshManagerPid, URL, SID, NewRID);
+bosh_recv(BoshManagerPid, URL, SID, NewRID) ->
+    spawn_link(?MODULE, bosh_recv_async, [BoshManagerPid, URL, SID, NewRID]).
 
 bosh_recv_async(BoshManagerPid, URL, SID, NewRID) ->
     PostBody = exmpp_xml:set_attributes(
@@ -236,7 +252,7 @@ test_connect(Params) ->
     Parser = exmpp_xml:start_parser(?PARSER_OPTIONS),
     StreamRef =
 	exmpp_xmlstream:start(DispatchPid, Parser, [{xmlstreamstart,new}]),
-    SessionID = connect(self(), StreamRef, Params),
+    SessionID = connect(self(), StreamRef, Params, false),
     send(SessionID, #xmlel{ns=?NS_XMPP, name='stream'}),
     SessionID.
 
@@ -248,6 +264,9 @@ get_state_key({BoshManagerPid, _}, Key) ->
     end.
 dispatch_loop(ClientPid) ->
     receive
+	%% Discard stream start:
+	#xmlstreamstart{} ->
+	    dispatch_loop(ClientPid);
 	Msg ->
 	    ClientPid ! Msg,
 	    dispatch_loop(ClientPid)
