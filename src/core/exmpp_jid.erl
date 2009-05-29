@@ -41,7 +41,7 @@
   to_binary/1,
   to_binary/2,
   to_binary/3,
-  prepd_jid_to_binary/1,
+  prep_to_binary/1,
   bare_jid_to_binary/1,
   bare_jid_to_binary/2,
   prepd_bare_jid_to_binary/1
@@ -551,9 +551,9 @@ to_binary(Node, Domain, Resource)
 %%     String = binary()
 %% @doc Stringify a full JID with STRINGPREP profiles applied.
 
--spec(prepd_jid_to_binary/1 :: (jid()) -> binary()).
+-spec(prep_to_binary/1 :: (jid()) -> binary()).
 
-prepd_jid_to_binary(
+prep_to_binary(
   #jid{prep_node = Node, prep_domain = Domain, prep_resource = Resource}) ->
     to_binary(Node, Domain, Resource).
 

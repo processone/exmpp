@@ -35,8 +35,12 @@
                 prepd_jid_to_list -> prep_to_list ;
                 bare_jid_to_list -> bare_to_list ;
                 prepd_bare_jid_to_list -> prep_bare_to_list ;
+                jid_to_binary -> to_binary ;
         * src/core/exmpp_stanza.erl : API renaming :
                 parse_jid -> parse ;
+                jid_to_binary -> to_binary ;
+        * src/server/exmpp_server_binding.erl : API renaming :
+                jid_to_binary -> to_binary ;
         * testsuite/jid.erl : API renaming :
                 make_jid -> make ;
                 jid_to_bare_jid -> bare ;
@@ -50,6 +54,7 @@
                 compare_jids -> compare ;
                 compare_bare_jids -> bare compare ;
                 bare_jid_to_list -> bare_to_list ;
+                jid_to_binary -> to_binary ;
 
 2009-05-17  Mickael Remond  <mremond@process-one.net>
 
