@@ -31,9 +31,9 @@
 
 % Serialization.
 -export([
-  jid_to_list/1,
-  jid_to_list/2,
-  jid_to_list/3,
+  to_list/1,
+  to_list/2,
+  to_list/3,
   prepd_jid_to_list/1,
   bare_jid_to_list/1,
   bare_jid_to_list/2,
@@ -432,9 +432,9 @@ parse_binary(Original, <<>>, Node, Domain) ->
 %%     String = string()
 %% @doc Stringify a full JID.
 
--spec(jid_to_list/1 :: (jid()) -> string()).
+-spec(to_list/1 :: (jid()) -> string()).
 
-jid_to_list(#jid{} = JID) ->
+to_list(#jid{} = JID) ->
     binary_to_list(jid_to_binary(JID)).
 
 %% @spec (Node, Domain) -> String
@@ -443,9 +443,9 @@ jid_to_list(#jid{} = JID) ->
 %%     String = string()
 %% @doc Stringify a bare JID.
 
--spec(jid_to_list/2 :: (node_arg(), domain_arg()) -> string()).
+-spec(to_list/2 :: (node_arg(), domain_arg()) -> string()).
 
-jid_to_list(Node, Domain) ->
+to_list(Node, Domain) ->
     bare_jid_to_list(Node, Domain).
 
 %% @spec (Node, Domain, Resource) -> String
@@ -455,9 +455,9 @@ jid_to_list(Node, Domain) ->
 %%     String = string()
 %% @doc Stringify a full JID.
 
--spec(jid_to_list/3 :: (node_arg(), domain_arg(), res_arg()) -> string()).
+-spec(to_list/3 :: (node_arg(), domain_arg(), res_arg()) -> string()).
 
-jid_to_list(Node, Domain, Resource) ->
+to_list(Node, Domain, Resource) ->
     binary_to_list(jid_to_binary(Node, Domain, Resource)).
 
 %% @spec (Jid) -> String
@@ -469,7 +469,7 @@ jid_to_list(Node, Domain, Resource) ->
 
 prepd_jid_to_list(
   #jid{prep_node = Node, prep_domain = Domain, prep_resource = Resource}) ->
-    jid_to_list(Node, Domain, Resource).
+    to_list(Node, Domain, Resource).
 
 %% @spec (Jid) -> String
 %%     Jid = jid()

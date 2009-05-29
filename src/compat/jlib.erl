@@ -190,9 +190,9 @@ string_to_jid(J) ->
 
 jid_to_string({Node, Server, Resource}) ->
     Jid = exmpp_jid:make(Node, Server, Resource),
-    exmpp_jid:jid_to_list(Jid);
+    exmpp_jid:to_list(Jid);
 jid_to_string(Jid) ->
-    exmpp_jid:jid_to_list(Jid).
+    exmpp_jid:to_list(Jid).
 
 
 is_nodename([]) ->

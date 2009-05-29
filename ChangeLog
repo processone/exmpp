@@ -29,6 +29,7 @@
                 lresource -> prep_resource ;
                 lresource_as_list -> prep_resource_as_list ;
                 compare_jids -> compare ;
+                compare_bare_jids -> bare compare ;
         * src/core/exmpp_stanza.erl : API renaming :
                 parse_jid -> parse ;
         * testsuite/jid.erl : API renaming :
@@ -42,6 +43,7 @@
                 lnode_as_list -> prep_node_as_list ;
                 lresource -> prep_resource ;
                 compare_jids -> compare ;
+                compare_bare_jids -> bare compare ;
 
 2009-05-17  Mickael Remond  <mremond@process-one.net>
 
