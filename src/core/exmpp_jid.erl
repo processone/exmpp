@@ -21,7 +21,7 @@
   make/2,
   make/3,
   bare/1,
-  bare_jid_to_jid/2
+  full/2
 ]).
 
 % Parsing.
@@ -230,7 +230,7 @@ make(Node, Domain, <<>>) ->
 make(Node, Domain, Resource) ->
     Jid = make(Node, Domain),
     try
-        bare_jid_to_jid(Jid, Resource)
+        full(Jid, Resource)
     catch
         throw:{stringprep, _, exmpp_not_started, _} = E ->
             throw(E);
@@ -306,26 +306,26 @@ bare(#jid{orig_jid = Orig_Jid} = Jid) ->
 %%         {jid, convert, invalid,  {resource, Resource}}
 %% @doc Convert a bare JID to its full version.
 
--spec(bare_jid_to_jid/2 :: (jid(), res_arg()) -> jid()).
+-spec(full/2 :: (jid(), res_arg()) -> jid()).
 
-bare_jid_to_jid(Jid, undefined) ->
+full(Jid, undefined) ->
     Jid;
-bare_jid_to_jid(Jid, "") ->
+full(Jid, "") ->
     % This clause is here because ejabberd uses empty string.
     Jid;
-bare_jid_to_jid(Jid, <<>>) ->
+full(Jid, <<>>) ->
     % This clause is here because ejabberd uses empty string.
     Jid;
-bare_jid_to_jid(Jid, random) ->
+full(Jid, random) ->
     Resource = generate_resource(),
-    bare_jid_to_jid(Jid, Resource);
-bare_jid_to_jid(_Jid, Resource)
+    full(Jid, Resource);
+full(_Jid, Resource)
   when is_list(Resource), length(Resource) > ?RESOURCE_MAX_LENGTH ->
     throw({jid, convert, too_long, {resource, Resource}});
-bare_jid_to_jid(_Jid, Resource)
+full(_Jid, Resource)
   when is_binary(Resource), size(Resource) > ?RESOURCE_MAX_LENGTH ->
     throw({jid, convert, too_long, {resource, Resource}});
-bare_jid_to_jid(#jid{orig_jid = Orig_Jid} = Jid, Resource) ->
+full(#jid{orig_jid = Orig_Jid} = Jid, Resource) ->
     try
         LResource = exmpp_stringprep:resourceprep(Resource),
         Resource_B = to_binary(Resource),

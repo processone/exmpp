@@ -366,12 +366,12 @@ jid_conversion_test_() ->
 
 bare_jid_conversion_test_() ->
     Tests = [
-      ?_assertMatch(?FJ1, exmpp_jid:bare_jid_to_jid(?FJ1, ?RES)),
-      ?_assertMatch(?FJ1, exmpp_jid:bare_jid_to_jid(?BJ1, ?RES)),
-      ?_assertMatch(?FJ2, exmpp_jid:bare_jid_to_jid(?FJ2, ?RES)),
-      ?_assertMatch(?FJ2, exmpp_jid:bare_jid_to_jid(?BJ2, ?RES)),
-      ?_assertMatch(?FJ1, exmpp_jid:bare_jid_to_jid(?FJ1, undefined)),
-      ?_assertMatch(?BJ1, exmpp_jid:bare_jid_to_jid(?BJ1, undefined))
+      ?_assertMatch(?FJ1, exmpp_jid:full(?FJ1, ?RES)),
+      ?_assertMatch(?FJ1, exmpp_jid:full(?BJ1, ?RES)),
+      ?_assertMatch(?FJ2, exmpp_jid:full(?FJ2, ?RES)),
+      ?_assertMatch(?FJ2, exmpp_jid:full(?BJ2, ?RES)),
+      ?_assertMatch(?FJ1, exmpp_jid:full(?FJ1, undefined)),
+      ?_assertMatch(?BJ1, exmpp_jid:full(?BJ1, undefined))
     ],
     {setup, ?SETUP, ?CLEANUP, Tests}.
 
@@ -380,35 +380,35 @@ bare_jid_conversion_with_bad_resource_test_() ->
     Tests = [
       ?_assertThrow(
         {jid, convert, invalid, _},
-        exmpp_jid:bare_jid_to_jid(?FJ1, ?RES_BAD)
+        exmpp_jid:full(?FJ1, ?RES_BAD)
       ),
       ?_assertThrow(
         {jid, convert, too_long, _},
-        exmpp_jid:bare_jid_to_jid(?FJ1, Resource_TL)
+        exmpp_jid:full(?FJ1, Resource_TL)
       ),
       ?_assertThrow(
         {jid, convert, invalid, _},
-        exmpp_jid:bare_jid_to_jid(?BJ1, ?RES_BAD)
+        exmpp_jid:full(?BJ1, ?RES_BAD)
       ),
       ?_assertThrow(
         {jid, convert, too_long, _},
-        exmpp_jid:bare_jid_to_jid(?BJ1, Resource_TL)
+        exmpp_jid:full(?BJ1, Resource_TL)
       ),
       ?_assertThrow(
         {jid, convert, invalid, _},
-        exmpp_jid:bare_jid_to_jid(?FJ2, ?RES_BAD)
+        exmpp_jid:full(?FJ2, ?RES_BAD)
       ),
       ?_assertThrow(
         {jid, convert, too_long, _},
-        exmpp_jid:bare_jid_to_jid(?FJ2, Resource_TL)
+        exmpp_jid:full(?FJ2, Resource_TL)
       ),
       ?_assertThrow(
         {jid, convert, invalid, _},
-        exmpp_jid:bare_jid_to_jid(?BJ2, ?RES_BAD)
+        exmpp_jid:full(?BJ2, ?RES_BAD)
       ),
       ?_assertThrow(
         {jid, convert, too_long, _},
-        exmpp_jid:bare_jid_to_jid(?BJ2, Resource_TL)
+        exmpp_jid:full(?BJ2, Resource_TL)
       )
     ],
     {setup, ?SETUP, ?CLEANUP, Tests}.
