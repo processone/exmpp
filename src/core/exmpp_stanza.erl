@@ -172,7 +172,7 @@ set_sender(#xmlel{attrs = Attrs} = Stanza, Sender) ->
 set_sender_in_attrs(Attrs, undefined) ->
     remove_sender_in_attrs(Attrs);
 set_sender_in_attrs(Attrs, Sender) when ?IS_JID(Sender) ->
-    set_sender_in_attrs(Attrs, exmpp_jid:jid_to_binary(Sender));
+    set_sender_in_attrs(Attrs, exmpp_jid:to_binary(Sender));
 set_sender_in_attrs(Attrs, Sender) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'from', Sender).
 
@@ -252,7 +252,7 @@ set_recipient(#xmlel{attrs = Attrs} = Stanza, Recipient) ->
 set_recipient_in_attrs(Attrs, undefined) ->
     remove_recipient_in_attrs(Attrs);
 set_recipient_in_attrs(Attrs, Recipient) when ?IS_JID(Recipient) ->
-    set_recipient_in_attrs(Attrs, exmpp_jid:jid_to_binary(Recipient));
+    set_recipient_in_attrs(Attrs, exmpp_jid:to_binary(Recipient));
 set_recipient_in_attrs(Attrs, Recipient) ->
     exmpp_xml:set_attribute_in_list(Attrs, 'to', Recipient).
 

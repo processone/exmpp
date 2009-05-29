@@ -324,10 +324,10 @@ jid_stringification_test_() ->
       ?_assertMatch(?FJ2_S, exmpp_jid:to_list(?FJ2)),
       ?_assertMatch(?BJ1_S, exmpp_jid:to_list(?BJ1)),
       ?_assertMatch(?BJ2_S, exmpp_jid:to_list(?BJ2)),
-      ?_assertMatch(?FJ1_B, exmpp_jid:jid_to_binary(?FJ1)),
-      ?_assertMatch(?FJ2_B, exmpp_jid:jid_to_binary(?FJ2)),
-      ?_assertMatch(?BJ1_B, exmpp_jid:jid_to_binary(?BJ1)),
-      ?_assertMatch(?BJ2_B, exmpp_jid:jid_to_binary(?BJ2))
+      ?_assertMatch(?FJ1_B, exmpp_jid:to_binary(?FJ1)),
+      ?_assertMatch(?FJ2_B, exmpp_jid:to_binary(?FJ2)),
+      ?_assertMatch(?BJ1_B, exmpp_jid:to_binary(?BJ1)),
+      ?_assertMatch(?BJ2_B, exmpp_jid:to_binary(?BJ2))
     ].
 
 jid_arg_stringification_test_() ->
@@ -335,12 +335,12 @@ jid_arg_stringification_test_() ->
       ?_assertMatch("d", exmpp_jid:to_list(undefined, "d")),
       ?_assertMatch("n@d", exmpp_jid:to_list("n", "d")),
       ?_assertMatch("n@d/r", exmpp_jid:to_list("n", "d", "r")),
-      ?_assertMatch(<<"d">>, exmpp_jid:jid_to_binary(undefined, "d")),
-      ?_assertMatch(<<"n@d">>, exmpp_jid:jid_to_binary("n", "d")),
-      ?_assertMatch(<<"n@d/r">>, exmpp_jid:jid_to_binary("n", "d", "r")),
-      ?_assertMatch(<<"d">>, exmpp_jid:jid_to_binary(undefined, <<"d">>)),
-      ?_assertMatch(<<"n@d">>, exmpp_jid:jid_to_binary(<<"n">>, <<"d">>)),
-      ?_assertMatch(<<"n@d/r">>, exmpp_jid:jid_to_binary(<<"n">>, <<"d">>,
+      ?_assertMatch(<<"d">>, exmpp_jid:to_binary(undefined, "d")),
+      ?_assertMatch(<<"n@d">>, exmpp_jid:to_binary("n", "d")),
+      ?_assertMatch(<<"n@d/r">>, exmpp_jid:to_binary("n", "d", "r")),
+      ?_assertMatch(<<"d">>, exmpp_jid:to_binary(undefined, <<"d">>)),
+      ?_assertMatch(<<"n@d">>, exmpp_jid:to_binary(<<"n">>, <<"d">>)),
+      ?_assertMatch(<<"n@d/r">>, exmpp_jid:to_binary(<<"n">>, <<"d">>,
           <<"r">>))
     ].
 

@@ -38,9 +38,9 @@
   bare_to_list/1,
   bare_to_list/2,
   prep_bare_jid_to_list/1,
-  jid_to_binary/1,
-  jid_to_binary/2,
-  jid_to_binary/3,
+  to_binary/1,
+  to_binary/2,
+  to_binary/3,
   prepd_jid_to_binary/1,
   bare_jid_to_binary/1,
   bare_jid_to_binary/2,
@@ -435,7 +435,7 @@ parse_binary(Original, <<>>, Node, Domain) ->
 -spec(to_list/1 :: (jid()) -> string()).
 
 to_list(#jid{} = JID) ->
-    binary_to_list(jid_to_binary(JID)).
+    binary_to_list(to_binary(JID)).
 
 %% @spec (Node, Domain) -> String
 %%     Node = binary() | string() | undefined
@@ -458,7 +458,7 @@ to_list(Node, Domain) ->
 -spec(to_list/3 :: (node_arg(), domain_arg(), res_arg()) -> string()).
 
 to_list(Node, Domain, Resource) ->
-    binary_to_list(jid_to_binary(Node, Domain, Resource)).
+    binary_to_list(to_binary(Node, Domain, Resource)).
 
 %% @spec (Jid) -> String
 %%     Jid = jid()
@@ -508,9 +508,9 @@ prep_bare_jid_to_list(
 %%     String = binary()
 %% @doc Stringify a full JID.
 
--spec(jid_to_binary/1 :: (jid()) -> binary()).
+-spec(to_binary/1 :: (jid()) -> binary()).
 
-jid_to_binary(#jid{orig_jid = Orig_Jid}) ->
+to_binary(#jid{orig_jid = Orig_Jid}) ->
     Orig_Jid.
 
 %% @spec (Node, Domain) -> String
@@ -519,9 +519,9 @@ jid_to_binary(#jid{orig_jid = Orig_Jid}) ->
 %%     String = binary()
 %% @doc Stringify a bare JID.
 
--spec(jid_to_binary/2 :: (node_arg(), domain_arg()) -> binary()).
+-spec(to_binary/2 :: (node_arg(), domain_arg()) -> binary()).
 
-jid_to_binary(Node, Domain) ->
+to_binary(Node, Domain) ->
     bare_jid_to_binary(Node, Domain).
 
 %% @spec (Node, Domain, Resource) -> String
@@ -531,12 +531,12 @@ jid_to_binary(Node, Domain) ->
 %%     String = binary()
 %% @doc Stringify a full JID.
 
--spec(jid_to_binary/3 :: (node_arg(), domain_arg(), res_arg()) -> binary()).
+-spec(to_binary/3 :: (node_arg(), domain_arg(), res_arg()) -> binary()).
 
-jid_to_binary(Node, Domain, Resource) when is_list(Resource) ->
-    jid_to_binary(Node, Domain, as_binary(Resource));
+to_binary(Node, Domain, Resource) when is_list(Resource) ->
+    to_binary(Node, Domain, as_binary(Resource));
 
-jid_to_binary(Node, Domain, Resource)
+to_binary(Node, Domain, Resource)
   when Resource == undefined orelse is_binary(Resource) ->
     S1 = bare_jid_to_binary(Node, Domain),
     if
@@ -555,7 +555,7 @@ jid_to_binary(Node, Domain, Resource)
 
 prepd_jid_to_binary(
   #jid{prep_node = Node, prep_domain = Domain, prep_resource = Resource}) ->
-    jid_to_binary(Node, Domain, Resource).
+    to_binary(Node, Domain, Resource).
 
 %% @spec (Jid) -> String
 %%     Jid = jid()
