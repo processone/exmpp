@@ -10,10 +10,12 @@
                 make_jid -> make ;
         * src/core/exmpp_jid.erl : API renaming :
                 make_jid -> make ;
-                jid_to_bare_jid > bare ;
+                jid_to_bare_jid -> bare ;
+                bare_jid_to_jid -> full ;
         * testsuite/jid.erl : API renaming :
                 make_jid -> make ;
                 jid_to_bare_jid > bare ;
+                bare_jid_to_jid -> full ;
 
 2009-05-17  Mickael Remond  <mremond@process-one.net>
 

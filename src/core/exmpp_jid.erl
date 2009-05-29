@@ -26,7 +26,7 @@
 
 % Parsing.
 -export([
-  parse_jid/1
+  parse/1
 ]).
 
 % Serialization.
@@ -354,16 +354,16 @@ full(#jid{orig_jid = Orig_Jid} = Jid, Resource) ->
 %% @throws {jid, parse, Reason, {jid, String}}
 %% @doc Parse a string and create a full JID.
 
--spec(parse_jid/1 :: (binary() | string()) -> jid()).
+-spec(parse/1 :: (binary() | string()) -> jid()).
 
-parse_jid(String) when is_binary(String) ->
+parse(String) when is_binary(String) ->
     case parse_binary(String, String, <<>>) of
         {error, Reason} ->
             throw({jid, parse, Reason, {jid, String}});
         Jid ->
             Jid
     end;
-parse_jid(String) when is_list(String) ->
+parse(String) when is_list(String) ->
     B = list_to_binary(String),
     case parse_binary(B, B, <<>>) of
         {error, Reason} ->

@@ -123,7 +123,7 @@ get_error(#iq{}) ->
 %% @doc Return the sender.
 %%
 %% The return value should be a JID and may be parsed with
-%% {@link exmpp_jid:parse_jid/1}.
+%% {@link exmpp_jid:parse/1}.
 
 -spec(get_sender/1 :: (#xmlel{}) -> binary() | undefined).
 
@@ -136,7 +136,7 @@ get_sender(#xmlel{attrs = Attrs} = _Stanza) ->
 %% @doc Return the sender.
 %%
 %% The return value should be a JID and may be parsed with
-%% {@link exmpp_jid:parse_jid/1}.
+%% {@link exmpp_jid:parse/1}.
 
 -spec(get_sender_from_attrs/1 :: ([#xmlattr{}]) -> binary() | undefined).
 
@@ -203,7 +203,7 @@ remove_sender_in_attrs(Attrs) ->
 %% @doc Return the recipient.
 %%
 %% The return value should be a JID and may be parsed with
-%% {@link exmpp_jid:parse_jid/1}.
+%% {@link exmpp_jid:parse/1}.
 
 -spec(get_recipient/1 :: (#xmlel{}) -> binary() | undefined).
 
@@ -216,7 +216,7 @@ get_recipient(#xmlel{attrs = Attrs} = _Stanza) ->
 %% @doc Return the recipient.
 %%
 %% The return value should be a JID and may be parsed with
-%% {@link exmpp_jid:parse_jid/1}.
+%% {@link exmpp_jid:parse/1}.
 
 -spec(get_recipient_from_attrs/1 :: ([#xmlattr{}]) -> binary() | undefined).
 

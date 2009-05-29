@@ -174,7 +174,7 @@ make({User, Server, Resource}) ->
 
 string_to_jid(J) ->
     try
-	Jid0 = exmpp_jid:parse_jid(J),
+	Jid0 = exmpp_jid:parse(J),
 	Jid1 = case Jid0#jid.user of
 	    undefined -> Jid0#jid{user = "", luser = ""};
 	    _         -> Jid0
