@@ -42,9 +42,9 @@
   to_binary/2,
   to_binary/3,
   prep_to_binary/1,
-  bare_jid_to_binary/1,
-  bare_jid_to_binary/2,
-  prepd_bare_jid_to_binary/1
+  bare_to_binary/1,
+  bare_to_binary/2,
+  prepd_bare_to_binary/1
 ]).
 
 % Comparison.
@@ -479,7 +479,7 @@ prep_to_list(
 -spec(bare_to_list/1 :: (jid()) -> string()).
 
 bare_to_list(#jid{} = JID) ->
-    binary_to_list(bare_jid_to_binary(JID)).
+    binary_to_list(bare_to_binary(JID)).
 
 %% @spec (Node, Domain) -> String
 %%     Node = binary() | string() | undefined
@@ -490,7 +490,7 @@ bare_to_list(#jid{} = JID) ->
 -spec(bare_to_list/2 :: (node_arg(), domain_arg()) -> string()).
 
 bare_to_list(Node, Domain) ->
-    binary_to_list(bare_jid_to_binary(Node, Domain)).
+    binary_to_list(bare_to_binary(Node, Domain)).
 
 %% @spec (Jid) -> String
 %%     Jid = jid()
@@ -522,7 +522,7 @@ to_binary(#jid{orig_jid = Orig_Jid}) ->
 -spec(to_binary/2 :: (node_arg(), domain_arg()) -> binary()).
 
 to_binary(Node, Domain) ->
-    bare_jid_to_binary(Node, Domain).
+    bare_to_binary(Node, Domain).
 
 %% @spec (Node, Domain, Resource) -> String
 %%     Node = binary() | string() | undefined
@@ -538,7 +538,7 @@ to_binary(Node, Domain, Resource) when is_list(Resource) ->
 
 to_binary(Node, Domain, Resource)
   when Resource == undefined orelse is_binary(Resource) ->
-    S1 = bare_jid_to_binary(Node, Domain),
+    S1 = bare_to_binary(Node, Domain),
     if
         Resource == <<>> orelse Resource == undefined ->
             S1;
@@ -562,12 +562,12 @@ prep_to_binary(
 %%     String = binary()
 %% @doc Stringify a bare JID.
 
--spec(bare_jid_to_binary/1 :: (jid()) -> binary()).
+-spec(bare_to_binary/1 :: (jid()) -> binary()).
 
-bare_jid_to_binary(#jid{orig_jid = Orig_Jid, prep_resource = LResource} = Jid) ->
+bare_to_binary(#jid{orig_jid = Orig_Jid, prep_resource = LResource} = Jid) ->
     case LResource of
         undefined -> Orig_Jid;
-        _         -> bare_jid_to_binary(exmpp_jid:node(Jid), domain(Jid))
+        _         -> bare_to_binary(exmpp_jid:node(Jid), domain(Jid))
     end.
 
 %% @spec (Node, Domain) -> String
@@ -576,14 +576,14 @@ bare_jid_to_binary(#jid{orig_jid = Orig_Jid, prep_resource = LResource} = Jid) -
 %%     String = binary()
 %% @doc Stringify a full JID.
 
--spec(bare_jid_to_binary/2 :: (node_arg(), domain_arg()) -> binary()).
+-spec(bare_to_binary/2 :: (node_arg(), domain_arg()) -> binary()).
 
-bare_jid_to_binary(Node, Domain) when is_list(Node) ->
-    bare_jid_to_binary(as_binary(Node), Domain);
-bare_jid_to_binary(Node, Domain) when is_list(Domain) ->
-    bare_jid_to_binary(Node, as_binary(Domain));
+bare_to_binary(Node, Domain) when is_list(Node) ->
+    bare_to_binary(as_binary(Node), Domain);
+bare_to_binary(Node, Domain) when is_list(Domain) ->
+    bare_to_binary(Node, as_binary(Domain));
 
-bare_jid_to_binary(Node, Domain)
+bare_to_binary(Node, Domain)
   when (Node == undefined orelse is_binary(Node)) andalso
   (Domain == undefined orelse is_binary(Domain)) ->
     if
@@ -598,10 +598,10 @@ bare_jid_to_binary(Node, Domain)
 %%     String = binary()
 %% @doc Stringify a bare JID with STRINGPREP profiles applied.
 
--spec(prepd_bare_jid_to_binary/1 :: (jid()) -> binary()).
+-spec(prepd_bare_to_binary/1 :: (jid()) -> binary()).
 
-prepd_bare_jid_to_binary(#jid{prep_node = Node, prep_domain = Domain}) ->
-    bare_jid_to_binary(Node, Domain).
+prepd_bare_to_binary(#jid{prep_node = Node, prep_domain = Domain}) ->
+    bare_to_binary(Node, Domain).
 
 % --------------------------------------------------------------------
 % JID comparison.
