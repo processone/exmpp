@@ -19,7 +19,7 @@
     orig_jid = <<"John@example.org/Work">>,
     prep_node = <<"john">>,
     prep_domain = <<"example.org">>,
-    lresource = <<"Work">>
+    prep_resource = <<"Work">>
   }).
 -define(FJ1_S, "John@example.org/Work").
 -define(FJ1_B, <<"John@example.org/Work">>).
@@ -31,7 +31,7 @@
     orig_jid = <<"example2.org/Work">>,
     prep_node = undefined,
     prep_domain = <<"example2.org">>,
-    lresource = <<"Work">>
+    prep_resource = <<"Work">>
   }).
 -define(FJ2_S, "example2.org/Work").
 -define(FJ2_B, <<"example2.org/Work">>).
@@ -42,7 +42,7 @@
     orig_jid = <<"John@example.org">>,
     prep_node = <<"john">>,
     prep_domain = <<"example.org">>,
-    lresource = undefined
+    prep_resource = undefined
   }).
 -define(BJ1_S, "John@example.org").
 -define(BJ1_B, <<"John@example.org">>).
@@ -53,7 +53,7 @@
     orig_jid = <<"example2.org">>,
     prep_node = undefined,
     prep_domain = <<"example2.org">>,
-    lresource = undefined
+    prep_resource = undefined
   }).
 -define(BJ2_S, "example2.org").
 -define(BJ2_B, <<"example2.org">>).

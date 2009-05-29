@@ -27,5 +27,5 @@
   orig_jid  :: binary() | undefined,
   prep_node     :: binary() | undefined,
   prep_domain   :: binary() | undefined,
-  lresource :: binary() | undefined
+  prep_resource :: binary() | undefined
 }).

@@ -21,6 +21,7 @@
                 ldomain -> prep_domain ;
                 ldomain_as_list -> prep_domain_as_list ;
                 lnode -> prep_node ;
+                lnode_as_list -> prep_node_as_list ;
         * src/core/exmpp_stanza.erl : API renaming :
                 parse_jid -> parse ;
         * testsuite/jid.erl : API renaming :
@@ -31,6 +32,7 @@
                 ldomain -> prep_domain ;
                 ldomain_as_list -> prep_domain_as_list ;
                 lnode -> prep_node ;
+                lnode_as_list -> prep_node_as_list ;
 
 2009-05-17  Mickael Remond  <mremond@process-one.net>
 

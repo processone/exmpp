@@ -300,7 +300,7 @@
 
 
 -record(jid, {user, server, resource,
-	      luser, lserver, lresource}).
+	      luser, lserver, prep_resource}).
 
 -record(iq, {id = "",
 	     type,

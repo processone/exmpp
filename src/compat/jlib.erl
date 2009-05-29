@@ -180,7 +180,7 @@ string_to_jid(J) ->
 	    _         -> Jid0
 	end,
 	Jid2 = case Jid1#jid.resource of
-	    undefined -> Jid1#jid{resource = "", lresource = ""};
+	    undefined -> Jid1#jid{resource = "", prep_resource = ""};
 	    _         -> Jid1
 	end,
 	Jid2
@@ -267,7 +267,7 @@ resourceprep(_) ->
     error.
 
 
-jid_tolower(#jid{luser = U, lserver = S, lresource = R}) ->
+jid_tolower(#jid{luser = U, lserver = S, prep_resource = R}) ->
     {U, S, R};
 jid_tolower({U, S, R}) ->
     case nodeprep(U) of
@@ -285,7 +285,7 @@ jid_tolower({U, S, R}) ->
     end.
 
 jid_remove_resource(#jid{} = JID) ->
-    JID#jid{resource = "", lresource = ""};
+    JID#jid{resource = "", prep_resource = ""};
 jid_remove_resource({U, S, _R}) ->
     {U, S, ""}.
 
@@ -293,7 +293,7 @@ jid_replace_resource(JID, Resource) ->
     case resourceprep(Resource) of
 	error -> error;
 	LResource ->
-	    JID#jid{resource = Resource, lresource = LResource}
+	    JID#jid{resource = Resource, prep_resource = LResource}
     end.
 
 
