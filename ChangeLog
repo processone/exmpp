@@ -7,6 +7,7 @@
         * include/internal/exmpp_xmpp.hrl : API renaming :
                 make_jid -> make ;
                 ldomain -> prep_domain ;
+                lnode -> prep_node ;
         * src/client/exmpp_client_binding.erl : API renaming :
                 parse_jid -> parse ;
         * src/compat/jlib.erl : API renaming :
@@ -19,6 +20,7 @@
                 parse_jid -> parse ;
                 ldomain -> prep_domain ;
                 ldomain_as_list -> prep_domain_as_list ;
+                lnode -> prep_node ;
         * src/core/exmpp_stanza.erl : API renaming :
                 parse_jid -> parse ;
         * testsuite/jid.erl : API renaming :
@@ -28,6 +30,7 @@
                 parse_jid -> parse ;
                 ldomain -> prep_domain ;
                 ldomain_as_list -> prep_domain_as_list ;
+                lnode -> prep_node ;
 
 2009-05-17  Mickael Remond  <mremond@process-one.net>
 

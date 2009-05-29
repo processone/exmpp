@@ -62,7 +62,7 @@
 % List accessors.
 -export([
   node_as_list/1,
-  lnode_as_list/1,
+  prep_node_as_list/1,
   domain_as_list/1,
   prep_domain_as_list/1,
   resource_as_list/1,
@@ -762,9 +762,9 @@ node_as_list(Jid) ->
 %% @doc Return the node part of a JID as a list with NODEPREP profile
 %% applied.
 
--spec(lnode_as_list/1 :: (jid()) -> string() | undefined).
+-spec(prep_node_as_list/1 :: (jid()) -> string() | undefined).
 
-lnode_as_list(Jid) ->
+prep_node_as_list(Jid) ->
     as_list_or_undefined(prep_node(Jid)).
 
 %% @spec (Jid) -> Domain | undefined
