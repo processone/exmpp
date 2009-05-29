@@ -17,6 +17,7 @@
                 make_jid -> make ;
                 parse_jid -> parse ;
                 lresource -> prep_resource ;
+                jid_to_list -> to_list ;
         * src/core/exmpp_jid.erl : API renaming :
                 make_jid -> make ;
                 jid_to_bare_jid -> bare ;
@@ -30,6 +31,7 @@
                 lresource_as_list -> prep_resource_as_list ;
                 compare_jids -> compare ;
                 compare_bare_jids -> bare compare ;
+                jid_to_list -> to_list ;
         * src/core/exmpp_stanza.erl : API renaming :
                 parse_jid -> parse ;
         * testsuite/jid.erl : API renaming :

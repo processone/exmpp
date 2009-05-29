@@ -34,7 +34,7 @@
   to_list/1,
   to_list/2,
   to_list/3,
-  prepd_jid_to_list/1,
+  prep_to_list/1,
   bare_jid_to_list/1,
   bare_jid_to_list/2,
   prepd_bare_jid_to_list/1,
@@ -465,9 +465,9 @@ to_list(Node, Domain, Resource) ->
 %%     String = string()
 %% @doc Stringify a full JID with STRINGPREP profiles applied.
 
--spec(prepd_jid_to_list/1 :: (jid()) -> string()).
+-spec(prep_to_list/1 :: (jid()) -> string()).
 
-prepd_jid_to_list(
+prep_to_list(
   #jid{prep_node = Node, prep_domain = Domain, prep_resource = Resource}) ->
     to_list(Node, Domain, Resource).
 
