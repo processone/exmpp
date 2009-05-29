@@ -49,7 +49,7 @@
 
 % Comparison.
 -export([
-  compare_jids/2,
+  compare/2,
   compare_bare_jids/2,
   compare_domains/2
 ]).
@@ -612,13 +612,13 @@ prepd_bare_jid_to_binary(#jid{prep_node = Node, prep_domain = Domain}) ->
 %%     Jid2 = jid()
 %% @doc Compare full JIDs.
 
--spec(compare_jids/2 :: (jid(), jid()) -> bool()).
+-spec(compare/2 :: (jid(), jid()) -> bool()).
 
-compare_jids(
+compare(
   #jid{prep_node = LNode, prep_domain = LDomain, prep_resource = LResource},
   #jid{prep_node = LNode, prep_domain = LDomain, prep_resource = LResource}) ->
     true;
-compare_jids(_Jid1, _Jid2) ->
+compare(_Jid1, _Jid2) ->
     false.
 
 %% @spec (Jid1, Jid2) -> bool()

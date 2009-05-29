@@ -424,12 +424,12 @@ accessors_test_() ->
 
 jid_comparison_test_() ->
     [
-      ?_assert(exmpp_jid:compare_jids(?FJ1, ?FJ1)),
-      ?_assertNot(exmpp_jid:compare_jids(?FJ1, ?BJ1)),
-      ?_assert(exmpp_jid:compare_jids(?FJ2, ?FJ2)),
-      ?_assertNot(exmpp_jid:compare_jids(?FJ2, ?BJ2)),
-      ?_assertNot(exmpp_jid:compare_jids(?FJ1, ?FJ2)),
-      ?_assertNot(exmpp_jid:compare_jids(?BJ1, ?BJ2))
+      ?_assert(exmpp_jid:compare(?FJ1, ?FJ1)),
+      ?_assertNot(exmpp_jid:compare(?FJ1, ?BJ1)),
+      ?_assert(exmpp_jid:compare(?FJ2, ?FJ2)),
+      ?_assertNot(exmpp_jid:compare(?FJ2, ?BJ2)),
+      ?_assertNot(exmpp_jid:compare(?FJ1, ?FJ2)),
+      ?_assertNot(exmpp_jid:compare(?BJ1, ?BJ2))
     ].
 
 bare_jid_comparison_test_() ->

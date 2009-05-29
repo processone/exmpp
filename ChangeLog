@@ -27,6 +27,7 @@
                 lnode -> prep_node ;
                 lnode_as_list -> prep_node_as_list ;
                 lresource -> prep_resource ;
+                lresource_as_list -> prep_resource_as_list ;
         * src/core/exmpp_stanza.erl : API renaming :
                 parse_jid -> parse ;
         * testsuite/jid.erl : API renaming :
