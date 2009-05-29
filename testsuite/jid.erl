@@ -74,15 +74,15 @@ too_long_identifiers_test_() ->
     Tests = [
       ?_assertThrow(
         {jid, make, too_long, {domain, Domain_TL}},
-        exmpp_jid:make_jid(?NODE, Domain_TL, ?RESOURCE)
+        exmpp_jid:make(?NODE, Domain_TL, ?RESOURCE)
       ),
       ?_assertThrow(
         {jid, make, too_long, {node, Node_TL}},
-        exmpp_jid:make_jid(Node_TL, ?DOMAIN, ?RESOURCE)
+        exmpp_jid:make(Node_TL, ?DOMAIN, ?RESOURCE)
       ),
       ?_assertThrow(
         {jid, make, too_long, {resource, Resource_TL}},
-        exmpp_jid:make_jid(?NODE, ?DOMAIN, Resource_TL)
+        exmpp_jid:make(?NODE, ?DOMAIN, Resource_TL)
       ),
       ?_assertThrow(
         {jid, parse, too_long, {jid, JID_TL}},
@@ -90,17 +90,17 @@ too_long_identifiers_test_() ->
       ),
       ?_assertThrow(
         {jid, make, too_long, {domain, Domain_TL_B}},
-        exmpp_jid:make_jid(list_to_binary(?NODE),
+        exmpp_jid:make(list_to_binary(?NODE),
           Domain_TL_B, list_to_binary(?RESOURCE))
       ),
       ?_assertThrow(
         {jid, make, too_long, {node, Node_TL_B}},
-        exmpp_jid:make_jid(Node_TL_B,
+        exmpp_jid:make(Node_TL_B,
           list_to_binary(?DOMAIN), list_to_binary(?RESOURCE))
       ),
       ?_assertThrow(
         {jid, make, too_long, {resource, Resource_TL_B}},
-        exmpp_jid:make_jid(list_to_binary(?NODE),
+        exmpp_jid:make(list_to_binary(?NODE),
           list_to_binary(?DOMAIN), Resource_TL_B)
       ),
       ?_assertThrow(

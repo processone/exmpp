@@ -36,7 +36,7 @@ stop(EchoClientPid) ->
 init() ->
     application:start(exmpp),
     MySession = exmpp_session:start(),
-    MyJID = exmpp_jid:make_jid("bosh", "localhost", random),
+    MyJID = exmpp_jid:make("bosh", "localhost", random),
     exmpp_session:auth_basic_digest(MySession, MyJID, "password"),
     %% Connect in standard TCP:
     _StreamId = exmpp_session:connect_BOSH(MySession, "http://127.0.0.1:5280/http-bind", "localhost", 5222),

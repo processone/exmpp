@@ -40,7 +40,7 @@ init() ->
     %% exmpp_stringprep):
     MySession = exmpp_session:start(),
     %% Create XMPP ID (Session Key):
-    MyJID = exmpp_jid:make_jid("echo", "localhost", random),
+    MyJID = exmpp_jid:make("echo", "localhost", random),
     %% Create a new session with basic (digest) authentication:
     exmpp_session:auth_basic_digest(MySession, MyJID, "password"),
     %% Connect in standard TCP:

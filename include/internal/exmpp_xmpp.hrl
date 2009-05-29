@@ -11,7 +11,7 @@
 % original JID in one chunk. The intention is to save some memory.
 % Most of the time we already have the raw JID (for example coming
 % from a stanza), so we avoid the need of allocating a new binary when
-% serializing (we can return the original, see make_jid/4). Also we
+% serializing (we can return the original, see make/4). Also we
 % allocate less pointers by keeping the JID in one chunk instead of
 % in its three separate components.
 %

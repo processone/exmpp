@@ -37,8 +37,8 @@
 	 replace_from_to_attrs/3,
 	 replace_from_to/3,
 	 remove_attr/2,
-	 make_jid/3,
-	 make_jid/1,
+	 make/3,
+	 make/1,
 	 string_to_jid/1,
 	 jid_to_string/1,
 	 is_nodename/1,
@@ -161,16 +161,16 @@ remove_attr(Attr, {xmlelement, Name, Attrs, Els}) ->
     {xmlelement, Name, NewAttrs, Els}.
 
 
-make_jid(User, Server, Resource) ->
+make(User, Server, Resource) ->
     try
-	exmpp_jid:make_jid(User, Server, Resource)
+	exmpp_jid:make(User, Server, Resource)
     catch
 	_Exception ->
 	    error
     end.
 
-make_jid({User, Server, Resource}) ->
-    make_jid(User, Server, Resource).
+make({User, Server, Resource}) ->
+    make(User, Server, Resource).
 
 string_to_jid(J) ->
     try
@@ -189,7 +189,7 @@ string_to_jid(J) ->
     end.
 
 jid_to_string({Node, Server, Resource}) ->
-    Jid = exmpp_jid:make_jid(Node, Server, Resource),
+    Jid = exmpp_jid:make(Node, Server, Resource),
     exmpp_jid:jid_to_list(Jid);
 jid_to_string(Jid) ->
     exmpp_jid:jid_to_list(Jid).

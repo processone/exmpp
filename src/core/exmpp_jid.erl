@@ -16,10 +16,10 @@
 
 % Conversion.
 -export([
-  make_jid/0,
-  make_jid/1,
-  make_jid/2,
-  make_jid/3,
+  make/0,
+  make/1,
+  make/2,
+  make/3,
   jid_to_bare_jid/1,
   bare_jid_to_jid/2
 ]).
@@ -128,9 +128,9 @@
 %%     Jid = jid()
 %% @doc Create a blank JID.
 
--spec(make_jid/0 :: () -> jid()).
+-spec(make/0 :: () -> jid()).
 
-make_jid() ->
+make() ->
     #jid{}.
 
 %% @spec (Domain) -> Bare_Jid
@@ -140,10 +140,10 @@ make_jid() ->
 %%         {jid, make, invalid,  {domain, Domain}}
 %% @doc Create a bare JID.
 
--spec(make_jid/1 :: (domain_arg()) -> jid()).
+-spec(make/1 :: (domain_arg()) -> jid()).
 
-make_jid(Domain) ->
-    make_jid(undefined, Domain).
+make(Domain) ->
+    make(undefined, Domain).
 
 %% @spec (Node, Domain) -> Bare_Jid
 %%     Node = binary() | string() | undefined
@@ -155,21 +155,21 @@ make_jid(Domain) ->
 %%         {jid, make, invalid,  {node, Node}}
 %% @doc Create a bare JID.
 
--spec(make_jid/2 :: (node_arg(), domain_arg()) -> jid()).
+-spec(make/2 :: (node_arg(), domain_arg()) -> jid()).
 
-make_jid(_Node, Domain)
+make(_Node, Domain)
   when is_list(Domain), length(Domain) > ?DOMAIN_MAX_LENGTH ->
     throw({jid, make, too_long, {domain, Domain}});
-make_jid(_Node, Domain)
+make(_Node, Domain)
   when is_binary(Domain), size(Domain) > ?DOMAIN_MAX_LENGTH ->
     throw({jid, make, too_long, {domain, Domain}});
-make_jid("", Domain) ->
+make("", Domain) ->
     % This clause is here because ejabberd uses empty string.
-    make_jid(undefined, Domain);
-make_jid(<<>>, Domain) ->
+    make(undefined, Domain);
+make(<<>>, Domain) ->
     % This clause is here because ejabberd uses empty string.
-    make_jid(undefined, Domain);
-make_jid(undefined, Domain) ->
+    make(undefined, Domain);
+make(undefined, Domain) ->
     try
         LDomain = exmpp_stringprep:nameprep(Domain),
         #jid{
@@ -184,13 +184,13 @@ make_jid(undefined, Domain) ->
         throw:{stringprep, nameprep, invalid_string, _} ->
             throw({jid, make, invalid, {domain, Domain}})
     end;
-make_jid(Node, _Domain)
+make(Node, _Domain)
   when is_list(Node), length(Node) > ?NODE_MAX_LENGTH ->
     throw({jid, make, too_long, {node, Node}});
-make_jid(Node, _Domain)
+make(Node, _Domain)
   when is_binary(Node), size(Node) > ?NODE_MAX_LENGTH ->
     throw({jid, make, too_long, {node, Node}});
-make_jid(Node, Domain) ->
+make(Node, Domain) ->
     try
         LNode = exmpp_stringprep:nodeprep(Node),
         LDomain = exmpp_stringprep:nameprep(Domain),
@@ -217,18 +217,18 @@ make_jid(Node, Domain) ->
 %%     Jid = jid()
 %% @doc Create a full JID.
 
--spec(make_jid/3 :: (node_arg(), domain_arg(), res_arg()) -> jid()).
+-spec(make/3 :: (node_arg(), domain_arg(), res_arg()) -> jid()).
 
-make_jid(Node, Domain, undefined) ->
-    make_jid(Node, Domain);
-make_jid(Node, Domain, "") ->
+make(Node, Domain, undefined) ->
+    make(Node, Domain);
+make(Node, Domain, "") ->
     % This clause is here because ejabberd uses empty string.
-    make_jid(Node, Domain);
-make_jid(Node, Domain, <<>>) ->
+    make(Node, Domain);
+make(Node, Domain, <<>>) ->
     % This clause is here because ejabberd uses empty string.
-    make_jid(Node, Domain);
-make_jid(Node, Domain, Resource) ->
-    Jid = make_jid(Node, Domain),
+    make(Node, Domain);
+make(Node, Domain, Resource) ->
+    Jid = make(Node, Domain),
     try
         bare_jid_to_jid(Jid, Resource)
     catch
@@ -251,9 +251,9 @@ make_jid(Node, Domain, Resource) ->
 %% We reuse this value here. The intention is to save some memory, see
 %% comments on `include/internal/exmpp_xmpp.hrl'
 
--spec(make_jid/4 :: (binary(), node_arg(), domain_arg(), res_arg()) -> jid()).
+-spec(make/4 :: (binary(), node_arg(), domain_arg(), res_arg()) -> jid()).
 
-make_jid(Orig, Node, Domain, Resource) ->
+make(Orig, Node, Domain, Resource) ->
     try
         LNode = case Node of
             undefined -> undefined;
@@ -391,7 +391,7 @@ parse_binary(_Original, <<$/>>, _Domain) ->
     {error, unexpected_end_of_string};
 parse_binary(Original, <<$/ , Resource/binary>>, Domain) ->
     % Valid JID of the form "Domain/Resource".
-    make_jid(Original, undefined, Domain, Resource);
+    make(Original, undefined, Domain, Resource);
 parse_binary(Original, <<C, Rest/binary>>, Node_Or_Domain) ->
     % JID of the form "Node@Domain" or "Node@Domain/Resource".
     parse_binary(Original, Rest, <<Node_Or_Domain/binary, C>>);
@@ -400,7 +400,7 @@ parse_binary(_Original, <<>>, <<>>) ->
     {error, unexpected_end_of_string};
 parse_binary(Original, <<>>, Domain) ->
     % Valid JID of the form "Domain".
-    make_jid(Original, undefined, Domain, undefined).
+    make(Original, undefined, Domain, undefined).
 parse_binary(_Original, <<$@,  _Rest/binary>>, _Node, _Domain) ->
     % Invalid JID of the form "Node@Domain@Domain".
     {error, unexpected_node_separator};
@@ -412,7 +412,7 @@ parse_binary(_Original, <<$/>>, _Node, _Domain) ->
     {error, unexpected_end_of_string};
 parse_binary(Original, <<$/, Resource/binary>>, Node, Domain) ->
     % Valid JID of the form "Node@Domain/Resource".
-    make_jid(Original, Node, Domain, Resource);
+    make(Original, Node, Domain, Resource);
 parse_binary(Original, <<C, Rest/binary>>, Node, Domain) ->
     % JID of the form "Node@Domain" or "Node@Domain/Resource".
     parse_binary(Original, Rest, Node, <<Domain/binary, C>>);
@@ -421,7 +421,7 @@ parse_binary(_Original, <<>>, _Node, <<>>) ->
     {error, unexpected_end_of_string};
 parse_binary(Original, <<>>, Node, Domain) ->
     % Valid JID of the form "Node@Domain".
-    make_jid(Original, Node, Domain, undefined).
+    make(Original, Node, Domain, undefined).
 
 % --------------------------------------------------------------------
 % JID serialization.
