@@ -37,7 +37,7 @@
   prep_to_list/1,
   bare_to_list/1,
   bare_to_list/2,
-  prepd_bare_jid_to_list/1,
+  prep_bare_jid_to_list/1,
   jid_to_binary/1,
   jid_to_binary/2,
   jid_to_binary/3,
@@ -497,9 +497,9 @@ bare_to_list(Node, Domain) ->
 %%     String = string()
 %% @doc Stringify a bare JID with STRINGPREP profiles applied.
 
--spec(prepd_bare_jid_to_list/1 :: (jid()) -> string()).
+-spec(prep_bare_jid_to_list/1 :: (jid()) -> string()).
 
-prepd_bare_jid_to_list(
+prep_bare_jid_to_list(
   #jid{prep_node = Node, prep_domain = Domain}) ->
     bare_to_list(Node, Domain).
 
