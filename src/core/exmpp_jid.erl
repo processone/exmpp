@@ -66,7 +66,7 @@
   domain_as_list/1,
   prep_domain_as_list/1,
   resource_as_list/1,
-  lresource_as_list/1
+  prep_resource_as_list/1
 ]).
 
 % Raw binary() accessors.
@@ -804,9 +804,9 @@ resource_as_list(Jid) ->
 %% @doc Return the domain part of a JID as a list with RESOURCEPREP
 %% profile applied.
 
--spec(lresource_as_list/1 :: (jid()) -> string() | undefined).
+-spec(prep_resource_as_list/1 :: (jid()) -> string() | undefined).
 
-lresource_as_list(Jid) ->
+prep_resource_as_list(Jid) ->
     as_list_or_undefined(prep_resource(Jid)).
 
 as_list_or_undefined(undefined) ->
