@@ -32,6 +32,7 @@
                 compare_jids -> compare ;
                 compare_bare_jids -> bare compare ;
                 jid_to_list -> to_list ;
+                prepd_jid_to_list -> prep_to_list ;
         * src/core/exmpp_stanza.erl : API renaming :
                 parse_jid -> parse ;
         * testsuite/jid.erl : API renaming :

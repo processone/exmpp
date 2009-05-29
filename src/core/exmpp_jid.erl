@@ -35,8 +35,8 @@
   to_list/2,
   to_list/3,
   prep_to_list/1,
-  bare_jid_to_list/1,
-  bare_jid_to_list/2,
+  bare_to_list/1,
+  bare_to_list/2,
   prepd_bare_jid_to_list/1,
   jid_to_binary/1,
   jid_to_binary/2,
@@ -446,7 +446,7 @@ to_list(#jid{} = JID) ->
 -spec(to_list/2 :: (node_arg(), domain_arg()) -> string()).
 
 to_list(Node, Domain) ->
-    bare_jid_to_list(Node, Domain).
+    bare_to_list(Node, Domain).
 
 %% @spec (Node, Domain, Resource) -> String
 %%     Node = binary() | string() | undefined
@@ -476,9 +476,9 @@ prep_to_list(
 %%     String = string()
 %% @doc Stringify a bare JID.
 
--spec(bare_jid_to_list/1 :: (jid()) -> string()).
+-spec(bare_to_list/1 :: (jid()) -> string()).
 
-bare_jid_to_list(#jid{} = JID) ->
+bare_to_list(#jid{} = JID) ->
     binary_to_list(bare_jid_to_binary(JID)).
 
 %% @spec (Node, Domain) -> String
@@ -487,9 +487,9 @@ bare_jid_to_list(#jid{} = JID) ->
 %%     String = string()
 %% @doc Stringify a full JID.
 
--spec(bare_jid_to_list/2 :: (node_arg(), domain_arg()) -> string()).
+-spec(bare_to_list/2 :: (node_arg(), domain_arg()) -> string()).
 
-bare_jid_to_list(Node, Domain) ->
+bare_to_list(Node, Domain) ->
     binary_to_list(bare_jid_to_binary(Node, Domain)).
 
 %% @spec (Jid) -> String
@@ -501,7 +501,7 @@ bare_jid_to_list(Node, Domain) ->
 
 prepd_bare_jid_to_list(
   #jid{prep_node = Node, prep_domain = Domain}) ->
-    bare_jid_to_list(Node, Domain).
+    bare_to_list(Node, Domain).
 
 %% @spec (Jid) -> String
 %%     Jid = jid()

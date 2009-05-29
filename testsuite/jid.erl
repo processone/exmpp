@@ -346,10 +346,10 @@ jid_arg_stringification_test_() ->
 
 bare_jid_stringification_test_() ->
     [
-      ?_assertMatch(?BJ1_S, exmpp_jid:bare_jid_to_list(?FJ1)),
-      ?_assertMatch(?BJ2_S, exmpp_jid:bare_jid_to_list(?FJ2)),
-      ?_assertMatch(?BJ1_S, exmpp_jid:bare_jid_to_list(?BJ1)),
-      ?_assertMatch(?BJ2_S, exmpp_jid:bare_jid_to_list(?BJ2)),
+      ?_assertMatch(?BJ1_S, exmpp_jid:bare_to_list(?FJ1)),
+      ?_assertMatch(?BJ2_S, exmpp_jid:bare_to_list(?FJ2)),
+      ?_assertMatch(?BJ1_S, exmpp_jid:bare_to_list(?BJ1)),
+      ?_assertMatch(?BJ2_S, exmpp_jid:bare_to_list(?BJ2)),
       ?_assertMatch(?BJ1_B, exmpp_jid:bare_jid_to_binary(?FJ1)),
       ?_assertMatch(?BJ2_B, exmpp_jid:bare_jid_to_binary(?FJ2)),
       ?_assertMatch(?BJ1_B, exmpp_jid:bare_jid_to_binary(?BJ1)),
