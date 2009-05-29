@@ -18,14 +18,14 @@
 % Tradeoff: we consume more CPU and memory for accessing a single
 % raw component (see exmpp_jid:node/1, exmpp_jid:domain/1,
 % exmpp_jid:resource/1), but these are less frequently used than their
-% prepared versions (exmpp_jid:lnode/1, exmpp_jid:prep_domain/1). Load tests
+% prepared versions (exmpp_jid:prep_node/1, exmpp_jid:prep_domain/1). Load tests
 % performed on ejabberd so far indicate an observable memory win when
 % using this representation, with no significant CPU cost.
 
 % JID.
 -record(jid, {
   orig_jid  :: binary() | undefined,
-  lnode     :: binary() | undefined,
+  prep_node     :: binary() | undefined,
   prep_domain   :: binary() | undefined,
   lresource :: binary() | undefined
 }).

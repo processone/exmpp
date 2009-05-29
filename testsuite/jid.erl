@@ -17,7 +17,7 @@
 
 -define(FJ1, #jid{
     orig_jid = <<"John@example.org/Work">>,
-    lnode = <<"john">>,
+    prep_node = <<"john">>,
     prep_domain = <<"example.org">>,
     lresource = <<"Work">>
   }).
@@ -29,7 +29,7 @@
 
 -define(FJ2, #jid{
     orig_jid = <<"example2.org/Work">>,
-    lnode = undefined,
+    prep_node = undefined,
     prep_domain = <<"example2.org">>,
     lresource = <<"Work">>
   }).
@@ -40,7 +40,7 @@
 
 -define(BJ1, #jid{
     orig_jid = <<"John@example.org">>,
-    lnode = <<"john">>,
+    prep_node = <<"john">>,
     prep_domain = <<"example.org">>,
     lresource = undefined
   }).
@@ -51,7 +51,7 @@
 
 -define(BJ2, #jid{
     orig_jid = <<"example2.org">>,
-    lnode = undefined,
+    prep_node = undefined,
     prep_domain = <<"example2.org">>,
     lresource = undefined
   }).

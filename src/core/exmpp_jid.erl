@@ -72,7 +72,7 @@
 % Raw binary() accessors.
 -export([
   node/1,
-  lnode/1,
+  prep_node/1,
   domain/1,
   prep_domain/1,
   resource/1,
@@ -174,7 +174,7 @@ make(undefined, Domain) ->
         LDomain = exmpp_stringprep:nameprep(Domain),
         #jid{
           orig_jid = to_binary(Domain),
-          lnode = undefined,
+          prep_node = undefined,
           prep_domain = to_binary(LDomain),
           lresource = undefined
         }
@@ -197,7 +197,7 @@ make(Node, Domain) ->
         #jid{
           orig_jid =
             <<(to_binary(Node))/binary, $@, (to_binary(Domain))/binary >>,
-          lnode = to_binary(LNode),
+          prep_node = to_binary(LNode),
           prep_domain = to_binary(LDomain),
           lresource = undefined
         }
@@ -266,7 +266,7 @@ make(Orig, Node, Domain, Resource) ->
         end,
         #jid{
           orig_jid = Orig,
-          lnode = LNode,
+          prep_node = LNode,
           prep_domain = LDomain,
           lresource = LResource
         }
@@ -468,7 +468,7 @@ jid_to_list(Node, Domain, Resource) ->
 -spec(prepd_jid_to_list/1 :: (jid()) -> string()).
 
 prepd_jid_to_list(
-  #jid{lnode = Node, prep_domain = Domain, lresource = Resource}) ->
+  #jid{prep_node = Node, prep_domain = Domain, lresource = Resource}) ->
     jid_to_list(Node, Domain, Resource).
 
 %% @spec (Jid) -> String
@@ -500,7 +500,7 @@ bare_jid_to_list(Node, Domain) ->
 -spec(prepd_bare_jid_to_list/1 :: (jid()) -> string()).
 
 prepd_bare_jid_to_list(
-  #jid{lnode = Node, prep_domain = Domain}) ->
+  #jid{prep_node = Node, prep_domain = Domain}) ->
     bare_jid_to_list(Node, Domain).
 
 %% @spec (Jid) -> String
@@ -554,7 +554,7 @@ jid_to_binary(Node, Domain, Resource)
 -spec(prepd_jid_to_binary/1 :: (jid()) -> binary()).
 
 prepd_jid_to_binary(
-  #jid{lnode = Node, prep_domain = Domain, lresource = Resource}) ->
+  #jid{prep_node = Node, prep_domain = Domain, lresource = Resource}) ->
     jid_to_binary(Node, Domain, Resource).
 
 %% @spec (Jid) -> String
@@ -600,7 +600,7 @@ bare_jid_to_binary(Node, Domain)
 
 -spec(prepd_bare_jid_to_binary/1 :: (jid()) -> binary()).
 
-prepd_bare_jid_to_binary(#jid{lnode = Node, prep_domain = Domain}) ->
+prepd_bare_jid_to_binary(#jid{prep_node = Node, prep_domain = Domain}) ->
     bare_jid_to_binary(Node, Domain).
 
 % --------------------------------------------------------------------
@@ -615,8 +615,8 @@ prepd_bare_jid_to_binary(#jid{lnode = Node, prep_domain = Domain}) ->
 -spec(compare_jids/2 :: (jid(), jid()) -> bool()).
 
 compare_jids(
-  #jid{lnode = LNode, prep_domain = LDomain, lresource = LResource},
-  #jid{lnode = LNode, prep_domain = LDomain, lresource = LResource}) ->
+  #jid{prep_node = LNode, prep_domain = LDomain, lresource = LResource},
+  #jid{prep_node = LNode, prep_domain = LDomain, lresource = LResource}) ->
     true;
 compare_jids(_Jid1, _Jid2) ->
     false.
@@ -629,8 +629,8 @@ compare_jids(_Jid1, _Jid2) ->
 -spec(compare_bare_jids/2 :: (jid(), jid()) -> bool()).
 
 compare_bare_jids(
-  #jid{lnode = LNode, prep_domain = LDomain},
-  #jid{lnode = LNode, prep_domain = LDomain}) ->
+  #jid{prep_node = LNode, prep_domain = LDomain},
+  #jid{prep_node = LNode, prep_domain = LDomain}) ->
     true;
 compare_bare_jids(_Jid1, _Jid2) ->
     false.
@@ -690,9 +690,9 @@ node(#jid{orig_jid = Orig_Jid}) ->
 %%     Node = binary()
 %% @doc Return the node part of a JID with NODEPREP profile applied.
 
--spec(lnode/1 :: (jid()) -> binary() | undefined).
+-spec(prep_node/1 :: (jid()) -> binary() | undefined).
 
-lnode(#jid{lnode = N}) -> N.
+prep_node(#jid{prep_node = N}) -> N.
 
 %% @spec (Jid) -> Domain | undefined
 %%     Jid = jid()
@@ -765,7 +765,7 @@ node_as_list(Jid) ->
 -spec(lnode_as_list/1 :: (jid()) -> string() | undefined).
 
 lnode_as_list(Jid) ->
-    as_list_or_undefined(lnode(Jid)).
+    as_list_or_undefined(prep_node(Jid)).
 
 %% @spec (Jid) -> Domain | undefined
 %%     Jid = jid()
