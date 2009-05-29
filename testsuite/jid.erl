@@ -416,7 +416,7 @@ bare_jid_conversion_with_bad_resource_test_() ->
 accessors_test_() ->
     Tests = [
       ?_assertMatch(?BJ2_S, exmpp_jid:domain_as_list(?FJ2)),
-      ?_assertMatch(?BJ2_S, exmpp_jid:ldomain_as_list(?FJ2)),
+      ?_assertMatch(?BJ2_S, exmpp_jid:prep_domain_as_list(?FJ2)),
       ?_assertMatch(undefined, exmpp_jid:lnode_as_list(?FJ2)),
       ?_assertMatch(undefined, exmpp_jid:resource_as_list(?BJ1))
     ],

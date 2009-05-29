@@ -64,7 +64,7 @@
   node_as_list/1,
   lnode_as_list/1,
   domain_as_list/1,
-  ldomain_as_list/1,
+  prep_domain_as_list/1,
   resource_as_list/1,
   lresource_as_list/1
 ]).
@@ -783,9 +783,9 @@ domain_as_list(Jid) ->
 %% @doc Return the domain part of a JID as a list with NAMEPREP profile
 %% applied.
 
--spec(ldomain_as_list/1 :: (jid()) -> string() | undefined).
+-spec(prep_domain_as_list/1 :: (jid()) -> string() | undefined).
 
-ldomain_as_list(Jid) ->
+prep_domain_as_list(Jid) ->
     as_list_or_undefined(prep_domain(Jid)).
 
 %% @spec (Jid) -> Resource | undefined
