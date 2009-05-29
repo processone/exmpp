@@ -20,7 +20,7 @@
   make/1,
   make/2,
   make/3,
-  jid_to_bare_jid/1,
+  bare/1,
   bare_jid_to_jid/2
 ]).
 
@@ -286,9 +286,9 @@ make(Orig, Node, Domain, Resource) ->
 %%     Bare_Jid = jid()
 %% @doc Convert a full JID to its bare version.
 
--spec(jid_to_bare_jid/1 :: (jid()) -> jid()).
+-spec(bare/1 :: (jid()) -> jid()).
 
-jid_to_bare_jid(#jid{orig_jid = Orig_Jid} = Jid) ->
+bare(#jid{orig_jid = Orig_Jid} = Jid) ->
     New_Orig_Jid = case binary_split(Orig_Jid, $/) of
         [Bare_Jid, _] -> Bare_Jid;
         [Bare_Jid]    -> Bare_Jid

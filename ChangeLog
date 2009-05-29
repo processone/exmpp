@@ -1,3 +1,18 @@
+2009-05-29 Karim Gemayel <kgemayel@process-one.net>
+
+        * examples/bosh_client.erl : API renaming :
+                make_jid -> make ;
+        * examples/echo_client.erl : API renaming :
+                make_jid -> make ;
+        * include/internal/exmpp_xmpp.hrl : API renaming :
+                make_jid -> make ;
+        * src/compat/jlib.erl : API renaming :
+                make_jid -> make ;
+        * src/core/exmpp_jid.erl : API renaming :
+                make_jid -> make ;
+        * testsuite/jid.erl : API renaming :
+                make_jid -> make ;
+
 2009-05-17  Mickael Remond  <mremond@process-one.net>
 
 	* src/core/exmpp_xmlstream.erl: Add option to remove enclosing Bosh tag
