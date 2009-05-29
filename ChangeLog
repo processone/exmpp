@@ -6,16 +6,23 @@
                 make_jid -> make ;
         * include/internal/exmpp_xmpp.hrl : API renaming :
                 make_jid -> make ;
+        * src/client/exmpp_client_binding.erl : API renaming :
+                parse_jid -> parse ;
         * src/compat/jlib.erl : API renaming :
                 make_jid -> make ;
+                parse_jid -> parse ;
         * src/core/exmpp_jid.erl : API renaming :
                 make_jid -> make ;
                 jid_to_bare_jid -> bare ;
                 bare_jid_to_jid -> full ;
+                parse_jid -> parse ;
+        * src/core/exmpp_stanza.erl : API renaming :
+                parse_jid -> parse ;
         * testsuite/jid.erl : API renaming :
                 make_jid -> make ;
                 jid_to_bare_jid > bare ;
                 bare_jid_to_jid -> full ;
+                parse_jid -> parse ;
 
 2009-05-17  Mickael Remond  <mremond@process-one.net>
 

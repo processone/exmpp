@@ -74,7 +74,7 @@
   node/1,
   lnode/1,
   domain/1,
-  ldomain/1,
+  prep_domain/1,
   resource/1,
   lresource/1
 ]).
@@ -175,7 +175,7 @@ make(undefined, Domain) ->
         #jid{
           orig_jid = to_binary(Domain),
           lnode = undefined,
-          ldomain = to_binary(LDomain),
+          prep_domain = to_binary(LDomain),
           lresource = undefined
         }
     catch
@@ -198,7 +198,7 @@ make(Node, Domain) ->
           orig_jid =
             <<(to_binary(Node))/binary, $@, (to_binary(Domain))/binary >>,
           lnode = to_binary(LNode),
-          ldomain = to_binary(LDomain),
+          prep_domain = to_binary(LDomain),
           lresource = undefined
         }
     catch
@@ -267,7 +267,7 @@ make(Orig, Node, Domain, Resource) ->
         #jid{
           orig_jid = Orig,
           lnode = LNode,
-          ldomain = LDomain,
+          prep_domain = LDomain,
           lresource = LResource
         }
     catch
@@ -468,7 +468,7 @@ jid_to_list(Node, Domain, Resource) ->
 -spec(prepd_jid_to_list/1 :: (jid()) -> string()).
 
 prepd_jid_to_list(
-  #jid{lnode = Node, ldomain = Domain, lresource = Resource}) ->
+  #jid{lnode = Node, prep_domain = Domain, lresource = Resource}) ->
     jid_to_list(Node, Domain, Resource).
 
 %% @spec (Jid) -> String
@@ -500,7 +500,7 @@ bare_jid_to_list(Node, Domain) ->
 -spec(prepd_bare_jid_to_list/1 :: (jid()) -> string()).
 
 prepd_bare_jid_to_list(
-  #jid{lnode = Node, ldomain = Domain}) ->
+  #jid{lnode = Node, prep_domain = Domain}) ->
     bare_jid_to_list(Node, Domain).
 
 %% @spec (Jid) -> String
@@ -554,7 +554,7 @@ jid_to_binary(Node, Domain, Resource)
 -spec(prepd_jid_to_binary/1 :: (jid()) -> binary()).
 
 prepd_jid_to_binary(
-  #jid{lnode = Node, ldomain = Domain, lresource = Resource}) ->
+  #jid{lnode = Node, prep_domain = Domain, lresource = Resource}) ->
     jid_to_binary(Node, Domain, Resource).
 
 %% @spec (Jid) -> String
@@ -600,7 +600,7 @@ bare_jid_to_binary(Node, Domain)
 
 -spec(prepd_bare_jid_to_binary/1 :: (jid()) -> binary()).
 
-prepd_bare_jid_to_binary(#jid{lnode = Node, ldomain = Domain}) ->
+prepd_bare_jid_to_binary(#jid{lnode = Node, prep_domain = Domain}) ->
     bare_jid_to_binary(Node, Domain).
 
 % --------------------------------------------------------------------
@@ -615,8 +615,8 @@ prepd_bare_jid_to_binary(#jid{lnode = Node, ldomain = Domain}) ->
 -spec(compare_jids/2 :: (jid(), jid()) -> bool()).
 
 compare_jids(
-  #jid{lnode = LNode, ldomain = LDomain, lresource = LResource},
-  #jid{lnode = LNode, ldomain = LDomain, lresource = LResource}) ->
+  #jid{lnode = LNode, prep_domain = LDomain, lresource = LResource},
+  #jid{lnode = LNode, prep_domain = LDomain, lresource = LResource}) ->
     true;
 compare_jids(_Jid1, _Jid2) ->
     false.
@@ -629,8 +629,8 @@ compare_jids(_Jid1, _Jid2) ->
 -spec(compare_bare_jids/2 :: (jid(), jid()) -> bool()).
 
 compare_bare_jids(
-  #jid{lnode = LNode, ldomain = LDomain},
-  #jid{lnode = LNode, ldomain = LDomain}) ->
+  #jid{lnode = LNode, prep_domain = LDomain},
+  #jid{lnode = LNode, prep_domain = LDomain}) ->
     true;
 compare_bare_jids(_Jid1, _Jid2) ->
     false.
@@ -643,8 +643,8 @@ compare_bare_jids(_Jid1, _Jid2) ->
 -spec(compare_domains/2 :: (jid(), jid()) -> bool()).
 
 compare_domains(
-  #jid{ldomain = LDomain},
-  #jid{ldomain = LDomain}) ->
+  #jid{prep_domain = LDomain},
+  #jid{prep_domain = LDomain}) ->
     true;
 compare_domains(_Jid1, _Jid2) ->
     false.
@@ -718,9 +718,9 @@ domain(#jid{orig_jid = Orig_Jid}) ->
 %%     Domain = binary()
 %% @doc Return the domain part of a JID with NAMEPREP profile applied.
 
--spec(ldomain/1 :: (jid()) -> binary() | undefined).
+-spec(prep_domain/1 :: (jid()) -> binary() | undefined).
 
-ldomain(#jid{ldomain = D}) -> D.
+prep_domain(#jid{prep_domain = D}) -> D.
 
 %% @spec (Jid) -> Resource | undefined
 %%     Jid = jid()
@@ -786,7 +786,7 @@ domain_as_list(Jid) ->
 -spec(ldomain_as_list/1 :: (jid()) -> string() | undefined).
 
 ldomain_as_list(Jid) ->
-    as_list_or_undefined(ldomain(Jid)).
+    as_list_or_undefined(prep_domain(Jid)).
 
 %% @spec (Jid) -> Resource | undefined
 %%     Jid = jid()
