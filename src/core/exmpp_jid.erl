@@ -50,7 +50,7 @@
 % Comparison.
 -export([
   compare/2,
-  compare_bare_jids/2,
+  bare_compare/2,
   compare_domains/2
 ]).
 
@@ -626,13 +626,13 @@ compare(_Jid1, _Jid2) ->
 %%     Jid2 = jid()
 %% @doc Compare bare JIDs.
 
--spec(compare_bare_jids/2 :: (jid(), jid()) -> bool()).
+-spec(bare_compare/2 :: (jid(), jid()) -> bool()).
 
-compare_bare_jids(
+bare_compare(
   #jid{prep_node = LNode, prep_domain = LDomain},
   #jid{prep_node = LNode, prep_domain = LDomain}) ->
     true;
-compare_bare_jids(_Jid1, _Jid2) ->
+bare_compare(_Jid1, _Jid2) ->
     false.
 
 %% @spec (Jid1, Jid2) -> bool()

@@ -434,12 +434,12 @@ jid_comparison_test_() ->
 
 bare_jid_comparison_test_() ->
     [
-      ?_assert(exmpp_jid:compare_bare_jids(?FJ1, ?FJ1)),
-      ?_assert(exmpp_jid:compare_bare_jids(?FJ1, ?BJ1)),
-      ?_assert(exmpp_jid:compare_bare_jids(?FJ2, ?FJ2)),
-      ?_assert(exmpp_jid:compare_bare_jids(?FJ2, ?BJ2)),
-      ?_assertNot(exmpp_jid:compare_bare_jids(?FJ1, ?FJ2)),
-      ?_assertNot(exmpp_jid:compare_bare_jids(?BJ1, ?BJ2))
+      ?_assert(exmpp_jid:bare_compare(?FJ1, ?FJ1)),
+      ?_assert(exmpp_jid:bare_compare(?FJ1, ?BJ1)),
+      ?_assert(exmpp_jid:bare_compare(?FJ2, ?FJ2)),
+      ?_assert(exmpp_jid:bare_compare(?FJ2, ?BJ2)),
+      ?_assertNot(exmpp_jid:bare_compare(?FJ1, ?FJ2)),
+      ?_assertNot(exmpp_jid:bare_compare(?BJ1, ?BJ2))
     ].
 
 domain_comparison_test_() ->
