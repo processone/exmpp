@@ -1,3 +1,8 @@
+2009-05-30  Badlop  <badlop@process-one.net>
+
+	* src/core/exmpp_jid.erl: Fix function name collision: old
+	internal function to_binary/1 renamed to storbi2bi/1.
+
 2009-05-29 Karim Gemayel <kgemayel@process-one.net>
 
         * examples/bosh_client.erl : API renaming :

@@ -173,9 +173,9 @@ make(undefined, Domain) ->
     try
         LDomain = exmpp_stringprep:nameprep(Domain),
         #jid{
-          orig_jid = to_binary(Domain),
+          orig_jid = storbi2bi(Domain),
           prep_node = undefined,
-          prep_domain = to_binary(LDomain),
+          prep_domain = storbi2bi(LDomain),
           prep_resource = undefined
         }
     catch
@@ -196,9 +196,9 @@ make(Node, Domain) ->
         LDomain = exmpp_stringprep:nameprep(Domain),
         #jid{
           orig_jid =
-            <<(to_binary(Node))/binary, $@, (to_binary(Domain))/binary >>,
-          prep_node = to_binary(LNode),
-          prep_domain = to_binary(LDomain),
+            <<(storbi2bi(Node))/binary, $@, (storbi2bi(Domain))/binary >>,
+          prep_node = storbi2bi(LNode),
+          prep_domain = storbi2bi(LDomain),
           prep_resource = undefined
         }
     catch
@@ -257,12 +257,12 @@ make(Orig, Node, Domain, Resource) ->
     try
         LNode = case Node of
             undefined -> undefined;
-            _         -> to_binary(exmpp_stringprep:nodeprep(Node))
+            _         -> storbi2bi(exmpp_stringprep:nodeprep(Node))
         end,
-        LDomain = to_binary(exmpp_stringprep:nameprep(Domain)),
+        LDomain = storbi2bi(exmpp_stringprep:nameprep(Domain)),
         LResource = case Resource of
             undefined -> undefined;
-            _         -> to_binary(exmpp_stringprep:resourceprep(Resource))
+            _         -> storbi2bi(exmpp_stringprep:resourceprep(Resource))
         end,
         #jid{
           orig_jid = Orig,
@@ -328,14 +328,14 @@ full(_Jid, Resource)
 full(#jid{orig_jid = Orig_Jid} = Jid, Resource) ->
     try
         LResource = exmpp_stringprep:resourceprep(Resource),
-        Resource_B = to_binary(Resource),
+        Resource_B = storbi2bi(Resource),
         New_Orig_Jid = case binary_split(Orig_Jid, $/) of
             [Bare_Jid, _] -> <<Bare_Jid/binary, $/, Resource_B/binary>>;
             [Bare_Jid]    -> <<Bare_Jid/binary, $/, Resource_B/binary>>
         end,
         Jid#jid{
           orig_jid = New_Orig_Jid,
-          prep_resource = to_binary(LResource)
+          prep_resource = storbi2bi(LResource)
         }
     catch
         throw:{stringprep, _, exmpp_not_started, _} = E ->
@@ -836,12 +836,13 @@ generate_resource() ->
 
 % If both lists are equal, don't waste memory creating two separate
 % binary copies.
+% "st or bi 2 bi" means: convert a STring OR a BInary TO a BInary.
 
--spec(to_binary/1 :: (binary() | string()) -> binary()).
+-spec(storbi2bi/1 :: (binary() | string()) -> binary()).
 
-to_binary(String) when is_list(String) ->
+storbi2bi(String) when is_list(String) ->
     list_to_binary(String);
-to_binary(Binary) when is_binary(Binary) ->
+storbi2bi(Binary) when is_binary(Binary) ->
     Binary.
 
 -spec(binary_split/2 :: (binary(), char()) -> [binary()]).
