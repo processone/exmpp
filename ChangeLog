@@ -1,7 +1,9 @@
 2009-05-30  Badlop  <badlop@process-one.net>
 
 	* src/core/exmpp_jid.erl: Fix function name collision: old
-	internal function to_binary/1 renamed to storbi2bi/1.
+	internal function to_binary/1 renamed to storbi2bi/1. Rename
+	compare/2 to full_compare/2 and add compare/2 which just calls
+	full_compare/2.
 
 2009-05-29 Karim Gemayel <kgemayel@process-one.net>
 
