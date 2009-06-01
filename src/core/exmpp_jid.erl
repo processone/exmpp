@@ -44,7 +44,7 @@
   prep_to_binary/1,
   bare_to_binary/1,
   bare_to_binary/2,
-  prepd_bare_to_binary/1
+  prep_bare_to_binary/1
 ]).
 
 % Comparison.
@@ -599,9 +599,9 @@ bare_to_binary(Node, Domain)
 %%     String = binary()
 %% @doc Stringify a bare JID with STRINGPREP profiles applied.
 
--spec(prepd_bare_to_binary/1 :: (jid()) -> binary()).
+-spec(prep_bare_to_binary/1 :: (jid()) -> binary()).
 
-prepd_bare_to_binary(#jid{prep_node = Node, prep_domain = Domain}) ->
+prep_bare_to_binary(#jid{prep_node = Node, prep_domain = Domain}) ->
     bare_to_binary(Node, Domain).
 
 % --------------------------------------------------------------------
