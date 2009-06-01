@@ -277,6 +277,7 @@
 %% limits is, eg., 15 and the data is `<foo></foo><bar></bar>', the
 %% parser will return an error because the whole chunk is 22 bytes,
 %% despite each stanza contains 11 bytes.
+%% TODO: Fix the max_size beahavior.
 %%
 %% <br/><br/>
 %% The `root_depth' option specicifies at which level the parser stops
@@ -3646,6 +3647,9 @@ document_to_binary(El) ->
 %%
 %% Converting to iolist is about 40% to 50% faster than converting to a
 %% list.
+%%
+%% TODO: transform directly to text without converting it to the old
+%%       xmlelement() first.
 
 -spec(node_to_iolist/3 ::
   (xmlel_any() | [xmlel_any()], xmldefaultnss(), xmlprefixednss()) -> iolist()).
