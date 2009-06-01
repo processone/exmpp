@@ -17,7 +17,7 @@ I. How to build and install
 1. Requirements
 ---------------
 
-    o  Erlang (REQUIRED)
+    o  Erlang/OTP (REQUIRED)
        A full Erlang environment is recommended but only ERTS and
        erl_interface are required.
            . Minimum version:           R12B
@@ -77,7 +77,7 @@ Exmpp will be installed in "/install/exmpp/here/exmpp-$VERSION".
 3. Building examples
 --------------------
 
-You can find exmple code in the "examples" directory.
+You can find example code in the "examples" directory.
 
 These modules may be built for you with the --enable-examples configure
 argument:
