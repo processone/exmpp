@@ -1,7 +1,10 @@
 2009-06-01 Karim Gemayel <kgemayel@process-one.net>
 
 	* src/core/exmpp_jid.erl: API renaming :
-	         prepd_bare_to_binary -> prep_bare_to_binary.
+	         prepd_bare_to_binary -> prep_bare_to_binary ;
+	
+	API renaming to fix rev789 :
+	        prep_bare_jid_to_list -> prep_bare_to_list 
 
 2009-05-30  Badlop  <badlop@process-one.net>
 
