@@ -1,5 +1,3 @@
-# $Id$
-
 all: exmpp.app exmpp.appup
 
 clean:

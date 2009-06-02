@@ -1,5 +1,3 @@
-/* $Id$ */
-
 var fso, fd, line, re_start, re, dict;
 
 if (WScript.Arguments.length != 1) {
@@ -16,9 +14,6 @@ if (WScript.Arguments.length != 1) {
 
 	/* We need a dictionnary to filter out duplicates. */
 	dict = new ActiveXObject("Scripting.Dictionary");
-
-	/* Fill in the Erlang header file. */
-	WScript.Echo("% $Id$");
 
 	while (!fd.AtEndOfStream) {
 		line = fd.ReadLine();

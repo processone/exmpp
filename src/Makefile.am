@@ -1,5 +1,3 @@
-# $Id$
-
 EXTRA_DIST = core/exmpp.erl						\
 	     core/exmpp_sup.erl						\
 	     core/exmpp_internals.erl					\

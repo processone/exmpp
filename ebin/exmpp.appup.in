@@ -1,5 +1,3 @@
-% $Id$
-
 { "@VERSION@",
   [
     % To upgrade from the specified version to current one.

@@ -1,5 +1,3 @@
-% $Id$
-
 -module(jid).
 -vsn('$Revision$').
 

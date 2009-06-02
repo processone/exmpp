@@ -1,5 +1,3 @@
-%% $Id$
-
 %% @author Will Glozer <will@glozer.net>
 
 %% @doc

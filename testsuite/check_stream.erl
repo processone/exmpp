@@ -1,5 +1,3 @@
-% $Id$
-
 -module(check_stream).
 -vsn('$Revision$').
 

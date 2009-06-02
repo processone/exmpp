@@ -1,5 +1,3 @@
-%% $Id$
-
 %% @author Jean-Sebastien Pedron <js.pedron@meetic-corp.com>
 
 %% @doc

@@ -1,5 +1,3 @@
-/* $Id$ */
-
 #ifndef EXMPP_COMPRESS_H
 #define	EXMPP_COMPRESS_H 1
 

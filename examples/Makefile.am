@@ -1,5 +1,3 @@
-# $Id$
-
 EXTRA_DIST = echo_client.erl bosh_client.erl
 
 all-local:

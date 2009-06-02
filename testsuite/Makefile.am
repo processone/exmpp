@@ -1,5 +1,3 @@
-# $Id$
-
 ETEST = $(builddir)/etest
 EUNIT_REPORTER = eunit_tty
 

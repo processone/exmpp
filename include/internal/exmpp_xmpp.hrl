@@ -1,5 +1,3 @@
-% $Id$
-
 % WARNING: This header is internal to Exmpp. DO NOT include it in your
 % applications!
 

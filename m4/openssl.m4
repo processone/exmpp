@@ -1,4 +1,3 @@
-dnl $Id$
 dnl
 dnl Configure path for OpenSSL
 dnl

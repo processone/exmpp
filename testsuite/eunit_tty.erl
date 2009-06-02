@@ -1,5 +1,3 @@
-% $Id$
-
 -module(eunit_tty).
 -vsn('$Revision$').
 

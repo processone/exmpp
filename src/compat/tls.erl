@@ -1,5 +1,3 @@
-%% $Id$
-
 %%%----------------------------------------------------------------------
 %%% File    : tls.erl
 %%% Author  : Alexey Shchepin <alexey@process-one.net>

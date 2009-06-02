@@ -1,5 +1,3 @@
-%% $Id$
-
 %%%----------------------------------------------------------------------
 %%% File    : xml_stream.erl
 %%% Author  : Alexey Shchepin <alexey@process-one.net>

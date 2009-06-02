@@ -1,5 +1,3 @@
-%% $Id$
-
 %%%----------------------------------------------------------------------
 %%% File    : stringprep.erl
 %%% Author  : Alexey Shchepin <alexey@process-one.net>

@@ -1,5 +1,3 @@
-# $Id$
-
 SUBDIRS = c_src src ebin
 
 all clean:

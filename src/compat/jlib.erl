@@ -1,5 +1,3 @@
-%% $Id$
-
 %%%----------------------------------------------------------------------
 %%% File    : jlib.erl
 %%% Author  : Alexey Shchepin <alexey@process-one.net>

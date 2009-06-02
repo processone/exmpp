@@ -1,5 +1,3 @@
-% $Id$
-
 -module(check_legacy_auth).
 -vsn('$Revision$').
 

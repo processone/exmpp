@@ -1,5 +1,3 @@
-% $Id$
-
 {application, exmpp, [
     {description, "XMPP/Jabber protocol oriented XML library"},
     {vsn, "@VERSION@"},

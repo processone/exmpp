@@ -1,5 +1,3 @@
-dnl $Id$
-dnl
 dnl Macro to compare version numbers in configure.
 dnl
 

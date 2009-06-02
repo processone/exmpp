@@ -1,5 +1,3 @@
-# $Id$
-
 # Erlang environments.
 !IFNDEF ERLANG_ROOT_DIR
 ERLANG_ROOT_DIR = C:\Program Files\erl5.6.2

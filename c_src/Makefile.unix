@@ -1,5 +1,3 @@
-# $Id$
-
 # Programs
 AWK  ?= awk
 CUT  ?= cut

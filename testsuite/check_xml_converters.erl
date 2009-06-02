@@ -1,5 +1,3 @@
-% $Id$
-
 -module(check_xml_converters).
 -vsn('$Revision$').
 

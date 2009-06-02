@@ -1,5 +1,3 @@
-%% $Id: exmpp_bosh.erl 603 2008-08-20 12:22:03Z mremond $
-
 %% @author Mickael Remond <mickael.remond@process-one.net>
 
 %% @doc

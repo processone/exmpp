@@ -1,5 +1,3 @@
-%% $Id$
-
 %%%----------------------------------------------------------------------
 %%% File    : ejabberd_zlib.erl
 %%% Author  : Alexey Shchepin <alexey@process-one.net>

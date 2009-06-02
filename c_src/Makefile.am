@@ -1,5 +1,3 @@
-# $Id$
-
 execdrivers_LTLIBRARIES = exmpp_stringprep.la
 
 if WITH_EXPAT

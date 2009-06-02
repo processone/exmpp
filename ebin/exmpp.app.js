@@ -1,5 +1,3 @@
-/* $Id$ */
-
 var fso, fd, line, arr, version;
 var re_ac_init, re_version;
 var re_compat_start, re_compat;

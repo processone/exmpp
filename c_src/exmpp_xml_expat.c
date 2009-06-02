@@ -1,5 +1,3 @@
-/* $Id$ */
-
 #include <expat.h>
 #include <string.h>
 

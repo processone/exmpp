@@ -1,4 +1,3 @@
-dnl $Id$
 dnl
 dnl More functions to query Erlang environment.
 dnl

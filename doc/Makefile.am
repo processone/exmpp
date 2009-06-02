@@ -1,5 +1,3 @@
-# $Id$
-
 EXTRA_DIST = overview.edoc stylesheet.css
 
 stylesheet.css:

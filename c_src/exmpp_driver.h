@@ -1,5 +1,3 @@
-/* $Id$ */
-
 #ifndef EXMPP_DRIVER_H
 #define	EXMPP_DRIVER_H 1
 

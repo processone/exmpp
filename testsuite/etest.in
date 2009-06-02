@@ -1,5 +1,4 @@
 #!@ESCRIPT@
-% $Id$
 
 %% @doc
 %% When this script is called without arguments, it'll run the EUnit

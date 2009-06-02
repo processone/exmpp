@@ -1,5 +1,3 @@
-% $Id$
-
 % Namespace and prefix macros.
 -include("exmpp_nss.hrl").
 

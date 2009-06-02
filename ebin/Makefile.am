@@ -1,5 +1,3 @@
-# $Id$
-
 beamdir = $(ERLANG_INSTALL_LIB_DIR_exmpp)/ebin
 
 BEAM_FILES = exmpp.app							\

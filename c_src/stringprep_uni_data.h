@@ -10,7 +10,6 @@
  *
  * Modified for ejabberd by Alexey Shchepin
  *
- * RCS: @(#) $Id$
  */
 
 /*

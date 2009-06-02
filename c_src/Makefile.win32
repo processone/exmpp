@@ -1,5 +1,3 @@
-# $Id$
-
 # Always define NODEBUG because OpenSSL is built with -MD (not -MDd). This
 # avoids a warning about conflicting MSVCRTs.
 !IFNDEF NODEBUG

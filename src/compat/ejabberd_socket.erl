@@ -1,5 +1,3 @@
-%% $Id$
-
 %%%----------------------------------------------------------------------
 %%% File    : ejabberd_socket.erl
 %%% Author  : Alexey Shchepin <alexey@process-one.net>

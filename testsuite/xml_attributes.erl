@@ -1,5 +1,3 @@
-% $Id$
-
 -module(xml_attributes).
 -vsn('$Revision$').
 

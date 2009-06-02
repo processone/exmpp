@@ -1,5 +1,3 @@
-%% $Id: echo_client.erl 768 2009-05-03 20:25:04Z mremond $
-
 %% @author Mickael Remond <mickael.remond@process-one.net>
 
 %% @doc

@@ -1,4 +1,3 @@
-dnl $Id$
 dnl
 dnl Macro to output bold and colored text.
 dnl

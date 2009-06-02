@@ -1,5 +1,3 @@
-# $Id$
-
 SUBDIRS = c_src.dir							\
 	  include.dir							\
 	  src.dir							\

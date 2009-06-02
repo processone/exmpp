@@ -1,5 +1,3 @@
-% $Id$
-
 -module(iq).
 -vsn('$Revision$').
 

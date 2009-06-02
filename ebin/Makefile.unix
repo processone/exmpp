@@ -1,5 +1,3 @@
-# $Id$
-
 # Programs.
 CUT  ?= cut
 GREP ?= grep

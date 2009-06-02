@@ -1,5 +1,3 @@
-%% $Id$
-
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
 %% The module <strong>{@module}</strong> implements the initiating

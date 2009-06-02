@@ -1,5 +1,3 @@
-/* $Id$ */
-
 #ifndef EXMPP_TLS_H
 #define	EXMPP_TLS_H 1
 

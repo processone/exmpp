@@ -1,5 +1,3 @@
-% $Id$
-
 -module(check_coverity).
 -vsn('$Revision$').
 

@@ -1,5 +1,3 @@
-# $Id$
-
 MAKE_SPECS_LIST = $(srcdir)/make-specs-list
 EXTRACT_KNOWN = $(srcdir)/extract-known-from-specs
 
