@@ -1,12 +1,10 @@
 %% @author Mickael Remond <mickael.remond@process-one.net>
 
 %% @doc
-
+%%
 %% The module <strong>{@module}</strong> implements packets formatting
 %% conforming to XEP-0077: In-Band Registration.
 %% See: http://www.xmpp.org/extensions/xep-0077.html
-%%
-%% <p>This code is copyright Process-one (http://www.process-one.net/)</p>
 %%
 %% Note: This implementation is still partial and does not support all
 %% workflow of the XEP-0077.

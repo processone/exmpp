@@ -9,8 +9,6 @@
 %% This module is intended to be used directly by client developers.
 %% </p>
 %%
-%% <p>This code is copyright Process-one (http://www.process-one.net/)</p>
-%%
 %% TODO: Rewrite the following text into a comprehensive documentation.
 %%   explain priority matching of iq query reply. Illustration with echo_client.
 %%   Illustration with an Erlang/OTP example.

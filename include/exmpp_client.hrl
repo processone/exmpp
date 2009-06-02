@@ -1,4 +1,3 @@
-%% Copyright 2007, Process-one
 
 %% This record is used to pass received packets back to client.
 %% The record is defined to make it easy to use pattern matching on

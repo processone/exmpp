@@ -3,7 +3,6 @@
 %% @doc
 %% The module <strong>{@module}</strong> implements a simple BOSH XMPP client.
 %%
-%%
 %% <p>
 %% This is a example use of the exmpp framework.
 %% </p>
@@ -13,9 +12,6 @@
 %% </p>
 %% <pre>{ok, session} = bosh_client:start().
 %% bosh_client:stop(Session).</pre>
-%%
-%% <p>This code is copyright Process-one (http://www.process-one.net/)</p>
-%%
 
 -module(bosh_client).
 

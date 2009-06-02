@@ -8,9 +8,6 @@
 %% <p>
 %% This module is not intended to be used directly by client developers.
 %% </p>
-%%
-%% <p>This code is copyright Process-one (http://www.process-one.net/)</p>
-%%
 
 -module(exmpp_bosh).
 

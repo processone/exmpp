@@ -1,6 +1,5 @@
 %% @author Mickael Remond <mickael.remond@process-one.net>
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
-%% @copyright Process-One [http://www.process-one.net/]
 
 %% @doc
 %% The module <strong>{@module}</strong> provides helpers to manipulate

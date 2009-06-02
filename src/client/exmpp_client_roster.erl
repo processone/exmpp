@@ -1,11 +1,9 @@
 %% @author Mickael Remond <mickael.remond@process-one.net>
 
 %% @doc
-
+%%
 %% The module <strong>{@module}</strong> implements XMPP roster
 %% management packet generation.
-%%
-%% <p>This code is copyright Process-one (http://www.process-one.net/)</p>
 
 -module(exmpp_client_roster).
 

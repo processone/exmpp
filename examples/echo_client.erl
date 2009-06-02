@@ -3,7 +3,6 @@
 %% @doc
 %% The module <strong>{@module}</strong> implements a simple XMPP echo client.
 %%
-%%
 %% <p>
 %% This is a example use of the exmpp framework.
 %% </p>
@@ -13,9 +12,6 @@
 %% </p>
 %% <pre>{ok, session} = echo_client:start().
 %% echo_client:stop(Session).</pre>
-%%
-%% <p>This code is copyright Process-one (http://www.process-one.net/)</p>
-%%
 
 -module(echo_client).
 
