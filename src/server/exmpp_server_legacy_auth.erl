@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
@@ -15,28 +15,28 @@
 
 -include("exmpp.hrl").
 
-% Creating stanza.
+%% Creating stanza.
 -export([
-  fields/1,
-  fields/2,
-  success/1,
-  failure/2
-]).
+	 fields/1,
+	 fields/2,
+	 success/1,
+	 failure/2
+	]).
 
-% Accessing informations.
+%% Accessing informations.
 -export([
-  want_fields/1,
-  get_credentials/1
-]).
+	 want_fields/1,
+	 get_credentials/1
+	]).
 
-% Tools.
+%% Tools.
 -export([
-  unhex/1
-]).
+	 unhex/1
+	]).
 
-% --------------------------------------------------------------------
-% Creating stanza.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Creating stanza.
+%% --------------------------------------------------------------------
 
 %% @spec (Request_IQ) -> Fields_IQ
 %%     Request_IQ = exmpp_xml:xmlel()
@@ -56,26 +56,26 @@ fields(Request_IQ) ->
 
 fields(Request_IQ, Auth) when ?IS_IQ(Request_IQ) ->
     Request_Username_El = exmpp_xml:get_element(Request_IQ,
-      ?NS_LEGACY_AUTH, 'username'),
+						?NS_LEGACY_AUTH, 'username'),
     Username_Children = case exmpp_xml:get_cdata(Request_Username_El) of
-        <<>>     -> [];
-        Username -> [#xmlcdata{cdata = Username}]
-    end,
+			    <<>>     -> [];
+			    Username -> [#xmlcdata{cdata = Username}]
+			end,
     Username_El = #xmlel{ns = ?NS_LEGACY_AUTH, name = 'username',
-      children = Username_Children},
+			 children = Username_Children},
     Password_El = #xmlel{ns = ?NS_LEGACY_AUTH, name = 'password'},
     Digest_El   = #xmlel{ns = ?NS_LEGACY_AUTH, name = 'digest'},
     Resource_El = #xmlel{ns = ?NS_LEGACY_AUTH, name = 'resource'},
     Children = case Auth of
-        plain  -> [Username_El, Password_El, Resource_El];
-        digest -> [Username_El, Digest_El, Resource_El];
-        both   -> [Username_El, Password_El, Digest_El, Resource_El]
-    end,
+		   plain  -> [Username_El, Password_El, Resource_El];
+		   digest -> [Username_El, Digest_El, Resource_El];
+		   both   -> [Username_El, Password_El, Digest_El, Resource_El]
+	       end,
     Query = #xmlel{
       ns = ?NS_LEGACY_AUTH,
       name = 'query',
       children = Children
-    },
+     },
     exmpp_iq:result(Request_IQ, Query).
 
 %% @spec (Password_IQ) -> Success_IQ
@@ -94,18 +94,18 @@ success(Password_IQ) when ?IS_IQ(Password_IQ) ->
 
 failure(Password_IQ, Condition) when ?IS_IQ(Password_IQ) ->
     Code = case Condition of
-        'not-authorized' -> "401";
-        'conflict'       -> "409";
-        'not-acceptable' -> "406"
-    end,
+	       'not-authorized' -> "401";
+	       'conflict'       -> "409";
+	       'not-acceptable' -> "406"
+	   end,
     Error = exmpp_xml:set_attribute(
-      exmpp_stanza:error(Password_IQ#xmlel.ns, Condition),
-      'code', Code),
+	      exmpp_stanza:error(Password_IQ#xmlel.ns, Condition),
+	      'code', Code),
     exmpp_iq:error_without_original(Password_IQ, Error).
 
-% --------------------------------------------------------------------
-% Accessing informations.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Accessing informations.
+%% --------------------------------------------------------------------
 
 %% @spec (Request_IQ) -> bool()
 %%     Request_IQ = exmpp_xml:xmlel()
@@ -138,7 +138,7 @@ get_credentials(Password_IQ) when ?IS_IQ(Password_IQ) ->
     Request = exmpp_iq:get_request(Password_IQ),
     case Request of
         #xmlel{ns = ?NS_LEGACY_AUTH, name = 'query', children = Children}
-          when length(Children) == 3 ->
+	when length(Children) == 3 ->
             get_credentials2(Children, {undefined, undefined, undefined});
         _ ->
             throw({legacy_auth, get_credentials, invalid_iq, Password_IQ})
@@ -175,9 +175,9 @@ get_credentials2([], {_Username, _Password, undefined}) ->
 get_credentials2([], Credentials) ->
     Credentials.
 
-% --------------------------------------------------------------------
-% Tools.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Tools.
+%% --------------------------------------------------------------------
 
 %% @spec (Hex) -> Plain
 %%     Hex = string()

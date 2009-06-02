@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
@@ -11,14 +11,14 @@
 
 -include("exmpp.hrl").
 
-% Creating stanza.
+%% Creating stanza.
 -export([
-  list_push/2
-]).
+	 list_push/2
+	]).
 
-% --------------------------------------------------------------------
-% Creating stanza.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Creating stanza.
+%% --------------------------------------------------------------------
 
 %% @spec (To, List_Name) -> Push_IQ
 %%     To = exmpp_jid:jid() | string()
@@ -28,16 +28,14 @@
 %% `List_Name' has been created or has changed.
 
 list_push(To, List_Name) ->
-    List0 = #xmlel{
-      ns = ?NS_PRIVACY,
-      name = 'list'
-    },
+    List0 = #xmlel{ns = ?NS_PRIVACY,
+		   name = 'list'
+		  },
     List = exmpp_xml:set_attribute(List0, 'name', List_Name),
-    Query = #xmlel{
-      ns = ?NS_PRIVACY,
-      name = 'query',
-      children = [List]
-    },
+    Query = #xmlel{ns = ?NS_PRIVACY,
+		   name = 'query',
+		   children = [List]
+		  },
     IQ = exmpp_iq:set(?NS_JABBER_CLIENT, Query,
-      exmpp_utils:random_id("push")),
+		      exmpp_utils:random_id("push")),
     exmpp_stanza:set_recipient(IQ, To).

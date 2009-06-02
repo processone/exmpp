@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
@@ -14,21 +14,21 @@
 
 -include("exmpp.hrl").
 
-% Feature announcement.
+%% Feature announcement.
 -export([
-  feature/1
-]).
+	 feature/1
+	]).
 
-% Compression negotiation.
+%% Compression negotiation.
 -export([
-  selected_method/1,
-  compressed/0,
-  failure/1
-]).
+	 selected_method/1,
+	 compressed/0,
+	 failure/1
+	]).
 
-% --------------------------------------------------------------------
-% Feature announcement.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Feature announcement.
+%% --------------------------------------------------------------------
 
 %% @spec (Methods) -> Feature
 %%     Methods = [string()]
@@ -42,49 +42,47 @@
 %%
 %% Examples of methods are:
 %% <ul>
-%% <li>`"zlib"' (support required)</li> 
+%% <li>`"zlib"' (support required)</li>
 %% <li>`"lzw"'</li>
 %% </ul>
 %%
 %% The result should then be passed to {@link exmpp_stream:features/1}.
 
 feature(Methods) ->
-    #xmlel{
-      ns = ?NS_COMPRESS_FEAT,
-      name = 'compression',
-      children = methods_list(Methods)
-    }.
+    #xmlel{ns = ?NS_COMPRESS_FEAT,
+	   name = 'compression',
+	   children = methods_list(Methods)
+	  }.
 
 methods_list([]) ->
     throw({stream_compression, feature_announcement,
-        invalid_methods_list, []});
+	   invalid_methods_list, []});
 methods_list(Methods) ->
     methods_list2(Methods, []).
 
 methods_list2([Method | Rest], Children) ->
     case io_lib:deep_char_list(Method) of
         true ->
-            Child = #xmlel{
-              ns = ?NS_COMPRESS,
-              name = 'method'
-            },
+            Child = #xmlel{ns = ?NS_COMPRESS,
+			   name = 'method'
+			  },
             methods_list2(Rest,
-              Children ++ [exmpp_xml:set_cdata(Child, Method)]);
+			  Children ++ [exmpp_xml:set_cdata(Child, Method)]);
         false ->
             throw({stream_compression, feature_announcement,
-                invalid_method, Method})
+		   invalid_method, Method})
     end;
 methods_list2([], Children) ->
     Children.
 
-% --------------------------------------------------------------------
-% Compression negotiation.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Compression negotiation.
+%% --------------------------------------------------------------------
 
 standard_conditions() ->
     [
-      {'unsupported-method'},
-      {'setup-failed'}
+     {'unsupported-method'},
+     {'setup-failed'}
     ].
 
 %% @spec (El) -> Method
@@ -108,9 +106,9 @@ selected_method(El) ->
 
 compressed() ->
     #xmlel{
-      ns = ?NS_COMPRESS,
-      name = 'compressed'
-    }.
+	    ns = ?NS_COMPRESS,
+	    name = 'compressed'
+	   }.
 
 %% @spec (Condition) -> Failure
 %%     Condition = atom()
@@ -124,12 +122,11 @@ failure(Condition) ->
             Condition_El = #xmlel{
               ns = ?NS_COMPRESS,
               name = Condition
-            },
-            #xmlel{
-              ns = ?NS_COMPRESS,
-              name = failure,
-              children = [Condition_El]
-            };
+	     },
+            #xmlel{ns = ?NS_COMPRESS,
+		   name = failure,
+		   children = [Condition_El]
+		  };
         _ ->
             throw({stream_compression, failure, invalid_condition, Condition})
     end.

@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
@@ -14,75 +14,75 @@
 
 -export([binary_split/2]).
 
-% Conversion.
+%% Conversion.
 -export([
-  make/0,
-  make/1,
-  make/2,
-  make/3,
-  bare/1,
-  full/2
-]).
+	 make/0,
+	 make/1,
+	 make/2,
+	 make/3,
+	 bare/1,
+	 full/2
+	]).
 
-% Parsing.
+%% Parsing.
 -export([
-  parse/1
-]).
+	 parse/1
+	]).
 
-% Serialization.
+%% Serialization.
 -export([
-  to_list/1,
-  to_list/2,
-  to_list/3,
-  prep_to_list/1,
-  bare_to_list/1,
-  bare_to_list/2,
-  prep_bare_to_list/1,
-  to_binary/1,
-  to_binary/2,
-  to_binary/3,
-  prep_to_binary/1,
-  bare_to_binary/1,
-  bare_to_binary/2,
-  prep_bare_to_binary/1
-]).
+	 to_list/1,
+	 to_list/2,
+	 to_list/3,
+	 prep_to_list/1,
+	 bare_to_list/1,
+	 bare_to_list/2,
+	 prep_bare_to_list/1,
+	 to_binary/1,
+	 to_binary/2,
+	 to_binary/3,
+	 prep_to_binary/1,
+	 bare_to_binary/1,
+	 bare_to_binary/2,
+	 prep_bare_to_binary/1
+	]).
 
-% Comparison.
+%% Comparison.
 -export([
-  full_compare/2,
-  bare_compare/2,
-  compare/2,
-  compare_domains/2
-]).
+	 full_compare/2,
+	 bare_compare/2,
+	 compare/2,
+	 compare_domains/2
+	]).
 
-% Checks.
+%% Checks.
 -export([
-  is_jid/1
-]).
+	 is_jid/1
+	]).
 
-% List accessors.
+%% List accessors.
 -export([
-  node_as_list/1,
-  prep_node_as_list/1,
-  domain_as_list/1,
-  prep_domain_as_list/1,
-  resource_as_list/1,
-  prep_resource_as_list/1
-]).
+	 node_as_list/1,
+	 prep_node_as_list/1,
+	 domain_as_list/1,
+	 prep_domain_as_list/1,
+	 resource_as_list/1,
+	 prep_resource_as_list/1
+	]).
 
-% Raw binary() accessors.
+%% Raw binary() accessors.
 -export([
-  node/1,
-  prep_node/1,
-  domain/1,
-  prep_domain/1,
-  resource/1,
-  prep_resource/1
-]).
+	 node/1,
+	 prep_node/1,
+	 domain/1,
+	 prep_domain/1,
+	 resource/1,
+	 prep_resource/1
+	]).
 
-% --------------------------------------------------------------------
-% Constants.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Constants.
+%% --------------------------------------------------------------------
 
 -define(NODE_MAX_LENGTH,     1023).
 -define(DOMAIN_MAX_LENGTH,   1023).
@@ -90,9 +90,9 @@
 -define(BARE_JID_MAX_LENGTH, ?NODE_MAX_LENGTH + 1 + ?DOMAIN_MAX_LENGTH).
 -define(JID_MAX_LENGTH,      ?BARE_JID_MAX_LENGTH + 1 + ?RESOURCE_MAX_LENGTH).
 
-% --------------------------------------------------------------------
-% Documentation / type definitions.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Documentation / type definitions.
+%% --------------------------------------------------------------------
 
 %% @type jid() = {jid, Orig_Jid, Prepd_Node, Prepd_Domain, Prepd_Resource}
 %%     Orig_Jid = binary() | undefined
@@ -116,14 +116,14 @@
 
 -type(jid() :: #jid{}).
 
-% Internal type only used in contracts.
+%% Internal type only used in contracts.
 -type(node_arg()   :: binary() | string() | undefined).
 -type(domain_arg() :: binary() | string()).
 -type(res_arg()    :: binary() | string() | undefined).
 
-% --------------------------------------------------------------------
-% JID creation & conversion.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% JID creation & conversion.
+%% --------------------------------------------------------------------
 
 %% @spec () -> Jid
 %%     Jid = jid()
@@ -165,24 +165,23 @@ make(_Node, Domain)
   when is_binary(Domain), size(Domain) > ?DOMAIN_MAX_LENGTH ->
     throw({jid, make, too_long, {domain, Domain}});
 make("", Domain) ->
-    % This clause is here because ejabberd uses empty string.
+    %% This clause is here because ejabberd uses empty string.
     make(undefined, Domain);
 make(<<>>, Domain) ->
-    % This clause is here because ejabberd uses empty string.
+    %% This clause is here because ejabberd uses empty string.
     make(undefined, Domain);
 make(undefined, Domain) ->
     try
         LDomain = exmpp_stringprep:nameprep(Domain),
-        #jid{
-          orig_jid = storbi2bi(Domain),
-          prep_node = undefined,
-          prep_domain = storbi2bi(LDomain),
-          prep_resource = undefined
-        }
+        #jid{orig_jid = storbi2bi(Domain),
+	     prep_node = undefined,
+	     prep_domain = storbi2bi(LDomain),
+	     prep_resource = undefined
+	    }
     catch
         throw:{stringprep, _, exmpp_not_started, _} = E ->
             throw(E);
-        throw:{stringprep, nameprep, invalid_string, _} ->
+	  throw:{stringprep, nameprep, invalid_string, _} ->
             throw({jid, make, invalid, {domain, Domain}})
     end;
 make(Node, _Domain)
@@ -195,19 +194,18 @@ make(Node, Domain) ->
     try
         LNode = exmpp_stringprep:nodeprep(Node),
         LDomain = exmpp_stringprep:nameprep(Domain),
-        #jid{
-          orig_jid =
-            <<(storbi2bi(Node))/binary, $@, (storbi2bi(Domain))/binary >>,
-          prep_node = storbi2bi(LNode),
-          prep_domain = storbi2bi(LDomain),
-          prep_resource = undefined
-        }
+        #jid{orig_jid =
+	     <<(storbi2bi(Node))/binary, $@, (storbi2bi(Domain))/binary >>,
+	     prep_node = storbi2bi(LNode),
+	     prep_domain = storbi2bi(LDomain),
+	     prep_resource = undefined
+	    }
     catch
         throw:{stringprep, _, exmpp_not_started, _} = E ->
             throw(E);
-        throw:{stringprep, nodeprep, invalid_string, _} ->
+	  throw:{stringprep, nodeprep, invalid_string, _} ->
             throw({jid, make, invalid, {node, Node}});
-        throw:{stringprep, nameprep, invalid_string, _} ->
+	  throw:{stringprep, nameprep, invalid_string, _} ->
             throw({jid, make, invalid, {domain, Domain}})
     end.
 
@@ -223,10 +221,10 @@ make(Node, Domain) ->
 make(Node, Domain, undefined) ->
     make(Node, Domain);
 make(Node, Domain, "") ->
-    % This clause is here because ejabberd uses empty string.
+    %% This clause is here because ejabberd uses empty string.
     make(Node, Domain);
 make(Node, Domain, <<>>) ->
-    % This clause is here because ejabberd uses empty string.
+    %% This clause is here because ejabberd uses empty string.
     make(Node, Domain);
 make(Node, Domain, Resource) ->
     Jid = make(Node, Domain),
@@ -235,7 +233,7 @@ make(Node, Domain, Resource) ->
     catch
         throw:{stringprep, _, exmpp_not_started, _} = E ->
             throw(E);
-        throw:{jid, convert, Reason, Infos} ->
+	  throw:{jid, convert, Reason, Infos} ->
             throw({jid, make, Reason, Infos})
     end.
 
@@ -257,28 +255,27 @@ make(Node, Domain, Resource) ->
 make(Orig, Node, Domain, Resource) ->
     try
         LNode = case Node of
-            undefined -> undefined;
-            _         -> storbi2bi(exmpp_stringprep:nodeprep(Node))
-        end,
+		    undefined -> undefined;
+		    _         -> storbi2bi(exmpp_stringprep:nodeprep(Node))
+		end,
         LDomain = storbi2bi(exmpp_stringprep:nameprep(Domain)),
         LResource = case Resource of
-            undefined -> undefined;
-            _         -> storbi2bi(exmpp_stringprep:resourceprep(Resource))
-        end,
-        #jid{
-          orig_jid = Orig,
-          prep_node = LNode,
-          prep_domain = LDomain,
-          prep_resource = LResource
-        }
+			undefined -> undefined;
+			_         -> storbi2bi(exmpp_stringprep:resourceprep(Resource))
+		    end,
+        #jid{orig_jid = Orig,
+	     prep_node = LNode,
+	     prep_domain = LDomain,
+	     prep_resource = LResource
+	    }
     catch
         throw:{stringprep, _, exmpp_not_started, _} = E ->
             throw(E);
-        throw:{stringprep, nodeprep, invalid_string, _} ->
+	  throw:{stringprep, nodeprep, invalid_string, _} ->
             throw({jid, make, invalid, {node, Node}});
-        throw:{stringprep, nameprep, invalid_string, _} ->
+	  throw:{stringprep, nameprep, invalid_string, _} ->
             throw({jid, make, invalid, {domain, Domain}});
-        throw:{stringprep, resourceprep, invalid_string, _} ->
+	  throw:{stringprep, resourceprep, invalid_string, _} ->
             throw({jid, make, invalid, {resource, Resource}})
     end.
 
@@ -291,13 +288,13 @@ make(Orig, Node, Domain, Resource) ->
 
 bare(#jid{orig_jid = Orig_Jid} = Jid) ->
     New_Orig_Jid = case binary_split(Orig_Jid, $/) of
-        [Bare_Jid, _] -> Bare_Jid;
-        [Bare_Jid]    -> Bare_Jid
-    end,
+		       [Bare_Jid, _] -> Bare_Jid;
+		       [Bare_Jid]    -> Bare_Jid
+		   end,
     Jid#jid{
       orig_jid = New_Orig_Jid,
       prep_resource = undefined
-    }.
+     }.
 
 %% @spec (Bare_Jid, Resource) -> Jid
 %%     Bare_Jid = jid()
@@ -312,10 +309,10 @@ bare(#jid{orig_jid = Orig_Jid} = Jid) ->
 full(Jid, undefined) ->
     Jid;
 full(Jid, "") ->
-    % This clause is here because ejabberd uses empty string.
+    %% This clause is here because ejabberd uses empty string.
     Jid;
 full(Jid, <<>>) ->
-    % This clause is here because ejabberd uses empty string.
+    %% This clause is here because ejabberd uses empty string.
     Jid;
 full(Jid, random) ->
     Resource = generate_resource(),
@@ -330,24 +327,24 @@ full(#jid{orig_jid = Orig_Jid} = Jid, Resource) ->
     try
         LResource = exmpp_stringprep:resourceprep(Resource),
         Resource_B = storbi2bi(Resource),
-        New_Orig_Jid = case binary_split(Orig_Jid, $/) of
-            [Bare_Jid, _] -> <<Bare_Jid/binary, $/, Resource_B/binary>>;
-            [Bare_Jid]    -> <<Bare_Jid/binary, $/, Resource_B/binary>>
-        end,
-        Jid#jid{
-          orig_jid = New_Orig_Jid,
-          prep_resource = storbi2bi(LResource)
-        }
+        New_Orig_Jid =
+	case binary_split(Orig_Jid, $/) of
+	    [Bare_Jid, _] -> <<Bare_Jid/binary, $/, Resource_B/binary>>;
+	    [Bare_Jid]    -> <<Bare_Jid/binary, $/, Resource_B/binary>>
+				 end,
+        Jid#jid{orig_jid = New_Orig_Jid,
+		prep_resource = storbi2bi(LResource)
+	       }
     catch
         throw:{stringprep, _, exmpp_not_started, _} = E ->
             throw(E);
-        throw:{stringprep, resourceprep, invalid_string, _} ->
+	  throw:{stringprep, resourceprep, invalid_string, _} ->
             throw({jid, convert, invalid, {resource, Resource}})
     end.
 
-% --------------------------------------------------------------------
-% JID parsing.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% JID parsing.
+%% --------------------------------------------------------------------
 
 %% @spec (String) -> Jid
 %%     String = binary() | string()
@@ -376,57 +373,57 @@ parse(String) when is_list(String) ->
 -spec(parse_binary/3 :: (binary(), binary(), binary()) -> jid() | {error, any()}).
 
 parse_binary(_Original, String, _) when size(String) > ?JID_MAX_LENGTH ->
-    % Invalid JID: too long.
+    %% Invalid JID: too long.
     {error, too_long};
 parse_binary(_Original, <<$@, _Rest/binary>>, <<>>) ->
-    % Invalid JID of the form "@Domain".
+    %% Invalid JID of the form "@Domain".
     {error, unexpected_node_separator};
 parse_binary(Original, <<$@, Rest/binary>>, Node) ->
-    % JID of the form "Node@Domain".
+    %% JID of the form "Node@Domain".
     parse_binary(Original, Rest, Node, <<>>);
 parse_binary(_Original, <<$/, _Rest/binary>>, <<>>) ->
-    % Invalid JID of the form "/Resource".
+    %% Invalid JID of the form "/Resource".
     {error, unexpected_resource_separator};
 parse_binary(_Original, <<$/>>, _Domain) ->
-    % Invalid JID of the form "Domain/".
+    %% Invalid JID of the form "Domain/".
     {error, unexpected_end_of_string};
 parse_binary(Original, <<$/ , Resource/binary>>, Domain) ->
-    % Valid JID of the form "Domain/Resource".
+    %% Valid JID of the form "Domain/Resource".
     make(Original, undefined, Domain, Resource);
 parse_binary(Original, <<C, Rest/binary>>, Node_Or_Domain) ->
-    % JID of the form "Node@Domain" or "Node@Domain/Resource".
+    %% JID of the form "Node@Domain" or "Node@Domain/Resource".
     parse_binary(Original, Rest, <<Node_Or_Domain/binary, C>>);
 parse_binary(_Original, <<>>, <<>>) ->
-    % Invalid JID of the form "".
+    %% Invalid JID of the form "".
     {error, unexpected_end_of_string};
 parse_binary(Original, <<>>, Domain) ->
-    % Valid JID of the form "Domain".
+    %% Valid JID of the form "Domain".
     make(Original, undefined, Domain, undefined).
 parse_binary(_Original, <<$@,  _Rest/binary>>, _Node, _Domain) ->
-    % Invalid JID of the form "Node@Domain@Domain".
+    %% Invalid JID of the form "Node@Domain@Domain".
     {error, unexpected_node_separator};
 parse_binary(_Original, <<$/, _Rest/binary>>, _Node, <<>>) ->
-    % Invalid JID of the form "Node@/Resource".
+    %% Invalid JID of the form "Node@/Resource".
     {error, unexpected_resource_separator};
 parse_binary(_Original, <<$/>>, _Node, _Domain) ->
-    % Invalid JID of the form "Node@Domain/".
+    %% Invalid JID of the form "Node@Domain/".
     {error, unexpected_end_of_string};
 parse_binary(Original, <<$/, Resource/binary>>, Node, Domain) ->
-    % Valid JID of the form "Node@Domain/Resource".
+    %% Valid JID of the form "Node@Domain/Resource".
     make(Original, Node, Domain, Resource);
 parse_binary(Original, <<C, Rest/binary>>, Node, Domain) ->
-    % JID of the form "Node@Domain" or "Node@Domain/Resource".
+    %% JID of the form "Node@Domain" or "Node@Domain/Resource".
     parse_binary(Original, Rest, Node, <<Domain/binary, C>>);
 parse_binary(_Original, <<>>, _Node, <<>>) ->
-    % Invalid JID of the form "Node@".
+    %% Invalid JID of the form "Node@".
     {error, unexpected_end_of_string};
 parse_binary(Original, <<>>, Node, Domain) ->
-    % Valid JID of the form "Node@Domain".
+    %% Valid JID of the form "Node@Domain".
     make(Original, Node, Domain, undefined).
 
-% --------------------------------------------------------------------
-% JID serialization.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% JID serialization.
+%% --------------------------------------------------------------------
 
 %% @spec (Jid) -> String
 %%     Jid = jid()
@@ -545,7 +542,7 @@ to_binary(Node, Domain, Resource)
             S1;
         true ->
             <<S1/binary, "/", Resource/binary>>
-    end.
+		end.
 
 %% @spec (Jid) -> String
 %%     Jid = jid()
@@ -586,13 +583,13 @@ bare_to_binary(Node, Domain) when is_list(Domain) ->
 
 bare_to_binary(Node, Domain)
   when (Node == undefined orelse is_binary(Node)) andalso
-  (Domain == undefined orelse is_binary(Domain)) ->
+       (Domain == undefined orelse is_binary(Domain)) ->
     if
         Node == <<>> orelse Node == undefined ->
             Domain;
         true ->
             <<Node/binary, "@", Domain/binary>>
-    end.
+		end.
 
 %% @spec (Jid) -> String
 %%     Jid = jid()
@@ -604,9 +601,9 @@ bare_to_binary(Node, Domain)
 prep_bare_to_binary(#jid{prep_node = Node, prep_domain = Domain}) ->
     bare_to_binary(Node, Domain).
 
-% --------------------------------------------------------------------
-% JID comparison.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% JID comparison.
+%% --------------------------------------------------------------------
 
 %% @spec (Jid1, Jid2) -> bool()
 %%     Jid1 = jid()
@@ -615,9 +612,10 @@ prep_bare_to_binary(#jid{prep_node = Node, prep_domain = Domain}) ->
 
 -spec(full_compare/2 :: (jid(), jid()) -> bool()).
 
-full_compare(
-  #jid{prep_node = LNode, prep_domain = LDomain, prep_resource = LResource},
-  #jid{prep_node = LNode, prep_domain = LDomain, prep_resource = LResource}) ->
+full_compare(#jid{prep_node = LNode, prep_domain = LDomain,
+		  prep_resource = LResource},
+	     #jid{prep_node = LNode, prep_domain = LDomain,
+		  prep_resource = LResource}) ->
     true;
 full_compare(_Jid1, _Jid2) ->
     false.
@@ -629,9 +627,8 @@ full_compare(_Jid1, _Jid2) ->
 
 -spec(bare_compare/2 :: (jid(), jid()) -> bool()).
 
-bare_compare(
-  #jid{prep_node = LNode, prep_domain = LDomain},
-  #jid{prep_node = LNode, prep_domain = LDomain}) ->
+bare_compare(#jid{prep_node = LNode, prep_domain = LDomain},
+	     #jid{prep_node = LNode, prep_domain = LDomain}) ->
     true;
 bare_compare(_Jid1, _Jid2) ->
     false.
@@ -653,16 +650,15 @@ compare(Jid1, Jid2) ->
 
 -spec(compare_domains/2 :: (jid(), jid()) -> bool()).
 
-compare_domains(
-  #jid{prep_domain = LDomain},
-  #jid{prep_domain = LDomain}) ->
+compare_domains(#jid{prep_domain = LDomain},
+		#jid{prep_domain = LDomain}) ->
     true;
 compare_domains(_Jid1, _Jid2) ->
     false.
 
-% --------------------------------------------------------------------
-% JID checks.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% JID checks.
+%% --------------------------------------------------------------------
 
 %% @spec (Jid) -> bool()
 %%     Jid = jid()
@@ -677,9 +673,9 @@ is_jid(Jid) when ?IS_JID(Jid) ->
 is_jid(_) ->
     false.
 
-% --------------------------------------------------------------------
-% JID members accessors.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% JID members accessors.
+%% --------------------------------------------------------------------
 
 %% @spec (Jid) -> Node | undefined
 %%     Jid = jid()
@@ -712,13 +708,13 @@ prep_node(#jid{prep_node = N}) -> N.
 
 -spec(domain/1 :: (jid()) -> binary() | undefined).
 
-domain(#jid{orig_jid = undefined}) -> 
+domain(#jid{orig_jid = undefined}) ->
     undefined;
-domain(#jid{orig_jid = Orig_Jid}) -> 
+domain(#jid{orig_jid = Orig_Jid}) ->
     Domain_And_Resource = case binary_split(Orig_Jid, $@) of
-        [_, Domain1] -> Domain1;
-        _            -> Orig_Jid
-    end,
+			      [_, Domain1] -> Domain1;
+			      _            -> Orig_Jid
+			  end,
     case binary_split(Domain_And_Resource, $/) of
         [Domain2, _] -> Domain2;
         _            -> Domain_And_Resource
@@ -828,26 +824,26 @@ as_list_or_undefined(V) when is_binary(V) ->
 as_binary(V) when is_list(V) ->
     list_to_binary(V).
 
-% --------------------------------------------------------------------
-% Helper functions
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Helper functions
+%% --------------------------------------------------------------------
 
-% We do not use random generator to avoid having to decide when and how
-% to seed the Erlang random number generator.
+%% We do not use random generator to avoid having to decide when and how
+%% to seed the Erlang random number generator.
 
 -spec(generate_resource/0 :: () -> string()).
 
 generate_resource() ->
     {A, B, C} = erlang:now(),
     lists:flatten(["exmpp#",
-      integer_to_list(A),
-      integer_to_list(B),
-      integer_to_list(C)]
-    ).
+		   integer_to_list(A),
+		   integer_to_list(B),
+		   integer_to_list(C)]
+		 ).
 
-% If both lists are equal, don't waste memory creating two separate
-% binary copies.
-% "st or bi 2 bi" means: convert a STring OR a BInary TO a BInary.
+%% If both lists are equal, don't waste memory creating two separate
+%% binary copies.
+%% "st or bi 2 bi" means: convert a STring OR a BInary TO a BInary.
 
 -spec(storbi2bi/1 :: (binary() | string()) -> binary()).
 

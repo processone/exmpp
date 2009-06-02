@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %%%----------------------------------------------------------------------
 %%% File    : tls.erl
@@ -18,7 +18,7 @@
 %%% but WITHOUT ANY WARRANTY; without even the implied warranty of
 %%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 %%% General Public License for more details.
-%%%                         
+%%%
 %%% You should have received a copy of the GNU General Public License
 %%% along with this program; if not, write to the Free Software
 %%% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
@@ -68,7 +68,8 @@ tcp_to_tls(TCPSocket, Options) ->
 		      end,
 	    try
 		TLSSock = exmpp_tls:Command(Socket_Desc,
-		  {x509, CertFile, CertFile}, false, []),
+					    {x509, CertFile, CertFile},
+					    false, []),
 		{ok, TLSSock}
 	    catch
 		Exception ->
@@ -77,7 +78,7 @@ tcp_to_tls(TCPSocket, Options) ->
 	false ->
 	    {error, no_certfile}
     end.
-    
+
 tls_to_tcp(TLSSock) ->
     {gen_tcp, TCPSocket} = exmpp_tls:quiet_shutdown(TLSSock),
     TCPSocket.
@@ -88,8 +89,8 @@ recv(TLSSock, _Length, Timeout) ->
     exmpp_tls:recv(TLSSock, Timeout).
 
 recv_data(_TLSSock, "") ->
-    % This catch an recv_data with no data that ejabberd send to initiate
-    % implicitly the handshake.
+    %% This catch an recv_data with no data that ejabberd send to initiate
+    %% implicitly the handshake.
     {ok, <<>>};
 recv_data(TLSSock, Packet) ->
     exmpp_tls:recv_data(TLSSock, Packet).

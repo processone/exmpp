@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
@@ -16,19 +16,19 @@
 
 -include("exmpp.hrl").
 
-% Feature announcement.
+%% Feature announcement.
 -export([
-  announced_support/1
-]).
+	 announced_support/1
+	]).
 
-% TLS negotiation.
+%% TLS negotiation.
 -export([
-  starttls/0
-]).
+	 starttls/0
+	]).
 
-% --------------------------------------------------------------------
-% Feature announcement.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Feature announcement.
+%% --------------------------------------------------------------------
 
 %% @spec (Features_Announcement) -> Support
 %%     Features_Announcement = exmpp_xml:xmlel()
@@ -43,17 +43,18 @@ announced_support(#xmlel{ns = ?NS_XMPP, name = 'features'} = El) ->
     end.
 
 announced_support2(#xmlel{ns = ?NS_TLS, name = 'starttls',
-  children = []}) ->
+			  children = []}) ->
     optional;
 announced_support2(#xmlel{ns = ?NS_TLS, name = 'starttls',
-  children = [#xmlel{ns = ?NS_TLS, name = 'required'}]}) ->
+			  children = [#xmlel{ns = ?NS_TLS,
+					     name = 'required'}]}) ->
     required;
 announced_support2(#xmlel{ns = ?NS_TLS, name = 'starttls'} = El) ->
     throw({tls, announced_support, invalid_announcement, El}).
 
-% --------------------------------------------------------------------
-% TLS negotiation.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% TLS negotiation.
+%% --------------------------------------------------------------------
 
 %% @spec () -> STARTTLS
 %%     STARTTLS = exmpp_xml:xmlel()
@@ -62,6 +63,6 @@ announced_support2(#xmlel{ns = ?NS_TLS, name = 'starttls'} = El) ->
 
 starttls() ->
     #xmlel{
-      ns = ?NS_TLS,
-      name = 'starttls'
-    }.
+	  ns = ?NS_TLS,
+	  name = 'starttls'
+	 }.

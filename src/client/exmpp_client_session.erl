@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
@@ -11,20 +11,20 @@
 
 -include("exmpp.hrl").
 
-% Feature announcement.
+%% Feature announcement.
 -export([
-  announced_support/1
-]).
+	 announced_support/1
+	]).
 
-% Session establishment.
+%% Session establishment.
 -export([
-  establish/0,
-  check_establishment/1
-]).
+	 establish/0,
+	 check_establishment/1
+	]).
 
-% --------------------------------------------------------------------
-% Feature announcement.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Feature announcement.
+%% --------------------------------------------------------------------
 
 %% @spec (Features_Announcement) -> bool()
 %%     Features_Announcement = exmpp_xml:xmlel()
@@ -35,16 +35,16 @@ announced_support(#xmlel{ns = ?NS_XMPP, name = 'features'} = El) ->
     case exmpp_xml:get_element(El, ?NS_SESSION, 'session') of
         undefined -> false;
         Child     -> announced_support2(Child)
-    end.    
-    
+    end.
+
 announced_support2(#xmlel{children = []}) ->
     true;
 announced_support2(Feature) ->
     throw({session, announced_support, invalid_feature, Feature}).
 
-% --------------------------------------------------------------------
-% Session establishment.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Session establishment.
+%% --------------------------------------------------------------------
 
 %% @spec () -> Session
 %%     Session = exmpp_xml:xmlel()
@@ -54,9 +54,9 @@ establish() ->
     Session = #xmlel{
       ns = ?NS_SESSION,
       name = 'session'
-    },
+     },
     exmpp_iq:set(?NS_JABBER_CLIENT, Session,
-      exmpp_utils:random_id("session")).
+		 exmpp_utils:random_id("session")).
 
 %% @spec (IQ) -> ok
 %%     IQ = exmpp_xml:xmlel()
@@ -69,5 +69,5 @@ check_establishment(IQ) when ?IS_IQ(IQ) ->
             ok;
         'error' ->
             throw({session, check_establishment,
-              establishment_failed, exmpp_stanza:get_condition(IQ)})
+		   establishment_failed, exmpp_stanza:get_condition(IQ)})
     end.

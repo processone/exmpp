@@ -245,7 +245,8 @@ send_packet(Session, Packet) when is_pid(Session) ->
     end.
 
 set_controlling_process(Session,Client) when is_pid(Session), is_pid(Client) ->
-	case gen_fsm:sync_send_all_state_event(Session, {set_controlling_process, Client}) of
+    case gen_fsm:sync_send_all_state_event(Session, {set_controlling_process,
+						     Client}) of
 	Error when is_tuple(Error) -> erlang:throw(Error);
         Id -> Id
     end.
@@ -281,13 +282,13 @@ handle_info(_Info, StateName, State) ->
 
 
 terminate(Reason, _StateName, #state{connection_ref = undefined,
-				    stream_ref = undefined,
-				    from_pid=From}) ->
+				     stream_ref = undefined,
+				     from_pid=From}) ->
     reply(Reason, From),
     ok;
 terminate(Reason, _StateName, #state{connection_ref = undefined,
-				    stream_ref = StreamRef,
-				    from_pid=From}) ->
+				     stream_ref = StreamRef,
+				     from_pid=From}) ->
     exmpp_xmlstream:stop(StreamRef),
     exmpp_xml:stop_parser(exmpp_xmlstream:get_parser(StreamRef)),
     reply(Reason, From),
@@ -371,27 +372,27 @@ setup(_UnknownMessage, _From, State) ->
 %% Standard opening stream:
 -define(stream,
 	#xmlstreamstart{element=#xmlel{
-          ns='http://etherx.jabber.org/streams',
-          name=stream}}).
+			  ns='http://etherx.jabber.org/streams',
+			  name=stream}}).
 %% Standard stream error:
 -define(streamerror,
 	#xmlstreamelement{element=#xmlel{
-          ns='http://etherx.jabber.org/streams',
-          name=error,
-          children=[#xmlel{name=Reason} | _MoreReasons]}}).
+			    ns='http://etherx.jabber.org/streams',
+			    name=error,
+			    children=[#xmlel{name=Reason} | _MoreReasons]}}).
 
 %% Special stream error: disconnected
 -define(streamdisconnected,
         #xmlstreamelement{element=#xmlel{
-          ns='http://etherx.jabber.org/streams',
-          name=error,
-          children=[#xmlcdata{cdata=  <<"Disconnected">> }]}}).
+			    ns='http://etherx.jabber.org/streams',
+			    name=error,
+			    children=[#xmlcdata{cdata=  <<"Disconnected">> }]}}).
 
 %% Standard end of stream:
 -define(streamend,
         #xmlstreamend{endtag=#xmlendtag{
-          ns='http://etherx.jabber.org/streams',
-          name=stream}}).
+			ns='http://etherx.jabber.org/streams',
+			name=stream}}).
 
 %% Extract IQElement from IQ
 -define(iq,
@@ -474,15 +475,15 @@ stream_opened({presence, _Status, _Show}, _From, State) ->
 %% If the packet is an iq set or get:
 %% We check that there is a valid id and return it to match the reply
 stream_opened({send_packet, Packet}, _From,
-	  State = #state{connection = Module,
-			 connection_ref = ConnRef}) ->
+	      State = #state{connection = Module,
+			     connection_ref = ConnRef}) ->
     Id = send_packet(Packet, Module, ConnRef),
     {reply, Id, stream_opened, State}.
 
 %% Process incoming
 %% Dispatch incoming messages
 stream_opened(?message, State = #state{connection = _Module,
-				   connection_ref = _ConnRef}) ->
+				       connection_ref = _ConnRef}) ->
     process_message(State#state.client_pid, Attrs, MessageElement),
     {next_state, stream_opened, State};
 %% Dispach IQs from server
@@ -513,9 +514,9 @@ stream_closed(_Signal, State) ->
 
 %% Reason comes from streamerror macro
 wait_for_legacy_auth_method(?iq_no_attrs, State = #state{connection = Module,
-						connection_ref = ConnRef,
-						auth_method = Auth,
-						stream_id = StreamId}) ->
+							 connection_ref = ConnRef,
+							 auth_method = Auth,
+							 stream_id = StreamId}) ->
     Username = get_username(Auth),
     Password = get_password(Auth),
     Resource = get_resource(Auth),
@@ -542,7 +543,7 @@ wait_for_auth_result(?iq_no_attrs, State = #state{from_pid=From}) ->
  	<<"result">> ->
             gen_fsm:reply(From, ok),
             {next_state, logged_in, State#state{from_pid=undefined}};
-    <<"error">> ->
+	<<"error">> ->
             Reason = exmpp_stanza:get_condition(IQElement),
             gen_fsm:reply(From, {auth_error, Reason}),
             {next_state, stream_opened, State#state{from_pid=undefined}}
@@ -557,7 +558,7 @@ wait_for_register_result(?iq_no_attrs, State = #state{from_pid=From}) ->
  	<<"result">> ->
             gen_fsm:reply(From, ok),
             {next_state, stream_opened, State#state{from_pid=undefined}};
-    <<"error">> ->
+	<<"error">> ->
             Reason = exmpp_stanza:get_condition(IQElement),
             gen_fsm:reply(From, {register_error, Reason}),
             {next_state, stream_opened, State#state{from_pid=undefined}}
@@ -596,7 +597,7 @@ logged_in(?iq, State) ->
 %% Process unexpected packet
 logged_in(_Packet, State) ->
     %% log it or do something better
-    %io:format("!!!ALERT!!! Unknown packet:~p~p~n", [_Packet, State]),
+						%io:format("!!!ALERT!!! Unknown packet:~p~p~n", [_Packet, State]),
     {next_state, logged_in, State}.
 
 %% TODO:
@@ -613,31 +614,33 @@ connect(Module, Params, From, State) ->
     connect(Module, Params, Domain, From, State).
 connect(Module, Params, Domain, From, #state{client_pid=ClientPid} = State) ->
     try start_parser() of
-	 StreamRef ->
+	StreamRef ->
 	    try Module:connect(ClientPid, StreamRef, Params) of
 		{ConnRef, ReceiverRef} ->
 		    %% basic (legacy) authent: we do not use version
 		    %% 1.0 in stream:
 		    ok = Module:send(ConnRef,
-				     exmpp_stream:opening(Domain,?NS_JABBER_CLIENT,{0,0})),
+				     exmpp_stream:opening(Domain,
+							  ?NS_JABBER_CLIENT,
+							  {0,0})),
 		    %% TODO: Add timeout on wait_for_stream to return
 		    %% meaningfull error.
-		    {next_state, wait_for_stream, State#state{
-						    domain = Domain,
-						    connection = Module,
-						    connection_ref = ConnRef,
-						    stream_ref = StreamRef,
-						    receiver_ref = ReceiverRef,
-						    from_pid = From}}
+		    {next_state, wait_for_stream,
+		     State#state{domain = Domain,
+				 connection = Module,
+				 connection_ref = ConnRef,
+				 stream_ref = StreamRef,
+				 receiver_ref = ReceiverRef,
+				 from_pid = From}}
 	    catch
 		Error ->
 		    exmpp_xmlstream:stop(StreamRef),
 		    %% We do not stop here, because the developer
 		    %% might want to start a connection using another
 		    %% transport
-		    {reply, Error, setup, State#state{
-					    stream_ref = undefined,
-					    from_pid = From}}
+		    {reply, Error, setup,
+		     State#state{stream_ref = undefined,
+				 from_pid = From}}
 	    end
     catch
 	Error ->
@@ -649,17 +652,17 @@ connect(Module, Params, Domain, From, #state{client_pid=ClientPid} = State) ->
 do_auth(password, ConnRef, Module, Username, Password, Resource, _StreamId) ->
     Module:send(ConnRef,
 		exmpp_client_legacy_auth:password_plain(Username, Password,
-						  Resource));
+							Resource));
 do_auth(digest, ConnRef, Module, Username, Password, Resource, StreamId)
-when is_list(StreamId) ->
+  when is_list(StreamId) ->
     Module:send(ConnRef,
 		exmpp_client_legacy_auth:password_digest(Username,
 							 Password,
 							 Resource,
-                             StreamId));
+							 StreamId));
 %% In this case StreamId can be false
 do_auth(digest, _ConnRef, _Module, _Username, _Password, _Resource, StreamId)
-when is_atom(StreamId) ->
+  when is_atom(StreamId) ->
     {auth_error, no_streamid_for_digest_auth}.
 
 %% Extraction functions
@@ -707,11 +710,11 @@ check_auth_method(Method, IQElement) ->
     end.
 check_auth_method2(Method, IQElement) ->
     QueryElement = exmpp_xml:get_element(IQElement,
-						 'jabber:iq:auth',
-						 'query'),
+					 'jabber:iq:auth',
+					 'query'),
     case exmpp_xml:get_element(QueryElement,
-				       'jabber:iq:auth',
-				       Method) of
+			       'jabber:iq:auth',
+			       Method) of
 	undefined ->
 	    {error, no_supported_auth_method};
 	_ ->

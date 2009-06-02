@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
@@ -11,21 +11,21 @@
 
 -include("exmpp.hrl").
 
-% Feature announcement.
+%% Feature announcement.
 -export([
-  feature/0
-]).
+	 feature/0
+	]).
 
-% Session establishment.
+%% Session establishment.
 -export([
-  want_establishment/1,
-  establish/1,
-  error/2
-]).
+	 want_establishment/1,
+	 establish/1,
+	 error/2
+	]).
 
-% --------------------------------------------------------------------
-% Feature announcement.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Feature announcement.
+%% --------------------------------------------------------------------
 
 %% @spec () -> Feature
 %%     Feature = exmpp_xml:xmlel()
@@ -34,14 +34,13 @@
 %% The result should then be passed to {@link exmpp_stream:features/1}.
 
 feature() ->
-    #xmlel{
-      ns = ?NS_SESSION,
-      name = 'session'
-    }.
+    #xmlel{ns = ?NS_SESSION,
+	   name = 'session'
+	  }.
 
-% --------------------------------------------------------------------
-% Session establishment.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Session establishment.
+%% --------------------------------------------------------------------
 
 %% @spec (IQ) -> bool()
 %%     IQ = exmpp_xml:xmlel()

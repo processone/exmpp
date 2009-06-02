@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
@@ -106,71 +106,71 @@
 
 -include("exmpp.hrl").
 
-% Creating elements.
+%% Creating elements.
 -export([
-  opening/3,
-  opening/4,
-  opening_reply/4,
-  opening_reply/5,
-  opening_reply/2,
-  opening_reply/3,
-  closing/0,
-  closing/1
-]).
+	 opening/3,
+	 opening/4,
+	 opening_reply/4,
+	 opening_reply/5,
+	 opening_reply/2,
+	 opening_reply/3,
+	 closing/0,
+	 closing/1
+	]).
 
-% Attributes handling.
+%% Attributes handling.
 -export([
-  get_receiving_entity/1,
-  set_receiving_entity/2,
-  get_initiating_entity/1,
-  set_initiating_entity/2,
-  get_default_ns/1,
-  set_default_ns/2,
-  get_version/1,
-  set_version/2,
-  get_id/1,
-  set_id/2,
-  get_lang/1,
-  set_lang/2
-]).
+	 get_receiving_entity/1,
+	 set_receiving_entity/2,
+	 get_initiating_entity/1,
+	 set_initiating_entity/2,
+	 get_default_ns/1,
+	 set_default_ns/2,
+	 get_version/1,
+	 set_version/2,
+	 get_id/1,
+	 set_id/2,
+	 get_lang/1,
+	 set_lang/2
+	]).
 
-% Version handling.
+%% Version handling.
 -export([
-  parse_version/1,
-  serialize_version/1
-]).
+	 parse_version/1,
+	 serialize_version/1
+	]).
 
-% Features announcement.
+%% Features announcement.
 -export([
-  set_dialback_support/1,
-  features/1
-]).
+	 set_dialback_support/1,
+	 features/1
+	]).
 
-% Error handling.
+%% Error handling.
 -export([
-  error/1,
-  error/2,
-  is_error/1,
-  get_condition/1,
-  get_text/1
-]).
+	 error/1,
+	 error/2,
+	 is_error/1,
+	 get_condition/1,
+	 get_text/1
+	]).
 
-% Serialization wrappers.
+%% Serialization wrappers.
 -export([
-  to_list/1,
-  to_binary/1,
-  to_iolist/1
-]).
+	 to_list/1,
+	 to_binary/1,
+	 to_iolist/1
+	]).
 
-% --------------------------------------------------------------------
-% Type definitions.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Type definitions.
+%% --------------------------------------------------------------------
 
 -type(streamversion() :: {non_neg_integer(), non_neg_integer()}).
 
-% --------------------------------------------------------------------
-% Stream opening/closing.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Stream opening/closing.
+%% --------------------------------------------------------------------
 
 %% @spec (To, Default_NS, Version) -> Opening
 %%     To = binary() | string() | undefined
@@ -185,7 +185,7 @@
 
 -spec opening
 (binary() | string() | undefined, xmlname(),
-  binary() | string() | streamversion()) ->
+ binary() | string() | streamversion()) ->
     xmlel().
 
 opening(To, Default_NS, Version) ->
@@ -207,25 +207,24 @@ opening(To, Default_NS, Version) ->
 
 -spec opening
 (binary() | string() | undefined, xmlname(),
-  binary() | string() | streamversion(), binary() | string() | undefined) ->
+ binary() | string() | streamversion(), binary() | string() | undefined) ->
     xmlel().
 
 opening(To, Default_NS, Version, Lang) ->
-    % Prepare attributes.
+    %% Prepare attributes.
     Attrs1 = set_receiving_entity_in_attrs([], To),
     Attrs2 = set_version_in_attrs(Attrs1, Version),
     Attrs3 = case Lang of
-        undefined -> Attrs2;
-        _         -> set_lang_in_attrs(Attrs2, Lang)
-    end,
-    % Create element.
-    #xmlel{
-      ns          = ?NS_XMPP,
-      declared_ns = [{?NS_XMPP, ?NS_XMPP_pfx}, {Default_NS, none}],
-      name        = 'stream',
-      attrs       = Attrs3,
-      children    = undefined
-    }.
+		 undefined -> Attrs2;
+		 _         -> set_lang_in_attrs(Attrs2, Lang)
+	     end,
+    %% Create element.
+    #xmlel{ns          = ?NS_XMPP,
+	   declared_ns = [{?NS_XMPP, ?NS_XMPP_pfx}, {Default_NS, none}],
+	   name        = 'stream',
+	   attrs       = Attrs3,
+	   children    = undefined
+	  }.
 
 %% @spec (From, Default_NS, Version, ID) -> Opening_Reply
 %%     From = binary() | string() | undefined
@@ -241,7 +240,7 @@ opening(To, Default_NS, Version, Lang) ->
 
 -spec opening_reply
 (binary() | string() | undefined, xmlname(),
-  binary() | string() | streamversion(), binary() | string() | random) ->
+ binary() | string() | streamversion(), binary() | string() | random) ->
     xmlel().
 
 opening_reply(From, Default_NS, Version, ID) ->
@@ -266,27 +265,26 @@ opening_reply(From, Default_NS, Version, ID) ->
 
 -spec opening_reply
 (binary() | string() | undefined, xmlname(),
-  binary() | string() | streamversion(), binary() | string() | random,
-  binary() | string() | undefined) ->
+ binary() | string() | streamversion(), binary() | string() | random,
+ binary() | string() | undefined) ->
     xmlel().
 
 opening_reply(From, Default_NS, Version, ID, Lang) ->
-    % Prepare attributes.
+						% Prepare attributes.
     Attrs1 = set_initiating_entity_in_attrs([], From),
     Attrs2 = set_version_in_attrs(Attrs1, Version),
     Attrs3 = set_id_in_attrs(Attrs2, ID),
     Attrs4 = case Lang of
-        undefined -> Attrs3;
-        _         -> set_lang_in_attrs(Attrs3, Lang)
-    end,
-    % Create element.
-    #xmlel{
-      ns          = ?NS_XMPP,
-      declared_ns = [{?NS_XMPP, ?NS_XMPP_pfx}, {Default_NS, none}],
-      name        = 'stream',
-      attrs       = Attrs4,
-      children    = undefined
-    }.
+		 undefined -> Attrs3;
+		 _         -> set_lang_in_attrs(Attrs3, Lang)
+	     end,
+    %% Create element.
+    #xmlel{ns          = ?NS_XMPP,
+	   declared_ns = [{?NS_XMPP, ?NS_XMPP_pfx}, {Default_NS, none}],
+	   name        = 'stream',
+	   attrs       = Attrs4,
+	   children    = undefined
+	  }.
 
 %% @spec (Opening, ID) -> Opening_Reply
 %%     Opening = exmpp_xml:xmlel()
@@ -329,9 +327,9 @@ opening_reply(#xmlel{attrs = Attrs} = Opening, ID, Lang) ->
     Attrs1 = exmpp_stanza:reply_from_attrs(Attrs),
     Attrs2 = set_id_in_attrs(Attrs1, ID),
     Attrs3 = case Lang of
-        undefined -> Attrs2;
-        _         -> set_lang_in_attrs(Attrs2, Lang)
-    end,
+		 undefined -> Attrs2;
+		 _         -> set_lang_in_attrs(Attrs2, Lang)
+	     end,
     Opening#xmlel{attrs = Attrs3}.
 
 %% @spec () -> Closing
@@ -355,9 +353,9 @@ closing() ->
 closing(#xmlel{ns = NS, name = Name}) ->
     #xmlendtag{ns = NS, name = Name}.
 
-% --------------------------------------------------------------------
-% Stream standard attributes.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Stream standard attributes.
+%% --------------------------------------------------------------------
 
 %% @spec (Opening) -> Hostname | undefined
 %%     Opening = exmpp_xml:xmlel()
@@ -477,7 +475,7 @@ set_version(#xmlel{attrs = Attrs} = Opening, Version) ->
 
 set_version_in_attrs(Attrs, Version)
   when Version == undefined;
-  Version == ""; Version == <<>>; Version == {0, 0} ->
+Version == ""; Version == <<>>; Version == {0, 0} ->
     exmpp_xml:remove_attribute_from_list(Attrs, 'version');
 set_version_in_attrs(Attrs, {_, _} = Version) ->
     Version_B = serialize_version(Version),
@@ -541,9 +539,9 @@ set_lang(#xmlel{attrs = Attrs} = Opening, Lang) ->
 set_lang_in_attrs(Attrs, Lang) ->
     exmpp_xml:set_attribute_in_list(Attrs, ?NS_XML, 'lang', Lang).
 
-% --------------------------------------------------------------------
-% Version handling.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Version handling.
+%% --------------------------------------------------------------------
 
 %% @spec (String) -> Version
 %%     String = binary() | string() | undefined
@@ -591,9 +589,9 @@ serialize_version({0, 0}) ->
 serialize_version({Major, Minor}) ->
     list_to_binary(lists:flatten(io_lib:format("~b.~b", [Major, Minor]))).
 
-% --------------------------------------------------------------------
-% Features announcement.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Features announcement.
+%% --------------------------------------------------------------------
 
 %% @spec (Opening) -> New_Opening
 %%     Opening = exmpp_xml:xmlel()
@@ -616,42 +614,42 @@ set_dialback_support(Opening) ->
 
 features(Features) ->
     #xmlel{
-      ns = ?NS_XMPP,
-      declared_ns = [{?NS_XMPP, ?NS_XMPP_pfx}],
-      name = 'features',
-      children = Features
-    }.
+	  ns = ?NS_XMPP,
+	  declared_ns = [{?NS_XMPP, ?NS_XMPP_pfx}],
+	  name = 'features',
+	  children = Features
+	 }.
 
-% --------------------------------------------------------------------
-% Stream-level errors.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Stream-level errors.
+%% --------------------------------------------------------------------
 
 standard_conditions() ->
     [
-      {'bad-format'},
-      {'bad-namespace-prefix'},
-      {'conflict'},
-      {'connection-timeout'},
-      {'host-gone'},
-      {'host-unknown'},
-      {'improper-addressing'},
-      {'internal-server-error'},
-      {'invalid-from'},
-      {'invalid-id'},
-      {'invalid-namespace'},
-      {'invalid-xml'},
-      {'not-authorized'},
-      {'policy-violation'},
-      {'remote-connection-failed'},
-      {'resource-constraint'},
-      {'restricted-xml'},
-      {'see-other-host'},
-      {'system-shutdown'},
-      {'undefined-condition'},
-      {'unsupported-encoding'},
-      {'unsupported-stanza-type'},
-      {'unsupported-version'},
-      {'xml-not-well-formed'}
+     {'bad-format'},
+     {'bad-namespace-prefix'},
+     {'conflict'},
+     {'connection-timeout'},
+     {'host-gone'},
+     {'host-unknown'},
+     {'improper-addressing'},
+     {'internal-server-error'},
+     {'invalid-from'},
+     {'invalid-id'},
+     {'invalid-namespace'},
+     {'invalid-xml'},
+     {'not-authorized'},
+     {'policy-violation'},
+     {'remote-connection-failed'},
+     {'resource-constraint'},
+     {'restricted-xml'},
+     {'see-other-host'},
+     {'system-shutdown'},
+     {'undefined-condition'},
+     {'unsupported-encoding'},
+     {'unsupported-stanza-type'},
+     {'unsupported-version'},
+     {'xml-not-well-formed'}
     ].
 
 %% @spec (Condition) -> Stream_Error
@@ -675,30 +673,28 @@ error(Condition, {Lang, Text}) ->
         true  -> ok;
         false -> throw({stream_error, condition, invalid, Condition})
     end,
-    Condition_El = #xmlel{
-      ns = ?NS_STREAM_ERRORS,
-      name = Condition
-    },
-    Error_El0 = #xmlel{
-      ns = ?NS_XMPP,
-      declared_ns = [{?NS_XMPP, ?NS_XMPP_pfx}],
-      name = 'error',
-      children = [Condition_El]
-    },
+    Condition_El = #xmlel{ns = ?NS_STREAM_ERRORS,
+			  name = Condition
+			 },
+    Error_El0 = #xmlel{ns = ?NS_XMPP,
+		       declared_ns = [{?NS_XMPP, ?NS_XMPP_pfx}],
+		       name = 'error',
+		       children = [Condition_El]
+		      },
     case Text of
         undefined ->
             Error_El0;
         _ ->
-            Text_El0 = #xmlel{
-              ns = ?NS_STREAM_ERRORS,
-              name = 'text'
-            },
+            Text_El0 = #xmlel{ns = ?NS_STREAM_ERRORS,
+			      name = 'text'
+			     },
             Text_El = case Lang of
-                undefined ->
-                    Text_El0;
-                _ ->
-                    exmpp_xml:set_attribute(Text_El0, ?NS_XML, 'lang', Lang)
-            end,
+			  undefined ->
+			      Text_El0;
+			  _ ->
+			      exmpp_xml:set_attribute(Text_El0, ?NS_XML,
+						      'lang', Lang)
+		      end,
             exmpp_xml:append_child(Error_El0, Text_El)
     end.
 
@@ -726,11 +722,11 @@ is_error(_) ->
 get_condition(#xmlel{ns = ?NS_XMPP, name = 'error'} = El) ->
     case exmpp_xml:get_element_by_ns(El, ?NS_STREAM_ERRORS) of
         undefined ->
-            % This <stream:error/> element is invalid because the
-            % condition must be present (and first).
+	    %% This <stream:error/> element is invalid because the
+	    %% condition must be present (and first).
             undefined;
         #xmlel{name = 'text'} ->
-            % Same as above.
+	    %% Same as above.
             undefined;
         #xmlel{name = Condition} when is_atom(Condition) ->
             Condition;
@@ -752,9 +748,9 @@ get_text(#xmlel{ns = ?NS_XMPP, name = 'error'} = El) ->
         Text      -> exmpp_xml:get_cdata(Text)
     end.
 
-% --------------------------------------------------------------------
-% Serialization wrappers.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Serialization wrappers.
+%% --------------------------------------------------------------------
 
 %% @spec (El) -> XML_Text
 %%     El = exmpp_xml:xmlel() | list()

@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
@@ -11,78 +11,78 @@
 
 -behaviour(gen_server).
 
-% Initialization.
+%% Initialization.
 -export([
-  start/0,
-  start_link/0
-]).
+	 start/0,
+	 start_link/0
+	]).
 
-% Registry handling.
+%% Registry handling.
 -export([
-  register_engine/3,
-  register_engine/4,
-  get_auth_methods/0,
-  get_engine_names/0,
-  get_engine_names/1,
-  get_prefered_engine_name/1,
-  is_engine_available/1,
-  get_engine_driver/1
-]).
+	 register_engine/3,
+	 register_engine/4,
+	 get_auth_methods/0,
+	 get_engine_names/0,
+	 get_engine_names/1,
+	 get_prefered_engine_name/1,
+	 is_engine_available/1,
+	 get_engine_driver/1
+	]).
 
-% Handshake and other TLS operations.
+%% Handshake and other TLS operations.
 -export([
-  connect/4,
-  accept/4,
-  get_peer_certificate/1,
-  get_verify_result/1,
-  shutdown/1,
-  shutdown/2,
-  shutdown/3,
-  quiet_shutdown/1
-]).
+	 connect/4,
+	 accept/4,
+	 get_peer_certificate/1,
+	 get_verify_result/1,
+	 shutdown/1,
+	 shutdown/2,
+	 shutdown/3,
+	 quiet_shutdown/1
+	]).
 
-% Common socket API.
+%% Common socket API.
 -export([
-  send/2,
-  recv/1,
-  recv/2,
-  recv_data/2,
-  getopts/2,
-  setopts/2,
-  peername/1,
-  sockname/1,
-  controlling_process/2,
-  close/1,
-  port_revision/1
-]).
+	 send/2,
+	 recv/1,
+	 recv/2,
+	 recv_data/2,
+	 getopts/2,
+	 setopts/2,
+	 peername/1,
+	 sockname/1,
+	 controlling_process/2,
+	 close/1,
+	 port_revision/1
+	]).
 
-% gen_server(3erl) callbacks.
+%% gen_server(3erl) callbacks.
 -export([
-  init/1,
-  handle_call/3,
-  handle_cast/2,
-  handle_info/2,
-  terminate/2,
-  code_change/3
-]).
+	 init/1,
+	 handle_call/3,
+	 handle_cast/2,
+	 handle_info/2,
+	 terminate/2,
+	 code_change/3
+	]).
 
 -record(state, {
-  engines,
-  by_auth_method
-}).
+	  engines,
+	  by_auth_method
+	 }).
 
 -record(tls_engine, {
-  name,
-  driver_path,
-  driver,
-  auth_methods = []
-}).
+	  name,
+	  driver_path,
+	  driver,
+	  auth_methods = []
+	 }).
 
 -record(tls_socket, {
-  socket,
-  packet_mode = binary,
-  port
-}).
+	  socket,
+	  packet_mode = binary,
+	  port
+	 }).
 
 -define(SERVER, ?MODULE).
 
@@ -103,9 +103,9 @@
 -define(COMMAND_QUIET_SHUTDOWN,       15).
 -define(COMMAND_PORT_REVISION,        16).
 
-% --------------------------------------------------------------------
-% Initialization.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Initialization.
+%% --------------------------------------------------------------------
 
 %% @hidden
 
@@ -123,16 +123,16 @@ start_link() ->
 
 -ifdef(HAVE_OPENSSL).
 -define(REGISTER_OPENSSL,
-  register_builtin_engine(openssl, exmpp_tls_openssl,
-    [{x509, 10}])).
+	register_builtin_engine(openssl, exmpp_tls_openssl,
+				[{x509, 10}])).
 -else.
 -define(REGISTER_OPENSSL, ok).
 -endif.
 
 -ifdef(HAVE_GNUTLS).
 -define(REGISTER_GNUTLS,
-  register_builtin_engine(gnutls, exmpp_tls_gnutls,
-    [{x509, 20}, {openpgp, 10}])).
+	register_builtin_engine(gnutls, exmpp_tls_gnutls,
+				[{x509, 20}, {openpgp, 10}])).
 -else.
 -define(REGISTER_GNUTLS, ok).
 -endif.
@@ -148,12 +148,13 @@ register_builtin_engine(Name, Driver, Auth_Methods) ->
     catch
         throw:{port_driver, load, Reason, Driver_Name} ->
             error_logger:warning_msg("Failed to load driver \"~s\": ~s~n",
-              [Driver_Name, erl_ddll:format_error(Reason)])
+				     [Driver_Name,
+				      erl_ddll:format_error(Reason)])
     end.
 
-% --------------------------------------------------------------------
-% Registry handling.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Registry handling.
+%% --------------------------------------------------------------------
 
 %% @spec (Name, Driver, Auth_Methods) -> ok
 %%     Name = atom()
@@ -180,7 +181,7 @@ register_engine(Name, Driver_Path, Driver, Auth_Methods)
       driver_path = Driver_Path,
       driver = Driver,
       auth_methods = Auth_Methods
-    },
+     },
     case gen_server:call(?SERVER, {register_engine, Engine}) of
         ok                 -> ok;
         {error, Exception} -> throw(Exception)
@@ -245,9 +246,9 @@ get_engine_driver(Engine_Name) ->
         #tls_engine{driver = Driver_Name} -> Driver_Name
     end.
 
-% --------------------------------------------------------------------
-% Handshake and other TLS operations.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Handshake and other TLS operations.
+%% --------------------------------------------------------------------
 
 %% @spec (Socket_Desc, Identity, Peer_Verification, Options) -> TLS_Socket
 %%     Socket_Desc = {Mod, Socket}
@@ -291,65 +292,65 @@ accept(Socket_Desc, Identity, Peer_Verification, Options) ->
 
 handshake(Mode, Socket_Desc, Identity, Peer_Verification, Options) ->
     handshake(Mode, Socket_Desc, Identity, Peer_Verification, Options,
-      infinity).
+	      infinity).
 
 handshake(Mode, Socket_Desc, Identity, Peer_Verification, Options,
-  Recv_Timeout) ->
-    % Check arguments.
+	  Recv_Timeout) ->
+    %% Check arguments.
     check_identity(Identity, Mode),
     check_peer_verification(Peer_Verification, Mode),
 
-    % We save the 'active' state of the socket.
+    %% We save the 'active' state of the socket.
     Is_Active = case exmpp_internals:gen_getopts(Socket_Desc, [active]) of
-        [{active, Active}] ->
-            Active;
-        {error, Reason} ->
-            throw({tls, handshake, getopts, Reason})
-    end,
+		    [{active, Active}] ->
+			Active;
+		    {error, Reason} ->
+			throw({tls, handshake, getopts, Reason})
+		end,
 
-    % Start a port driver instance.
+    %% Start a port driver instance.
     Driver_Name = get_engine_from_args(Identity, Peer_Verification, Options),
     Port = exmpp_internals:open_port(Driver_Name),
 
-    % Initialize the port and handshake.
+    %% Initialize the port and handshake.
     try
-        % Set mode (client vs. server).
+	%% Set mode (client vs. server).
         engine_set_mode(Port, Mode),
 
-        % Set local peer identity.
+	%% Set local peer identity.
         engine_set_identity(Port, Identity),
 
-        % Enable (or not) peer's certificate verification.
+	%% Enable (or not) peer's certificate verification.
         engine_set_peer_verification(Port, Peer_Verification),
 
-        % Packet mode.
+	%% Packet mode.
         Packet_Mode = proplists:get_value(mode, Options, binary),
 
-        % Set trusted certificates.
+	%% Set trusted certificates.
         engine_set_trusted_certs(Port,
-          proplists:get_value(trusted_certs, Options)),
+				 proplists:get_value(trusted_certs, Options)),
 
-        % Set flags.
+	%% Set flags.
         engine_set_options(Port, peer_cert_required,
-          proplists:get_bool(peer_cert_required, Options)),
+			   proplists:get_bool(peer_cert_required, Options)),
         engine_set_options(Port, accept_expired_cert,
-          proplists:get_bool(accept_expired_cert, Options)),
+			   proplists:get_bool(accept_expired_cert, Options)),
         engine_set_options(Port, accept_non_trusted_cert,
-          proplists:get_bool(accept_non_trusted_cert, Options)),
+			   proplists:get_bool(accept_non_trusted_cert, Options)),
         engine_set_options(Port, accept_revoked_cert,
-          proplists:get_bool(accept_revoked_cert, Options)),
+			   proplists:get_bool(accept_revoked_cert, Options)),
         engine_set_options(Port, accept_corrupted_cert,
-          proplists:get_bool(accept_corrupted_cert, Options)),
+			   proplists:get_bool(accept_corrupted_cert, Options)),
 
-        % Before anything use of the socket, we must disable the 'active'
-        % mode. Otherwise, we can't receive any data.
+	%% Before anything use of the socket, we must disable the 'active'
+	%% mode. Otherwise, we can't receive any data.
         exmpp_internals:gen_setopts(Socket_Desc, [{active, false}]),
 
-        % Handshake!
+	%% Handshake!
         engine_prepare_handshake(Port),
         TLS_Socket = handshake2(Mode, Socket_Desc, Port, Recv_Timeout),
 
-        % We can now restore the 'active' mode.
+	%% We can now restore the 'active' mode.
         exmpp_internals:gen_setopts(Socket_Desc, [{active, Is_Active}]),
 
         TLS_Socket#tls_socket{packet_mode = Packet_Mode}
@@ -361,18 +362,18 @@ handshake(Mode, Socket_Desc, Identity, Peer_Verification, Options,
     end.
 
 handshake2(client = Mode, Socket_Desc, Port, Recv_Timeout) ->
-    % Try to handshake.
+    %% Try to handshake.
     case engine_handshake(Port) of
         want_read ->
-            % Send the current data.
+	    %% Send the current data.
             New_Packet = engine_get_encrypted_output(Port),
             case exmpp_internals:gen_send(Socket_Desc, New_Packet) of
                 ok ->
-                    % Wait for a packet from the client.
+		    %% Wait for a packet from the client.
                     case exmpp_internals:gen_recv(Socket_Desc, Recv_Timeout) of
                         {ok, Packet} ->
                             engine_set_encrypted_input(Port, Packet),
-                            % Recurse!
+			    %% Recurse!
                             handshake2(Mode, Socket_Desc, Port, Recv_Timeout);
                         {error, Reason} ->
                             throw({tls, handshake, underlying_recv, Reason})
@@ -381,22 +382,22 @@ handshake2(client = Mode, Socket_Desc, Port, Recv_Timeout) ->
                     throw({tls, handshake, underlying_send, Reason})
             end;
         ok ->
-            % Handshake done.
+	    %% Handshake done.
             #tls_socket{socket = Socket_Desc, port = Port}
     end;
 handshake2(server = Mode, Socket_Desc, Port, Recv_Timeout) ->
-    % Wait for a packet from the client.
+    %% Wait for a packet from the client.
     case exmpp_internals:gen_recv(Socket_Desc, Recv_Timeout) of
         {ok, Packet} ->
             engine_set_encrypted_input(Port, Packet),
-            % Try to handshake.
+	    %% Try to handshake.
             case engine_handshake(Port) of
                 want_read ->
-                    % Send the current data.
+		    %% Send the current data.
                     New_Packet = engine_get_encrypted_output(Port),
                     case exmpp_internals:gen_send(Socket_Desc, New_Packet) of
                         ok ->
-                            % Recurse!
+			    %% Recurse!
                             handshake2(Mode, Socket_Desc, Port, Recv_Timeout);
                         {error, Reason} ->
                             throw({tls, handshake, underlying_send, Reason})
@@ -405,7 +406,7 @@ handshake2(server = Mode, Socket_Desc, Port, Recv_Timeout) ->
                     New_Packet = engine_get_encrypted_output(Port),
                     case exmpp_internals:gen_send(Socket_Desc, New_Packet) of
                         ok ->
-                            % Handshake done.
+			    %% Handshake done.
                             #tls_socket{socket = Socket_Desc, port = Port};
                         {error, Reason} ->
                             throw({tls, handshake, underlying_send, Reason})
@@ -483,44 +484,44 @@ shutdown(TLS_Socket, Mode) ->
 %% The underlying socket is NOT closed by this function.
 
 shutdown(#tls_socket{socket = Socket_Desc, port = Port} = TLS_Socket,
-  Mode, Timeout) ->
-    % Start/continue the shutdown process.
+	 Mode, Timeout) ->
+    %% Start/continue the shutdown process.
     case engine_shutdown(Port) of
         want_read when Mode == bidirectional ->
-            % Wait for a packet from the client.
+	    %% Wait for a packet from the client.
             case exmpp_internals:gen_recv(Socket_Desc, Timeout) of
                 {ok, Packet} ->
                     engine_set_encrypted_input(Port, Packet),
-                    % Recurse!
+		    %% Recurse!
                     shutdown(TLS_Socket);
                 {error, timeout} ->
-                    % The peer didn't send its "close notify".
-                    % XXX Should this be treated as an error (the caller
-                    % asked for a bidirectional shutdown)?
+		    %% The peer didn't send its "close notify".
+		    %% XXX Should this be treated as an error (the caller
+		    %% asked for a bidirectional shutdown)?
                     exmpp_internals:close_port(Port),
                     Socket_Desc;
                 {error, closed} ->
-                    % The peer closed the underlying socket.
-                    % XXX Should this be treated as an error (the purpose
-                    % was not to close the socket)?
+		    %% The peer closed the underlying socket.
+		    %% XXX Should this be treated as an error (the purpose
+		    %% was not to close the socket)?
                     exmpp_internals:close_port(Port),
                     Socket_Desc;
                 {error, Reason} ->
                     throw({tls, shutdown, underlying_recv, Reason})
             end;
         want_write ->
-            % The "close notify" is ready to be sent.
+	    %% The "close notify" is ready to be sent.
             New_Packet = engine_get_encrypted_output(Port),
             case exmpp_internals:gen_send(Socket_Desc, New_Packet) of
                 ok ->
-                    % Skip to the next step.
+		    %% Skip to the next step.
                     shutdown(TLS_Socket);
                 {error, Reason} ->
                     throw({tls, shutdown, underlying_send, Reason})
             end;
         _ ->
-            % The shutdown is complete (or unidirectionnal shutdown was
-            % prefered).
+	    %% The shutdown is complete (or unidirectionnal shutdown was
+	    %% prefered).
             exmpp_internals:close_port(Port),
             Socket_Desc
     end.
@@ -537,34 +538,35 @@ quiet_shutdown(#tls_socket{socket = Socket_Desc, port = Port}) ->
     exmpp_internals:close_port(Port),
     Socket_Desc.
 
-% --------------------------------------------------------------------
-% Handshake helpers.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Handshake helpers.
+%% --------------------------------------------------------------------
 
-% Choose the most appropriate engine.
+%% Choose the most appropriate engine.
 get_engine_from_args(Identity, _Peer_Verification, Options) ->
-    Engine_Name = case get_engine_from_options(Options) of
-        undefined ->
-            case get_engine_from_identity(Identity) of
-                undefined ->
-                    case get_engine_from_verification(Options) of
-                        undefined ->
-                            throw({tls, options, no_engine_available,
-                                undefined});
-                        Name ->
-                            Name
-                    end;
-                Name ->
-                    Name
-            end;
-        Name ->
-            case is_engine_available(Name) of
-                true ->
-                    Name;
-                false ->
-                    throw({tls, options, engine_unavailable, Name})
-            end
-    end,
+    Engine_Name =
+	case get_engine_from_options(Options) of
+	    undefined ->
+		case get_engine_from_identity(Identity) of
+		    undefined ->
+			case get_engine_from_verification(Options) of
+			    undefined ->
+				throw({tls, options, no_engine_available,
+				       undefined});
+			    Name ->
+				Name
+			end;
+		    Name ->
+			Name
+		end;
+	    Name ->
+		case is_engine_available(Name) of
+		    true ->
+			Name;
+		    false ->
+			throw({tls, options, engine_unavailable, Name})
+		end
+	end,
     get_engine_driver(Engine_Name).
 
 get_engine_from_options(Options) ->
@@ -613,9 +615,9 @@ check_peer_verification(Peer_Verif, _Mode) ->
             throw({tls, handshake, invalid_peer_verification, Peer_Verif})
     end.
 
-% --------------------------------------------------------------------
-% Common socket API.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Common socket API.
+%% --------------------------------------------------------------------
 
 %% @spec (TLS_Socket, Orig_Packet) -> ok | {error, Reason}
 %%     TLS_Socket = tls_socket()
@@ -653,28 +655,29 @@ recv(#tls_socket{socket = Socket_Desc, port = Port} = TLS_Socket, Timeout) ->
     try
         case recv_common(TLS_Socket) of
             want_read ->
-                % Ok, we need more data.
-                {Recv, New_Timeout} = case Timeout of
-                    infinity ->
-                        {
-                          exmpp_internals:gen_recv(Socket_Desc, Timeout),
-                          Timeout
-                        };
-                    _ ->
-                        {Elapsed, Ret} = timer:tc(exmpp_internals, gen_recv,
-                          [Socket_Desc, Timeout]),
-                        {Ret, Timeout - Elapsed div 1000}
-                end,
+		%% Ok, we need more data.
+                {Recv, New_Timeout} =
+		    case Timeout of
+			infinity ->
+			    {
+			  exmpp_internals:gen_recv(Socket_Desc, Timeout),
+			  Timeout
+			 };
+			_ ->
+			    {Elapsed, Ret} = timer:tc(exmpp_internals, gen_recv,
+						      [Socket_Desc, Timeout]),
+			    {Ret, Timeout - Elapsed div 1000}
+		    end,
                 case Recv of
                     {ok, Packet} ->
                         engine_set_encrypted_input(Port, Packet),
-                        % Try to decipher it.
+						% Try to decipher it.
                         recv(TLS_Socket, New_Timeout);
                     {error, Reason} ->
                         {error, Reason}
                 end;
             Data ->
-                % Got a chunk of plain-text data.
+		%% Got a chunk of plain-text data.
                 {ok, Data}
         end
     catch
@@ -693,11 +696,11 @@ recv(#tls_socket{socket = Socket_Desc, port = Port} = TLS_Socket, Timeout) ->
 %% write to it.
 
 recv_data(#tls_socket{port = Port, packet_mode = Packet_Mode} = TLS_Socket,
-  Packet) ->
+	  Packet) ->
     try
-        % Give available encrypted data to the port driver.
+	%% Give available encrypted data to the port driver.
         engine_set_encrypted_input(Port, Packet),
-        % Ask for available unencrypted data.
+	%% Ask for available unencrypted data.
         case recv_common(TLS_Socket) of
             want_read when Packet_Mode == binary -> {ok, <<>>};
             want_read when Packet_Mode == list   -> {ok, ""};
@@ -709,14 +712,14 @@ recv_data(#tls_socket{port = Port, packet_mode = Packet_Mode} = TLS_Socket,
     end.
 
 recv_common(#tls_socket{socket = Socket_Desc, port = Port,
-  packet_mode = Packet_Mode}) ->
-    % Ask for available unencrypted data.
+			packet_mode = Packet_Mode}) ->
+    %% Ask for available unencrypted data.
     case engine_get_decrypted_input(Port) of
         want_read ->
-            % Nothing is ready yet.
+	    %% Nothing is ready yet.
             want_read;
         Data ->
-            % Got a chunk of plain-text data.
+	    %% Got a chunk of plain-text data.
             Ack = engine_get_encrypted_output(Port),
             case exmpp_internals:gen_send(Socket_Desc, Ack) of
                 ok ->
@@ -788,9 +791,9 @@ controlling_process(#tls_socket{socket = Socket_Desc}, Pid) ->
 
 close(#tls_socket{socket = Socket_Desc} = TLS_Socket) ->
     try
-        % First, shutdown the TLS session (unidirectional).
+	%% First, shutdown the TLS session (unidirectional).
         shutdown(TLS_Socket),
-        % Close the underlying socket.
+	%% Close the underlying socket.
         exmpp_internals:gen_close(Socket_Desc)
     catch
         Exception ->
@@ -802,9 +805,9 @@ close(#tls_socket{socket = Socket_Desc} = TLS_Socket) ->
 port_revision(#tls_socket{port = Port}) ->
     engine_port_revision(Port).
 
-% --------------------------------------------------------------------
-% Engine function wrappers.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Engine function wrappers.
+%% --------------------------------------------------------------------
 
 control(Port, Command, Data) ->
     case port_control(Port, Command, Data) of
@@ -816,9 +819,9 @@ control(Port, Command, Data) ->
 
 engine_set_mode(Port, Mode) ->
     Mode_ID = case Mode of
-        server -> 1;
-        client -> 2
-    end,
+		  server -> 1;
+		  client -> 2
+	      end,
     case control(Port, ?COMMAND_SET_MODE, term_to_binary(Mode_ID)) of
         {error, Reason} ->
             throw({tls, handshake, set_mode_failure, Reason});
@@ -848,7 +851,7 @@ engine_set_trusted_certs(_Port, undefined) ->
     ok;
 engine_set_trusted_certs(Port, Trusted_Certs) ->
     case control(Port, ?COMMAND_SET_TRUSTED_CERTS,
-      term_to_binary(Trusted_Certs)) of
+		 term_to_binary(Trusted_Certs)) of
         {error, Reason} ->
             throw({tls, handshake, set_trusted_certs, Reason});
         _ ->
@@ -857,7 +860,7 @@ engine_set_trusted_certs(Port, Trusted_Certs) ->
 
 engine_set_options(Port, Option, Flag) ->
     case control(Port, ?COMMAND_SET_OPTIONS,
-      term_to_binary({Option, Flag})) of
+		 term_to_binary({Option, Flag})) of
         {error, Reason} ->
             throw({tls, handshake, set_options, {Option, Reason}});
         _ ->
@@ -924,7 +927,7 @@ engine_get_peer_certificate(Port) ->
             undefined;
         {error, Reason} ->
             throw({tls, get_peer_certificate, get_peer_certificate_failed,
-                Reason});
+		   Reason});
         Result ->
             Result
     end.
@@ -933,7 +936,7 @@ engine_get_verify_result(Port) ->
     case control(Port, ?COMMAND_GET_VERIFY_RESULT, <<>>) of
         {error, Reason} ->
             throw({tls, get_verify_result, get_verify_result_failed,
-                Reason});
+		   Reason});
         Result ->
             binary_to_term(Result)
     end.
@@ -964,9 +967,9 @@ engine_port_revision(Port) ->
             binary_to_term(Revision)
     end.
 
-% --------------------------------------------------------------------
-% gen_server(3erl) callbacks.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% gen_server(3erl) callbacks.
+%% --------------------------------------------------------------------
 
 %% @hidden
 
@@ -978,59 +981,62 @@ init([]) ->
 %% @hidden
 
 handle_call({register_engine,
-  #tls_engine{name = Name, auth_methods = Auth_Methods,
-    driver_path = Driver_Path, driver = Driver_Name} = Engine},
-  _From,
-  #state{engines = Engines, by_auth_method = By_AM} = State) ->
+	     #tls_engine{name = Name,
+			 auth_methods = Auth_Methods,
+			 driver_path = Driver_Path,
+			 driver = Driver_Name} = Engine},
+	    _From,
+	    #state{engines = Engines, by_auth_method = By_AM} = State) ->
     try
-        % Load the driver now.
+	%% Load the driver now.
         case Driver_Path of
             undefined ->
                 exmpp_internals:load_driver(Driver_Name);
             _ ->
                 exmpp_internals:load_driver(Driver_Name, [Driver_Path])
         end,
-        % Add engine to the global list.
+	%% Add engine to the global list.
         New_Engines = dict:store(Name, Engine, Engines),
-        % Index engine by its auth methods.
+	%% Index engine by its auth methods.
         Fun = fun({AM, Prio}, {E, AM_Dict}) ->
-            New_AM_Dict = case dict:is_key(AM, AM_Dict) of
-                true ->
-                    L = [{E, Prio} | dict:fetch(AM, AM_Dict)],
-                    New_L = lists:keysort(2, L),
-                    dict:store(AM, New_L, AM_Dict);
-                false ->
-                    dict:store(AM, [{E, Prio}], AM_Dict)
-            end,
-            {E, New_AM_Dict}
-        end,
+		      New_AM_Dict =
+			  case dict:is_key(AM, AM_Dict) of
+			      true ->
+				  L = [{E, Prio} | dict:fetch(AM, AM_Dict)],
+				  New_L = lists:keysort(2, L),
+				  dict:store(AM, New_L, AM_Dict);
+			      false ->
+				  dict:store(AM, [{E, Prio}], AM_Dict)
+			  end,
+		      {E, New_AM_Dict}
+	      end,
         {_, New_By_AM} = lists:foldl(Fun, {Engine, By_AM}, Auth_Methods),
         {reply, ok, State#state{
-          engines = New_Engines,
-          by_auth_method = New_By_AM
-        }}
+		      engines = New_Engines,
+		      by_auth_method = New_By_AM
+		     }}
     catch
         _:Exception ->
             {reply, {error, Exception}, State}
     end;
 
 handle_call(get_auth_methods, _From,
-  #state{by_auth_method = By_AM} = State) ->
+	    #state{by_auth_method = By_AM} = State) ->
     {reply, dict:fetch_keys(By_AM), State};
 
 handle_call(get_engine_names, _From,
-  #state{engines = Engines} = State) ->
+	    #state{engines = Engines} = State) ->
     {reply, dict:fetch_keys(Engines), State};
 
 handle_call({get_engines, AM}, _From,
-  #state{by_auth_method = By_AM} = State) ->
+	    #state{by_auth_method = By_AM} = State) ->
     case dict:is_key(AM, By_AM) of
         true  -> {reply, [E || {E, _P} <- dict:fetch(AM, By_AM)], State};
         false -> {reply, [], State}
     end;
 
 handle_call({get_engine, Engine_Name}, _From,
-  #state{engines = Engines} = State) ->
+	    #state{engines = Engines} = State) ->
     case dict:is_key(Engine_Name, Engines) of
         true  -> {reply, dict:fetch(Engine_Name, Engines), State};
         false -> {reply, undefined, State}
@@ -1038,28 +1044,28 @@ handle_call({get_engine, Engine_Name}, _From,
 
 handle_call(Request, From, State) ->
     error_logger:info_msg("~p:handle_call/3:~n- Request: ~p~n- From: ~p~n"
-      "- State: ~p~n", [?MODULE, Request, From, State]),
+			  "- State: ~p~n", [?MODULE, Request, From, State]),
     {reply, ok, State}.
 
 %% @hidden
 
 handle_cast(Request, State) ->
     error_logger:info_msg("~p:handle_cast/2:~n- Request: ~p~n"
-      "- State: ~p~n", [?MODULE, Request, State]),
+			  "- State: ~p~n", [?MODULE, Request, State]),
     {noreply, State}.
 
 %% @hidden
 
 handle_info(Info, State) ->
     error_logger:info_msg("~p:handle_info/2:~n- Info: ~p~n"
-      "- State: ~p~n", [?MODULE, Info, State]),
+			  "- State: ~p~n", [?MODULE, Info, State]),
     {noreply, State}.
 
 %% @hidden
 
 code_change(Old_Vsn, State, Extra) ->
     error_logger:info_msg("~p:code_change/3:~n- Old_Vsn: ~p~n- Extra: ~p~n"
-      "- State: ~p~n", [?MODULE, Old_Vsn, Extra, State]),
+			  "- State: ~p~n", [?MODULE, Old_Vsn, Extra, State]),
     {ok, State}.
 
 %% @hidden
@@ -1067,9 +1073,9 @@ code_change(Old_Vsn, State, Extra) ->
 terminate(_Reason, _State) ->
     ok.
 
-% --------------------------------------------------------------------
-% Documentation / type definitions.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Documentation / type definitions.
+%% --------------------------------------------------------------------
 
 %% @type tls_socket().
 %% TLS socket obtained with {@link connect/4} or {@link accept/4}.

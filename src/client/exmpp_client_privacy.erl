@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
@@ -11,14 +11,14 @@
 
 -include("exmpp.hrl").
 
-% Creating stanza.
+%% Creating stanza.
 -export([
-  ack_list_push/1
-]).
+	 ack_list_push/1
+	]).
 
-% --------------------------------------------------------------------
-% Creating stanza.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Creating stanza.
+%% --------------------------------------------------------------------
 
 %% @spec (Push_IQ) -> Ack_IQ
 %%     Push_IQ = exmpp_xml:xmlel()

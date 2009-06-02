@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %% @author Mickael Remond <mickael.remond@process-one.net>
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
@@ -13,88 +13,88 @@
 
 -include("exmpp.hrl").
 
-% Stanza common components.
+%% Stanza common components.
 -export([
-  get_error/1
-]).
+	 get_error/1
+	]).
 
-% Stanza standard attributes.
+%% Stanza standard attributes.
 -export([
-  get_sender/1,
-  get_sender_from_attrs/1,
-  set_sender/2,
-  set_sender_in_attrs/2,
-  remove_sender/1,
-  remove_sender_in_attrs/1,
-  get_recipient/1,
-  get_recipient_from_attrs/1,
-  set_recipient/2,
-  set_recipient_in_attrs/2,
-  remove_recipient/1,
-  remove_recipient_in_attrs/1,
-  set_jids_in_attrs/3,
-  set_jids/3,
-  get_id/1,
-  get_id_from_attrs/1,
-  set_id/2,
-  set_id_in_attrs/2,
-  get_type/1,
-  get_type_from_attrs/1,
-  set_type/2,
-  set_type_in_attrs/2,
-  get_lang/1,
-  get_lang_from_attrs/1,
-  set_lang/2,
-  set_lang_in_attrs/2
-]).
+	 get_sender/1,
+	 get_sender_from_attrs/1,
+	 set_sender/2,
+	 set_sender_in_attrs/2,
+	 remove_sender/1,
+	 remove_sender_in_attrs/1,
+	 get_recipient/1,
+	 get_recipient_from_attrs/1,
+	 set_recipient/2,
+	 set_recipient_in_attrs/2,
+	 remove_recipient/1,
+	 remove_recipient_in_attrs/1,
+	 set_jids_in_attrs/3,
+	 set_jids/3,
+	 get_id/1,
+	 get_id_from_attrs/1,
+	 set_id/2,
+	 set_id_in_attrs/2,
+	 get_type/1,
+	 get_type_from_attrs/1,
+	 set_type/2,
+	 set_type_in_attrs/2,
+	 get_lang/1,
+	 get_lang_from_attrs/1,
+	 set_lang/2,
+	 set_lang_in_attrs/2
+	]).
 
-% Common operations.
+%% Common operations.
 -export([
-  reply/1,
-  reply_without_content/1,
-  reply_from_attrs/1,
-  reply_with_error/2
-]).
+	 reply/1,
+	 reply_without_content/1,
+	 reply_from_attrs/1,
+	 reply_with_error/2
+	]).
 
-% Stanza-level errors.
+%% Stanza-level errors.
 -export([
-  error/2,
-  error/3,
-  stanza_error/2,
-  stanza_error_without_original/2,
-  is_stanza_error/1,
-  get_error_type/1,
-  set_error_type/2,
-  set_error_type_from_condition/2,
-  get_condition/1,
-  get_text/1
-]).
+	 error/2,
+	 error/3,
+	 stanza_error/2,
+	 stanza_error_without_original/2,
+	 is_stanza_error/1,
+	 get_error_type/1,
+	 set_error_type/2,
+	 set_error_type_from_condition/2,
+	 get_condition/1,
+	 get_text/1
+	]).
 
-% Serialization wrappers.
+%% Serialization wrappers.
 -export([
-  to_list/2,
-  to_list/3,
-  to_list/1,
-  to_binary/2,
-  to_binary/3,
-  to_binary/1,
-  to_iolist/2,
-  to_iolist/3,
-  to_iolist/1
-]).
+	 to_list/2,
+	 to_list/3,
+	 to_list/1,
+	 to_binary/2,
+	 to_binary/3,
+	 to_binary/1,
+	 to_iolist/2,
+	 to_iolist/3,
+	 to_iolist/1
+	]).
 
-% --------------------------------------------------------------------
-% Documentation / type definition.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Documentation / type definition.
+%% --------------------------------------------------------------------
 
 -type(jidlike() :: exmpp_jid:jid() | binary() | string()).
 -type(id()      :: binary() | string() | random | undefined).
 -type(type()    :: binary() | string() | integer() | atom()).
 -type(lang()    :: binary() | string() | undefined).
 
-% --------------------------------------------------------------------
-% Stanza common components.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Stanza common components.
+%% --------------------------------------------------------------------
 
 %% @spec (Stanza) -> Error | undefined
 %%     Stanza = exmpp_xml:xmlel() | iq()
@@ -113,9 +113,9 @@ get_error(#iq{type = error, error = Error}) ->
 get_error(#iq{}) ->
     undefined.
 
-% --------------------------------------------------------------------
-% Stanza standard attributes.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Stanza standard attributes.
+%% --------------------------------------------------------------------
 
 %% @spec (Stanza) -> Sender | undefined
 %%     Stanza = exmpp_xml:xmlel()
@@ -152,7 +152,7 @@ get_sender_from_attrs(Attrs) ->
 %% If `Sender' is set to `undefined', the sender is removed.
 
 -spec(set_sender/2 ::
-  (#xmlel{}, jidlike() | undefined) -> #xmlel{}).
+      (#xmlel{}, jidlike() | undefined) -> #xmlel{}).
 
 set_sender(#xmlel{attrs = Attrs} = Stanza, Sender) ->
     New_Attrs = set_sender_in_attrs(Attrs, Sender),
@@ -167,7 +167,7 @@ set_sender(#xmlel{attrs = Attrs} = Stanza, Sender) ->
 %% If `Sender' is set to `undefined', the sender is removed.
 
 -spec(set_sender_in_attrs/2 ::
-  ([#xmlattr{}], jidlike() | undefined) -> [#xmlattr{}]).
+      ([#xmlattr{}], jidlike() | undefined) -> [#xmlattr{}]).
 
 set_sender_in_attrs(Attrs, undefined) ->
     remove_sender_in_attrs(Attrs);
@@ -232,7 +232,7 @@ get_recipient_from_attrs(Attrs) ->
 %% If `Recipient' is set to `undefined', the recipient is removed.
 
 -spec(set_recipient/2 ::
-  (#xmlel{}, jidlike() | undefined) -> #xmlel{}).
+      (#xmlel{}, jidlike() | undefined) -> #xmlel{}).
 
 set_recipient(#xmlel{attrs = Attrs} = Stanza, Recipient) ->
     New_Attrs = set_recipient_in_attrs(Attrs, Recipient),
@@ -247,7 +247,7 @@ set_recipient(#xmlel{attrs = Attrs} = Stanza, Recipient) ->
 %% If `Recipient' is set to `undefined', the recipient is removed.
 
 -spec(set_recipient_in_attrs/2 ::
-  ([#xmlattr{}], jidlike() | undefined) -> [#xmlattr{}]).
+      ([#xmlattr{}], jidlike() | undefined) -> [#xmlattr{}]).
 
 set_recipient_in_attrs(Attrs, undefined) ->
     remove_recipient_in_attrs(Attrs);
@@ -288,7 +288,7 @@ remove_recipient_in_attrs(Attrs) ->
 %% `Recipient' is set to `undefined', the recipient is removed.
 
 -spec(set_jids/3 ::
-  (#xmlel{}, jidlike(), jidlike()) -> #xmlel{}).
+      (#xmlel{}, jidlike(), jidlike()) -> #xmlel{}).
 
 set_jids(Stanza, From, To) ->
     set_recipient(set_sender(Stanza, From), To).
@@ -304,7 +304,7 @@ set_jids(Stanza, From, To) ->
 %% `Recipient' is set to `undefined', the recipient is removed.
 
 -spec(set_jids_in_attrs/3 ::
-  ([#xmlattr{}], jidlike(), jidlike()) -> [#xmlattr{}]).
+      ([#xmlattr{}], jidlike(), jidlike()) -> [#xmlattr{}]).
 
 set_jids_in_attrs(Attrs, From, To) ->
     set_recipient_in_attrs(set_sender_in_attrs(Attrs, From), To).
@@ -460,7 +460,7 @@ get_lang(#iq{lang = Lang}) ->
 
 get_lang_from_attrs(Attrs) ->
     exmpp_xml:get_attribute_from_list_as_binary(Attrs, ?NS_XML, 'lang',
-      undefined).
+						undefined).
 
 %% @spec (Stanza, Lang) -> New_Stanza
 %%     Stanza = exmpp_xml:xmlel() | exmpp_iq:iq()
@@ -494,9 +494,9 @@ set_lang_in_attrs(Attrs, Lang)
 set_lang_in_attrs(Attrs, Lang) ->
     exmpp_xml:set_attribute_in_list(Attrs, ?NS_XML, 'lang', Lang).
 
-% --------------------------------------------------------------------
-% Common operations.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Common operations.
+%% --------------------------------------------------------------------
 
 %% @spec (Stanza) -> Stanza_Reply
 %%     Stanza = exmpp_xml:xmlel()
@@ -554,34 +554,34 @@ reply_with_error(Stanza, Error) ->
     Reply = reply(Stanza),
     stanza_error(Reply, Error).
 
-% --------------------------------------------------------------------
-% Stanza-level errors.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Stanza-level errors.
+%% --------------------------------------------------------------------
 
 standard_conditions() ->
     [
-      {'bad-request',             "modify" },
-      {'conflict',                "cancel" },
-      {'feature-not-implemented', "cancel" },
-      {'forbidden',               "auth"   },
-      {'gone',                    "modify" },
-      {'internal-server-error',   "wait"   },
-      {'item-not-found',          "cancel" },
-      {'jid-malformed',           "modify" },
-      {'not-acceptable',          "modify" },
-      {'not-allowed',             "cancel" },
-      {'not-authorized',          "auth"   },
-      {'payment-required',        "auth"   },
-      {'recipient-unavailable',   "wait"   },
-      {'redirect',                "modify" },
-      {'registration-required',   "auth"   },
-      {'remote-server-not-found', "cancel" },
-      {'remote-server-timeout',   "wait"   },
-      {'resource-constraint',     "wait"   },
-      {'service-unavailable',     "cancel" },
-      {'subscription-required',   "auth"   },
-      {'unexpected-request',      "wait"   },
-      {'undefined-condition',     undefined}
+     {'bad-request',             "modify" },
+     {'conflict',                "cancel" },
+     {'feature-not-implemented', "cancel" },
+     {'forbidden',               "auth"   },
+     {'gone',                    "modify" },
+     {'internal-server-error',   "wait"   },
+     {'item-not-found',          "cancel" },
+     {'jid-malformed',           "modify" },
+     {'not-acceptable',          "modify" },
+     {'not-allowed',             "cancel" },
+     {'not-authorized',          "auth"   },
+     {'payment-required',        "auth"   },
+     {'recipient-unavailable',   "wait"   },
+     {'redirect',                "modify" },
+     {'registration-required',   "auth"   },
+     {'remote-server-not-found', "cancel" },
+     {'remote-server-timeout',   "wait"   },
+     {'resource-constraint',     "wait"   },
+     {'service-unavailable',     "cancel" },
+     {'subscription-required',   "auth"   },
+     {'unexpected-request',      "wait"   },
+     {'undefined-condition',     undefined}
     ].
 
 %% @spec (NS, Condition) -> Stanza_Error
@@ -613,23 +613,23 @@ error(NS, Condition) ->
 %% element.
 
 -spec(error/3 ::
-  (xmlname(), atom(), {lang(), binary() | string() | undefined}) -> #xmlel{}).
+      (xmlname(), atom(), {lang(), binary() | string() | undefined}) -> #xmlel{}).
 
 error(NS, Condition, {Lang, Text}) ->
     Condition_El = #xmlel{
       ns = ?NS_STANZA_ERRORS,
       name = Condition
-    },
+     },
     Error_El0 = #xmlel{
       ns = NS,
       name = 'error',
       children = [Condition_El]
-    },
+     },
     Error_El = case Text of
-        undefined ->
-            Error_El0;
-        _ ->
-            Text_El0 = exmpp_xml:set_cdata(#xmlel{
+		   undefined ->
+		       Error_El0;
+		   _ ->
+		       Text_El0 = exmpp_xml:set_cdata(#xmlel{
                 ns = ?NS_STANZA_ERRORS,
                 name = 'text'
               }, Text),
@@ -837,9 +837,9 @@ get_text_in_error(Error) ->
         Text      -> exmpp_xml:get_cdata(Text)
     end.
 
-% --------------------------------------------------------------------
-% Serialization wrappers.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Serialization wrappers.
+%% --------------------------------------------------------------------
 
 %% @spec (El, Default_NS) -> XML_Text
 %%     El = exmpp_xml:xmlel() | exmpp_iq:iq() | list()

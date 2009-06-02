@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
@@ -16,23 +16,23 @@
 
 -include("exmpp.hrl").
 
-% Feature announcement.
+%% Feature announcement.
 -export([
-  feature/1
-]).
+	 feature/1
+	]).
 
-% SASL exchange.
+%% SASL exchange.
 -export([
-  challenge/1,
-  success/0,
-  failure/0,
-  failure/1,
-  next_step/1
-]).
+	 challenge/1,
+	 success/0,
+	 failure/0,
+	 failure/1,
+	 next_step/1
+	]).
 
-% --------------------------------------------------------------------
-% Feature announcement.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Feature announcement.
+%% --------------------------------------------------------------------
 
 %% @spec (Mechanisms) -> Feature
 %%     Mechanisms = [binary() | string()]
@@ -45,11 +45,10 @@
 
 feature(Mechanisms) ->
     Children = mechanisms_list(Mechanisms),
-    #xmlel{
-      ns = ?NS_SASL,
-      name = 'mechanisms',
-      children = Children
-    }.
+    #xmlel{ns = ?NS_SASL,
+	   name = 'mechanisms',
+	   children = Children
+	  }.
 
 mechanisms_list([]) ->
     throw({sasl, feature_announcement, invalid_mechanisms_list, []});
@@ -59,31 +58,31 @@ mechanisms_list(Mechanisms) ->
 mechanisms_list2([Mechanism | Rest], Children) ->
     case io_lib:deep_char_list(Mechanism) of
         true ->
-            Child = #xmlel{
-              ns = ?NS_SASL,
-              name = 'mechanism'
-            },
+            Child = #xmlel{ns = ?NS_SASL,
+			   name = 'mechanism'
+			  },
             mechanisms_list2(Rest,
-              [exmpp_xml:set_cdata(Child, Mechanism) | Children]);
+			     [exmpp_xml:set_cdata(Child, Mechanism)
+			      | Children]);
         false ->
             throw({sasl, feature_announcement, invalid_mechanism, Mechanism})
     end;
 mechanisms_list2([], Children) ->
     lists:reverse(Children).
 
-% --------------------------------------------------------------------
-% SASL exchange.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% SASL exchange.
+%% --------------------------------------------------------------------
 
 standard_conditions() ->
     [
-      {'aborted'},
-      {'incorrect-encoding'},
-      {'invalid-authzid'},
-      {'invalid-mechanism'},
-      {'mechanism-too-weak'},
-      {'not-authorized'},
-      {'temporary-auth-failure'}
+     {'aborted'},
+     {'incorrect-encoding'},
+     {'invalid-authzid'},
+     {'invalid-mechanism'},
+     {'mechanism-too-weak'},
+     {'not-authorized'},
+     {'temporary-auth-failure'}
     ].
 
 %% @spec (Challenge) -> Challenge_El
@@ -94,10 +93,9 @@ standard_conditions() ->
 %% `Challenge' will be Base64-encoded by this function.
 
 challenge(Challenge) ->
-    El = #xmlel{
-      ns = ?NS_SASL,
-      name = 'challenge'
-    },
+    El = #xmlel{ns = ?NS_SASL,
+		name = 'challenge'
+	       },
     exmpp_xml:set_cdata(El, base64:encode_to_string(Challenge)).
 
 %% @spec () -> Success_El
@@ -105,20 +103,18 @@ challenge(Challenge) ->
 %% @doc Prepare a `<success/>' element.
 
 success() ->
-    #xmlel{
-      ns = ?NS_SASL,
-      name = 'success'
-    }.
+    #xmlel{ns = ?NS_SASL,
+	   name = 'success'
+	  }.
 
 %% @spec () -> Failure
 %%     Failure = exmpp_xml:xmlel()
 %% @doc Prepare a `<failure/>' element.
 
 failure() ->
-    #xmlel{
-      ns = ?NS_SASL,
-      name = 'failure'
-    }.
+    #xmlel{ns = ?NS_SASL,
+	   name = 'failure'
+	  }.
 
 %% @spec (Condition) -> Failure
 %%     Condition = atom()
@@ -130,10 +126,9 @@ failure(Condition) ->
         true  -> ok;
         false -> throw({sasl, failure, invalid_condition, Condition})
     end,
-    Condition_El = #xmlel{
-      ns = ?NS_SASL,
-      name = Condition
-    },
+    Condition_El = #xmlel{ns = ?NS_SASL,
+			  name = Condition
+			 },
     exmpp_xml:append_child(failure(), Condition_El).
 
 %% @spec (El) -> Type

@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %% @author Jean-Sebastien Pedron <js.pedron@meetic-corp.com>
 
@@ -9,31 +9,31 @@
 -module(exmpp_internals).
 -vsn('$Revision$').
 
-% Port driver handling.
+%% Port driver handling.
 -export([
-  driver_dirs/0,
-  load_driver/1,
-  load_driver/2,
-  unload_driver/1,
-  open_port/1,
-  close_port/1
-]).
+	 driver_dirs/0,
+	 load_driver/1,
+	 load_driver/2,
+	 unload_driver/1,
+	 open_port/1,
+	 close_port/1
+	]).
 
-% Generic socket handling.
+%% Generic socket handling.
 -export([
-  gen_recv/2,
-  gen_send/2,
-  gen_getopts/2,
-  gen_setopts/2,
-  gen_peername/1,
-  gen_sockname/1,
-  gen_controlling_process/2,
-  gen_close/1
-]).
+	 gen_recv/2,
+	 gen_send/2,
+	 gen_getopts/2,
+	 gen_setopts/2,
+	 gen_peername/1,
+	 gen_sockname/1,
+	 gen_controlling_process/2,
+	 gen_close/1
+	]).
 
-% --------------------------------------------------------------------
-% Port driver loading/unloading.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Port driver loading/unloading.
+%% --------------------------------------------------------------------
 
 %% @spec () -> Dirs | []
 %%     Dirs = [string()]
@@ -43,28 +43,28 @@
 
 driver_dirs() ->
     Mod_Path = case code:is_loaded(?MODULE) of
-        {file, preloaded} ->
-            undefined;
-        {file, cover_compiled} ->
-            case code:is_loaded(check_coverity) of
-                {file, preloaded}      -> undefined;
-                {file, cover_compiled} -> undefined;
-                {file, Path}           -> Path
-            end;
-        {file, Path} ->
-            Path
-    end,
+		   {file, preloaded} ->
+		       undefined;
+		   {file, cover_compiled} ->
+		       case code:is_loaded(check_coverity) of
+			   {file, preloaded}      -> undefined;
+			   {file, cover_compiled} -> undefined;
+			   {file, Path}           -> Path
+		       end;
+		   {file, Path} ->
+		       Path
+	       end,
     Dirs0 = case Mod_Path of
-        undefined ->
-            [];
-        _ ->
-            Base_Dir = filename:dirname(filename:dirname(Mod_Path)),
-            [
-              filename:join([Base_Dir, "priv", "lib"]),
-              filename:join([Base_Dir, "c_src", ".libs"]),
-              filename:join([Base_Dir, "c_src"])
-            ]
-    end,
+		undefined ->
+		    [];
+		_ ->
+		    Base_Dir = filename:dirname(filename:dirname(Mod_Path)),
+		    [
+		     filename:join([Base_Dir, "priv", "lib"]),
+		     filename:join([Base_Dir, "c_src", ".libs"]),
+		     filename:join([Base_Dir, "c_src"])
+		    ]
+	    end,
     case code:priv_dir(exmpp) of
         {error, _Reason} -> Dirs0;
         Priv_Dir         -> Dirs0 ++ [filename:join(Priv_Dir, "lib")]
@@ -94,17 +94,17 @@ load_driver(Driver_Name) ->
 load_driver(Driver_Name, Dirs) ->
     load_driver1(Driver_Name, Dirs, undefined).
 
-% This function will try to load `Driver_Name' from each `Dir' in the list.
+%% This function will try to load `Driver_Name' from each `Dir' in the list.
 load_driver1(Driver_Name, [Dir | Rest], _Reason) ->
     case erl_ddll:load_driver(Dir, Driver_Name) of
         ok ->
             ok;
         {error, Reason} ->
-            % Next directory.
+						% Next directory.
             load_driver1(Driver_Name, Rest, Reason)
     end;
 load_driver1(Driver_Name, [], Reason) ->
-    % We walk through each directories without being able to load the driver.
+						% We walk through each directories without being able to load the driver.
     throw({port_driver, load, Reason, Driver_Name}).
 
 %% @spec (Driver_Name) -> ok
@@ -144,9 +144,9 @@ open_port(Driver_Name) ->
 close_port(Port) ->
     erlang:port_close(Port).
 
-% --------------------------------------------------------------------
-% Generic socket handling.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Generic socket handling.
+%% --------------------------------------------------------------------
 
 %% @spec (Socket_Desc, Timeout) -> {ok, Packet} | {error, Reason}
 %%     Socket_Desc = {Mod, Socket}
@@ -159,7 +159,7 @@ close_port(Port) ->
 %% modules.
 
 -spec(gen_recv/2 ::
-  ({atom(), any()}, integer() | infinity) -> {ok, binary()} | {error, any()}).
+      ({atom(), any()}, integer() | infinity) -> {ok, binary()} | {error, any()}).
 
 gen_recv({gen_tcp, Socket}, Timeout) ->
     gen_tcp:recv(Socket, 0, Timeout);
@@ -253,7 +253,7 @@ gen_sockname({Mod, Socket}) ->
 %% multiple communication modules.
 
 -spec(gen_controlling_process/2 ::
-  ({atom(), any()}, pid()) -> ok | {error, any()}).
+      ({atom(), any()}, pid()) -> ok | {error, any()}).
 
 gen_controlling_process({Mod, Socket}, Pid) ->
     Mod:controlling_process(Socket, Pid).

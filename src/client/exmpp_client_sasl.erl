@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
@@ -15,23 +15,23 @@
 
 -include("exmpp.hrl").
 
-% Feature announcement.
+%% Feature announcement.
 -export([
-  announced_mechanisms/1
-]).
+	 announced_mechanisms/1
+	]).
 
-% SASL exchange.
+%% SASL exchange.
 -export([
-  selected_mechanism/1,
-  selected_mechanism/2,
-  response/1,
-  abort/0,
-  next_step/1
-]).
+	 selected_mechanism/1,
+	 selected_mechanism/2,
+	 response/1,
+	 abort/0,
+	 next_step/1
+	]).
 
-% --------------------------------------------------------------------
-% Feature announcement.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Feature announcement.
+%% --------------------------------------------------------------------
 
 %% @spec (Features_Annoucenement) -> Mechanisms
 %%     Features_Announcement = exmpp_xml:xmlel()
@@ -64,9 +64,9 @@ announced_mechanisms3([El | _Rest], _Result) ->
 announced_mechanisms3([], Result) ->
     lists:reverse(Result).
 
-% --------------------------------------------------------------------
-% SASL exchange.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% SASL exchange.
+%% --------------------------------------------------------------------
 
 %% @spec (Mechanism) -> Auth
 %%     Mechanism = string()
@@ -77,7 +77,7 @@ selected_mechanism(Mechanism) ->
     El = #xmlel{
       ns = ?NS_SASL,
       name = 'auth'
-    },
+     },
     exmpp_xml:set_attribute(El, 'mechanism', Mechanism).
 
 %% @spec (Mechanism, Initial_Response) -> Auth
@@ -106,7 +106,7 @@ response(Response_Data) ->
     El = #xmlel{
       ns = ?NS_SASL,
       name = 'response'
-    },
+     },
     exmpp_xml:set_cdata(El, base64:encode_to_string(Response_Data)).
 
 %% @spec () -> Abort
@@ -115,12 +115,12 @@ response(Response_Data) ->
 
 abort() ->
     #xmlel{
-      ns = ?NS_SASL,
-      name = 'abort'
-    }.
+       ns = ?NS_SASL,
+       name = 'abort'
+      }.
 
 %% @spec (El) -> Type
-%%     El = exmpp_xml:xmlel() 
+%%     El = exmpp_xml:xmlel()
 %%     Type = Challenge | Success | Failure
 %%     Challenge = {challenge, string()}
 %%     Success = {success, string()}
@@ -135,7 +135,7 @@ next_step(#xmlel{ns = ?NS_SASL, name = 'challenge'} = El) ->
     Encoded = exmpp_xml:get_cdata_as_list(El),
     {challenge, base64:decode_to_string(Encoded)};
 next_step(#xmlel{ns = ?NS_SASL, name = 'failure',
-  children = [#xmlel{ns = ?NS_SASL, name = Condition}]}) ->
+		 children = [#xmlel{ns = ?NS_SASL, name = Condition}]}) ->
     {failure, Condition};
 next_step(#xmlel{ns = ?NS_SASL, name = 'failure'}) ->
     {failure, undefined};

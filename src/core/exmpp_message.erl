@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
@@ -11,65 +11,65 @@
 
 -include("exmpp.hrl").
 
-% Message creation.
+%% Message creation.
 -export([
-  normal/0,
-  normal/1,
-  normal/2,
-  make_normal/1,
-  make_normal/2,
-  make_normal/3,
-  chat/0,
-  chat/1,
-  chat/2,
-  make_chat/1,
-  make_chat/2,
-  make_chat/3,
-  groupchat/0,
-  groupchat/1,
-  groupchat/2,
-  make_groupchat/1,
-  make_groupchat/2,
-  make_groupchat/3,
-  headline/0,
-  headline/1,
-  headline/2,
-  make_headline/1,
-  make_headline/2,
-  make_headline/3,
-  error/2
-]).
+	 normal/0,
+	 normal/1,
+	 normal/2,
+	 make_normal/1,
+	 make_normal/2,
+	 make_normal/3,
+	 chat/0,
+	 chat/1,
+	 chat/2,
+	 make_chat/1,
+	 make_chat/2,
+	 make_chat/3,
+	 groupchat/0,
+	 groupchat/1,
+	 groupchat/2,
+	 make_groupchat/1,
+	 make_groupchat/2,
+	 make_groupchat/3,
+	 headline/0,
+	 headline/1,
+	 headline/2,
+	 make_headline/1,
+	 make_headline/2,
+	 make_headline/3,
+	 error/2
+	]).
 
-% Message standard attributes.
+%% Message standard attributes.
 -export([
-  is_message/1,
-  get_type/1,
-  set_type/2,
-  get_subject/1,
-  set_subject/2,
-  get_body/1,
-  set_body/2,
-  get_thread/1,
-  set_thread/2
-]).
+	 is_message/1,
+	 get_type/1,
+	 set_type/2,
+	 get_subject/1,
+	 set_subject/2,
+	 get_body/1,
+	 set_body/2,
+	 get_thread/1,
+	 set_thread/2
+	]).
 
 -define(EMPTY_MESSAGE(NS), #xmlel{ns = NS, name = 'message'}).
 
-% --------------------------------------------------------------------
-% Type definitions.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Type definitions.
+%% --------------------------------------------------------------------
 
 -type(messagetype() ::
-  normal    |
-  chat      |
-  groupchat |
-  headline  |
-  error
-).
+      normal    |
+      chat      |
+      groupchat |
+      headline  |
+      error
+     ).
 
-% --------------------------------------------------------------------
-% Message creation.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Message creation.
+%% --------------------------------------------------------------------
 
 %% @spec () -> Message
 %% @doc Create an empty message stanza.
@@ -386,9 +386,9 @@ error(Message, Condition) when is_atom(Condition) ->
 error(Message, Error) when ?IS_MESSAGE(Message) ->
     exmpp_stanza:reply_with_error(Message, Error).
 
-% --------------------------------------------------------------------
-% Message standard attributes.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Message standard attributes.
+%% --------------------------------------------------------------------
 
 %% @spec (El) -> bool
 %%     El = exmpp_xml:xmlel()
@@ -438,13 +438,13 @@ set_type(Message, Type) when is_list(Type) ->
 
 set_type(Message, Type) when ?IS_MESSAGE(Message), is_atom(Type) ->
     Type_B = case Type of
-        'chat'      -> <<"chat">>;
-        'groupchat' -> <<"groupchat">>;
-        'headline'  -> <<"headline">>;
-        'normal'    -> <<"normal">>;
-        'error'     -> <<"error">>;
-        _           -> <<"normal">>
-    end,
+		 'chat'      -> <<"chat">>;
+		 'groupchat' -> <<"groupchat">>;
+		 'headline'  -> <<"headline">>;
+		 'normal'    -> <<"normal">>;
+		 'error'     -> <<"error">>;
+		 _           -> <<"normal">>
+				    end,
     exmpp_stanza:set_type(Message, Type_B).
 
 %% @spec (Message) -> Subject | undefined
@@ -481,7 +481,7 @@ set_subject(#xmlel{ns = NS} = Message, "") when ?IS_MESSAGE(Message) ->
     exmpp_xml:remove_element(Message, NS, 'subject');
 set_subject(#xmlel{ns = NS} = Message, Subject) when ?IS_MESSAGE(Message) ->
     New_Subject_El = exmpp_xml:set_cdata(#xmlel{ns = NS, name = 'subject'},
-      Subject),
+					 Subject),
     case exmpp_xml:get_element(Message, NS, 'subject') of
         undefined ->
             exmpp_xml:append_child(Message, New_Subject_El);
@@ -523,7 +523,7 @@ set_body(#xmlel{ns = NS} = Message, "") when ?IS_MESSAGE(Message) ->
     exmpp_xml:remove_element(Message, NS, 'body');
 set_body(#xmlel{ns = NS} = Message, Body) when ?IS_MESSAGE(Message) ->
     New_Body_El = exmpp_xml:set_cdata(#xmlel{ns = NS, name = 'body'},
-      Body),
+				      Body),
     case exmpp_xml:get_element(Message, NS, 'body') of
         undefined ->
             exmpp_xml:append_child(Message, New_Body_El);
@@ -565,7 +565,7 @@ set_thread(#xmlel{ns = NS} = Message, "") when ?IS_MESSAGE(Message) ->
     exmpp_xml:remove_element(Message, NS, 'thread');
 set_thread(#xmlel{ns = NS} = Message, Thread) when ?IS_MESSAGE(Message) ->
     New_Thread_El = exmpp_xml:set_cdata(#xmlel{ns = NS, name = 'thread'},
-      Thread),
+					Thread),
     case exmpp_xml:get_element(Message, NS, 'thread') of
         undefined ->
             exmpp_xml:append_child(Message, New_Thread_El);

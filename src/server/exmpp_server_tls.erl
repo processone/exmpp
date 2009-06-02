@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
@@ -16,21 +16,21 @@
 
 -include("exmpp.hrl").
 
-% Feature announcement.
+%% Feature announcement.
 -export([
-  feature/0,
-  feature/1
-]).
+	 feature/0,
+	 feature/1
+	]).
 
-% TLS negotiation.
+%% TLS negotiation.
 -export([
-  proceed/0,
-  failure/0
-]).
+	 proceed/0,
+	 failure/0
+	]).
 
-% --------------------------------------------------------------------
-% Feature announcement.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Feature announcement.
+%% --------------------------------------------------------------------
 
 %% @spec () -> Feature
 %%     Feature = exmpp_xml:xmlel()
@@ -53,24 +53,23 @@ feature() ->
 %% The result should then be passed to {@link exmpp_stream:features/1}.
 
 feature(Is_Required) ->
-    Feature = #xmlel{
-      ns = ?NS_TLS,
-      name = 'starttls'
-    },
+    Feature = #xmlel{ns = ?NS_TLS,
+		     name = 'starttls'
+		    },
     if
         Is_Required ->
             Required = #xmlel{
               ns = ?NS_TLS,
               name = 'required'
-            },
+	     },
             exmpp_xml:append_child(Feature, Required);
         true ->
             Feature
     end.
 
-% --------------------------------------------------------------------
-% TLS negotiation.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% TLS negotiation.
+%% --------------------------------------------------------------------
 
 %% @spec () -> Proceed
 %%     Proceed = exmpp_xml:xmlel()
@@ -78,10 +77,9 @@ feature(Is_Required) ->
 %% with the TLS handshake.
 
 proceed() ->
-    #xmlel{
-      ns = ?NS_TLS,
-      name = 'proceed'
-    }.
+    #xmlel{ns = ?NS_TLS,
+	   name = 'proceed'
+	  }.
 
 %% @spec () -> Failure
 %%     Failure = exmpp_xml:xmlel()
@@ -89,7 +87,6 @@ proceed() ->
 %% handshake failed.
 
 failure() ->
-    #xmlel{
-      ns = ?NS_TLS,
-      name = 'failure'
-    }.
+    #xmlel{ns = ?NS_TLS,
+	   name = 'failure'
+	  }.

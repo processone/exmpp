@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %%%----------------------------------------------------------------------
 %%% File    : jlib.erl
@@ -18,7 +18,7 @@
 %%% but WITHOUT ANY WARRANTY; without even the implied warranty of
 %%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 %%% General Public License for more details.
-%%%                         
+%%%
 %%% You should have received a copy of the GNU General Public License
 %%% along with this program; if not, write to the Free Software
 %%% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
@@ -66,8 +66,8 @@
 
 -include("jlib.hrl").
 
-%send_iq(From, To, ID, SubTags) ->
-%    ok.
+%%send_iq(From, To, ID, SubTags) ->
+%%    ok.
 
 make_result_iq_reply({xmlelement, Name, Attrs, SubTags}) ->
     NewAttrs = make_result_iq_reply_attrs(Attrs),
@@ -80,13 +80,13 @@ make_result_iq_reply_attrs(Attrs) ->
     Attrs2 = lists:keydelete("from", 1, Attrs1),
     Attrs3 = case To of
 		 {value, ToVal} ->
-		      [{"from", ToVal} | Attrs2];
+		     [{"from", ToVal} | Attrs2];
 		 _ ->
 		     Attrs2
 	     end,
     Attrs4 = case From of
 		 {value, FromVal} ->
-		      [{"to", FromVal} | Attrs3];
+		     [{"to", FromVal} | Attrs3];
 		 _ ->
 		     Attrs3
 	     end,
@@ -111,13 +111,13 @@ make_error_reply_attrs(Attrs) ->
     Attrs2 = lists:keydelete("from", 1, Attrs1),
     Attrs3 = case To of
 		 {value, ToVal} ->
-		      [{"from", ToVal} | Attrs2];
+		     [{"from", ToVal} | Attrs2];
 		 _ ->
 		     Attrs2
 	     end,
     Attrs4 = case From of
 		 {value, FromVal} ->
-		      [{"to", FromVal} | Attrs3];
+		     [{"to", FromVal} | Attrs3];
 		 _ ->
 		     Attrs3
 	     end,
@@ -176,13 +176,13 @@ string_to_jid(J) ->
     try
 	Jid0 = exmpp_jid:parse(J),
 	Jid1 = case Jid0#jid.user of
-	    undefined -> Jid0#jid{user = "", luser = ""};
-	    _         -> Jid0
-	end,
+		   undefined -> Jid0#jid{user = "", luser = ""};
+		   _         -> Jid0
+	       end,
 	Jid2 = case Jid1#jid.resource of
-	    undefined -> Jid1#jid{resource = "", prep_resource = ""};
-	    _         -> Jid1
-	end,
+		   undefined -> Jid1#jid{resource = "", prep_resource = ""};
+		   _         -> Jid1
+	       end,
 	Jid2
     catch
 	_Exception -> error
@@ -201,10 +201,10 @@ is_nodename(J) ->
     nodeprep(J) /= error.
 
 
-%tolower_c(C) when C >= $A, C =< $Z ->
-%    C + 32;
-%tolower_c(C) ->
-%    C.
+%%tolower_c(C) when C >= $A, C =< $Z ->
+%%    C + 32;
+%%tolower_c(C) ->
+%%    C.
 
 -define(LOWER(Char),
         if
@@ -214,13 +214,12 @@ is_nodename(J) ->
                 Char
         end).
 
-%tolower(S) ->
-%    lists:map(fun tolower_c/1, S).
+%%tolower(S) ->
+%%    lists:map(fun tolower_c/1, S).
+%%tolower(S) ->
+%%    [?LOWER(Char) || Char <- S].
 
-%tolower(S) ->
-%    [?LOWER(Char) || Char <- S].
-
-% Not tail-recursive but it seems works faster than variants above
+%% Not tail-recursive but it seems works faster than variants above
 tolower([C | Cs]) ->
     if
 	C >= $A, C =< $Z ->
@@ -231,12 +230,12 @@ tolower([C | Cs]) ->
 tolower([]) ->
     [].
 
-%tolower([C | Cs]) when C >= $A, C =< $Z ->
-%    [C + 32 | tolower(Cs)];
-%tolower([C | Cs]) ->
-%    [C | tolower(Cs)];
-%tolower([]) ->
-%    [].
+%%tolower([C | Cs]) when C >= $A, C =< $Z ->
+%%    [C + 32 | tolower(Cs)];
+%%tolower([C | Cs]) ->
+%%    [C | tolower(Cs)];
+%%tolower([]) ->
+%%    [].
 
 
 nodeprep(S) when length(S) < 1024 ->
@@ -325,7 +324,7 @@ iq_info_internal({xmlelement, Name, Attrs, Els}, Filter) when Name == "iq" ->
 			 "result" -> {result, reply};
 			 "error" -> {error, reply};
 			 _ -> {invalid, invalid}
-	    end,
+		     end,
     if
 	Type1 == invalid ->
 	    invalid;
@@ -342,9 +341,9 @@ iq_info_internal({xmlelement, Name, Attrs, Els}, Filter) when Name == "iq" ->
 		    {reply, _} ->
 			%% Find the namespace of the first non-error
 			%% element, if there is one.
-			NonErrorEls = [El || 
+			NonErrorEls = [El ||
 					  {xmlelement, SubName, _, _} = El
-					      <- FilteredEls, 
+					      <- FilteredEls,
 					  SubName /= "error"],
 			{case NonErrorEls of
 			     [NonErrorEl] -> xml:get_tag_attr_s("xmlns", NonErrorEl);
@@ -357,12 +356,12 @@ iq_info_internal({xmlelement, Name, Attrs, Els}, Filter) when Name == "iq" ->
 	    if XMLNS == "", Class == request ->
 		    invalid;
 	       true ->
-			    #iq{id = ID,
-				type = Type1,
-				xmlns = XMLNS,
-				lang = Lang,
+		    #iq{id = ID,
+			type = Type1,
+			xmlns = XMLNS,
+			lang = Lang,
 			sub_el = SubEl}
-		    end;
+	    end;
 	Class == reply, Filter /= any ->
 	    reply
     end;
@@ -457,20 +456,21 @@ now_to_local_string({MegaSecs, Secs, MicroSecs}) ->
     LocalTime = calendar:now_to_local_time({MegaSecs, Secs, MicroSecs}),
     UTCTime = calendar:now_to_universal_time({MegaSecs, Secs, MicroSecs}),
     Seconds = calendar:datetime_to_gregorian_seconds(LocalTime) -
-            calendar:datetime_to_gregorian_seconds(UTCTime),
+	calendar:datetime_to_gregorian_seconds(UTCTime),
     {{H, M, _}, Sign} = if
 			    Seconds < 0 ->
 				{calendar:seconds_to_time(-Seconds), "-"};
 			    true ->
 				{calendar:seconds_to_time(Seconds), "+"}
-    end,
+			end,
     {{Year, Month, Day}, {Hour, Minute, Second}} = LocalTime,
     lists:flatten(
-      io_lib:format("~4..0w-~2..0w-~2..0wT~2..0w:~2..0w:~2..0w.~6..0w~s~2..0w:~2..0w",
-		    [Year, Month, Day, Hour, Minute, Second, MicroSecs, Sign, H, M])).
+      io_lib:format(
+	"~4..0w-~2..0w-~2..0wT~2..0w:~2..0w:~2..0w.~6..0w~s~2..0w:~2..0w",
+	[Year, Month, Day, Hour, Minute, Second, MicroSecs, Sign, H, M])).
 
 
-% yyyy-mm-ddThh:mm:ss[.sss]{Z|{+|-}hh:mm} -> {MegaSecs, Secs, MicroSecs}
+%% yyyy-mm-ddThh:mm:ss[.sss]{Z|{+|-}hh:mm} -> {MegaSecs, Secs, MicroSecs}
 datetime_string_to_timestamp(TimeStr) ->
     case catch parse_datetime(TimeStr) of
 	{'EXIT', _Err} ->
@@ -488,7 +488,7 @@ parse_datetime(TimeStr) ->
     Seconds = (S - S1) - TZH * 60 * 60 - TZM * 60,
     {Seconds div 1000000, Seconds rem 1000000, MS}.
 
-% yyyy-mm-dd
+%% yyyy-mm-dd
 parse_date(Date) ->
     [Y, M, D] = string:tokens(Date, "-"),
     Date1 = {list_to_integer(Y), list_to_integer(M), list_to_integer(D)},
@@ -499,7 +499,7 @@ parse_date(Date) ->
 	    false
     end.
 
-% hh:mm:ss[.sss]TZD
+%% hh:mm:ss[.sss]TZD
 parse_time(Time) ->
     case string:str(Time, "Z") of
 	0 ->
@@ -554,19 +554,19 @@ parse_time1(Time) ->
 check_list(List) ->
     lists:mapfoldl(
       fun({L, N}, B)->
-	  V = list_to_integer(L),
-	  if
-	      (V >= 0) and (V =< N) ->
-		  {V, B};
-	      true ->
-		  {false, false}
-	  end
+	      V = list_to_integer(L),
+	      if
+		  (V >= 0) and (V =< N) ->
+		      {V, B};
+		  true ->
+		      {false, false}
+	      end
       end, true, List).
 
 
-%
-% Base64 stuff (based on httpd_util.erl)
-%
+%%
+%% Base64 stuff (based on httpd_util.erl)
+%%
 
 decode_base64(S) ->
     decode1_base64([C || C <- S,
@@ -625,7 +625,7 @@ encode_base64([A,B,C|Ls]) ->
     encode_base64_do(A,B,C, Ls).
 encode_base64_do(A,B,C, Rest) ->
     BB = (A bsl 16) bor (B bsl 8) bor C,
-    [e(BB bsr 18), e((BB bsr 12) band 63), 
+    [e(BB bsr 18), e((BB bsr 12) band 63),
      e((BB bsr 6) band 63), e(BB band 63)|encode_base64(Rest)].
 
 e(X) when X >= 0, X < 26 -> X+65;

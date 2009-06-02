@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
@@ -14,19 +14,19 @@
 
 -include("exmpp.hrl").
 
-% Feature announcement.
+%% Feature announcement.
 -export([
-  announced_methods/1
-]).
+	 announced_methods/1
+	]).
 
-% Compression negotiation.
+%% Compression negotiation.
 -export([
-  selected_method/1
-]).
+	 selected_method/1
+	]).
 
-% --------------------------------------------------------------------
-% Feature announcement.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Feature announcement.
+%% --------------------------------------------------------------------
 
 %% @spec (Features_Announcement) -> Methods
 %%     Features_Announcement = exmpp_xml:xmlel()
@@ -59,9 +59,9 @@ announced_methods3([El | _Rest], _Result) ->
 announced_methods3([], Result) ->
     lists:reverse(Result).
 
-% --------------------------------------------------------------------
-% Compression negotiation.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Compression negotiation.
+%% --------------------------------------------------------------------
 
 %% @spec (Method) -> Compress
 %%     Method = string()
@@ -69,12 +69,10 @@ announced_methods3([], Result) ->
 %% @doc Prepare an request to select prefered compression method.
 
 selected_method(Method) ->
-    El = #xmlel{
-      ns = ?NS_COMPRESS,
-      name = 'method'
-    },
-    #xmlel{
-      ns = ?NS_COMPRESS,
-      name = 'compress',
-      children = [exmpp_xml:set_cdata(El, Method)]
-    }.
+    El = #xmlel{ns = ?NS_COMPRESS,
+		name = 'method'
+	       },
+    #xmlel{ns = ?NS_COMPRESS,
+	   name = 'compress',
+	   children = [exmpp_xml:set_cdata(El, Method)]
+	  }.

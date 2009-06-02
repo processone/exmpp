@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %% @author Jean-Sebastien Pedron <js.pedron@meetic-corp.com>
 
@@ -9,23 +9,23 @@
 -module(exmpp_utils).
 -vsn('$Revision$').
 
-% Binary and string helpers.
+%% Binary and string helpers.
 -export([
-  any_to_list/1,
-  any_to_binary/1,
-  strip/1,
-  strip/2
-]).
+	 any_to_list/1,
+	 any_to_binary/1,
+	 strip/1,
+	 strip/2
+	]).
 
-% Utils.
+%% Utils.
 -export([
-  random_id/0,
-  random_id/1
-]).
+	 random_id/0,
+	 random_id/1
+	]).
 
-% --------------------------------------------------------------------
-% Binary and string helpers.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Binary and string helpers.
+%% --------------------------------------------------------------------
 
 %% @spec (Any) -> String
 %%     Any = binary() | string() | atom() | integer()
@@ -37,7 +37,7 @@
 %% erlang:binary_to_list/1} is used. A string is returned as is.
 
 -spec(any_to_list/1 ::
-  (binary() | string() | integer() | atom()) -> string()).
+      (binary() | string() | integer() | atom()) -> string()).
 
 any_to_list(Atom) when is_atom(Atom) ->
     atom_to_list(Atom);
@@ -59,7 +59,7 @@ any_to_list(Binary) when is_binary(Binary) ->
 %% erlang:list_to_binary/1} is used. A binary is returned as is.
 
 -spec(any_to_binary/1 ::
-  (binary() | string() | integer() | atom()) -> binary()).
+      (binary() | string() | integer() | atom()) -> binary()).
 
 any_to_binary(Atom) when is_atom(Atom) ->
     any_to_binary(atom_to_list(Atom));
@@ -79,9 +79,9 @@ any_to_binary(Binary) when is_binary(Binary) ->
 %% @see strip/3.
 
 -spec(strip/1 ::
-  (binary()) -> binary();
-  (string()) -> string()
-).
+      (binary()) -> binary();
+      (string()) -> string()
+		       ).
 
 strip(Stream) ->
     strip(Stream, both).
@@ -100,9 +100,9 @@ strip(Stream) ->
 %% @see strip/3.
 
 -spec(strip/2 ::
-  (binary(), left | right | both) -> binary();
-  (string(), left | right | both) -> string()
-).
+      (binary(), left | right | both) -> binary();
+      (string(), left | right | both) -> string()
+					    ).
 
 strip(Stream, left) ->
     strip_left(Stream);
@@ -122,7 +122,7 @@ strip_right(<<C:8, Rest/binary>>) when C == $\s; C == $\t; C == $\n; C == $\r ->
     case strip_right(Rest) of
         <<>> -> <<>>;
         T    -> <<C:8, T/binary>>
-    end;
+		    end;
 strip_right(<<C:8, Rest/binary>>) ->
     T = strip_right(Rest),
     <<C:8, T/binary>>;
@@ -138,9 +138,9 @@ strip_right([C | Rest]) ->
 strip_right([]) ->
     [].
 
-% --------------------------------------------------------------------
-% Utils.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Utils.
+%% --------------------------------------------------------------------
 
 %% @spec () -> ID
 %%     ID = string()

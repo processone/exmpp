@@ -14,7 +14,7 @@
 -include("exmpp.hrl").
 
 -export([get_roster/0, get_roster/1,
-	set_item/3, set_item/4]).
+	 set_item/3, set_item/4]).
 
 %% @spec () -> Roster_Iq
 %%     Roster_Iq = exmpp_xml:xmlel()
@@ -64,7 +64,7 @@ set_item(Id, ContactJID, _Groups, Nick) ->
 	   #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
 	   [{'type', "set"}, {'id', Id}]),
     exmpp_xml:append_child(Iq, Query2).
-    
+
 %% @spec () -> Roster_ID
 %%     Roster_ID = string()
 %% @doc Generate a random roster iq ID.
@@ -73,4 +73,4 @@ set_item(Id, ContactJID, _Groups, Nick) ->
 %% seed the generator.
 
 roster_id() ->
-	"rost-" ++ integer_to_list(random:uniform(65536 * 65536)).
+    "rost-" ++ integer_to_list(random:uniform(65536 * 65536)).

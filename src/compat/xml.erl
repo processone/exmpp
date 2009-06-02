@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %%%----------------------------------------------------------------------
 %%% File    : xml.erl
@@ -18,7 +18,7 @@
 %%% but WITHOUT ANY WARRANTY; without even the implied warranty of
 %%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 %%% General Public License for more details.
-%%%                         
+%%%
 %%% You should have received a copy of the GNU General Public License
 %%% along with this program; if not, write to the Free Software
 %%% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
@@ -70,7 +70,7 @@ get_tag_cdata({xmlelement, _Name, _Attrs, Els}) ->
 
 get_attr(AttrName, Attrs) ->
     case exmpp_xml:get_attribute_from_list_as_list(Attrs, AttrName,
-      undefined) of
+						   undefined) of
 	undefined ->
 	    false;
 	Val ->

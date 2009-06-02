@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
@@ -11,21 +11,21 @@
 
 -include("exmpp.hrl").
 
-% Feature annoucement.
+%% Feature annoucement.
 -export([
-  feature/0
-]).
+	 feature/0
+	]).
 
-% Resource binding.
+%% Resource binding.
 -export([
-  wished_resource/1,
-  bind/2,
-  error/2
-]).
+	 wished_resource/1,
+	 bind/2,
+	 error/2
+	]).
 
-% --------------------------------------------------------------------
-% Feature announcement.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Feature announcement.
+%% --------------------------------------------------------------------
 
 %% @spec () -> Feature
 %%     Feature = exmpp_xml:xmlel()
@@ -34,14 +34,13 @@
 %% The result should then be passed to {@link exmpp_stream:features/1}.
 
 feature() ->
-    #xmlel{
-      ns = ?NS_BIND,
-      name = 'bind'
-    }.
+    #xmlel{ns = ?NS_BIND,
+	   name = 'bind'
+	  }.
 
-% --------------------------------------------------------------------
-% Resource binding.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Resource binding.
+%% --------------------------------------------------------------------
 
 %% @spec (IQ) -> Resource | undefined
 %%     IQ = exmpp_xml:xmlel()
@@ -55,8 +54,7 @@ wished_resource(IQ) when ?IS_IQ(IQ) ->
         'set' ->
             case exmpp_iq:get_request(IQ) of
                 #xmlel{ns = ?NS_BIND, name = 'bind'} = Bind ->
-                    case exmpp_xml:get_element(Bind,
-                      ?NS_BIND, 'resource') of
+                    case exmpp_xml:get_element(Bind, ?NS_BIND, 'resource') of
                         #xmlel{} = Resource ->
                             exmpp_xml:get_cdata_as_list(Resource);
                         _ ->
@@ -64,7 +62,7 @@ wished_resource(IQ) when ?IS_IQ(IQ) ->
                     end;
                 _ ->
                     throw({resource_binding, wished_resource,
-                        invalid_bind, IQ})
+			   invalid_bind, IQ})
             end;
         _ ->
             throw({resource_binding, wished_resource, invalid_bind, IQ})
@@ -80,16 +78,14 @@ wished_resource(Stanza) ->
 
 bind(IQ, Jid) when ?IS_IQ(IQ) ->
     Jid_B = exmpp_jid:to_binary(Jid),
-    El = #xmlel{
-      ns = ?NS_BIND,
-      name = 'jid'
-    },
+    El = #xmlel{ns = ?NS_BIND,
+		name = 'jid'
+	       },
     Children = [exmpp_xml:set_cdata(El, Jid_B)],
-    Bind = #xmlel{
-      ns = ?NS_BIND,
-      name = 'bind',
-      children = Children
-    },
+    Bind = #xmlel{ns = ?NS_BIND,
+		  name = 'bind',
+		  children = Children
+		 },
     exmpp_iq:result(IQ, Bind).
 
 %% @spec (IQ, Condition) -> Error_IQ

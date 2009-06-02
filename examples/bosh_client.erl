@@ -1,4 +1,4 @@
-% $Id: echo_client.erl 768 2009-05-03 20:25:04Z mremond $
+%% $Id: echo_client.erl 768 2009-05-03 20:25:04Z mremond $
 
 %% @author Mickael Remond <mickael.remond@process-one.net>
 
@@ -39,7 +39,9 @@ init() ->
     MyJID = exmpp_jid:make("bosh", "localhost", random),
     exmpp_session:auth_basic_digest(MySession, MyJID, "password"),
     %% Connect in standard TCP:
-    _StreamId = exmpp_session:connect_BOSH(MySession, "http://127.0.0.1:5280/http-bind", "localhost", 5222),
+    _StreamId = exmpp_session:connect_BOSH(MySession,
+					   "http://127.0.0.1:5280/http-bind",
+					   "localhost", 5222),
     session(MySession, MyJID).
 
 %% We are connected. We now log in (and try registering if authentication fails)

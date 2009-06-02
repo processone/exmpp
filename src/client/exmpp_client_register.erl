@@ -105,7 +105,7 @@ append_fields(PreparedQuery, []) ->
     PreparedQuery;
 append_fields(Query, [{Field, Value}|Fields])
   when is_atom(Field),
-       is_list(Value) -> 
+       is_list(Value) ->
     FieldElement = exmpp_xml:set_cdata(
 		     #xmlel{ns = ?NS_INBAND_REGISTER, name = Field},
 		     Value),
@@ -124,4 +124,4 @@ append_fields(Query, [{Field, Value}|Fields])
 %% seed the generator.
 
 register_id() ->
-	"reg-" ++ integer_to_list(random:uniform(65536 * 65536)).
+    "reg-" ++ integer_to_list(random:uniform(65536 * 65536)).

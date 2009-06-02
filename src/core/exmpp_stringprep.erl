@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
@@ -15,41 +15,39 @@
 
 -behaviour(gen_server).
 
-% Initialization.
+%% Initialization.
 -export([
-  start/0,
-  start_link/0
-]).
+	 start/0,
+	 start_link/0
+	]).
 
-% Stringprep profiles.
+%% Stringprep profiles.
 -export([
-  nodeprep/1,
-  nameprep/1,
-  resourceprep/1
-]).
+	 nodeprep/1,
+	 nameprep/1,
+	 resourceprep/1
+	]).
 
-% Tools.
+%% Tools.
 -export([
-  is_node/1,
-  is_name/1,
-  is_resource/1,
-  to_lower/1,
-  port_revision/0
-]).
+	 is_node/1,
+	 is_name/1,
+	 is_resource/1,
+	 to_lower/1,
+	 port_revision/0
+	]).
 
-% gen_server(3erl) callbacks.
+%% gen_server(3erl) callbacks.
 -export([
-  init/1,
-  handle_call/3,
-  handle_cast/2,
-  handle_info/2,
-  terminate/2,
-  code_change/3
-]).
+	 init/1,
+	 handle_call/3,
+	 handle_cast/2,
+	 handle_info/2,
+	 terminate/2,
+	 code_change/3
+	]).
 
--record(state, {
-  port
-}).
+-record(state, {port}).
 
 -define(SERVER, ?MODULE).
 -define(DRIVER_NAME, exmpp_stringprep).
@@ -61,9 +59,9 @@
 -define(COMMAND_RESOURCEPREP,  3).
 -define(COMMAND_PORT_REVISION, 4).
 
-% --------------------------------------------------------------------
-% Initialization.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Initialization.
+%% --------------------------------------------------------------------
 
 %% @hidden
 
@@ -75,9 +73,9 @@ start() ->
 start_link() ->
     gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
 
-% --------------------------------------------------------------------
-% Stringprep profiles.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Stringprep profiles.
+%% --------------------------------------------------------------------
 
 %% @spec (String) -> Prepd_String
 %%     String = binary() | string()
@@ -136,9 +134,9 @@ resourceprep(String) ->
             Result
     end.
 
-% --------------------------------------------------------------------
-% Tools.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Tools.
+%% --------------------------------------------------------------------
 
 %% @spec (String) -> bool()
 %%     String = binary() | string()
@@ -232,9 +230,9 @@ port_revision() ->
             Result
     end.
 
-% --------------------------------------------------------------------
-% Internal functions.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Internal functions.
+%% --------------------------------------------------------------------
 
 -spec control
 (non_neg_integer(), binary() | string()) ->
@@ -263,11 +261,11 @@ control(Command, String) ->
     string() | {error, invalid_string | exmpp_not_started}.
 
 control_reuse_arg(Command, String) ->
-    % If applying a STRINGPREP profile doesn't modify the original string,
-    % keep the former and throw away the returned string.
-    %
-    % Guard expressions (eg. Result =:= String) must be used instead of
-    % pattern matching, otherwise the two copies are still maintained.
+    %% If applying a STRINGPREP profile doesn't modify the original string,
+    %% keep the former and throw away the returned string.
+    %%
+    %% Guard expressions (eg. Result =:= String) must be used instead of
+    %% pattern matching, otherwise the two copies are still maintained.
     case control(Command, String) of
         {error, _} = Error ->
             Error;
@@ -276,15 +274,15 @@ control_reuse_arg(Command, String) ->
                 Result_B when Result_B =:= String -> String;
                 Result_B                          -> Result_B
             end;
-        Result when Result =:= String ->   
+        Result when Result =:= String ->
             String;
         Other ->
             Other
     end.
 
-% --------------------------------------------------------------------
-% gen_server(3erl) callbacks.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% gen_server(3erl) callbacks.
+%% --------------------------------------------------------------------
 
 %% @hidden
 
@@ -295,12 +293,12 @@ init([]) ->
         register(?PORT_REGISTERED_NAME, Port),
         State = #state{
           port = Port
-        },
+	 },
         {ok, State}
     catch
         throw:{port_driver, load, _, _} = Exception ->
             {stop, Exception};
-        throw:{port_driver, open, _, _} = Exception ->
+	  throw:{port_driver, open, _, _} = Exception ->
             exmpp_internals:unload_driver(?DRIVER_NAME),
             {stop, Exception}
     end.
@@ -309,28 +307,28 @@ init([]) ->
 
 handle_call(Request, From, State) ->
     error_logger:info_msg("~p:handle_call/3:~n- Request: ~p~n- From: ~p~n"
-      "- State: ~p~n", [?MODULE, Request, From, State]),
+			  "- State: ~p~n", [?MODULE, Request, From, State]),
     {reply, ok, State}.
 
 %% @hidden
 
 handle_cast(Request, State) ->
     error_logger:info_msg("~p:handle_cast/2:~n- Request: ~p~n"
-      "- State: ~p~n", [?MODULE, Request, State]),
+			  "- State: ~p~n", [?MODULE, Request, State]),
     {noreply, State}.
 
 %% @hidden
 
 handle_info(Info, State) ->
     error_logger:info_msg("~p:handle_info/2:~n- Info: ~p~n"
-      "- State: ~p~n", [?MODULE, Info, State]),
+			  "- State: ~p~n", [?MODULE, Info, State]),
     {noreply, State}.
 
 %% @hidden
 
 code_change(Old_Vsn, State, Extra) ->
     error_logger:info_msg("~p:code_change/3:~n- Old_Vsn: ~p~n- Extra: ~p~n"
-      "- State: ~p~n", [?MODULE, Old_Vsn, Extra, State]),
+			  "- State: ~p~n", [?MODULE, Old_Vsn, Extra, State]),
     {ok, State}.
 
 %% @hidden

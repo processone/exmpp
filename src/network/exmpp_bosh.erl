@@ -1,4 +1,4 @@
-% $Id: exmpp_bosh.erl 603 2008-08-20 12:22:03Z mremond $
+%% $Id: exmpp_bosh.erl 603 2008-08-20 12:22:03Z mremond $
 
 %% @author Mickael Remond <mickael.remond@process-one.net>
 
@@ -27,7 +27,7 @@
 	 bosh_recv/4]).
 
 %% Special instrumentation for testing
-%-define(TEST_API, true).
+%%-define(TEST_API, true).
 -ifdef(TEST_API).
 -export([bosh_send_async/5, bosh_recv_async/4,
 	 get_state_key/2, test_connect/1,
@@ -46,8 +46,9 @@
 		auth_id = <<>>,
 		client_pid,
 		stream_ref,
-		auto_recv = true,   %% When true, automatically manage a receiving process
-		pending_requests=[] %% For now, we put only one receiver
+		%% When true, automatically manage a receiving process
+		auto_recv = true,
+		pending_requests = [] %% For now, we put only one receiver
 	       }).
 
 %% TODO: We do not support yet BOSH route attribute.
@@ -100,7 +101,8 @@ bosh_session(State) ->
 	State#state.auto_recv ->
 	    process_flag(trap_exit, true),
 	    NewRID = State#state.rid + 1,
-	    RecvPid = bosh_recv_async(self(), State#state.bosh_url, State#state.sid, NewRID),
+	    RecvPid = bosh_recv_async(self(), State#state.bosh_url,
+				      State#state.sid, NewRID),
 	    bosh_session_loop(State#state{rid=NewRID, stream_ref=XMLStream,
 					  pending_requests=[RecvPid]});
 	true ->
@@ -121,10 +123,12 @@ bosh_session_loop(State) ->
  	{send, #xmlel{ns=?NS_XMPP, name='stream'}} ->
 	    AuthId = binary_to_list(State#state.auth_id),
 	    Domain = State#state.domain,
-	    StreamStart = "<?xml version='1.0'?><stream:stream xmlns='jabber:client'"
+	    StreamStart =
+		"<?xml version='1.0'?><stream:stream xmlns='jabber:client'"
 		" xmlns:stream='http://etherx.jabber.org/streams' version='1.0'"
 		" from='" ++ Domain ++ "' id='" ++ AuthId ++ "'>",
-	    {ok, StreamRef}=exmpp_xmlstream:parse(State#state.stream_ref, StreamStart),
+	    {ok, StreamRef} =
+		exmpp_xmlstream:parse(State#state.stream_ref, StreamStart),
 	    bosh_session_loop(State#state{stream_ref=StreamRef});
 	{send, XMLPacket} ->
 	    NewRid = State#state.rid + 1,
@@ -139,7 +143,8 @@ bosh_session_loop(State) ->
 	    bosh_session_loop(State#state{stream_ref=NewStreamRef});
 	{'EXIT',RecvPid,normal} ->
 	    NewRID = State#state.rid + 1,
-	    NewRecvPid = bosh_recv_async(self(), State#state.bosh_url, State#state.sid, NewRID),
+	    NewRecvPid = bosh_recv_async(self(), State#state.bosh_url,
+					 State#state.sid, NewRID),
 	    bosh_session_loop(State#state{rid=NewRID,
 					  pending_requests=[NewRecvPid]});
 	stop ->
@@ -157,7 +162,7 @@ bosh_session_loop(State) ->
 bosh_send_async({BoshManagerPid, _}, URL, SID, NewRID, XMLPacket) ->
     bosh_send_async(BoshManagerPid, URL, SID, NewRID, XMLPacket);
 bosh_send_async(BoshManagerPid, URL, SID, NewRID, XMLPacket) ->
-    spawn_link(?MODULE, bosh_send, [BoshManagerPid, URL, SID, NewRID, XMLPacket]).
+    spawn_link(?MODULE,bosh_send,[BoshManagerPid, URL, SID, NewRID, XMLPacket]).
 
 bosh_send({BoshManagerPid,_}, URL, SID, NewRID, XMLPacket) ->
     bosh_send(BoshManagerPid, URL, SID, NewRID, XMLPacket);
@@ -193,7 +198,7 @@ bosh_recv(BoshManagerPid, URL, SID, NewRID) ->
     process_http_reply(BoshManagerPid, Reply).
 
 process_http_reply(BoshManagerPid, {ok, {{"HTTP/1.1", 200, "OK"},
-				    _Headers, Body}}) ->
+					 _Headers, Body}}) ->
     BoshManagerPid ! {recv, Body};
 %% TODO: Handle errors.
 process_http_reply(_BoshManagerPid, _HTTPReply) ->
@@ -212,12 +217,13 @@ session_creation(URL, Domain) ->
 		  {wait, ?WAIT},
 		  {rid, integer_to_list(RID)}]),
     %% TODO: extract port from URL ?
-    case http:request(post, {URL, [], [], exmpp_xml:document_to_binary(PostBody)}, [], []) of
+    case http:request(post, {URL, [], [],
+			     exmpp_xml:document_to_binary(PostBody)}, [], []) of
 	{ok, {{"HTTP/1.1",200,"OK"}, _Headers, Body}} ->
 	    %% Parse reply body
 	    [#xmlel{name=body} = BodyEl] = exmpp_xml:parse_document(Body),
 	    SID = exmpp_xml:get_attribute_as_binary(BodyEl, sid, undefined),
-	    AuthID = exmpp_xml:get_attribute_as_binary(BodyEl, authid, undefined),
+	    AuthID = exmpp_xml:get_attribute_as_binary(BodyEl,authid,undefined),
 	    #state{sid=SID, rid=RID, auth_id=AuthID};
 	%% TODO: Handle non-200 replies
 	{error, Reason} ->

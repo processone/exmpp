@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
@@ -16,22 +16,22 @@
 
 -behaviour(application).
 
-% Initialization.
+%% Initialization.
 -export([
-  start/0,
-  version/0
-]).
+	 start/0,
+	 version/0
+	]).
 
-% application(3erl) callbacks.
+%% application(3erl) callbacks.
 -export([
-  start/2,
-  stop/1,
-  config_change/3
-]).
+	 start/2,
+	 stop/1,
+	 config_change/3
+	]).
 
-% --------------------------------------------------------------------
-% Generic utilities.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Generic utilities.
+%% --------------------------------------------------------------------
 
 %% @spec () -> ok
 %% @doc Start applications which exmpp depends on then start exmpp.
@@ -47,9 +47,9 @@ version() ->
     {ok, Version} = application:get_key(exmpp, vsn),
     Version.
 
-% --------------------------------------------------------------------
-% application(3erl) callbacks.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% application(3erl) callbacks.
+%% --------------------------------------------------------------------
 
 %% @hidden
 
@@ -65,8 +65,8 @@ stop(_State) ->
 
 config_change(Changed, New, Removed) ->
     error_logger:info_msg("Config change:~n"
-      "Changed: ~p~n"
-      "New: ~p~n"
-      "Removed: ~p~n",
-      [Changed, New, Removed]),
+			  "Changed: ~p~n"
+			  "New: ~p~n"
+			  "Removed: ~p~n",
+			  [Changed, New, Removed]),
     ok.

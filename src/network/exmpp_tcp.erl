@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %% @author Mickael Remond <mickael.remond@process-one.net>
 
@@ -51,12 +51,12 @@ activate(ReceiverPid) ->
 	    erlang:throw({socket_error, cannot_activate_socket})
     end.
 
-% if we use active-once before spawning the receiver process,
-% we can receive some data in the original process rather than
-% in the receiver process. So {active,once} is is set explicitly
-% in the receiver process. NOTE: in this case this wouldn't make
-% a big difference, as the connecting client should send the
-% stream header before receiving anything
+%% if we use active-once before spawning the receiver process,
+%% we can receive some data in the original process rather than
+%% in the receiver process. So {active,once} is is set explicitly
+%% in the receiver process. NOTE: in this case this wouldn't make
+%% a big difference, as the connecting client should send the
+%% stream header before receiving anything
 
 close(Socket, ReceiverPid) ->
     ReceiverPid ! stop,
@@ -89,6 +89,6 @@ receiver_loop(ClientPid, Socket, StreamRef) ->
 	    {ok, NewStreamRef} = exmpp_xmlstream:parse(StreamRef, Data),
 	    receiver_loop(ClientPid, Socket, NewStreamRef);
 	{tcp_closed, Socket} ->
-	    % XXX why it timeouts with timeout 10 seconds with quickchek tests ???
+	    %% XXX why timeouts with timeout 10 seconds with quickchek tests ???
 	    gen_fsm:sync_send_all_state_event(ClientPid, tcp_closed, 20000)
     end.

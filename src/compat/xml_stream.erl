@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %%%----------------------------------------------------------------------
 %%% File    : xml_stream.erl
@@ -18,7 +18,7 @@
 %%% but WITHOUT ANY WARRANTY; without even the implied warranty of
 %%% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 %%% General Public License for more details.
-%%%                         
+%%%
 %%% You should have received a copy of the GNU General Public License
 %%% along with this program; if not, write to the Free Software
 %%% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
@@ -57,7 +57,8 @@ parse(State, Str) ->
         New_State
     catch
 	throw:{xml_parser, parsing, stanza_too_big, _} ->
-	    exmpp_xmlstream:send_events(State,
+	    exmpp_xmlstream:send_events(
+	      State,
 	      [{xmlstreamerror, "XML stanza is too big"}]),
             State
     end.

@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
@@ -11,59 +11,59 @@
 
 -include("exmpp.hrl").
 
-% Presence creation.
+%% Presence creation.
 -export([
-  presence/2,
-  available/0,
-  unavailable/0,
-  subscribe/0,
-  subscribed/0,
-  unsubscribe/0,
-  unsubscribed/0,
-  probe/0,
-  error/2
-]).
+	 presence/2,
+	 available/0,
+	 unavailable/0,
+	 subscribe/0,
+	 subscribed/0,
+	 unsubscribe/0,
+	 unsubscribed/0,
+	 probe/0,
+	 error/2
+	]).
 
-% Presence standard attributes.
+%% Presence standard attributes.
 -export([
-  is_presence/1,
-  get_type/1,
-  get_show/1,
-  set_show/2,
-  get_status/1,
-  set_status/2,
-  get_priority/1,
-  set_priority/2
-]).
+	 is_presence/1,
+	 get_type/1,
+	 get_show/1,
+	 set_show/2,
+	 get_status/1,
+	 set_status/2,
+	 get_priority/1,
+	 set_priority/2
+	]).
 
 -define(EMPTY_PRESENCE, #xmlel{ns = ?NS_JABBER_CLIENT, name = 'presence'}).
 
-% --------------------------------------------------------------------
-% Type definitions.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Type definitions.
+%% --------------------------------------------------------------------
 
 -type(presencetype() ::
-  available    |
-  unavailable  |
-  subscribe    |
-  subscribed   |
-  unsubscribe  |
-  unsubscribed |
-  probe        |
-  error
-).
+      available    |
+      unavailable  |
+      subscribe    |
+      subscribed   |
+      unsubscribe  |
+      unsubscribed |
+      probe        |
+      error
+     ).
 
 -type(presenceshow() ::
-  online |
-  away   |
-  chat   |
-  dnd    |
-  xa
-).
+      online |
+      away   |
+      chat   |
+      dnd    |
+      xa
+     ).
 
-% --------------------------------------------------------------------
-% Presence creation.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Presence creation.
+%% --------------------------------------------------------------------
 
 %% @spec (Type, Status) -> Presence
 %%     Type = available | unavailable | subscribe | subscribed | unsubscribe | unsubscribed | probe | error
@@ -169,9 +169,9 @@ error(Presence, Condition) when is_atom(Condition) ->
 error(Presence, Error) when ?IS_PRESENCE(Presence) ->
     exmpp_stanza:reply_with_error(Presence, Error).
 
-% --------------------------------------------------------------------
-% Presence standard attributes.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Presence standard attributes.
+%% --------------------------------------------------------------------
 
 %% @spec (El) -> bool
 %%     El = exmpp_xml:xmlel()
@@ -233,15 +233,15 @@ set_type(Presence, Type) when is_list(Type) ->
 
 set_type(Presence, Type) when ?IS_PRESENCE(Presence), is_atom(Type) ->
     Type_B = case Type of
-        'unavailable'  -> <<"unavailable">>;
-        'subscribe'    -> <<"subscribe">>;
-        'subscribed'   -> <<"subscribed">>;
-        'unsubscribe'  -> <<"unsubscribe">>;
-        'unsubscribed' -> <<"unsubscribed">>;
-        'probe'        -> <<"probe">>;
-        'error'        -> <<"error">>;
-        _              -> throw({presence, set_type, invalid_type, Type})
-    end,
+		 'unavailable'  -> <<"unavailable">>;
+		 'subscribe'    -> <<"subscribe">>;
+		 'subscribed'   -> <<"subscribed">>;
+		 'unsubscribe'  -> <<"unsubscribe">>;
+		 'unsubscribed' -> <<"unsubscribed">>;
+		 'probe'        -> <<"probe">>;
+		 'error'        -> <<"error">>;
+		 _              -> throw({presence, set_type, invalid_type, Type})
+	     end,
     exmpp_stanza:set_type(Presence, Type_B).
 
 %% @spec (Presence) -> Show | undefined
@@ -300,12 +300,12 @@ set_show(Presence, Show) when is_list(Show) ->
 set_show(#xmlel{ns = NS} = Presence, Show)
   when ?IS_PRESENCE(Presence), is_atom(Show) ->
     Show_B = case Show of
-        'away' -> <<"away">>;
-        'chat' -> <<"chat">>;
-        'dnd'  -> <<"dnd">>;
-        'xa'   -> <<"xa">>;
-        _      -> throw({presence, set_show, invalid_show, Show})
-    end,
+		 'away' -> <<"away">>;
+		 'chat' -> <<"chat">>;
+		 'dnd'  -> <<"dnd">>;
+		 'xa'   -> <<"xa">>;
+		 _      -> throw({presence, set_show, invalid_show, Show})
+	     end,
     New_Show_El = exmpp_xml:set_cdata(#xmlel{ns = NS, name = 'show'}, Show_B),
     case exmpp_xml:get_element(Presence, NS, 'show') of
         undefined ->
@@ -351,7 +351,7 @@ set_status(#xmlel{ns = NS} = Presence, "") when ?IS_PRESENCE(Presence) ->
     exmpp_xml:remove_element(Presence, NS, 'status');
 set_status(#xmlel{ns = NS} = Presence, Status) when ?IS_PRESENCE(Presence) ->
     New_Status_El = exmpp_xml:set_cdata(#xmlel{ns = NS, name = 'status'},
-      Status),
+					Status),
     case exmpp_xml:get_element(Presence, NS, 'status') of
         undefined ->
             exmpp_xml:append_child(Presence, New_Status_El);
@@ -390,7 +390,7 @@ get_priority(#xmlel{ns = NS} = Presence) when ?IS_PRESENCE(Presence) ->
 set_priority(#xmlel{ns = NS} = Presence, Priority)
   when ?IS_PRESENCE(Presence) andalso is_integer(Priority) ->
     New_Priority_El = exmpp_xml:set_cdata(#xmlel{ns = NS, name = 'priority'},
-      Priority),
+					  Priority),
     case exmpp_xml:get_element(Presence, NS, 'priority') of
         undefined ->
             exmpp_xml:append_child(Presence, New_Priority_El);

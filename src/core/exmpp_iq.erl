@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
@@ -11,43 +11,43 @@
 
 -include("exmpp.hrl").
 
-% Creation.
+%% Creation.
 -export([
-  get/2,
-  get/3,
-  set/2,
-  set/3,
-  result/1,
-  result/2,
-  error/2,
-  error_without_original/2
-]).
+	 get/2,
+	 get/3,
+	 set/2,
+	 set/3,
+	 result/1,
+	 result/2,
+	 error/2,
+	 error_without_original/2
+	]).
 
-% #iq record conversion.
+%% #iq record conversion.
 -export([
-  xmlel_to_iq/1,
-  iq_to_xmlel/1,
-  iq_to_xmlel/3
-]).
+	 xmlel_to_iq/1,
+	 iq_to_xmlel/1,
+	 iq_to_xmlel/3
+	]).
 
-% IQ standard attributes.
+%% IQ standard attributes.
 -export([
-  is_iq/1,
-  is_iq_record/1,
-  is_request/1,
-  is_response/1,
-  is_result/1,
-  is_error/1,
-  get_type/1,
-  get_kind/1,
-  get_request/1,
-  get_result/1,
-  get_payload/1
-]).
+	 is_iq/1,
+	 is_iq_record/1,
+	 is_request/1,
+	 is_response/1,
+	 is_result/1,
+	 is_error/1,
+	 get_type/1,
+	 get_kind/1,
+	 get_request/1,
+	 get_result/1,
+	 get_payload/1
+	]).
 
-% --------------------------------------------------------------------
-% Documentation / type definitions.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Documentation / type definitions.
+%% --------------------------------------------------------------------
 
 %% @type iq() = {iq, Kind, Type, ID, NS, Payload, Error, Lang, IQ_NS}
 %%     Kind = request | response
@@ -65,9 +65,9 @@
 %% {@link exmpp_stanza} and {@link exmpp_iq}. For other operations, it
 %% must be converted back to #xmlel using {@link iq_to_xmlel/1}.
 
-% --------------------------------------------------------------------
-% IQ creation.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% IQ creation.
+%% --------------------------------------------------------------------
 
 %% @spec (NS, Request) -> IQ
 %%     NS = atom()
@@ -88,17 +88,16 @@ get(NS, Request) ->
 %% @doc Prepare an `<iq/>' to transport the given `get' request.
 
 -spec(get/3 ::
-  (xmlname(), #xmlel{}, binary() | string() | random) -> #xmlel{}).
+      (xmlname(), #xmlel{}, binary() | string() | random) -> #xmlel{}).
 
 get(NS, Request, ID) ->
     Attrs1 = exmpp_stanza:set_type_in_attrs([], <<"get">>),
     Attrs2 = exmpp_stanza:set_id_in_attrs(Attrs1, ID),
-    #xmlel{
-      ns = NS,
-      name = 'iq',
-      attrs = Attrs2,
-      children = [Request]
-    }.
+    #xmlel{ns = NS,
+	   name = 'iq',
+	   attrs = Attrs2,
+	   children = [Request]
+	  }.
 
 %% @spec (NS, Request) -> Request_IQ
 %%     NS = atom()
@@ -119,17 +118,16 @@ set(NS, Request) ->
 %% @doc Prepare an `<iq/>' to transport the given `set' request.
 
 -spec(set/3 ::
-  (xmlname(), #xmlel{}, binary() | string() | random) -> #xmlel{}).
+      (xmlname(), #xmlel{}, binary() | string() | random) -> #xmlel{}).
 
 set(NS, Request, ID) ->
     Attrs1 = exmpp_stanza:set_type_in_attrs([], <<"set">>),
     Attrs2 = exmpp_stanza:set_id_in_attrs(Attrs1, ID),
-    #xmlel{
-      ns = NS,
-      name = 'iq',
-      attrs = Attrs2,
-      children = [Request]
-    }.
+    #xmlel{ns = NS,
+	   name = 'iq',
+	   attrs = Attrs2,
+	   children = [Request]
+	  }.
 
 %% @spec (Request_IQ) -> Response_IQ
 %%     Request_IQ = exmpp_xml:xmlel() | iq()
@@ -141,18 +139,16 @@ set(NS, Request, ID) ->
 result(Request_IQ) when ?IS_IQ(Request_IQ) ->
     Attrs1 = exmpp_stanza:reply_from_attrs(Request_IQ#xmlel.attrs),
     Attrs2 = exmpp_stanza:set_type_in_attrs(Attrs1, <<"result">>),
-    #xmlel{
-      ns = Request_IQ#xmlel.ns,
-      name = 'iq',
-      attrs = Attrs2
-    };
+    #xmlel{ns = Request_IQ#xmlel.ns,
+	   name = 'iq',
+	   attrs = Attrs2
+	  };
 result(Request_IQ_Rec) when ?IS_IQ_RECORD(Request_IQ_Rec) ->
-    Request_IQ_Rec#iq{
-      kind = response,
-      type = result,
-      ns = undefined,
-      payload = undefined
-    }.
+    Request_IQ_Rec#iq{kind = response,
+		      type = result,
+		      ns = undefined,
+		      payload = undefined
+		     }.
 
 %% @spec (Request_IQ, Result) -> Response_IQ
 %%     Request_IQ = exmpp_xml:xmlel() | iq()
@@ -178,7 +174,7 @@ result(Request_IQ_Rec, Result) when ?IS_IQ_RECORD(Request_IQ_Rec) ->
 %% XMPP Core.
 
 -spec(error/2 ::
-  (#xmlel{} | #iq{}, #xmlel{} | atom()) -> #xmlel{} | #iq{}).
+      (#xmlel{} | #iq{}, #xmlel{} | atom()) -> #xmlel{} | #iq{}).
 
 error(IQ, Condition)
   when is_atom(Condition) andalso ?IS_IQ(IQ) ->
@@ -191,11 +187,10 @@ error(IQ_Rec, Condition)
 error(IQ, Error) when ?IS_IQ(IQ) ->
     exmpp_stanza:reply_with_error(IQ, Error);
 error(IQ_Rec, Error) when ?IS_IQ_RECORD(IQ_Rec) ->
-    IQ_Rec#iq{
-      kind = response,
-      type = error,
-      error = Error
-    }.
+    IQ_Rec#iq{kind = response,
+	      type = error,
+	      error = Error
+	     }.
 
 %% @spec (Request_IQ, Error) -> Response_IQ
 %%     Request_IQ = exmpp_xml:xmlel() | iq()
@@ -209,7 +204,7 @@ error(IQ_Rec, Error) when ?IS_IQ_RECORD(IQ_Rec) ->
 %% XMPP Core.
 
 -spec(error_without_original/2 ::
-  (#xmlel{} | #iq{}, #xmlel{} | atom()) -> #xmlel{} | #iq{}).
+      (#xmlel{} | #iq{}, #xmlel{} | atom()) -> #xmlel{} | #iq{}).
 
 error_without_original(IQ, Condition) when is_atom(Condition) ->
     Error = exmpp_stanza:error(IQ#xmlel.ns, Condition),
@@ -217,16 +212,15 @@ error_without_original(IQ, Condition) when is_atom(Condition) ->
 error_without_original(IQ, Error) when ?IS_IQ(IQ) ->
     exmpp_stanza:reply_with_error(IQ#xmlel{children = []}, Error);
 error_without_original(IQ_Rec, Error) when ?IS_IQ_RECORD(IQ_Rec) ->
-    IQ_Rec#iq{
-      kind = response,
-      type = error,
-      error = Error,
-      payload = undefined
-    }.
+    IQ_Rec#iq{kind = response,
+	      type = error,
+	      error = Error,
+	      payload = undefined
+	     }.
 
-% --------------------------------------------------------------------
-% #iq record conversion.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% #iq record conversion.
+%% --------------------------------------------------------------------
 
 %% @spec (IQ) -> IQ_Rec
 %%     IQ = exmpp_xml:xmlel()
@@ -239,30 +233,30 @@ xmlel_to_iq(#xmlel{ns = IQ_NS} = IQ) when ?IS_IQ(IQ) ->
     Kind = get_kind(IQ),
     Type = get_type(IQ),
     ID = exmpp_stanza:get_id(IQ),
-    {NS, Payload, Error} = case get_payload(IQ) of
-        #xmlel{ns = IQ_NS} = E when Type == 'error' ->
-            case get_request(IQ) of
-                undefined ->
-                    {undefined, undefined, E};
-                #xmlel{ns = N} = P ->
-                    {N, P, E}
-            end;
-        #xmlel{ns = N} = P ->
-            {N, P, undefined};
-        undefined when Type == 'result' ->
-            {undefined, undefined, undefined}
-    end,
+    {NS, Payload, Error} =
+	case get_payload(IQ) of
+	    #xmlel{ns = IQ_NS} = E when Type == 'error' ->
+		case get_request(IQ) of
+		    undefined ->
+			{undefined, undefined, E};
+		    #xmlel{ns = N} = P ->
+			{N, P, E}
+		end;
+	    #xmlel{ns = N} = P ->
+		{N, P, undefined};
+	    undefined when Type == 'result' ->
+		{undefined, undefined, undefined}
+	end,
     Lang = exmpp_stanza:get_lang(IQ),
-    #iq{
-      kind = Kind,
-      type = Type,
-      id = ID,
-      ns = NS,
-      payload = Payload,
-      error = Error,
-      lang = Lang,
-      iq_ns = IQ_NS
-    }.
+    #iq{kind = Kind,
+	type = Type,
+	id = ID,
+	ns = NS,
+	payload = Payload,
+	error = Error,
+	lang = Lang,
+	iq_ns = IQ_NS
+       }.
 
 %% @spec (IQ_Rec) -> IQ
 %%     IQ_Rec = iq()
@@ -283,35 +277,34 @@ iq_to_xmlel(IQ_Rec) when ?IS_IQ_RECORD(IQ_Rec) ->
 %% set the sender and recipient at the same time.
 
 -spec(iq_to_xmlel/3 ::
-  (#iq{}, exmpp_stanza:jidlike(), exmpp_stanza:jidlike()) -> #xmlel{}).
+      (#iq{}, exmpp_stanza:jidlike(), exmpp_stanza:jidlike()) -> #xmlel{}).
 
 iq_to_xmlel(IQ_Rec, Sender, Recipient) when ?IS_IQ_RECORD(IQ_Rec) ->
     Attrs = exmpp_stanza:set_jids_in_attrs([], Sender, Recipient),
     iq_to_xmlel2(IQ_Rec, Attrs).
 
 iq_to_xmlel2(#iq{type = Type, id = ID, lang = Lang, payload = Payload,
-  error = Error, iq_ns = IQ_NS}, Attrs) -> 
+		 error = Error, iq_ns = IQ_NS}, Attrs) ->
     Attrs1 = exmpp_stanza:set_type_in_attrs(Attrs, Type),
     Attrs2 = exmpp_stanza:set_id_in_attrs(Attrs1, ID),
     Attrs3 = exmpp_stanza:set_lang_in_attrs(Attrs2, Lang),
     Children1 = if
-        Type == 'error' andalso Error /= undefined -> [Error];
-        true                                       -> []
-    end,
+		    Type == 'error' andalso Error /= undefined -> [Error];
+		    true                                       -> []
+		end,
     Children2 = case Payload of
-        undefined -> Children1;
-        _         -> [Payload | Children1]
-    end,
-    #xmlel{
-      ns = IQ_NS,
-      name = 'iq',
-      attrs = Attrs3,
-      children = Children2
-    }.
+		    undefined -> Children1;
+		    _         -> [Payload | Children1]
+		end,
+    #xmlel{ns = IQ_NS,
+	   name = 'iq',
+	   attrs = Attrs3,
+	   children = Children2
+	  }.
 
-% --------------------------------------------------------------------
-% IQ standard attributes.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% IQ standard attributes.
+%% --------------------------------------------------------------------
 
 %% @spec (El) -> bool()
 %%     El = exmpp_xml:xmlel()
@@ -341,7 +334,7 @@ is_iq_record(_El)                       -> false.
 %% @doc Return the type of the given `<iq/>'.
 
 -spec(get_type/1 ::
-  (#xmlel{} | #iq{}) -> get | set | result | error | undefined).
+      (#xmlel{} | #iq{}) -> get | set | result | error | undefined).
 
 get_type(IQ) when ?IS_IQ(IQ) ->
     case exmpp_stanza:get_type(IQ) of
@@ -360,7 +353,7 @@ get_type(#iq{type = Type}) ->
 %% @doc Tell if an IQ is a request or a response.
 
 -spec(get_kind/1 ::
-  (#xmlel{} | #iq{}) -> request | response | undefined).
+      (#xmlel{} | #iq{}) -> request | response | undefined).
 
 get_kind(IQ) when ?IS_IQ(IQ) ->
     case get_type(IQ) of
@@ -444,9 +437,9 @@ get_request(IQ) when ?IS_IQ(IQ) ->
         undefined ->
             throw({iq, get_request, invalid_iq, IQ});
         Type when Type == 'get' orelse Type == 'set' ->
-            % We take the first child element. Note that the RFC says
-            % that this child element MUST be the only one! This doesn't
-            % take into account text nodes.
+	    %% We take the first child element. Note that the RFC says
+	    %% that this child element MUST be the only one! This doesn't
+	    %% take into account text nodes.
             [Request | _] = exmpp_xml:get_child_elements(IQ),
             Request;
         'result' ->

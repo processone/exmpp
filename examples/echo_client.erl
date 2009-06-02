@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %% @author Mickael Remond <mickael.remond@process-one.net>
 
@@ -17,7 +17,7 @@
 %% echo_client:stop(Session).</pre>
 %%
 %% <p>This code is copyright Process-one (http://www.process-one.net/)</p>
-%% 
+%%
 
 -module(echo_client).
 
@@ -34,7 +34,7 @@ stop(EchoClientPid) ->
     EchoClientPid ! stop.
 
 
-init() ->    
+init() ->
     application:start(exmpp),
     %% Start XMPP session: Needed to start service (Like
     %% exmpp_stringprep):
@@ -81,7 +81,7 @@ loop(MySession) ->
             io:format("~p~n", [Record]),
             loop(MySession)
     end.
-   
+
 %% Send the same packet back for each message received
 echo_packet(MySession, Packet) ->
     From = exmpp_xml:get_attribute(Packet, from, <<"unknown">>),

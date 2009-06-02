@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
@@ -98,36 +98,36 @@
 
 -include("exmpp.hrl").
 
-% Creating stanza.
+%% Creating stanza.
 -export([
-  request/1,
-  request/2,
-  request_with_user/2,
-  request_with_user/3,
-  password/4,
-  password/5,
-  password_plain/3,
-  password_plain/4,
-  password_digest/3,
-  password_digest/4
-]).
+	 request/1,
+	 request/2,
+	 request_with_user/2,
+	 request_with_user/3,
+	 password/4,
+	 password/5,
+	 password_plain/3,
+	 password_plain/4,
+	 password_digest/3,
+	 password_digest/4
+	]).
 
-% Accessing informations.
+%% Accessing informations.
 -export([
-  get_fields/1,
-  get_prefered_auth/1,
-  is_success/1
-]).
+	 get_fields/1,
+	 get_prefered_auth/1,
+	 is_success/1
+	]).
 
-% Tools.
+%% Tools.
 -export([
-  digest/2,
-  hex/1
-]).
+	 digest/2,
+	 hex/1
+	]).
 
-% --------------------------------------------------------------------
-% Creating stanza.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Creating stanza.
+%% --------------------------------------------------------------------
 
 %% @spec (To) -> Request_IQ
 %%     To = string()
@@ -149,7 +149,7 @@ request(To, ID) ->
     Query = #xmlel{
       ns = ?NS_LEGACY_AUTH,
       name = 'query'
-    },
+     },
     IQ = exmpp_iq:get(?NS_JABBER_CLIENT, Query, ID),
     exmpp_stanza:set_recipient(IQ, To).
 
@@ -173,13 +173,13 @@ request_with_user(To, Username) ->
 
 request_with_user(To, Username, ID) ->
     Username_El = exmpp_xml:set_cdata(
-      #xmlel{ns = ?NS_LEGACY_AUTH, name = 'username'},
-      Username),
+		    #xmlel{ns = ?NS_LEGACY_AUTH, name = 'username'},
+		    Username),
     Query = #xmlel{
       ns = ?NS_LEGACY_AUTH,
       name = 'query',
       children = [Username_El]
-    },
+     },
     IQ = exmpp_iq:get(?NS_JABBER_CLIENT, Query, ID),
     exmpp_stanza:set_recipient(IQ, To).
 
@@ -237,19 +237,19 @@ password_plain(Username, Password, Resource) ->
 
 password_plain(Username, Password, Resource, ID) ->
     Username_El = exmpp_xml:set_cdata(
-      #xmlel{ns = ?NS_LEGACY_AUTH, name = 'username'},
-      Username),
+		    #xmlel{ns = ?NS_LEGACY_AUTH, name = 'username'},
+		    Username),
     Password_El = exmpp_xml:set_cdata(
-      #xmlel{ns = ?NS_LEGACY_AUTH, name = 'password'},
-      Password),
+		    #xmlel{ns = ?NS_LEGACY_AUTH, name = 'password'},
+		    Password),
     Resource_El = exmpp_xml:set_cdata(
-      #xmlel{ns = ?NS_LEGACY_AUTH, name = 'resource'},
-      Resource),
+		    #xmlel{ns = ?NS_LEGACY_AUTH, name = 'resource'},
+		    Resource),
     Query = #xmlel{
       ns = ?NS_LEGACY_AUTH,
       name = 'query',
       children = [Username_El, Password_El, Resource_El]
-    },
+     },
     exmpp_iq:set(?NS_JABBER_CLIENT, Query, ID).
 
 %% @spec (Username, Password, Resource) -> Password_IQ
@@ -276,24 +276,24 @@ password_digest(Username, Password, Resource) ->
 
 password_digest(Username, Password, Resource, ID) ->
     Username_El = exmpp_xml:set_cdata(
-      #xmlel{ns = ?NS_LEGACY_AUTH, name = 'username'},
-      Username),
+		    #xmlel{ns = ?NS_LEGACY_AUTH, name = 'username'},
+		    Username),
     Digest_El = exmpp_xml:set_cdata(
-      #xmlel{ns = ?NS_LEGACY_AUTH, name = 'digest'},
-      hex(digest(ID, Password))),
+		  #xmlel{ns = ?NS_LEGACY_AUTH, name = 'digest'},
+		  hex(digest(ID, Password))),
     Resource_El = exmpp_xml:set_cdata(
-      #xmlel{ns = ?NS_LEGACY_AUTH, name = 'resource'},
-      Resource),
+		    #xmlel{ns = ?NS_LEGACY_AUTH, name = 'resource'},
+		    Resource),
     Query = #xmlel{
       ns = ?NS_LEGACY_AUTH,
       name = 'query',
       children = [Username_El, Digest_El, Resource_El]
-    },
+     },
     exmpp_iq:set(?NS_JABBER_CLIENT, Query, ID).
 
-% --------------------------------------------------------------------
-% Accessing informations.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Accessing informations.
+%% --------------------------------------------------------------------
 
 %% @spec (Fields_IQ) -> Fields
 %%     Fields_IQ = exmpp_xml:xmlel()
@@ -307,14 +307,14 @@ get_fields(Fields_IQ) when ?IS_IQ(Fields_IQ) ->
         undefined ->
             throw({legacy_auth, get_fields, invalid_iq, Fields_IQ});
         #xmlel{ns = ?NS_LEGACY_AUTH, name = 'query', children = Children}
-          when length(Children) == 3 orelse length(Children) == 4 ->
+	when length(Children) == 3 orelse length(Children) == 4 ->
             get_fields2(Children, []);
         _ ->
             throw({legacy_auth, get_fields, invalid_iq, Fields_IQ})
     end.
 
 get_fields2([#xmlel{ns = ?NS_LEGACY_AUTH, name = Field} | Rest],
-  Fields) ->
+	    Fields) ->
     get_fields2(Rest, [Field | Fields]);
 get_fields2([Field | _Rest], _Fields) ->
     throw({legacy_auth, get_fields, invalid_field, Field});
@@ -343,9 +343,9 @@ is_success(IQ) when ?IS_IQ(IQ) ->
         _        -> throw({legacy_auth, is_success, unexpected_iq, IQ})
     end.
 
-% --------------------------------------------------------------------
-% Tools.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Tools.
+%% --------------------------------------------------------------------
 
 %% @spec (ID, Passwd) -> Digest
 %%     ID = string()
@@ -379,9 +379,9 @@ int_to_hexchar(14) -> $e;
 int_to_hexchar(15) -> $f;
 int_to_hexchar(I)  -> $0 + I.
 
-% --------------------------------------------------------------------
-% Internal functions.
-% --------------------------------------------------------------------
+%% --------------------------------------------------------------------
+%% Internal functions.
+%% --------------------------------------------------------------------
 
 %% @spec () -> Auth_ID
 %%     Auth_ID = string()

@@ -1,4 +1,4 @@
-% $Id$
+%% $Id$
 
 %% @author Will Glozer <will@glozer.net>
 
@@ -28,11 +28,11 @@
 %% Ref is a socket
 connect(ClientPid, StreamRef, {Host, Port}) ->
     DefaultOptions = [{packet,0}, binary, {active, once}],
-	{SetOptsModule,Opts} =
-			case check_new_ssl() of
-			   true ->  {inet,[{reuseaddr,true}|DefaultOptions]};
-			   false -> {ssl,DefaultOptions}
-			end,
+    {SetOptsModule,Opts} =
+	case check_new_ssl() of
+	    true ->  {inet,[{reuseaddr,true}|DefaultOptions]};
+	    false -> {ssl,DefaultOptions}
+	end,
     case ssl:connect(Host, Port, Opts, 30000) of
 	{ok, Socket} ->
 	    %% TODO: Hide receiver failures in API
@@ -43,12 +43,12 @@ connect(ClientPid, StreamRef, {Host, Port}) ->
 	{error, Reason} ->
 	    erlang:throw({socket_error, Reason})
     end.
-% if we use active-once before spawning the receiver process,
-% we can receive some data in the original process rather than
-% in the receiver process. So {active.once} is is set explicitly
-% in the receiver process. NOTE: in this case this wouldn't make
-% a big difference, as the connecting client should send the
-% stream header before receiving anything
+%% if we use active-once before spawning the receiver process,
+%% we can receive some data in the original process rather than
+%% in the receiver process. So {active.once} is is set explicitly
+%% in the receiver process. NOTE: in this case this wouldn't make
+%% a big difference, as the connecting client should send the
+%% stream header before receiving anything
 
 
 close(Socket, ReceiverPid) ->
@@ -70,7 +70,7 @@ receiver(ClientPid, Socket,SetOptsModule, StreamRef) ->
     receiver_loop(ClientPid, Socket,SetOptsModule, StreamRef).
 
 receiver_loop(ClientPid, Socket,SetOptsModule, StreamRef) ->
-	SetOptsModule:setopts(Socket, [{active, once}]),
+    SetOptsModule:setopts(Socket, [{active, once}]),
     receive
 	stop ->
 	    ok;
@@ -79,15 +79,15 @@ receiver_loop(ClientPid, Socket,SetOptsModule, StreamRef) ->
 	    receiver_loop(ClientPid, Socket,SetOptsModule, NewStreamRef);
 	{ssl_closed, Socket} ->
 	    gen_fsm:sync_send_all_state_event(ClientPid, tcp_closed);
-    {ssl_error,Socket,Reason} ->
-        error_logger:warning_msg([ssl_error,{ssl_socket,Socket},Reason]),
+	{ssl_error,Socket,Reason} ->
+	    error_logger:warning_msg([ssl_error,{ssl_socket,Socket},Reason]),
 	    gen_fsm:sync_send_all_state_event(ClientPid, tcp_closed)
     end.
 
 
 %% In R12, inet:setopts/2 doesn't accept the new ssl sockets
 check_new_ssl() ->
-	case erlang:system_info(version) of
+    case erlang:system_info(version) of
         [$5,$.,Maj] when Maj < $6  ->
             false;
         [$5,$.,Maj, $.,_Min] when ( Maj < $6 ) ->
