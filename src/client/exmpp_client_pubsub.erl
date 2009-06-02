@@ -1,7 +1,6 @@
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
 
 -module(exmpp_client_pubsub).
--vsn('$Revision$').
 
 -include("exmpp.hrl").
 

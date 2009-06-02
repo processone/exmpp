@@ -1,5 +1,4 @@
 -module(check_xml_attribute_handlers).
--vsn('$Revision$').
 
 -include("exmpp.hrl").
 

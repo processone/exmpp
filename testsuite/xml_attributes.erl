@@ -1,5 +1,4 @@
 -module(xml_attributes).
--vsn('$Revision$').
 
 -include_lib("eunit/include/eunit.hrl").
 

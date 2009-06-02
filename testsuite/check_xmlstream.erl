@@ -1,5 +1,4 @@
 -module(check_xmlstream).
--vsn('$Revision$').
 
 -include("exmpp.hrl").
 

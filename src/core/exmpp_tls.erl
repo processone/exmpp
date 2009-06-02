@@ -5,7 +5,6 @@
 %% TLS session.
 
 -module(exmpp_tls).
--vsn('$Revision$').
 
 -behaviour(gen_server).
 

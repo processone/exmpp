@@ -5,7 +5,6 @@
 %% operations.
 
 -module(exmpp_iq).
--vsn('$Revision$').
 
 -include("exmpp.hrl").
 

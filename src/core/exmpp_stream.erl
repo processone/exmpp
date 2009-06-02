@@ -100,7 +100,6 @@
 %% </table>
 
 -module(exmpp_stream).
--vsn('$Revision$').
 
 -include("exmpp.hrl").
 

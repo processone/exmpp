@@ -5,7 +5,6 @@
 %% stream compression.
 
 -module(exmpp_compress).
--vsn('$Revision$').
 
 -behaviour(gen_server).
 

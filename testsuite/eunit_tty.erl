@@ -1,5 +1,4 @@
 -module(eunit_tty).
--vsn('$Revision$').
 
 -include("exmpp_xml.hrl").
 

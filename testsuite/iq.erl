@@ -1,5 +1,4 @@
 -module(iq).
--vsn('$Revision$').
 
 -include_lib("eunit/include/eunit.hrl").
 

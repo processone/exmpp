@@ -1,5 +1,4 @@
 -module(xml_parser).
--vsn('$Revision$').
 
 -include_lib("eunit/include/eunit.hrl").
 

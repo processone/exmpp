@@ -5,7 +5,6 @@
 %% side of the Session Establishment.
 
 -module(exmpp_server_session).
--vsn('$Revision$').
 
 -include("exmpp.hrl").
 

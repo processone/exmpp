@@ -1,5 +1,4 @@
 -module(jid).
--vsn('$Revision$').
 
 -include_lib("eunit/include/eunit.hrl").
 

@@ -9,7 +9,6 @@
 %% </p>
 
 -module(exmpp_client_sasl).
--vsn('$Revision$').
 
 -include("exmpp.hrl").
 

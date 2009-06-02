@@ -16,7 +16,6 @@
 %% </p>
 
 -module(exmpp_sup).
--vsn('$Revision$').
 
 -behaviour(supervisor).
 

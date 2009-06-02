@@ -8,7 +8,6 @@
 %% @reference <a href="http://www.xmpp.org/extensions/xep-0229.html">XEP-0229: Stream Compression with LZW</a>
 
 -module(exmpp_client_compression).
--vsn('$Revision$').
 
 -include("exmpp.hrl").
 

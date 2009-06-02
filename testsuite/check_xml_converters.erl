@@ -1,5 +1,4 @@
 -module(check_xml_converters).
--vsn('$Revision$').
 
 -include("exmpp.hrl").
 

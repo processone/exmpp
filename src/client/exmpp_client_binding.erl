@@ -5,7 +5,6 @@
 %% entity side of Resource Binding.
 
 -module(exmpp_client_binding).
--vsn('$Revision$').
 
 -include("exmpp.hrl").
 

@@ -9,7 +9,6 @@
 %% </p>
 
 -module(exmpp_stringprep).
--vsn('$Revision$').
 
 -behaviour(gen_server).
 

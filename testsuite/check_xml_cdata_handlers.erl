@@ -1,5 +1,4 @@
 -module(check_xml_cdata_handlers).
--vsn('$Revision$').
 
 -include("exmpp.hrl").
 

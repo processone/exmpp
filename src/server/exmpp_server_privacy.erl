@@ -5,7 +5,6 @@
 %% side of privacy lists management.
 
 -module(exmpp_server_privacy).
--vsn('$Revision$').
 
 -include("exmpp.hrl").
 

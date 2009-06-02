@@ -5,7 +5,6 @@
 %% common operations.
 
 -module(exmpp_message).
--vsn('$Revision$').
 
 -include("exmpp.hrl").
 

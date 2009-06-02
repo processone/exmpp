@@ -1,5 +1,4 @@
 -module(check_xml_path).
--vsn('$Revision$').
 
 -include("exmpp.hrl").
 

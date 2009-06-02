@@ -5,7 +5,6 @@
 %% doesn't deserve a dedicated module.
 
 -module(exmpp_utils).
--vsn('$Revision$').
 
 %% Binary and string helpers.
 -export([

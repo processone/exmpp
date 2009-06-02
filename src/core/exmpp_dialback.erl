@@ -5,7 +5,6 @@
 %% server dialback method.
 
 -module(exmpp_dialback).
--vsn('$Revision$').
 
 -include("exmpp.hrl").
 

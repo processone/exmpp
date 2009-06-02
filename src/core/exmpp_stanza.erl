@@ -7,7 +7,6 @@
 %% standard stanza.
 
 -module(exmpp_stanza).
--vsn('$Revision$').
 
 -include("exmpp.hrl").
 

@@ -5,7 +5,6 @@
 %% other modules.
 
 -module(exmpp_internals).
--vsn('$Revision$').
 
 %% Port driver handling.
 -export([

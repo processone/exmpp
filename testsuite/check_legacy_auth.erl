@@ -1,5 +1,4 @@
 -module(check_legacy_auth).
--vsn('$Revision$').
 
 -include("exmpp.hrl").
 

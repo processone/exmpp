@@ -17,7 +17,6 @@
 %% </ul>
 
 -module(exmpp_xmlstream).
--vsn('$Revision$').
 
 -include("exmpp.hrl").
 

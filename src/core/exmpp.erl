@@ -10,7 +10,6 @@
 %% </p>
 
 -module(exmpp).
--vsn('$Revision$').
 
 -behaviour(application).
 

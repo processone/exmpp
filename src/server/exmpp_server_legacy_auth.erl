@@ -9,7 +9,6 @@
 %% @reference <a href="http://www.xmpp.org/extensions/xep-0078.html">XEP-0078: Non-SASL Authentication</a>
 
 -module(exmpp_server_legacy_auth).
--vsn('$Revision$').
 
 -include("exmpp.hrl").
 

@@ -20,7 +20,6 @@
 %% </p>
 
 -module(exmpp_xml).
--vsn('$Revision$').
 
 -behaviour(gen_server).
 

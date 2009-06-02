@@ -1,5 +1,4 @@
 -module(check_coverity).
--vsn('$Revision$').
 
 -export([check/0, do_check/0]).
 

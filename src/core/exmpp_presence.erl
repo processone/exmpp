@@ -5,7 +5,6 @@
 %% common operations.
 
 -module(exmpp_presence).
--vsn('$Revision$').
 
 -include("exmpp.hrl").
 
