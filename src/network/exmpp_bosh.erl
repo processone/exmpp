@@ -24,7 +24,7 @@
 
 -module(exmpp_bosh).
 
--include_lib("exmpp/include/exmpp.hrl").
+-include("exmpp.hrl").
 
 %% Behaviour exmpp_gen_transport ?
 -export([connect/3, connect/4, send/2, close/2]).
@@ -167,10 +167,12 @@ bosh_session_loop(State) ->
 	    bosh_session_loop(State)
     end.
 
+-ifdef(TEST_API).
 bosh_send_async({BoshManagerPid, _}, URL, SID, NewRID, XMLPacket) ->
     bosh_send_async(BoshManagerPid, URL, SID, NewRID, XMLPacket);
 bosh_send_async(BoshManagerPid, URL, SID, NewRID, XMLPacket) ->
     spawn_link(?MODULE,bosh_send,[BoshManagerPid, URL, SID, NewRID, XMLPacket]).
+-endif.
 
 bosh_send({BoshManagerPid,_}, URL, SID, NewRID, XMLPacket) ->
     bosh_send(BoshManagerPid, URL, SID, NewRID, XMLPacket);
