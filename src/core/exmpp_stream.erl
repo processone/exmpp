@@ -280,7 +280,7 @@ opening_reply(From, Default_NS, Version, ID) ->
     xmlel().
 
 opening_reply(From, Default_NS, Version, ID, Lang) ->
-						% Prepare attributes.
+    %% Prepare attributes.
     Attrs1 = set_initiating_entity_in_attrs([], From),
     Attrs2 = set_version_in_attrs(Attrs1, Version),
     Attrs3 = set_id_in_attrs(Attrs2, ID),

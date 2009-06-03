@@ -389,7 +389,7 @@
 %% the `Attr_Name' attribute. cdata asks for the character data of a
 %% node.
 
-						% Internal types.
+%% Internal types.
 -record(state, {
 	  known_nss_lists,   % These are #dict{} but I have no idea how to write the
 	  known_elems_lists, % contract when the type isn't public (it's internal to
@@ -3297,7 +3297,7 @@ forward_declare_ns(Curr_NS, [{NS, Prefix} = PNS | Rest],
 			       Default_NS, Prefixed_NS1)
     end;
 forward_declare_ns(Curr_NS, [], Attrs, Default_NS, Prefixed_NS) ->
-						% We finish with the current namespace of the element.
+    %% We finish with the current namespace of the element.
     Use_Default_NS = use_default_ns(Curr_NS, Default_NS),
     case Use_Default_NS of
         true ->
@@ -4274,7 +4274,7 @@ handle_call({add_known, Type, List_Name, New_Items}, _From, State) ->
             Fun2 = fun(Item, Acc) -> dict:store(Item, true, Acc) end,
             New_List = lists:foldl(Fun2, List, New_Items),
             New_Lists = dict:store(List_Name, New_List, Lists),
-						% Update the state.
+	    %% Update the state.
             New_State = case Type of
 			    nss   -> State#state{known_nss_lists = New_Lists};
 			    names -> State#state{known_elems_lists = New_Lists};

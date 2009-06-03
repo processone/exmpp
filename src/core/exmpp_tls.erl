@@ -681,7 +681,7 @@ recv(#tls_socket{socket = Socket_Desc, port = Port} = TLS_Socket, Timeout) ->
                 case Recv of
                     {ok, Packet} ->
                         engine_set_encrypted_input(Port, Packet),
-						% Try to decipher it.
+			%% Try to decipher it.
                         recv(TLS_Socket, New_Timeout);
                     {error, Reason} ->
                         {error, Reason}

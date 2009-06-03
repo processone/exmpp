@@ -606,7 +606,7 @@ logged_in(?iq, State) ->
 %% Process unexpected packet
 logged_in(_Packet, State) ->
     %% log it or do something better
-						%io:format("!!!ALERT!!! Unknown packet:~p~p~n", [_Packet, State]),
+    %%io:format("!!!ALERT!!! Unknown packet:~p~p~n", [_Packet, State]),
     {next_state, logged_in, State}.
 
 %% TODO:

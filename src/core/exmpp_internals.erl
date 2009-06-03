@@ -110,11 +110,11 @@ load_driver1(Driver_Name, [Dir | Rest], _Reason) ->
         ok ->
             ok;
         {error, Reason} ->
-						% Next directory.
+	    %% Next directory.
             load_driver1(Driver_Name, Rest, Reason)
     end;
 load_driver1(Driver_Name, [], Reason) ->
-						% We walk through each directories without being able to load the driver.
+    %% We walk through each directories without being able to load the driver.
     throw({port_driver, load, Reason, Driver_Name}).
 
 %% @spec (Driver_Name) -> ok
