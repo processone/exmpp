@@ -31,3 +31,12 @@ updateknown:
 	cd c_src && $(MAKE) $(AM_MAKEFLAGS) $@ || exit 1
 
 .PHONY: check-junit updateknown
+
+LASTSVNREVCHANGELOG = 810
+changelog:
+	svn up -r $(LASTSVNREVCHANGELOG) ChangeLog
+	mv ChangeLog ChangeLog.old
+	svn2cl -r BASE:$(LASTSVNREVCHANGELOG) -o ChangeLog --group-by-day \
+	    --separate-daylogs --break-before-msg --reparagraph .
+	cat ChangeLog.old >> ChangeLog
+	rm ChangeLog.old
