@@ -112,8 +112,8 @@ instance, to use GCC frontend for LLVM:
 6. Creating Autotools files
 ---------------------------
 
-If the provided configure script doesn't work in your system,
-you can regenerate it. For this, you'll have to
+If you work on a Subversion checkout, you'll have to generate some files
+such as the configure script and Makefile.in. For this, you'll have to
 install the following autotools:
     o  autoconf 2.60 or 2.61 (read below for 2.62 and 2.63)
     o  automake 1.9 or later
