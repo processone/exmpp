@@ -445,7 +445,7 @@ get_items_by_id(Id, Service, Node, ItemsID) ->
 %% The stanza `id' is generated automatically.
 
 get_items_max(Service, Node, Max) ->
-    get_items_max(pubsub_id, Service, Node, Max).
+    get_items_max(pubsub_id(), Service, Node, Max).
 
 %% @spec (Id, Service, Node, Max) -> Pubsub_Iq
 %%     Id = string()
