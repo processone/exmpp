@@ -40,6 +40,8 @@
 	 get_owner_subscriptions/3,
 	 set_owner_subscriptions/3,
 	 set_owner_subscriptions/4,
+	 get_owner_affiliations/2,
+	 get_owner_affiliations/3,
 	 delete_node/2,
 	 delete_node/3,
 	 subscribe/3,
@@ -647,6 +649,38 @@ set_owner_subscriptions(Id, Service, Node, Subscribers) ->
 	    {'to', Service},
 	    {'id', Id}]),
     exmpp_xml:append_child(Iq, Pubsub)
+
+%% @spec (Service, Node) -> Pubsub_Iq
+%%     Service = string()
+%%     Node = string()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for getting list of affiliations.
+%%
+%% The stanza `id' is generated automatically.
+
+get_owner_affiliations(Service, Node) ->
+    get_owner_affiliations(publish_id(), Service, Node).
+
+%% @spec (Id, Service, Node) -> Pubsub_Iq
+%%     Id = string()
+%%     Service = string()
+%%     Node = string()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for getting list of affiliations.
+
+get_owner_affiliations(Id, Service, Node) ->
+    Affiliations = exmpp_xml:set_attributes(
+	    #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'affiliations'}, [
+	    {'node', Node}]),
+    Pubsub = exmpp_xml:append_child(
+	    #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'pubsub'},
+	    Affiliations),
+    Iq = exmpp_xml:set_attributes(
+	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
+	    {'type', "get"},
+	    {'to', Service},
+	    {'id', Id}]),
+   exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (Service, Node) -> Pubsub_Iq
 %%     Service = string()
