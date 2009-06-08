@@ -42,6 +42,8 @@
 	 set_owner_subscriptions/4,
 	 get_owner_affiliations/2,
 	 get_owner_affiliations/3,
+	 set_owner_affiliations/3,
+	 set_owner_affiliations/4,
 	 delete_node/2,
 	 delete_node/3,
 	 subscribe/3,
@@ -682,6 +684,52 @@ get_owner_affiliations(Id, Service, Node) ->
 	    {'to', Service},
 	    {'id', Id}]),
    exmpp_xml:append_child(Iq, Pubsub).
+
+
+%% @spec (Service, Node, Affiliates) -> Pubsub_Iq
+%%     Service = string()
+%%     Node = string()
+%%     Affiliates = [{Jid, Affiliation}]
+%%     Jid = string()
+%%     Affiliation = string()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for setting list of affiliations.
+%%
+%% The stanza `id' is generated automatically.
+
+set_owner_affiliations(Service, Node, Affiliates) ->
+    set_owner_affiliations(pubsub_id(), Service, Node, Affiliates).
+
+%% @spec (Id, Service, Node, Affiliates) -> Pubsub_Iq
+%%     Service = string()
+%%     Node = string()
+%%     Affiliates = [{Jid, Affiliation}]
+%%     Jid = string()
+%%     Affiliation = string()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for setting list of affiliations.
+
+set_owner_affiliations(Id, Service, Node, Affiliates) ->
+    SetAffiliations = fun({Jid, Affiliation}) ->
+                           exmpp_xml:set_attributes(
+                           #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'affiliation'}, [
+                           {'jid', Jid},
+                           {'affiliation', Affiliation}])
+                      end.
+    Affiliations = exmpp_xml:append_children(
+	    exmpp_xml:set_attributes(
+	    #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'affiliations'}, [
+	    {'node', Node}]),
+	    lists:map(SetAffiliations, Affiliates)),
+    Pubsub = exmpp_xml:append_child(
+	    #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'pubsub'},
+	    Subscriptions),
+    Iq = exmpp_xml:set_attributes(
+	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
+	    {'type', "get"},
+	    {'to', Service},
+	    {'id', Id}]),
+    exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (Service, Node) -> Pubsub_Iq
 %%     Service = string()
