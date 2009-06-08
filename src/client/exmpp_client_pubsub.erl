@@ -394,7 +394,7 @@ get_items(Id, Service, Node) ->
 %%     Service = string()
 %%     Node = string()
 %%     ItemsID = [ItemID]
-%%     Item = string()
+%%     ItemID = string()
 %%     Pubsub_Iq = exmpp_xml:xmlel()
 %% @doc Make an `<iq>' for retrieving pubsub items by id.
 %%
