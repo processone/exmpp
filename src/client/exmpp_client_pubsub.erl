@@ -18,6 +18,10 @@
 -include("exmpp.hrl").
 
 -export([
+         get_subscriptions/1,
+         get_subscriptions/2,
+         get_affliations/1,
+         get_affiliations/2,
 	 create_node/2,
 	 create_node/3,
 	 delete_node/2,
@@ -31,6 +35,62 @@
 %% --------------------------------------------------------------------
 %% Publish/subscribe containers.
 %% --------------------------------------------------------------------
+
+%% @spec (Service) -> Pubsub_Iq
+%%     Service = string()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for retrieving user subscriptions.
+%%
+%% The stanza `id' is generated automatically.
+
+get_subscriptions(Service) ->
+    get_subscriptions(pubsub_id(), Service).
+
+%% @spec (Id, Service) -> Pubsub_Iq
+%%     Id = string()
+%%     Service = string()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for retrieving user subscriptions.
+
+get_subscriptions(Id, Service) ->
+    Subscriptions = #xmlel{ns = ?NS_PUBSUB, name = 'subscriptions'},
+    Pubsub = exmpp_xml:append_child(
+            #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
+            Subscriptions),
+    Iq = exmpp_xml:set_attributes(
+            #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
+	    [{'type', "get"},
+	     {'to', Service},
+	     {'id', Id}]),
+    exmpp_xml:append_child(Iq, Pubsub).
+
+%% @spec (Service) -> Pubsub_Iq
+%%     Service = string()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for retrieving user affiliations.
+%%
+%% The stanza `id' is generated automatically.
+
+get_subscriptions(Service) ->
+    get_subscriptions(pubsub_id(), Service).
+
+%% @spec (Id, Service) -> Pubsub_Iq
+%%     Id = string()
+%%     Service = string()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for retrieving user affiliations.
+
+get_affiliations(Id, Service) ->
+    Affiliations = #xmlel{ns = ?NS_PUBSUB, name = 'affiliations'},
+    Pubsub = exmpp_xml:append_child(
+            #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
+	    Affiliations),
+    Iq = exmpp_xml:set_attributes(
+	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
+	    [{'type', "get"},
+	     {'to', Service},
+	     {'id', Id}]),
+    exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (Service, Node) -> Pubsub_Iq
 %%     Service = string()
