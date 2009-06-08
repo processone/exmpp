@@ -28,6 +28,8 @@
 	 create_instant_node/2,
 	 create_and_configure_node/3,
 	 create_and_configure_node/4,
+	 get_node_configuration/2,
+	 get_node_configuration/3,
 	 delete_node/2,
 	 delete_node/3,
 	 subscribe/3,
@@ -431,6 +433,36 @@ subscribe_and_configure(Id, From, Service, Node, DataForm) ->
 	    [{'type', "set"},
 	     {'to', Service},
 	     {'id', Id}]),
+    exmpp_xml:append_child(Iq, Pubsub).
+
+%% @spec (Service, Node) -> Pubsub_Iq
+%%     Service = string()
+%%     Node = string()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for retrieving default configuration options.
+%%
+%% The stanza `id' is generated automatically.
+
+get_node_configuration(Service, Node) ->
+    get_node_configuration(pubsub_id(), Service, Node).
+
+%% @spec (Id, Service, Node) -> Pubsub_Iq
+%%     Id = string()
+%%     Service = string()
+%%     Node = string()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for retrieving default configuration options.
+
+get_node_configuration(Id, Service, Node) ->
+    Configure = #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'configure'},
+    Pubsub = exmpp_xml:append_child(
+	    #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'pubsub'},
+	    Configure),
+    Iq = exmpp_xml:set_attributes(
+	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
+	    {'type', "get"},
+	    {'to', Service},
+	    {'id', Id}]),
     exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (Service, Node) -> Pubsub_Iq
