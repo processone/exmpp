@@ -38,6 +38,8 @@
          subscribe_and_configure/5,
          get_items/2,
          get_items/3,
+         get_items_by_id/3,
+         get_items_by_id/4,
 	 publish/3,
 	 publish/4
 	]).
@@ -386,6 +388,49 @@ get_items(Id, Service, Node) ->
 	    [{'type', "get"},
 	     {'to', Service},
 	     {'id', Id}]),
+    exmpp_xml:append_child(Iq, Pubsub). 
+
+%% @spec (Service, Node, ItemsID) -> Pubsub_Iq
+%%     Service = string()
+%%     Node = string()
+%%     ItemsID = [ItemID]
+%%     Item = string()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for retrieving pubsub items by id.
+%%
+%% The stanza `id' is generated automatically.
+
+get_items_by_id(Service, Node, ItemsID)
+    get_items_by_id(pubsub_id(), Service, Node, ItemsID).
+
+%% @spec (Id, Service, Node, ItemsID) -> Pubsub_Iq
+%%     Id = string()
+%%     Service = string()
+%%     Node = string()
+%%     ItemsID = [ItemID]
+%%     ItemID = string()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for retrieving pubsub items by id.
+
+get_items_by_id(Id, Service, Node, ItemsID) ->
+    Items = exmpp_xml:set_attribute(
+            #xmlel{ns = ?NS_PUBSUB, name = 'items'},
+            'node', Node),
+    SetItemsID = fun(ItemID) ->
+                     exmpp_xml:set_attribute(
+                     #xmlel{ns = ?NS_PUBSUB, name = 'item'},
+                     'id', ItemID)
+                 end.
+    Items1 = exmpp_xml:append_children(Items,
+             lists:map(SetItemsID, ItemsID)),
+    Pubsub = exmpp_xml:append_child(
+	     #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
+	     Items1),
+    Iq = exmpp_xml:set_attributes(
+	     #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
+	     [{'type', "get"},
+	      {'to', Service},
+	      {'id', Id}]),
     exmpp_xml:append_child(Iq, Pubsub). 
 
 %% @spec (Service, Node, Items) -> Pubsub_Iq
