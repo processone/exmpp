@@ -861,8 +861,7 @@ publish(Node, Item_Children) ->
 	    Publish),
     Iq = exmpp_xml:set_attributes(
 	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
-	    {'type', "set"},
-	    {'id', Id}]),
+	    {'type', "set"}]),
     exmpp_xml:append_child(Iq, Pubsub). 
 
 %% @spec (Service, Node, Items) -> Pubsub_Iq
