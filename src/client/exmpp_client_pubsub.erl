@@ -43,7 +43,9 @@
          get_items_max/3,
          get_items_max/4,
 	 publish/3,
-	 publish/4
+	 publish/4,
+	 retract/3,
+	 retract/4
 	]).
 
 %% --------------------------------------------------------------------
@@ -516,6 +518,44 @@ publish(Id, Service, Node, Item_Children) ->
 	    {'to', Service},
 	    {'id', Id}]),
     exmpp_xml:append_child(Iq, Pubsub).
+
+%% @spec (Service, Node, ItemID) -> Pubsub_Iq
+%%     Service = string()
+%%     Node = string()
+%%     ItemID = string()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for deleting a pubsub item.
+%%
+%% The stanza `id' is generated automatically.
+
+retract(Service, Node, ItemID) ->
+    retract(pubsub_id(), Service, Node, ItemID).
+
+%% @spec (Id, Service, Node, ItemID) -> Pubsub_Iq
+%%     Id = string()
+%%     Service = string()
+%%     Node = string()
+%%     ItemID = string()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for deleting a pubsub item.
+
+retract(Id, Service, Node, ItemID) ->
+    Item = exmpp_xml:set_attribute(
+	   #xmlel{ns = ?NS_PUBSUB, name = 'item'},
+	   {'id', ItemID}),
+    Retract = exmpp_xml:set_attributes(
+	    #xmlel{ns = ?NS_PUBSUB, name = 'retract',
+	    children = [Item]}, [
+	    {'node', Node}]),
+    Pubsub = exmpp_xml:append_child(
+	    #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
+	    Retract),
+    Iq = exmpp_xml:set_attributes(
+	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
+	    {'type', "set"},
+	    {'to', Service},
+	    {'id', Id}]),
+    exmpp_xml:append_child(Iq, Pubsub). 
 
 %% @spec () -> Pubsub_ID
 %%     Pubsub_ID = string()
