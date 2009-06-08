@@ -468,9 +468,9 @@ get_node_configuration(Id, Service, Node) ->
     exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (Service, Node, Options) -> Pubsub_Iq
-%%     Options = exmpp_xml:xmlel()
 %%     Service = string()
 %%     Node = string()
+%%     Options = exmpp_xml:xmlel()
 %%     Pubsub_Iq = exmpp_xml:xmlel()
 %% @doc Make an `<iq>' for setting configuration options.
 %%
@@ -481,16 +481,16 @@ set_node_configuration(Service, Node, Options) ->
 
 %% @spec (Id, Service, Node, Options) -> Pubsub_Iq
 %%     Id = string()
-%%     Options = exmpp_xml:xmlel()
 %%     Service = string()
 %%     Node = string()
+%%     Options = exmpp_xml:xmlel()
 %%     Pubsub_Iq = exmpp_xml:xmlel()
 %% @doc Make an `<iq>' for setting configuration options.
 
 set_node_configuration(Id, Service, Node, Options) ->
     Configure = exmpp_xml:append_child(
-	      #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'configure'},
-	      Options),
+	       #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'configure'},
+	       Options),
     Pubsub = exmpp_xml:append_child(
 	     #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'pubsub'},
 	     Configure),
