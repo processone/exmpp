@@ -20,7 +20,7 @@
 -export([
          get_subscriptions/1,
          get_subscriptions/2,
-         get_affliations/1,
+         get_affiliations/1,
          get_affiliations/2,
 	 create_node/2,
 	 create_node/3,
@@ -28,6 +28,8 @@
 	 delete_node/3,
 	 subscribe/3,
 	 subscribe/4,
+	 unsubscribe/3,
+	 unsubscribe/4,
 	 publish/3,
 	 publish/4
 	]).
@@ -190,6 +192,43 @@ subscribe(Id, From, Service, Node) ->
     Pubsub = exmpp_xml:append_child(
 	       #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
 	       Subscribe),
+    Iq = exmpp_xml:set_attributes(
+	   #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
+	   [{'type', "set"},
+	    {'to', Service},
+	    {'id', Id}]),
+    exmpp_xml:append_child(Iq, Pubsub).
+
+%% @spec (From, Service, Node) -> Pubsub_Iq
+%%     From = string()
+%%     Service = string()
+%%     Node = string()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for unsubscribing from a node on a pubsub service.
+%%
+%% The stanza `id' is generated automatically.
+
+unsubscribe(From, Service, Node) ->
+    unsubscribe(pubsub_id(), From, Service, Node).
+
+%% @spec (Id, From, Service, Node) -> Pubsub_Iq
+%%     Id = string()
+%%     From = string()
+%%     Service = string()
+%%     Node = string()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for unsubscribing from a node on a pubsub service.
+
+unsubscribe(Id, From, Service, Node) ->
+    %% Make the <subscribe/> element.
+    Unsubscribe = exmpp_xml:set_attributes(
+		  #xmlel{ns = ?NS_PUBSUB, name = 'unsubscribe'},
+		  [{'node', Node},
+		   {'jid', From}]),
+    %% Prepare the final <iq/>.
+    Pubsub = exmpp_xml:append_child(
+	       #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
+	       Unsubscribe),
     Iq = exmpp_xml:set_attributes(
 	   #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
 	   [{'type', "set"},
