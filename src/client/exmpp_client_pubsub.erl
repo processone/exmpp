@@ -34,6 +34,8 @@
 	 set_node_configuration/4,
 	 get_default_configuration/2,
 	 get_default_configuration/3,
+	 purge_items/2,
+	 purge_items/3,
 	 delete_node/2,
 	 delete_node/3,
 	 subscribe/3,
@@ -531,6 +533,38 @@ get_default_configuration(Id, Service, Node) ->
 	    {'to', Service},
 	    {'id', Id}]),
     exmpp_xml:append_child(Iq, Pubsub).
+
+%% @spec (Service, Node) -> Pubsub_Iq
+%%     Service = string()
+%%     Node = string()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for purging all items from a pubsub node.
+%%
+%% The stanza `id' is generated automatically.
+
+purge_items(Service, Node) ->
+    purge_items(pubsub_id(), Service, Node).
+
+%% @spec (Service, Node) -> Pubsub_Iq
+%%     Id = string()
+%%     Service = string()
+%%     Node = string()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for purging all items from a pubsub node.
+
+purge_items(Id, Service, Node) ->
+    Purge = exmpp_xml:set_attributes(
+	    #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'purge'}, [
+	    {'node', Node}]),
+    Pubsub = exmpp_xml:append_child(
+	    #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'pubsub'},
+	    Purge),
+    Iq = exmpp_xml:set_attributes(
+	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
+	    {'type', "set"},
+	    {'to', Service},
+	    {'id', Id}]),
+    exmpp_xml:append_child(Iq, Pubsub)
 
 %% @spec (Service, Node) -> Pubsub_Iq
 %%     Service = string()
