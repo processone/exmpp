@@ -36,6 +36,8 @@
          set_subscriptions_options/5,
          subscribe_and_configure/4,
          subscribe_and_configure/5,
+         get_items/2,
+         get_items/3,
 	 publish/3,
 	 publish/4
 	]).
@@ -353,6 +355,38 @@ subscribe_and_configure(Id, From, Service, Node, DataForm) ->
 	     {'to', Service},
 	     {'id', Id}]),
     exmpp_xml:append_child(Iq, Pubsub).
+
+%% @spec (Service, Node) -> Pubsub_Iq
+%%     Service = string()
+%%     Node = string()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for retrieving pubsub items.
+%%
+%% The stanza `id' is generated automatically.
+
+get_items(Service, Node) ->
+    get_items(pubsub_id(), Service, Node).
+
+%% @spec (Id, Service, Node) -> Pubsub_Iq
+%%     Id = string()
+%%     Service = string()
+%%     Node = string()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for retrieving pubsub items.
+
+get_items(Id, Service, Node) ->
+    Items = exmpp_xml:set_attribute(
+            #xmlel{ns = ?NS_PUBSUB, name = 'items'},
+            'node', Node),
+    Pubsub = exmpp_xml:append_child(
+	    #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
+	    Items),
+    Iq = exmpp_xml:set_attributes(
+	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
+	    [{'type', "get"},
+	     {'to', Service},
+	     {'id', Id}]),
+    exmpp_xml:append_child(Iq, Pubsub). 
 
 %% @spec (Service, Node, Items) -> Pubsub_Iq
 %%     Service = string()
