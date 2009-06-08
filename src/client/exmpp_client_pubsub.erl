@@ -40,6 +40,8 @@
          get_items/3,
          get_items_by_id/3,
          get_items_by_id/4,
+         get_items_max/3,
+         get_items_max/4,
 	 publish/3,
 	 publish/4
 	]).
@@ -432,6 +434,41 @@ get_items_by_id(Id, Service, Node, ItemsID) ->
 	      {'to', Service},
 	      {'id', Id}]),
     exmpp_xml:append_child(Iq, Pubsub). 
+
+%% @spec (Service, Node, Max) -> Pubsub_Iq
+%%     Service = string()
+%%     Node = string()
+%%     Max = integer()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for retrieving pubsub 'n' items.
+%%
+%% The stanza `id' is generated automatically.
+
+get_items_max(Service, Node, Max) ->
+    get_items_max(pubsub_id, Service, Node, Max).
+
+%% @spec (Id, Service, Node, Max) -> Pubsub_Iq
+%%     Id = string()
+%%     Service = string()
+%%     Node = string()
+%%     Max = integer()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for retrieving pubsub 'n' items.
+
+get_items_max(Id, Service, Node, Max) ->
+    Items = exmpp_xml:set_attributes(
+            #xmlel{ns = ?NS_PUBSUB, name = 'items'}, [
+            {'node', Node},
+            {'max_items', integer_to_list(Max)}]),
+    Pubsub = exmpp_xml:append_child(
+	    #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
+	    Items),
+    Iq = exmpp_xml:set_attributes(
+	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
+	    {'type', "get"},
+	    {'to', Service},
+	    {'id', Id}]),
+    exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (Service, Node, Items) -> Pubsub_Iq
 %%     Service = string()
