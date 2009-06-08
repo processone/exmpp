@@ -36,6 +36,8 @@
 	 get_default_configuration/3,
 	 purge_items/2,
 	 purge_items/3,
+	 get_owner_subscriptions/2,
+	 get_owner_subscriptions/3,
 	 delete_node/2,
 	 delete_node/3,
 	 subscribe/3,
@@ -562,6 +564,38 @@ purge_items(Id, Service, Node) ->
     Iq = exmpp_xml:set_attributes(
 	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
 	    {'type', "set"},
+	    {'to', Service},
+	    {'id', Id}]),
+    exmpp_xml:append_child(Iq, Pubsub)
+
+%% @spec (Service, Node) -> Pubsub_Iq
+%%     Service = string()
+%%     Node = string()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for retrieving list of subscriptions.
+%%
+%% The stanza `id' is generated automatically.
+
+get_owner_subscriptions(Service, Node) ->
+    get_owner_subscriptions(pubsub_id(), Service, Node).
+
+%% @spec (Service, Node) -> Pubsub_Iq
+%%     Id = string()
+%%     Service = string()
+%%     Node = string()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for retrieving list of subscriptions.
+
+get_owner_subscriptions(Id, Service, Node) ->
+    Subscriptions = exmpp_xml:set_attributes(
+	    #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'subscriptions'}, [
+	    {'node', Node}]),
+    Pubsub = exmpp_xml:append_child(
+	    #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'pubsub'},
+	    Subscriptions),
+    Iq = exmpp_xml:set_attributes(
+	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
+	    {'type', "get"},
 	    {'to', Service},
 	    {'id', Id}]),
     exmpp_xml:append_child(Iq, Pubsub)
