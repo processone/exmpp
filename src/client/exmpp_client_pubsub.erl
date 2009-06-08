@@ -60,6 +60,7 @@
          get_items_by_id/4,
          get_items_max/3,
          get_items_max/4,
+         publish/2,
 	 publish/3,
 	 publish/4,
 	 retract/3,
@@ -791,6 +792,30 @@ get_items_max(Id, Service, Node, Max) ->
 	    {'to', Service},
 	    {'id', Id}]),
     exmpp_xml:append_child(Iq, Pubsub).
+
+%% @spec (Node, Items) -> Pubsub_Iq
+%%     Node = string()
+%%     Items = [exmpp_xml:xmlel() | exmpp_xml:xmlcdata()]
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for publishing an item to a node on a pubsub service as PEP (i.e. without 'to' and 'from').
+%%
+%% The stanza `id' is generated automatically.
+
+publish(Node, Item_Children) ->
+    Item = #xmlel{ns = ?NS_PUBSUB, name = 'item',
+	    children = Item_Children},
+    Publish = exmpp_xml:set_attributes(
+	    #xmlel{ns = ?NS_PUBSUB, name = 'publish',
+	    children = [Item]}, [
+	    {'node', Node}]),
+    Pubsub = exmpp_xml:append_child(
+	    #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
+	    Publish),
+    Iq = exmpp_xml:set_attributes(
+	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
+	    {'type', "set"},
+	    {'id', Id}]),
+    exmpp_xml:append_child(Iq, Pubsub). 
 
 %% @spec (Service, Node, Items) -> Pubsub_Iq
 %%     Service = string()
