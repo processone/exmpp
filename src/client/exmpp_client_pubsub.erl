@@ -38,6 +38,8 @@
 	 purge_items/3,
 	 get_owner_subscriptions/2,
 	 get_owner_subscriptions/3,
+	 set_owner_subscriptions/3,
+	 set_owner_subscriptions/4,
 	 delete_node/2,
 	 delete_node/3,
 	 subscribe/3,
@@ -596,6 +598,52 @@ get_owner_subscriptions(Id, Service, Node) ->
     Iq = exmpp_xml:set_attributes(
 	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
 	    {'type', "get"},
+	    {'to', Service},
+	    {'id', Id}]),
+    exmpp_xml:append_child(Iq, Pubsub)
+
+%% @spec (Service, Node, Subscribers) -> Pubsub_Iq
+%%     Service = string()
+%%     Node = string()
+%%     Subscribers = [{Jid, State}]
+%%     Jid = string()
+%%     State = string()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for setting list of subscriptions.
+%%
+%% The stanza `id' is generated automatically.
+
+set_owner_subscriptions(Service, Node, Subscribers) ->
+    set_owner_subscriptions(pubsub_id(), Service, Node, Subscribers).
+
+%% @spec (Id, Service, Node, Subscribers) -> Pubsub_Iq
+%%     Id = string()
+%%     Service = string()
+%%     Node = string()
+%%     Subscribers = [{Jid, State}]
+%%     Jid = string()
+%%     State = string()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for setting list of subscriptions.
+
+set_owner_subscriptions(Id, Service, Node, Subscribers) ->
+    SetSubscriptions = fun({Jid, State}) ->
+                           exmpp_xml:set_attributes(
+                           #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'subscription'}, [
+                           {'jid', Jid},
+                           {'subscription', State}])
+                       end,
+    Subscriptions = exmpp_xml:append_children(
+	    exmpp_xml:set_attributes(
+	    #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'subscriptions'}, [
+	    {'node', Node}]),
+	    lists:map(SetSubscriptions, Subscribers)),
+    Pubsub = exmpp_xml:append_child(
+	    #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'pubsub'},
+	    Subscriptions),
+    Iq = exmpp_xml:set_attributes(
+	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
+	    {'type', "set"},
 	    {'to', Service},
 	    {'id', Id}]),
     exmpp_xml:append_child(Iq, Pubsub)
