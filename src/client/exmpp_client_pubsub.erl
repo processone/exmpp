@@ -25,7 +25,9 @@
 	 create_node/2,
 	 create_node/3,
 	 create_instant_node/1,
-	 create_instant_node/2
+	 create_instant_node/2,
+	 create_and_configure_node/3,
+	 create_and_configure_node/4,
 	 delete_node/2,
 	 delete_node/3,
 	 subscribe/3,
@@ -170,6 +172,45 @@ create_instant_node(Id, Service) ->
 	    {'type', "set"},
 	    {'to', Service},
 	    {'id', Id}]),
+    exmpp_xml:append_child(Iq, Pubsub).
+
+%% @spec (Service, Node, Options) -> Pubsub_Iq
+%%     Service = string()
+%%     Node = string()
+%%     Options = exmpp_xml:xmlel()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for creating a node on a pubsub service with configuration.
+%%
+%% The stanza `id' is generated automatically.
+
+create_and_configure_node(Service, Node, Options) ->
+    create_and_configure_node(pubsub_id(), Service, Node, Options).
+
+%% @spec (Id, Service, Node, Options) -> Pubsub_Iq
+%%     Id = string()
+%%     Service = string()
+%%     Node = string()
+%%     Options = exmpp_xml:xmlel()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for creating a node on a pubsub service with configuration.
+
+create_and_configure_node(Id, Service, Node, Options) ->
+    Configure = exmpp_xml:append_child(
+	     #xmlel{ns = ?NS_PUBSUB, name = 'configure'},
+	     Options),
+    Create = exmpp_xml:append_child(
+	     exmpp_xml:set_attributes(
+	     #xmlel{ns = ?NS_PUBSUB, name = 'create'}, [
+	     {'node', Node}]),
+	     Configure),
+    Pubsub = exmpp_xml:append_child(
+	     #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
+	     Create),
+    Iq = exmpp_xml:set_attributes(
+	     #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
+	     {'type', "set"},
+	     {'to', Service},
+	     {'id', Id}]),
     exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (Service, Node) -> Pubsub_Iq
