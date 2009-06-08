@@ -30,6 +30,10 @@
 	 subscribe/4,
 	 unsubscribe/3,
 	 unsubscribe/4,
+	 get_subscriptions_options/3,
+	 get_subscriptions_options/4,
+         set_subscriptions_options/4,
+         set_subscriptions_options/5
 	 publish/3,
 	 publish/4
 	]).
@@ -232,6 +236,79 @@ unsubscribe(Id, From, Service, Node) ->
     Iq = exmpp_xml:set_attributes(
 	   #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
 	   [{'type', "set"},
+	    {'to', Service},
+	    {'id', Id}]),
+    exmpp_xml:append_child(Iq, Pubsub).
+
+%% @spec (From, Service, Node) -> Pubsub_Iq
+%%     From = string()
+%%     Service = string()
+%%     Node = string()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for retrieving subscriptions options.
+%%
+%% The stanza `id' is generated automatically.
+
+get_subscriptions_options(From, Service, Node) ->
+    get_subscriptions_options(pubsub_id(), From, Service, Node).
+
+%% @spec (Id, From, Service, Node) -> Pubsub_Iq
+%%     Id = string()
+%%     From = string()
+%%     Service = string()
+%%     Node = string()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for retrieving subscriptions options.
+
+get_subscriptions_options(Id, From, Service, Node) ->
+    Options = exmpp_xml:set_attributes(
+            #xmlel{ns = ?NS_PUBSUB, name = 'options'},
+            [{'node', Node},
+	     {'jid', From}]),
+    Pubsub = exmpp_xml:append_child(
+	    #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
+	    Options),
+    Iq = exmpp_xml:set_attributes(
+	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
+	    {'type', "get"},
+	    {'to', Service},
+	    {'id', Id}]),
+    exmpp_xml:append_child(Iq, Pubsub).
+
+%% @spec (From, Service, Node, DataForm) -> Pubsub_Iq
+%%     From = string()
+%%     Service = string()
+%%     Node = string()
+%%     DataForm = exmpp_xml:xmlel()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for retrieving subscriptions options.
+%%
+%% The stanza `id' is generated automatically.
+
+set_subscriptions_options(From, Service, Node, DataForm)
+    set_subscriptions_options(pubsub_id(), From, Service, Node, DataForm).
+
+%% @spec (Id, From, Service, Node, DataForm) -> Pubsub_Iq
+%%     Id = string()
+%%     From = string()
+%%     Service = string()
+%%     Node = string()
+%%     DataForm = exmpp_xml:xmlel()
+%%     Pubsub_Iq = exmpp_xml:xmlel()
+%% @doc Make an `<iq>' for retrieving subscriptions options.
+
+set_subscriptions_options(Id, From, Service, Node, DataForm) ->
+    Options = exmpp_xml:set_attributes(
+            #xmlel{ns = ?NS_PUBSUB, name = 'options'
+	    children = [DataForm]},
+	    [{'node', Node},
+	     {'jid', From}]),
+    Pubsub = exmpp_xml:append_child(
+	    #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
+	    Options),
+    Iq = exmpp_xml:set_attributes(
+	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
+	    {'type', "set"},
 	    {'to', Service},
 	    {'id', Id}]),
     exmpp_xml:append_child(Iq, Pubsub).
