@@ -442,7 +442,7 @@ subscribe_and_configure(Id, From, Service, Node, DataForm) ->
 	     {'jid', From}]),
     Pubsub = exmpp_xml:append_children(
 	    #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
-	    [Options, Subscribe]}),
+	    [Options, Subscribe]),
     Iq = exmpp_xml:set_attributes(
 	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
 	    [{'type', "set"},
