@@ -436,7 +436,7 @@ subscribe_and_configure(From, Service, Node, DataForm) ->
 subscribe_and_configure(Id, From, Service, Node, DataForm) ->
     Options = #xmlel{ns = ?NS_PUBSUB, name = 'options'},
     Subscribe = exmpp_xml:set_attributes(
-	    #xmlel{ns = ?NS_PUBSUB, name = 'subscribe'
+	    #xmlel{ns = ?NS_PUBSUB, name = 'subscribe',
 	    children = [DataForm]},
 	    [{'node', Node},
 	     {'jid', From}]),
@@ -573,7 +573,7 @@ purge_items(Id, Service, Node) ->
 	    {'type', "set"},
 	    {'to', Service},
 	    {'id', Id}]),
-    exmpp_xml:append_child(Iq, Pubsub)
+    exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (Service, Node) -> Pubsub_Iq
 %%     Service = string()
@@ -605,7 +605,7 @@ get_owner_subscriptions(Id, Service, Node) ->
 	    {'type', "get"},
 	    {'to', Service},
 	    {'id', Id}]),
-    exmpp_xml:append_child(Iq, Pubsub)
+    exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (Service, Node, Subscribers) -> Pubsub_Iq
 %%     Service = string()
@@ -651,7 +651,7 @@ set_owner_subscriptions(Id, Service, Node, Subscribers) ->
 	    {'type', "set"},
 	    {'to', Service},
 	    {'id', Id}]),
-    exmpp_xml:append_child(Iq, Pubsub)
+    exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (Service, Node) -> Pubsub_Iq
 %%     Service = string()
@@ -715,7 +715,7 @@ set_owner_affiliations(Id, Service, Node, Affiliates) ->
                            #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'affiliation'}, [
                            {'jid', Jid},
                            {'affiliation', Affiliation}])
-                      end.
+                      end,
     Affiliations = exmpp_xml:append_children(
 	    exmpp_xml:set_attributes(
 	    #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'affiliations'}, [
