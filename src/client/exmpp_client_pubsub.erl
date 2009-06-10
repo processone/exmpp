@@ -383,7 +383,7 @@ get_subscriptions_options(Id, From, Service, Node) ->
 %%
 %% The stanza `id' is generated automatically.
 
-set_subscriptions_options(From, Service, Node, DataForm)
+set_subscriptions_options(From, Service, Node, DataForm) ->
     set_subscriptions_options(pubsub_id(), From, Service, Node, DataForm).
 
 %% @spec (Id, From, Service, Node, DataForm) -> Pubsub_Iq
