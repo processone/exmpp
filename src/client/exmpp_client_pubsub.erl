@@ -397,7 +397,7 @@ set_subscriptions_options(From, Service, Node, DataForm) ->
 
 set_subscriptions_options(Id, From, Service, Node, DataForm) ->
     Options = exmpp_xml:set_attributes(
-            #xmlel{ns = ?NS_PUBSUB, name = 'options'
+            #xmlel{ns = ?NS_PUBSUB, name = 'options',
 	    children = [DataForm]},
 	    [{'node', Node},
 	     {'jid', From}]),
