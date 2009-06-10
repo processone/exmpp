@@ -773,7 +773,7 @@ get_items(Id, Service, Node) ->
 %%
 %% The stanza `id' is generated automatically.
 
-get_items_by_id(Service, Node, ItemsID)
+get_items_by_id(Service, Node, ItemsID) ->
     get_items_by_id(pubsub_id(), Service, Node, ItemsID).
 
 %% @spec (Id, Service, Node, ItemsID) -> Pubsub_Iq
@@ -793,7 +793,7 @@ get_items_by_id(Id, Service, Node, ItemsID) ->
                      exmpp_xml:set_attribute(
                      #xmlel{ns = ?NS_PUBSUB, name = 'item'},
                      'id', ItemID)
-                 end.
+                 end,
     Items1 = exmpp_xml:append_children(Items,
              lists:map(SetItemsID, ItemsID)),
     Pubsub = exmpp_xml:append_child(
