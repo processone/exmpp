@@ -17,6 +17,25 @@
 
 -include("exmpp.hrl").
 
+-define(PUBSUB(NS, Children), (
+  #xmlel{ns = NS, name = 'pubsub', children = Children}
+)).
+
+-define(IQ(Type, Service, Id), (
+  exmpp_xml:set_attributes(
+      #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
+          [{'type', Type}, {'to', Service}, {'id', Id}])
+)).
+
+-define(IQ_SET(Service, Id), (
+  ?IQ("set", Service, Id)
+)).
+
+-define(IQ_GET(Service, Id), (
+  ?IQ("get", Service, Id)
+)).
+
+
 -export([
          get_subscriptions/1,
          get_subscriptions/2,
@@ -91,14 +110,8 @@ get_subscriptions(Service) ->
 
 get_subscriptions(Id, Service) ->
     Subscriptions = #xmlel{ns = ?NS_PUBSUB, name = 'subscriptions'},
-    Pubsub = exmpp_xml:append_child(
-            #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
-            Subscriptions),
-    Iq = exmpp_xml:set_attributes(
-            #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
-	    [{'type', "get"},
-	     {'to', Service},
-	     {'id', Id}]),
+    Pubsub = ?PUBSUB(?NS_PUBSUB, [Subscriptions]),
+    Iq = ?IQ_GET(Service, Id),
     exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (Service) -> Pubsub_Iq
@@ -119,14 +132,8 @@ get_affiliations(Service) ->
 
 get_affiliations(Id, Service) ->
     Affiliations = #xmlel{ns = ?NS_PUBSUB, name = 'affiliations'},
-    Pubsub = exmpp_xml:append_child(
-            #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
-	    Affiliations),
-    Iq = exmpp_xml:set_attributes(
-	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
-	    [{'type', "get"},
-	     {'to', Service},
-	     {'id', Id}]),
+    Pubsub = ?PUBSUB(?NS_PUBSUB, [Affiliations]),
+    Iq = ?IQ_GET(Service, Id),
     exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (Service, Node) -> Pubsub_Iq
@@ -153,14 +160,8 @@ create_node(Id, Service, Node) ->
 	       #xmlel{ns = ?NS_PUBSUB, name = 'create'},
 	       [{'node', Node}]),
     %% Prepare the final <iq/>.
-    Pubsub = exmpp_xml:append_child(
-	       #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
-	       Create),
-    Iq = exmpp_xml:set_attributes(
-	   #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
-	   [{'type', "set"},
-	    {'to', Service},
-	    {'id', Id}]),
+    Pubsub = ?PUBSUB(?NS_PUBSUB, [Create]),
+    Iq = ?IQ_SET(Service, Id),
     exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (Service) -> Pubsub_Iq
@@ -181,14 +182,8 @@ create_instant_node(Service) ->
 
 create_instant_node(Id, Service) ->
     Create = #xmlel{ns = ?NS_PUBSUB, name = 'create'},
-    Pubsub = exmpp_xml:append_child(
-	     #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
-	     Create),
-    Iq = exmpp_xml:set_attributes(
-	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
-	    {'type', "set"},
-	    {'to', Service},
-	    {'id', Id}]),
+    Pubsub = ?PUBSUB(?NS_PUBSUB, [Create]),
+    Iq = ?IQ_SET(Service, Id),
     exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (Service, Node, Options) -> Pubsub_Iq
@@ -220,14 +215,8 @@ create_and_configure_node(Id, Service, Node, Options) ->
 	     #xmlel{ns = ?NS_PUBSUB, name = 'create'}, [
 	     {'node', Node}]),
 	     Configure),
-    Pubsub = exmpp_xml:append_child(
-	     #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
-	     Create),
-    Iq = exmpp_xml:set_attributes(
-	     #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
-	     {'type', "set"},
-	     {'to', Service},
-	     {'id', Id}]),
+    Pubsub = ?PUBSUB(?NS_PUBSUB, [Create]),
+    Iq = ?IQ_SET(Service, Id),
     exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (Service, Node) -> Pubsub_Iq
@@ -250,18 +239,12 @@ delete_node(Service, Node) ->
 
 delete_node(Id, Service, Node) ->
     %% Make the <delete/> element.
-    Create = exmpp_xml:set_attributes(
+    Delete = exmpp_xml:set_attributes(
 	       #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'delete'},
 	       [{'node', Node}]),
     %% Prepare the final <iq/>.
-    Pubsub = exmpp_xml:append_child(
-	       #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'pubsub'},
-	       Create),
-    Iq = exmpp_xml:set_attributes(
-	   #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
-	   [{'type', "set"},
-	    {'to', Service},
-	    {'id', Id}]),
+    Pubsub = ?PUBSUB(?NS_PUBSUB_OWNER, [Delete]),
+    Iq = ?IQ_SET(Service, Id),
     exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (From, Service, Node) -> Pubsub_Iq
@@ -291,14 +274,8 @@ subscribe(Id, From, Service, Node) ->
 		  [{'node', Node},
 		   {'jid', From}]),
     %% Prepare the final <iq/>.
-    Pubsub = exmpp_xml:append_child(
-	       #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
-	       Subscribe),
-    Iq = exmpp_xml:set_attributes(
-	   #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
-	   [{'type', "set"},
-	    {'to', Service},
-	    {'id', Id}]),
+    Pubsub = ?PUBSUB(?NS_PUBSUB, [Subscribe]),
+    Iq = ?IQ_SET(Service, Id),
     exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (From, Service, Node) -> Pubsub_Iq
@@ -328,14 +305,8 @@ unsubscribe(Id, From, Service, Node) ->
 		  [{'node', Node},
 		   {'jid', From}]),
     %% Prepare the final <iq/>.
-    Pubsub = exmpp_xml:append_child(
-	       #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
-	       Unsubscribe),
-    Iq = exmpp_xml:set_attributes(
-	   #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
-	   [{'type', "set"},
-	    {'to', Service},
-	    {'id', Id}]),
+    Pubsub = ?PUBSUB(?NS_PUBSUB, [Unsubscribe]),
+    Iq = ?IQ_SET(Service, Id),
     exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (From, Service, Node) -> Pubsub_Iq
@@ -363,14 +334,8 @@ get_subscriptions_options(Id, From, Service, Node) ->
             #xmlel{ns = ?NS_PUBSUB, name = 'options'},
             [{'node', Node},
 	     {'jid', From}]),
-    Pubsub = exmpp_xml:append_child(
-	    #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
-	    Options),
-    Iq = exmpp_xml:set_attributes(
-	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
-	    {'type', "get"},
-	    {'to', Service},
-	    {'id', Id}]),
+    Pubsub = ?PUBSUB(?NS_PUBSUB, [Options]),
+    Iq = ?IQ_GET(Service, Id),
     exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (From, Service, Node, DataForm) -> Pubsub_Iq
@@ -401,14 +366,8 @@ set_subscriptions_options(Id, From, Service, Node, DataForm) ->
 	    children = [DataForm]},
 	    [{'node', Node},
 	     {'jid', From}]),
-    Pubsub = exmpp_xml:append_child(
-	    #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
-	    Options),
-    Iq = exmpp_xml:set_attributes(
-	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
-	    {'type', "set"},
-	    {'to', Service},
-	    {'id', Id}]),
+    Pubsub = ?PUBSUB(?NS_PUBSUB, [Options]),
+    Iq = ?IQ_SET(Service, Id),
     exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (From, Service, Node, DataForm) -> Pubsub_Iq
@@ -440,14 +399,8 @@ subscribe_and_configure(Id, From, Service, Node, DataForm) ->
 	    children = [DataForm]},
 	    [{'node', Node},
 	     {'jid', From}]),
-    Pubsub = exmpp_xml:append_children(
-	    #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
-	    [Options, Subscribe]),
-    Iq = exmpp_xml:set_attributes(
-	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
-	    [{'type', "set"},
-	     {'to', Service},
-	     {'id', Id}]),
+    Pubsub = ?PUBSUB(?NS_PUBSUB, [Options, Subscribe]),
+    Iq = ?IQ_SET(Service, Id),
     exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (Service, Node) -> Pubsub_Iq
@@ -472,14 +425,8 @@ get_node_configuration(Id, Service, Node) ->
     Configure = exmpp_xml:set_attribute(
             #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'configure'},
             'node', Node),
-    Pubsub = exmpp_xml:append_child(
-	    #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'pubsub'},
-	    Configure),
-    Iq = exmpp_xml:set_attributes(
-	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
-	    {'type', "get"},
-	    {'to', Service},
-	    {'id', Id}]),
+    Pubsub = ?PUBSUB(?NS_PUBSUB_OWNER, [Configure]),
+    Iq = ?IQ_GET(Service, Id),
     exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (Service, Node, Options) -> Pubsub_Iq
@@ -507,14 +454,8 @@ set_node_configuration(Id, Service, Node, Options) ->
 	       exmpp_xml:set_attribute(
 	       #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'configure'}, 'node', Node),
 	       Options),
-    Pubsub = exmpp_xml:append_child(
-	     #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'pubsub'},
-	     Configure),
-    Iq = exmpp_xml:set_attributes(
-	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
-	    {'type', "set"},
-	    {'to', Service},
-	    {'id', Id}]),
+    Pubsub = ?PUBSUB(?NS_PUBSUB_OWNER, [Configure]),
+    Iq = ?IQ_SET(Service, Id),
     exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (Service) -> Pubsub_Iq
@@ -534,14 +475,9 @@ get_default_configuration(Service) ->
 %% @doc Make an `<iq>' for getting default configuration options.
 
 get_default_configuration(Id, Service) ->
-    Pubsub = exmpp_xml:append_child(
-	     #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'pubsub'},
-	     #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'default'}),
-    Iq = exmpp_xml:set_attributes(
-	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
-	    {'type', "get"},
-	    {'to', Service},
-	    {'id', Id}]),
+    Default = #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'default'},
+    Pubsub = ?PUBSUB(?NS_PUBSUB_OWNER, [Default]),
+    Iq = ?IQ_GET(Service, Id),
     exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (Service, Node) -> Pubsub_Iq
@@ -566,14 +502,8 @@ purge_items(Id, Service, Node) ->
     Purge = exmpp_xml:set_attributes(
 	    #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'purge'}, [
 	    {'node', Node}]),
-    Pubsub = exmpp_xml:append_child(
-	    #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'pubsub'},
-	    Purge),
-    Iq = exmpp_xml:set_attributes(
-	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
-	    {'type', "set"},
-	    {'to', Service},
-	    {'id', Id}]),
+    Pubsub = ?PUBSUB(?NS_PUBSUB_OWNER, [Purge]),
+    Iq = ?IQ_SET(Service, Id),
     exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (Service, Node) -> Pubsub_Iq
@@ -598,14 +528,8 @@ get_owner_subscriptions(Id, Service, Node) ->
     Subscriptions = exmpp_xml:set_attributes(
 	    #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'subscriptions'}, [
 	    {'node', Node}]),
-    Pubsub = exmpp_xml:append_child(
-	    #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'pubsub'},
-	    Subscriptions),
-    Iq = exmpp_xml:set_attributes(
-	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
-	    {'type', "get"},
-	    {'to', Service},
-	    {'id', Id}]),
+    Pubsub = ?PUBSUB(?NS_PUBSUB_OWNER, [Subscriptions]),
+    Iq = ?IQ_GET(Service, Id),
     exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (Service, Node, Subscribers) -> Pubsub_Iq
@@ -644,14 +568,8 @@ set_owner_subscriptions(Id, Service, Node, Subscribers) ->
 	    #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'subscriptions'}, [
 	    {'node', Node}]),
 	    lists:map(SetSubscriptions, Subscribers)),
-    Pubsub = exmpp_xml:append_child(
-	    #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'pubsub'},
-	    Subscriptions),
-    Iq = exmpp_xml:set_attributes(
-	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
-	    {'type', "set"},
-	    {'to', Service},
-	    {'id', Id}]),
+    Pubsub = ?PUBSUB(?NS_PUBSUB_OWNER, [Subscriptions]),
+    Iq = ?IQ_SET(Service, Id),
     exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (Service, Node) -> Pubsub_Iq
@@ -676,15 +594,9 @@ get_owner_affiliations(Id, Service, Node) ->
     Affiliations = exmpp_xml:set_attributes(
 	    #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'affiliations'}, [
 	    {'node', Node}]),
-    Pubsub = exmpp_xml:append_child(
-	    #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'pubsub'},
-	    Affiliations),
-    Iq = exmpp_xml:set_attributes(
-	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
-	    {'type', "get"},
-	    {'to', Service},
-	    {'id', Id}]),
-   exmpp_xml:append_child(Iq, Pubsub).
+    Pubsub = ?PUBSUB(?NS_PUBSUB_OWNER, [Affiliations]),
+    Iq = ?IQ_GET(Service, Id),
+    exmpp_xml:append_child(Iq, Pubsub).
 
 
 %% @spec (Service, Node, Affiliates) -> Pubsub_Iq
@@ -722,14 +634,8 @@ set_owner_affiliations(Id, Service, Node, Affiliates) ->
 	    #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'affiliations'}, [
 	    {'node', Node}]),
 	    lists:map(SetAffiliations, Affiliates)),
-    Pubsub = exmpp_xml:append_child(
-	    #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'pubsub'},
-	    Affiliations),
-    Iq = exmpp_xml:set_attributes(
-	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
-	    {'type', "get"},
-	    {'to', Service},
-	    {'id', Id}]),
+    Pubsub = ?PUBSUB(?NS_PUBSUB_OWNER, [Affiliations]),
+    Iq = ?IQ_GET(Service, Id),
     exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (Service, Node) -> Pubsub_Iq
@@ -754,14 +660,8 @@ get_items(Id, Service, Node) ->
     Items = exmpp_xml:set_attribute(
             #xmlel{ns = ?NS_PUBSUB, name = 'items'},
             'node', Node),
-    Pubsub = exmpp_xml:append_child(
-	    #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
-	    Items),
-    Iq = exmpp_xml:set_attributes(
-	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
-	    [{'type', "get"},
-	     {'to', Service},
-	     {'id', Id}]),
+    Pubsub = ?PUBSUB(?NS_PUBSUB, [Items]),
+    Iq = ?IQ_GET(Service, Id),
     exmpp_xml:append_child(Iq, Pubsub). 
 
 %% @spec (Service, Node, ItemsID) -> Pubsub_Iq
@@ -797,14 +697,8 @@ get_items_by_id(Id, Service, Node, ItemsID) ->
                  end,
     Items1 = exmpp_xml:append_children(Items,
              lists:map(SetItemsID, ItemsID)),
-    Pubsub = exmpp_xml:append_child(
-	     #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
-	     Items1),
-    Iq = exmpp_xml:set_attributes(
-	     #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
-	     [{'type', "get"},
-	      {'to', Service},
-	      {'id', Id}]),
+    Pubsub = ?PUBSUB(?NS_PUBSUB, [Items1]),
+    Iq = ?IQ_GET(Service, Id),
     exmpp_xml:append_child(Iq, Pubsub). 
 
 %% @spec (Service, Node, Max) -> Pubsub_Iq
@@ -832,14 +726,8 @@ get_items_max(Id, Service, Node, Max) ->
             #xmlel{ns = ?NS_PUBSUB, name = 'items'}, [
             {'node', Node},
             {'max_items', integer_to_list(Max)}]),
-    Pubsub = exmpp_xml:append_child(
-	    #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
-	    Items),
-    Iq = exmpp_xml:set_attributes(
-	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
-	    {'type', "get"},
-	    {'to', Service},
-	    {'id', Id}]),
+    Pubsub = ?PUBSUB(?NS_PUBSUB, [Items]),
+    Iq = ?IQ_GET(Service, Id),
     exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (Node, Items) -> Pubsub_Iq
@@ -857,9 +745,7 @@ publish(Node, Item_Children) ->
 	    #xmlel{ns = ?NS_PUBSUB, name = 'publish',
 	    children = [Item]}, [
 	    {'node', Node}]),
-    Pubsub = exmpp_xml:append_child(
-	    #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
-	    Publish),
+    Pubsub = ?PUBSUB(?NS_PUBSUB, [Publish]),
     Iq = exmpp_xml:set_attributes(
 	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
 	    {'type', "set"}]),
@@ -902,14 +788,8 @@ publish(Id, Service, Node, Item_Children) ->
 		       children = [Item]},
 		[{'node', Node}]),
     %% Prepare the final <iq/>.
-    Pubsub = exmpp_xml:append_child(
-	       #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
-	       Publish),
-    Iq = exmpp_xml:set_attributes(
-	   #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
-	   [{'type', "set"},
-	    {'to', Service},
-	    {'id', Id}]),
+    Pubsub = ?PUBSUB(?NS_PUBSUB_OWNER, [Publish]),
+    Iq = ?IQ_SET(Service, Id),
     exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (Service, Node, ItemID) -> Pubsub_Iq
@@ -940,14 +820,8 @@ retract(Id, Service, Node, ItemID) ->
 	    #xmlel{ns = ?NS_PUBSUB, name = 'retract',
 	    children = [Item]}, [
 	    {'node', Node}]),
-    Pubsub = exmpp_xml:append_child(
-	    #xmlel{ns = ?NS_PUBSUB, name = 'pubsub'},
-	    Retract),
-    Iq = exmpp_xml:set_attributes(
-	    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'}, [
-	    {'type', "set"},
-	    {'to', Service},
-	    {'id', Id}]),
+    Pubsub = ?PUBSUB(?NS_PUBSUB, [Retract]),
+    Iq = ?IQ_SET(Service, Id),
     exmpp_xml:append_child(Iq, Pubsub). 
 
 %% @spec () -> Pubsub_ID
