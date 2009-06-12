@@ -788,7 +788,7 @@ publish(Id, Service, Node, Item_Children) ->
 		       children = [Item]},
 		[{'node', Node}]),
     %% Prepare the final <iq/>.
-    Pubsub = ?PUBSUB(?NS_PUBSUB_OWNER, [Publish]),
+    Pubsub = ?PUBSUB(?NS_PUBSUB, [Publish]),
     Iq = ?IQ_SET(Service, Id),
     exmpp_xml:append_child(Iq, Pubsub).
 
