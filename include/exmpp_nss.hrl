@@ -344,6 +344,10 @@
 -define(NS_ROBOT_CHALLENGE,          'urn:xmpp:tmp:challenge').
 -define(NS_ROBOT_CHALLENGE_s,        "urn:xmpp:tmp:challenge").
 
+% Defined by XEP-0160: Best Practices for Handling Offline Messages.
+-define(NS_MSGOFFLINE,               'msgoffline').
+-define(NS_MSGOFFLINE_s,             "msgoffline").
+
 % Defined by XEP-0161: Abuse Reporting.
 -define(NS_ABUSE_REPORTING,          'urn:xmpp:tmp:abuse').
 -define(NS_ABUSE_REPORTING_s,        "urn:xmpp:tmp:abuse").
