@@ -340,6 +340,10 @@
 -define(NS_USER_PROFILE,             'urn:xmpp:tmp:profile').
 -define(NS_USER_PROFILE_s,           "urn:xmpp:tmp:profile").
 
+% Defined by XEP-0157: Contact Addresses for XMPP Services.
+-define(NS_SERVERINFO,               'http://jabber.org/network/serverinfo').
+-define(NS_SERVERINFO_s,             "http://jabber.org/network/serverinfo").
+
 % Defined by XEP-0158: Robot Challenges.
 -define(NS_ROBOT_CHALLENGE,          'urn:xmpp:tmp:challenge').
 -define(NS_ROBOT_CHALLENGE_s,        "urn:xmpp:tmp:challenge").
