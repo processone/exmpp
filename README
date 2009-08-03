@@ -115,7 +115,7 @@ instance, to use GCC frontend for LLVM:
 If you work on a Subversion checkout, you'll have to generate some files
 such as the configure script and Makefile.in. For this, you'll have to
 install the following autotools:
-    o  autoconf 2.60 or 2.61 (read below for 2.62 and 2.63)
+    o  autoconf 2.60 or higher (read below for 2.62 and 2.63)
     o  automake 1.9 or later
     o  libtool 1.5 or later
 
@@ -128,7 +128,7 @@ After that, you can use the standard procedure:
     $ ./configure
     $ make
 
-WARNING: Erlang support in autoconf 2.62 and 2.63 is broken! If you
+WARNING: Erlang support in old autoconf 2.62 and 2.63 was broken! If you
 must stick to these versions, you must apply the following patch to
 'erlang.m4' in 'share/autoconf-2.62/autoconf' (patch taken from official
 autoconf GIT repository):
