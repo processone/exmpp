@@ -62,11 +62,14 @@ set_item(ContactJID, Groups, Nick) ->
 %%     Roster_Iq = exmpp_xml:xmlel()
 %% @doc Make an `<iq>' to update a roster item. This function is used
 %% both to create a roster item and to update an roster entry
-%% TODO: Groups support
-set_item(Id, ContactJID, _Groups, Nick) ->
-    Item = exmpp_xml:set_attributes(
-	     #xmlel{name = 'item'},
-	     [{'name', Nick}, {'jid', ContactJID}]),
+set_item(Id, ContactJID, Groups, Nick) ->
+    Item = exmpp_xml:set_children(
+		exmpp_xml:set_attributes(
+		     #xmlel{name = 'item'},
+		     [{'name', Nick}, {'jid', ContactJID}]),
+		[ exmpp_xml:set_cdata(
+			exmpp_xml:element(?NS_ROSTER, 'group'),
+			Gr) || Gr <- Groups]),
     Query = #xmlel{ns = ?NS_ROSTER, name = 'query'},
     Query2 = exmpp_xml:append_child(Query, Item),
     Iq = exmpp_xml:set_attributes(
