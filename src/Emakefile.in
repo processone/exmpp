@@ -23,6 +23,7 @@
 		'@srcdir@/network/exmpp_ssl',
 		'@srcdir@/network/exmpp_tcp',
 		'@srcdir@/network/exmpp_bosh',
+		'@srcdir@/network/exmpp_component',
 		'@srcdir@/client/exmpp_client_binding',
 		'@srcdir@/client/exmpp_client_compression',
 		'@srcdir@/client/exmpp_client_legacy_auth',

@@ -24,6 +24,7 @@ EXTRA_DIST = core/exmpp.erl						\
 	     network/exmpp_ssl.erl					\
 	     network/exmpp_tcp.erl					\
 	     network/exmpp_bosh.erl					\
+       network/exmpp_component.erl					\
 	     client/exmpp_client_binding.erl				\
 	     client/exmpp_client_compression.erl			\
 	     client/exmpp_client_legacy_auth.erl			\
