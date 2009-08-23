@@ -595,7 +595,7 @@ get_owner_affiliations(Id, Service, Node) ->
 	    #xmlel{ns = ?NS_PUBSUB_OWNER, name = 'affiliations'}, [
 	    {'node', Node}]),
     Pubsub = ?PUBSUB(?NS_PUBSUB_OWNER, [Affiliations]),
-    Iq = ?IQ_GET(Service, Id),
+    Iq = ?IQ_SET(Service, Id),
     exmpp_xml:append_child(Iq, Pubsub).
 
 
