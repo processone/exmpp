@@ -635,7 +635,7 @@ set_owner_affiliations(Id, Service, Node, Affiliates) ->
 	    {'node', Node}]),
 	    lists:map(SetAffiliations, Affiliates)),
     Pubsub = ?PUBSUB(?NS_PUBSUB_OWNER, [Affiliations]),
-    Iq = ?IQ_GET(Service, Id),
+    Iq = ?IQ_SET(Service, Id),
     exmpp_xml:append_child(Iq, Pubsub).
 
 %% @spec (Service, Node) -> Pubsub_Iq
