@@ -195,7 +195,7 @@ gen_send({Mod, Socket}, Packet) ->
 %%     Mod = atom()
 %%     Socket = term()
 %%     Options = list()
-%%     Option_Values = list()
+%%     Option_Values = {ok,list()}
 %% @doc Wrapper to abstract the `getopts' function of multiple communication
 %% modules.
 

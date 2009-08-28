@@ -312,10 +312,10 @@ handshake(Mode, Socket_Desc, Identity, Peer_Verification, Options,
 
     %% We save the 'active' state of the socket.
     Is_Active = case exmpp_internals:gen_getopts(Socket_Desc, [active]) of
-		    [{active, Active}] ->
-			Active;
+		    {ok, [{active, Active}]} ->
+			    Active;
 		    {error, Reason} ->
-			throw({tls, handshake, getopts, Reason})
+			    throw({tls, handshake, getopts, Reason})
 		end,
 
     %% Start a port driver instance.
