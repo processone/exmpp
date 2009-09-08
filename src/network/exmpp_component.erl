@@ -298,7 +298,7 @@ stream_opened({handshake}, From, State=#state{connection = Module,
     %% TODO: Do different thing if we use basic or SASL auth
     %% For now, we consider everything is legacy (basic)
     Digest = exmpp_client_legacy_auth:hex(exmpp_client_legacy_auth:digest(StreamId, Password)),
-    Handshake = #xmlel{name=handshake, children=#xmlcdata{cdata = Digest}},
+    Handshake = #xmlel{name=handshake, children= [?XMLCDATA(Digest)]},
     Module:send(ConnRef, Handshake),
     {next_state, wait_for_handshake_result, State#state{from_pid=From}};
 
