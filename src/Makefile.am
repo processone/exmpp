@@ -35,6 +35,7 @@ EXTRA_DIST = core/exmpp.erl						\
 	     client/exmpp_client_sasl.erl				\
 	     client/exmpp_client_session.erl				\
 	     client/exmpp_client_tls.erl				\
+	     client/exmpp_client_muc.erl				\
 	     server/exmpp_server_binding.erl				\
 	     server/exmpp_server_compression.erl			\
 	     server/exmpp_server_legacy_auth.erl			\
