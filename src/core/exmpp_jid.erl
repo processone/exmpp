@@ -41,6 +41,7 @@
 
 %% Serialization.
 -export([
+     to_lower/1,
 	 to_list/1,
 	 to_list/2,
 	 to_list/3,
@@ -135,6 +136,17 @@
 %% JID creation & conversion.
 %% --------------------------------------------------------------------
 
+%% @spec (Jid::jid()) -> {Node::string(), Domain::string(), Resource::string()}
+to_lower(Jid) when ?IS_JID(Jid)->
+    {prep_node(Jid),
+     prep_domain(Jid),
+     prep_resource(Jid)};
+to_lower(StringJid) when is_list(StringJid)->
+    to_lower(parse(StringJid));
+to_lower(StringJid) when is_binary(StringJid)->
+    to_lower(parse(StringJid)).
+
+
 %% @spec () -> Jid
 %%     Jid = jid()
 %% @doc Create a blank JID.
@@ -151,8 +163,9 @@ make() ->
 %%         {jid, make, invalid,  {domain, Domain}}
 %% @doc Create a bare JID.
 
--spec(make/1 :: (domain_arg()) -> jid()).
-
+-spec(make/1 :: (domain_arg() | {node_arg(), domain_arg(), res_arg()}) -> jid()).
+make({Node, Domain, Resource})->
+    make(Node, Domain, Resource);
 make(Domain) ->
     make(undefined, Domain).
 

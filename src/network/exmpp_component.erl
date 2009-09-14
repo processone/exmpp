@@ -461,7 +461,7 @@ start_parser() ->
 %% Packet processing functions
 process_presence(ClientPid, Attrs, Packet) ->
     Type = get_attribute_value(Attrs, type, "available"),
-    Who = get_attribute_value(Attrs, from, ""),
+    Who = exmpp_jid:to_lower(get_attribute_value(Attrs, from, "")),
     Id = get_attribute_value(Attrs, id, ""),
     ClientPid ! #received_packet{packet_type = presence,
                                  type_attr = Type,
@@ -471,7 +471,7 @@ process_presence(ClientPid, Attrs, Packet) ->
 
 process_message(ClientPid, Attrs, Packet) ->
     Type = get_attribute_value(Attrs, type, "normal"),
-    Who = get_attribute_value(Attrs, from, ""),
+    Who = exmpp_jid:to_lower(get_attribute_value(Attrs, from, "")),
     Id = get_attribute_value(Attrs, id, ""),
     ClientPid ! #received_packet{packet_type = message,
                                  type_attr = Type,
@@ -481,7 +481,7 @@ process_message(ClientPid, Attrs, Packet) ->
 
 process_iq(ClientPid, Attrs, Packet) ->
     Type = get_attribute_value(Attrs, type, ""),
-    Who = get_attribute_value(Attrs, from, ""),
+    Who = exmpp_jid:to_lower(get_attribute_value(Attrs, from, "")),
     Id = get_attribute_value(Attrs, id, ""),
     ClientPid ! #received_packet{packet_type = iq,
                                  type_attr = Type,
