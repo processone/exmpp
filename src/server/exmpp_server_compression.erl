@@ -73,7 +73,7 @@ methods_list(Methods) ->
 methods_list2([Method | Rest], Children) ->
     case io_lib:deep_char_list(Method) of
         true ->
-            Child = #xmlel{ns = ?NS_COMPRESS,
+            Child = #xmlel{ns = ?NS_COMPRESS_FEAT,
 			   name = 'method'
 			  },
             methods_list2(Rest,
