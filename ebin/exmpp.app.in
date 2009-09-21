@@ -13,7 +13,7 @@
         exmpp_jid,
         exmpp_message,
         exmpp_presence,
-        exmpp_stanzas,
+        exmpp_stanza,
         exmpp_stream,
         exmpp_stringprep,
         exmpp_sup,
