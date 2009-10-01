@@ -295,3 +295,25 @@ bad_xml_test_() ->
         end
     ]},
     {setup, Setup, Cleanup, Inst}.
+
+
+empty_uri_test_() ->
+    String = "<a xmlns='test'><b xmlns=''><c/></b></a>",
+    Expected = [{xmlel,test,[{test,none}],a,[],
+                    [{xmlel,undefined,[],b,[],
+                        [{xmlel,undefined,[],c,[],[]}]}]}],
+    Setup = fun() ->
+        exmpp:start(),
+        error_logger:tty(false),
+        exmpp_xml:start_parser()
+    end,
+    Cleanup = fun(P) ->
+        exmpp_xml:stop_parser(P),
+        application:stop(exmpp)
+    end,
+    Inst = {with, [
+        fun(P) ->
+            ?assertMatch(Expected, exmpp_xml:parse(P, String))
+        end
+    ]},
+    {setup, Setup, Cleanup, Inst}.

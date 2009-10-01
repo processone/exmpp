@@ -314,6 +314,19 @@ static void
 expat_cb_start_namespace(void *user_data,
     const char *prefix, const char *uri)
 {
+    /* if namespace=='', it is not declaring a namespace but clearing it.
+       It is not valid to have a declaration like xmlns:nothing='' 
+      (it is invalid xml: "XML Parsing Error: must not undeclare prefix"). 
+      
+      So, if the uri is NULL, we don't add it to the list of declared namespaces, 
+      and we aren't missing a prefix declaration because a null uri can only happen
+      in conjunction with a null prefix.  Element namespaces are correctly handled,
+      keep in mind that this function is only used to build the list of the namespaces that
+      are declared at this element tag (declared_ns field in the #xmlel record), 
+      it has nothing to do with the general namespace algorithm that is handled by expat */ 
+    if (uri == NULL) 
+        return;
+
 	struct exmpp_xml_data *edd;
 
 	edd = (struct exmpp_xml_data *)user_data;
