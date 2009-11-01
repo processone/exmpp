@@ -298,7 +298,7 @@ exmpp_stringprep_control(ErlDrvData drv_data, unsigned int command,
 		}
 		last_ral = info & D1Mask;
 		have_ral = have_ral || last_ral;
-		have_l = info & D2Mask;
+		have_l |= info & D2Mask;
 		ADD_UCHAR(ruc);
 	}
 
