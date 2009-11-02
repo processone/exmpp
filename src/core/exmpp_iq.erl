@@ -52,7 +52,8 @@
 	 get_kind/1,
 	 get_request/1,
 	 get_result/1,
-	 get_payload/1
+	 get_payload/1,
+     get_payload_ns_as_atom/1
 	]).
 
 %% --------------------------------------------------------------------
@@ -518,3 +519,12 @@ get_payload(IQ) ->
         'error'  -> exmpp_stanza:get_error(IQ);
         _        -> throw({iq, get_payload, invalid_iq, IQ})
     end.
+
+
+%% @spec (IQ) -> NS
+%%    NS = atom()
+%%  @doc Returns the query namespace.
+ get_payload_ns_as_atom(IQ) ->
+    case get_payload(IQ) of
+        #xmlel{} = Q -> exmpp_xml:get_ns_as_atom(Q)
+     end.

@@ -483,10 +483,12 @@ process_iq(ClientPid, Attrs, Packet) ->
     Type = get_attribute_value(Attrs, type, ""),
     Who = exmpp_jid:to_lower(get_attribute_value(Attrs, from, "")),
     Id = get_attribute_value(Attrs, id, ""),
+    NS = exmpp_iq:get_payload_ns_as_atom(Packet),
     ClientPid ! #received_packet{packet_type = iq,
                                  type_attr = Type,
                                  from = Who,
                                  id = Id,
+                                 queryns = NS,
                                  raw_packet = Packet}.
 
 %% Add a packet ID is needed:
