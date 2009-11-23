@@ -521,10 +521,12 @@ get_payload(IQ) ->
     end.
 
 
-%% @spec (IQ) -> NS
+%% @spec (IQ) -> NS | undefined
 %%    NS = atom()
 %%  @doc Returns the query namespace.
+%%       returns 'undefined' is there is no query element. 
  get_payload_ns_as_atom(IQ) ->
     case get_payload(IQ) of
-        #xmlel{} = Q -> exmpp_xml:get_ns_as_atom(Q)
+        #xmlel{} = Q -> exmpp_xml:get_ns_as_atom(Q);
+        undefined -> undefined
      end.
