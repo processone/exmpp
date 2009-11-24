@@ -89,10 +89,10 @@ receiver_loop(ClientPid, Socket,SetOptsModule, StreamRef) ->
 	    {ok, NewStreamRef} = exmpp_xmlstream:parse(StreamRef, Data),
 	    receiver_loop(ClientPid, Socket,SetOptsModule, NewStreamRef);
 	{ssl_closed, Socket} ->
-	    gen_fsm:sync_send_all_state_event(ClientPid, tcp_closed);
+	    gen_fsm:send_all_state_event(ClientPid, tcp_closed);
 	{ssl_error,Socket,Reason} ->
 	    error_logger:warning_msg([ssl_error,{ssl_socket,Socket},Reason]),
-	    gen_fsm:sync_send_all_state_event(ClientPid, tcp_closed)
+	    gen_fsm:send_all_state_event(ClientPid, tcp_closed)
     end.
 
 

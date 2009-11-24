@@ -270,12 +270,12 @@ init([Pid]) ->
     random:seed(A1, A2, A3),
     {ok, setup, #state{client_pid=Pid}}.
 
+handle_event(tcp_closed, _StateName, State) ->
+    {stop, tcp_closed, State};
+
 handle_event(_Event, StateName, State) ->
     {next_state, StateName, State}.
 
-handle_sync_event(tcp_closed, _From, _StateName, State) ->
-    Reply = ok,
-    {stop, normal, Reply, State};
 handle_sync_event(stop, _From, _StateName, State) ->
     Reply = ok,
     {stop, normal, Reply, State};
@@ -314,9 +314,9 @@ terminate(Reason, _StateName, #state{connection_ref = ConnRef,
 				     stream_ref = StreamRef,
 				     receiver_ref = ReceiverRef,
 				     from_pid=From}) ->
+    Module:close(ConnRef, ReceiverRef), %stop receiving data from socket
     exmpp_xmlstream:stop(StreamRef),
     exmpp_xml:stop_parser(exmpp_xmlstream:get_parser(StreamRef)),
-    Module:close(ConnRef, ReceiverRef),
     reply(Reason, From),
     ok.
 
@@ -621,10 +621,10 @@ logged_in(_Packet, State) ->
 connect(Module, Params, From, State) ->
     Domain = get_domain(State#state.auth_method),
     connect(Module, Params, Domain, From, State).
-connect(Module, Params, Domain, From, #state{client_pid=ClientPid} = State) ->
+connect(Module, Params, Domain, From, #state{client_pid=_ClientPid} = State) ->
     try start_parser() of
 	StreamRef ->
-	    try Module:connect(ClientPid, StreamRef, Params) of
+	    try Module:connect(self(), StreamRef, Params) of
 		{ConnRef, ReceiverRef} ->
 		    %% basic (legacy) authent: we do not use version
 		    %% 1.0 in stream:

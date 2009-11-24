@@ -66,8 +66,21 @@ activate(ReceiverPid) ->
 %% a big difference, as the connecting client should send the
 %% stream header before receiving anything
 
+% we do a synchronous shutdown of the receiver process, 
+% because we want to make sure it isn't going be pushing
+% more data to the exmpp_xmlstream after closed. This
+% avoid the -useless- crash reports produced when the 
+% receiver process read data from socket before received
+% the stop message, but after the xmlstream was closed.
+% See shutdown order in exmpp_tcp:terminate/3.
 close(Socket, ReceiverPid) ->
-    ReceiverPid ! stop,
+    Ref = erlang:make_ref(),
+    ReceiverPid ! {stop, self(), Ref},
+    receive
+        {ok, Ref} -> ok
+    after
+        1000 -> ok
+    end,
     gen_tcp:close(Socket).
 
 send(Socket, XMLPacket) ->
@@ -90,7 +103,10 @@ receiver_loop(ClientPid, Socket, StreamRef) ->
 	    inet:setopts(Socket, [{active, once}]),
 	    Pid ! {Ref, ok},
 	    receiver_loop(ClientPid, Socket, StreamRef);
-	stop ->
+	stop -> 
+        ok;
+	{stop, From, Ref} ->  %synchronous stop.
+        From ! {ok, Ref},
 	    ok;
 	{tcp, Socket, Data} ->
 	    inet:setopts(Socket, [{active, once}]),
@@ -98,5 +114,5 @@ receiver_loop(ClientPid, Socket, StreamRef) ->
 	    receiver_loop(ClientPid, Socket, NewStreamRef);
 	{tcp_closed, Socket} ->
 	    %% XXX why timeouts with timeout 10 seconds with quickchek tests ???
-	    gen_fsm:sync_send_all_state_event(ClientPid, tcp_closed, 20000)
+	    gen_fsm:send_all_state_event(ClientPid, tcp_closed)
     end.
