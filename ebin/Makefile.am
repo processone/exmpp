@@ -42,7 +42,7 @@ BEAM_FILES = exmpp.app							\
 	     exmpp_session.beam						\
 	     exmpp_ssl.beam						\
 	     exmpp_tcp.beam						\
-	     exmpp_bosh.beam          \
+	     exmpp_bosh.beam						\
 	     exmpp_component.beam
 
 if BUILD_COMPAT

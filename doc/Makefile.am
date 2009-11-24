@@ -28,6 +28,7 @@ HTML_FILES = index.html							\
 	     exmpp_client_session.html					\
 	     exmpp_client_tls.html					\
 	     exmpp_compress.html					\
+	     exmpp_component.html					\
 	     exmpp_dialback.html					\
 	     exmpp_internals.html					\
 	     exmpp_iq.html						\
