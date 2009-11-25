@@ -603,6 +603,9 @@ logged_in(?message, State = #state{connection = _Module,
 logged_in(?iq, State) ->
     process_iq(State#state.client_pid, Attrs, IQElement),
     {next_state, logged_in, State};
+logged_in(?streamerror, State) ->
+    process_stream_error(State#state.client_pid, Reason),
+    {next_state, stream_error, State#state{stream_error=Reason}};
 %% Process unexpected packet
 logged_in(_Packet, State) ->
     %% log it or do something better
@@ -762,6 +765,9 @@ process_iq(ClientPid, Attrs, Packet) ->
                                  from = Who,
                                  id = Id,
                                  raw_packet = Packet}.
+
+process_stream_error(ClientPid, Reason) ->
+    ClientPid ! {stream_error, Reason}.
 
 %% Add a packet ID is needed:
 %% Check that the attribute list has defined an ID.
