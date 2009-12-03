@@ -758,8 +758,6 @@ connect(Module, Params, Domain, From, #state{client_pid=_ClientPid, stream_versi
 	StreamRef ->
 	    try Module:connect(self(), StreamRef, Params) of
 		{ConnRef, ReceiverRef} ->
-		    %% basic (legacy) authent: we do not use version
-		    %% 1.0 in stream:
 		    ok = Module:send(ConnRef,
 				     exmpp_stream:opening(Domain,
 							  ?NS_JABBER_CLIENT,
