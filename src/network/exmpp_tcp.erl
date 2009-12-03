@@ -24,10 +24,15 @@
 -module(exmpp_tcp).
 
 %% Behaviour exmpp_gen_transport ?
--export([connect/3, send/2, close/2]).
+-export([connect/3, send/2, close/2, reset_parser/1]).
 
 %% Internal export
 -export([receiver/3]).
+
+
+reset_parser(ReceiverPid) when is_pid(ReceiverPid) ->
+    ReceiverPid ! reset_parser.
+    
 
 %% Connect to XMPP server
 %% Returns:
@@ -114,5 +119,7 @@ receiver_loop(ClientPid, Socket, StreamRef) ->
 	    receiver_loop(ClientPid, Socket, NewStreamRef);
 	{tcp_closed, Socket} ->
 	    %% XXX why timeouts with timeout 10 seconds with quickchek tests ???
-	    gen_fsm:send_all_state_event(ClientPid, tcp_closed)
+	    gen_fsm:send_all_state_event(ClientPid, tcp_closed);
+    reset_parser ->
+        receiver_loop(ClientPid, Socket, exmpp_xmlstream:reset(StreamRef))
     end.

@@ -24,7 +24,7 @@
 -module(exmpp_ssl).
 
 
--export([connect/3, send/2, close/2]).
+-export([connect/3, send/2, close/2, reset_parser/1]).
 
 
 %% -- client interface --
@@ -32,6 +32,9 @@
 
 %% Internal export
 -export([receiver/4]).
+
+reset_parser(ReceiverPid) when is_pid(ReceiverPid) ->
+    ReceiverPid ! reset_parser.
 
 %% Connect to XMPP server
 %% Returns:
@@ -92,7 +95,9 @@ receiver_loop(ClientPid, Socket,SetOptsModule, StreamRef) ->
 	    gen_fsm:send_all_state_event(ClientPid, tcp_closed);
 	{ssl_error,Socket,Reason} ->
 	    error_logger:warning_msg([ssl_error,{ssl_socket,Socket},Reason]),
-	    gen_fsm:send_all_state_event(ClientPid, tcp_closed)
+	    gen_fsm:send_all_state_event(ClientPid, tcp_closed);
+    reset_parser ->
+        receiver_loop(ClientPid, Socket, SetOptsModule, exmpp_xmlstream:reset(StreamRef))
     end.
 
 
