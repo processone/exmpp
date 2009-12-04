@@ -51,7 +51,7 @@ init() ->
     %% Create a new session with basic (digest) authentication:
     exmpp_session:auth_basic_digest(MySession, MyJID, "password"),
     %% Connect in standard TCP:
-    _StreamId = exmpp_session:connect_TCP(MySession, "localhost", 5222),
+    {ok, _StreamId} = exmpp_session:connect_TCP(MySession, "localhost", 5222),
     session(MySession, MyJID).
 
 %% We are connected. We now log in (and try registering if authentication fails)

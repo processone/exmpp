@@ -411,7 +411,7 @@ setup({connect_bosh, URL, Host, Port}, From, State) ->
             {reply, {connect_error,
                      authentication_or_domain_undefined}, setup, State};
         _Other ->
-            connect(exmpp_bosh2, {URL, Host, Port}, From, State)
+            connect(exmpp_bosh, {URL, Host, Port}, From, State)
     end;
 setup({connect_ssl, Host, Port}, From, State) ->
     connect(exmpp_ssl, {Host, Port}, From, State);

@@ -21,26 +21,22 @@
 %% <p>
 %% This module is not intended to be used directly by client developers.
 %% </p>
+%%
+%%
+%% @pablo  IMPORTANT
+%%         This transport requires the lhttpc library, it doesn't work
+%%         with OTP's http client. See make_request/2
 
 -module(exmpp_bosh).
 
+%-include_lib("exmpp/include/exmpp.hrl").
 -include("exmpp.hrl").
 
 %% Behaviour exmpp_gen_transport ?
--export([connect/3, connect/4, send/2, close/2]).
+-export([connect/3,  send/2, close/2, reset_parser/1]).
 
-%% Internal export
--export([bosh_session/1,
-	 bosh_send/5,
-	 bosh_recv/4]).
+-export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
-%% Special instrumentation for testing
-%%-define(TEST_API, true).
--ifdef(TEST_API).
--export([bosh_send_async/5, bosh_recv_async/4,
-	 get_state_key/2, test_connect/1,
-	 dispatch_loop/1]).
--endif.
 
 -define(CONTENT_TYPE, "text/xml; charset=utf-8").
 -define(HOLD, "2").
@@ -54,241 +50,194 @@
 		auth_id = <<>>,
 		client_pid,
 		stream_ref,
-		%% When true, automatically manage a receiving process
-		auto_recv = true,
-		pending_requests = [] %% For now, we put only one receiver
+        max_requests,
+        new = true,
+        open_connections = [] %% http connections currently open and waiting for server response
 	       }).
 
-%% TODO: We do not support yet BOSH route attribute.
+reset_parser(Pid) ->
+    gen_server:call(Pid,reset_parser).
 
-%% Connect to XMPP server
-%% Returns: Ref
 connect(ClientPid, StreamRef, {URL, Domain, _Port}) ->
-    connect(ClientPid, StreamRef, {URL, Domain, _Port}, true).
-connect(ClientPid, StreamRef, {URL, Domain, _Port}, AutoReceive) ->
-    State = session_creation(URL, Domain),
-    BoshManagerPid = spawn_link(?MODULE, bosh_session,
-				[State#state{bosh_url=URL,
-					     domain=Domain,
-					     client_pid=ClientPid,
-					     stream_ref=StreamRef,
-					     auto_recv=AutoReceive}]),
-    activate(BoshManagerPid),
-    {BoshManagerPid, undefined}.
+    {ok, Pid} = gen_server:start_link(?MODULE, [ClientPid, StreamRef, URL, Domain], []),
+    {Pid, Pid}.
 
-activate(BoshManagerPid) ->
-    Ref=make_ref(),
-    BoshManagerPid ! {activate,self(),Ref},
-    receive
-	{Ref, ok} ->
-	    ok
-    after 5000 ->
-	    BoshManagerPid ! stop,
-	    erlang:throw({socket_error, cannot_activate_socket})
-    end.
+send(Pid, Packet) ->
+    gen_server:cast(Pid, {send, Packet}).
 
-close(BoshManagerPid, undefined) ->
-    BoshManagerPid ! stop.
+close(Pid, _) ->
+    gen_server:call(Pid, stop).
 
-send(SessionId, XMLPacket) when is_tuple(SessionId) ->
-    {BoshManagerPid, _} = SessionId,
-    send(BoshManagerPid, XMLPacket);
-send(BoshManagerPid, XMLPacket) ->
-    BoshManagerPid ! {send, XMLPacket},
-    ok.
+%% don't do anything on init. We establish the connection when the stream start 
+%% is sent
+init([ClientPid, StreamRef, URL, Domain]) ->
+    Rid = 324545,
+    State = #state{bosh_url = URL,
+            domain = Domain,
+            rid = Rid,
+            client_pid = ClientPid,
+            stream_ref = StreamRef
+            },
+     {ok, State}.
 
-%%--------------------------------------------------------------------
-%% Internal functions
-%%--------------------------------------------------------------------
-bosh_session(State) ->
-    %% Set name of wrapping level 1 tag for BOSH (body)
-    XMLStream = exmpp_xmlstream:set_wrapper_tagnames(State#state.stream_ref,
-						     [body]),
-    %% Handle repeating HTTP recv request (AutoReceive)
-    if
-	State#state.auto_recv ->
-	    process_flag(trap_exit, true),
-	    NewRID = State#state.rid + 1,
-	    RecvPid = bosh_recv_async(self(), State#state.bosh_url,
-				      State#state.sid, NewRID),
-	    bosh_session_loop(State#state{rid=NewRID, stream_ref=XMLStream,
-					  pending_requests=[RecvPid]});
-	true ->
-	    bosh_session_loop(State#state{stream_ref=XMLStream})
-    end.
-
-bosh_session_loop(State) ->
-    RecvPid = case State#state.pending_requests of
-		  [PendingRequestPid] -> PendingRequestPid;
-		  [] -> undefined
-	      end,
-    receive
-	{activate, Pid, Ref} ->
-	    Pid ! {Ref, ok},
-	    bosh_session_loop(State);
-	%% Ignore client sending opening stream. It is not needed.
-	%% The session manager need a stream open reply from server however:
- 	{send, #xmlel{ns=?NS_XMPP, name='stream'}} ->
-	    AuthId = binary_to_list(State#state.auth_id),
-	    Domain = State#state.domain,
-	    StreamStart =
-		"<?xml version='1.0'?><stream:stream xmlns='jabber:client'"
+%% reset the connection. We send here a fake stream response to the client to.
+%% TODO: check if it is not best to do this in do_send/2 
+handle_call(reset_parser, _From, State) ->
+    #state{stream_ref = Stream,
+           bosh_url = URL,
+           rid = Rid,
+           sid = Sid,
+           auth_id = AuthID,
+           open_connections = Open,
+           domain = Domain} =  State,
+    Ref = make_request_async(URL, restart_stream_msg(Sid, Rid, Domain)),
+	StreamStart =
+		["<?xml version='1.0'?><stream:stream xmlns='jabber:client'"
 		" xmlns:stream='http://etherx.jabber.org/streams' version='1.0'"
-		" from='" ++ Domain ++ "' id='" ++ AuthId ++ "'>",
-	    {ok, StreamRef} =
-		exmpp_xmlstream:parse(State#state.stream_ref, StreamStart),
-	    bosh_session_loop(State#state{stream_ref=StreamRef});
-	{send, XMLPacket} ->
-	    NewRid = State#state.rid + 1,
-	    bosh_send(self(),
-		      State#state.bosh_url,
-		      State#state.sid,
-		      NewRid, XMLPacket),
-	    bosh_session_loop(State#state{rid=NewRid});
-	{recv, XMLString} ->
-	    {ok, NewStreamRef} = exmpp_xmlstream:parse(State#state.stream_ref,
-						       XMLString),
-	    bosh_session_loop(State#state{stream_ref=NewStreamRef});
-	{'EXIT',RecvPid,normal} ->
-	    NewRID = State#state.rid + 1,
-	    NewRecvPid = bosh_recv_async(self(), State#state.bosh_url,
-					 State#state.sid, NewRID),
-	    bosh_session_loop(State#state{rid=NewRID,
-					  pending_requests=[NewRecvPid]});
-	stop ->
-	    ok;
-	%% Debug / Testing:
-	{get_state_key, Pid, Key} when is_atom(Key) ->
-	    Pid ! {Key, get_key(State, Key)},
-	    bosh_session_loop(State);
-	_Unknown ->
-	    %% TODO: Use ProcessOne logging application
-	    %% io:format("Unknown message received: ~p", [_Unknown]),
-	    bosh_session_loop(State)
-    end.
+		" from='" , Domain , "' id='" , AuthID , "'>"],
+    NewStreamRef = exmpp_xmlstream:reset(Stream),
+    {ok, NewStreamRef2} = exmpp_xmlstream:parse(NewStreamRef, StreamStart),
+    {reply, ok, State#state{rid = Rid +1,
+                            new = false,
+                            stream_ref = NewStreamRef2, 
+                            open_connections = [Ref | Open]}};
 
--ifdef(TEST_API).
-bosh_send_async({BoshManagerPid, _}, URL, SID, NewRID, XMLPacket) ->
-    bosh_send_async(BoshManagerPid, URL, SID, NewRID, XMLPacket);
-bosh_send_async(BoshManagerPid, URL, SID, NewRID, XMLPacket) ->
-    spawn_link(?MODULE,bosh_send,[BoshManagerPid, URL, SID, NewRID, XMLPacket]).
--endif.
 
-bosh_send({BoshManagerPid,_}, URL, SID, NewRID, XMLPacket) ->
-    bosh_send(BoshManagerPid, URL, SID, NewRID, XMLPacket);
-bosh_send(BoshManagerPid, URL, SID, NewRID, XMLPacket) ->
-    %% TODO: Make sure root element as xmlns = jabber:client
-    %% Force xmlns to jabber:client, but be carefull of not duplicating
-    %% attribute
-    Body = exmpp_xml:set_attributes(
-	     #xmlel{ns = ?NS_BOSH_s, name = 'body'},
-	     [{sid, SID},
-	      {rid, integer_to_list(NewRID)}]),
-    PostBody = exmpp_xml:set_children(Body, [XMLPacket]),
-    BinaryPacket = exmpp_xml:document_to_binary(PostBody),
-    Reply = http:request(post, {URL, [], [], BinaryPacket}, [], []),
-    %% io:format("send Reply =~p~n",[Reply]),
-    process_http_reply(BoshManagerPid, Reply).
 
-bosh_recv_async({BoshManagerPid, _}, URL, SID, NewRID) ->
-    bosh_recv_async(BoshManagerPid, URL, SID, NewRID);
-bosh_recv_async(BoshManagerPid, URL, SID, NewRID) ->
-    spawn_link(?MODULE, bosh_recv, [BoshManagerPid, URL, SID, NewRID]).
+handle_call(stop, _From, State) ->
+    {stop, ok, normal, State};
+handle_call(_Call, _From, State) ->
+    {reply, ok, State}.
 
-bosh_recv({BoshManagerPid,_}, URL, SID, NewRID) ->
-    bosh_recv(BoshManagerPid, URL, SID, NewRID);
-bosh_recv(BoshManagerPid, URL, SID, NewRID) ->
-    PostBody = exmpp_xml:set_attributes(
-		 #xmlel{ns = ?NS_BOSH_s, name = 'body'},
-		 [{sid, SID}, {rid, integer_to_list(NewRID)}]),
-    Reply = http:request(
-	      post, {URL, [], [],
-		     exmpp_xml:document_to_binary(PostBody)}, [], []),
-    %% io:format("Received reply: ~p~n",[Reply]),
-    process_http_reply(BoshManagerPid, Reply).
+handle_cast({send, Packet}, State) ->
+    do_send(Packet, State);
+handle_cast(_Cast, State) ->
+    {noreply, State}.
 
-process_http_reply(BoshManagerPid, {ok, {{"HTTP/1.1", 200, "OK"},
-					 _Headers, Body}}) ->
-    BoshManagerPid ! {recv, Body};
-%% TODO: Handle errors.
-process_http_reply(_BoshManagerPid, _HTTPReply) ->
+handle_info({http_response, Pid, {ok, Resp}}, #state{open_connections = Open, stream_ref = Stream} = State) ->
+    case lists:member(Pid, Open) of
+        false ->
+            exit({unknown_http_process, Pid, Open});
+        true ->
+            NewState = if
+                length(Open) =:= 1  andalso State#state.new =:= false ->   % for some reason we can't do this before authentication
+                    #state{sid = Sid, rid = Rid} = State,
+                    Ref = make_request_async(State#state.bosh_url, empty_msg(Sid, Rid)),
+                    State#state{open_connections = [Ref | lists:delete(Pid, Open)], rid = Rid +1};
+                true ->
+                    State#state{open_connections = lists:delete(Pid, Open)} 
+            end,
+            [#xmlel{name=body} = BodyEl] = exmpp_xml:parse_document(Resp),
+            Events = [{xmlstreamelement, El} || El <- exmpp_xml:get_child_elements(BodyEl)],
+            exmpp_xmlstream:send_events(Stream, Events),
+            {noreply, NewState}
+     end;
+                    
+handle_info(_Info, State) ->
+    io:format("Got unknown info ~p \n", [_Info]),
+    {noreply, State}.
+terminate(_Reason, _State) ->
     ok.
-
-%% Session creation request
-%% See XEP-0124 - Section 7.1
-session_creation(URL, Domain) ->
-    RID = random:uniform(65536 * 65536),
-    PostBody = exmpp_xml:set_attributes(
-		 #xmlel{ns = ?NS_BOSH_s, name = 'body'},
-		 [{content, ?CONTENT_TYPE},
-		  {hold, ?HOLD},
-		  {to, Domain},
-		  {ver, ?VERSION},
-		  {wait, ?WAIT},
-		  {rid, integer_to_list(RID)}]),
-    %% TODO: extract port from URL ?
-    case http:request(post, {URL, [], [],
-			     exmpp_xml:document_to_binary(PostBody)}, [], []) of
-	{ok, {{"HTTP/1.1",200,"OK"}, _Headers, Body}} ->
-	    %% Parse reply body
-	    [#xmlel{name=body} = BodyEl] = exmpp_xml:parse_document(Body),
-	    SID = exmpp_xml:get_attribute_as_binary(BodyEl, sid, undefined),
-	    AuthID = exmpp_xml:get_attribute_as_binary(BodyEl,authid,undefined),
-	    #state{sid=SID, rid=RID, auth_id=AuthID};
-	%% TODO: Handle non-200 replies
-	{error, Reason} ->
-	    throw({'cannot-create-session', Reason})
-    end.
+code_change(_Old, State, _Extra) ->
+    {ok, State}.
 
 
-%% Implementation notes. For now the design is pretty basic. The main
-%% loop spawn process to handle HTTP queries. Currently it takes care
-%% of a single HTTP receive request, that is respawned when it expire
-%% / return result.
+make_request_async(URL, Body) ->
+    BoshMngr = self(),
+    spawn_link(fun() ->
+        BoshMngr ! {http_response, self(), make_request(URL, Body)}
+    end).
+        
+make_request(URL, Body) ->
+%    TODO:  things don't work well with the http client included in OTP. 
+%    Don't know why, but request get stuck.  It works ok with lhttpc.
+%    I have to investigate it further, seems some problem with 
+%    http  connection pipelining/persistent.  For now I want to keep
+%    this as simple as possible.
+%    Request =  {URL, [], "text/xml; charset=utf-8", Body},
+%    {ok, {{"HTTP/1.1", 200, "OK"}, _Headers, Resp}} = http:request(post, Request, [], [{sync, true}]),
+
+    {ok, {{200, _Reason}, _Headers, Resp}} = lhttpc:request(URL, 'post', [{"Content-Type", ?CONTENT_TYPE}], Body, infinity),
+    {ok, Resp}.
+
+%% after stream restart, we must not sent this to the connection manager. The response is got in reset call
+do_send(#xmlel{ns=?NS_XMPP, name='stream'}, #state{new = false} = State) ->
+	{noreply, State};
+
+% we start the session with the connection manager here.
+do_send(#xmlel{ns=?NS_XMPP, name='stream'}, State) ->
+    #state{ bosh_url = URL,
+            domain = Domain, 
+            stream_ref = StreamRef,
+            rid = Rid} = State,
+
+    {ok, Resp} = make_request(URL, create_session_msg(Rid, Domain, 10, 1)),
+
+    [#xmlel{name=body} = BodyEl] = exmpp_xml:parse_document(Resp),
+    SID = exmpp_xml:get_attribute_as_binary(BodyEl, sid, undefined),
+    AuthID = exmpp_xml:get_attribute_as_binary(BodyEl,authid,undefined),
+    Requests = list_to_integer(exmpp_xml:get_attribute_as_list(BodyEl,requests,undefined)),
+    %Inactivity = list_to_integer(exmpp_xml:get_attribute_as_list(BodyEl,inactivity,undefined)),
+    Requests = list_to_integer(exmpp_xml:get_attribute_as_list(BodyEl,requests,undefined)),
+    Events = [{xmlstreamelement, El} || El <- exmpp_xml:get_child_elements(BodyEl)],
+
+    % first return a fake stream response, then anything found inside the <body/> element (possibly nothing)
+	StreamStart =
+		["<?xml version='1.0'?><stream:stream xmlns='jabber:client'"
+		" xmlns:stream='http://etherx.jabber.org/streams' version='1.0'"
+		" from='" , Domain , "' id='" , AuthID , "'>"],
+    {ok, NewStreamRef} = exmpp_xmlstream:parse(StreamRef, StreamStart),
+    exmpp_xmlstream:send_events(StreamRef, Events),
+	{noreply, State#state{stream_ref = NewStreamRef, 
+                          rid = Rid +1, 
+                          sid = SID,
+                          open_connections = [],
+                          auth_id = AuthID}};
+
+do_send(Packet, State) ->
+    case length(State#state.open_connections) of
+        N when N >=  State#state.max_requests ->
+            %% TODO: here we must enqueue the stanza for latter delivery, we shouldn't crash.
+            exit({max_requests_reached, N, State#state.max_requests});
+        _ ->
+            Ref = make_request_async(State#state.bosh_url, 
+                    stanzas_msg(State#state.sid,
+                                State#state.rid,
+                                exmpp_xml:document_to_iolist(Packet))),
+            {noreply, State#state{open_connections = [Ref | State#state.open_connections],
+                        rid = State#state.rid +1}}
+     end.
+   
+    
 
 
+create_session_msg(Rid, To, Wait, Hold) ->
+    [ "<body xmlns='http://jabber.org/protocol/httpbind'"
+       " content='text/xml; charset=utf-8'",
+       " ver='1.8'"
+       " to='", To, "'",
+       " rid='", integer_to_list(Rid), "'" 
+       " xmlns:xmpp='urn:xmpp:xbosh'",
+       " xmpp:version='1.0'",
+       " wait='", integer_to_list(Wait), "'"
+       " hold='", integer_to_list(Hold), "'/>"].
+
+stanzas_msg(Sid, Rid, Text) ->
+    [ "<body xmlns='http://jabber.org/protocol/httpbind' "
+       " rid='", integer_to_list(Rid), "'" 
+       " sid='", Sid, "'>", Text, "</body>"].
 
 
+empty_msg(Sid, Rid) ->
+    [ "<body xmlns='http://jabber.org/protocol/httpbind' "
+       " rid='", integer_to_list(Rid), "'" 
+       " sid='", Sid, "'></body>"].
 
-
-%% Special instrumentation for testing
-%% State: #state{}
-%% Key: atom()
-get_key(State, sid) -> State#state.sid;
-get_key(State, rid) -> State#state.rid;
-get_key(State, bosh_url) -> State#state.bosh_url.
-
--ifdef(TEST_API).
--define(PARSER_OPTIONS,	[{names_as_atom, true}, {check_nss, xmpp},
-			 {check_elems, xmpp}, {check_attrs, xmpp},
-			 {emit_endtag, false}, {root_depth, 0},
-			 {max_size, infinity}]).
-%% Params = {URL, Domain, Port}
-test_connect(Params) ->
-    inets:start(),
-    application:start(exmpp),
-    DispatchPid = spawn_link(?MODULE, dispatch_loop, [self()]),
-
-    Parser = exmpp_xml:start_parser(?PARSER_OPTIONS),
-    StreamRef =
-	exmpp_xmlstream:start(DispatchPid, Parser, [{xmlstreamstart,new}]),
-    SessionID = connect(self(), StreamRef, Params, false),
-    send(SessionID, #xmlel{ns=?NS_XMPP, name='stream'}),
-    SessionID.
-
-%% Send get_state_key
-get_state_key({BoshManagerPid, _}, Key) ->
-    BoshManagerPid ! {get_state_key, self(), Key},
-    receive
-	{Key, Value} -> Value
-    end.
-dispatch_loop(ClientPid) ->
-    receive
-	%% Discard stream start:
-	#xmlstreamstart{} ->
-	    dispatch_loop(ClientPid);
-	Msg ->
-	    ClientPid ! Msg,
-	    dispatch_loop(ClientPid)
-    end.
--endif.
+restart_stream_msg(Sid, Rid, Domain) ->
+    [ "<body xmlns='http://jabber.org/protocol/httpbind' "
+       " rid='", integer_to_list(Rid), "'",
+       " sid='", Sid, "'",
+       " xmpp:restart='true'",
+       " xmlns:xmpp='urn:xmpp:xbosh'",
+       " to='", Domain, "'",
+       "/>"].

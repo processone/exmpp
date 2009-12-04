@@ -42,11 +42,11 @@ stop(EchoClientPid) ->
 
 init() ->
     application:start(exmpp),
-    MySession = exmpp_session:start(),
+    MySession = exmpp_session:start({1,0}),
     MyJID = exmpp_jid:make("bosh", "localhost", random),
     exmpp_session:auth_basic_digest(MySession, MyJID, "password"),
     %% Connect in standard TCP:
-    _StreamId = exmpp_session:connect_BOSH(MySession,
+    {ok, _StreamId, _Features} = exmpp_session:connect_BOSH(MySession,
 					   "http://127.0.0.1:5280/http-bind",
 					   "localhost", 5222),
     session(MySession, MyJID).
@@ -54,7 +54,7 @@ init() ->
 %% We are connected. We now log in (and try registering if authentication fails)
 session(MySession, _MyJID) ->
     %% Login with defined JID / Authentication:
-    try exmpp_session:login(MySession)
+    try exmpp_session:login(MySession, "PLAIN")
     catch
 	throw:{auth_error, 'not-authorized'} ->
  	    %% Try creating a new user:
@@ -78,7 +78,7 @@ loop(MySession) ->
             exmpp_session:stop(MySession);
         %% If we receive a message, we reply with the same message
         Record = #received_packet{packet_type=message, raw_packet=_Packet} ->
-            io:format("~p~n", [Record]),
+            io:format("message: ~p~n", [Record]),
             loop(MySession);
         Record ->
             io:format("~p~n", [Record]),
