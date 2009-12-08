@@ -105,7 +105,7 @@ handle_call(reset_parser, _From, State) ->
 
 
 handle_call(stop, _From, State) ->
-    {stop, ok, normal, State};
+    {stop, normal, ok, State};
 handle_call(_Call, _From, State) ->
     {reply, ok, State}.
 
