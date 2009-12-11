@@ -22,7 +22,7 @@ I. How to build and install
        erl_interface are required.
            . Minimum version:           R12B
 
-    o  A C compiler (REQUIRED)
+    o  C compiler (REQUIRED)
        Exmpp contains Erlang port drivers which are written in C.
        Tested C compilers include:
            . GNU Compiler Collection (gcc)
@@ -32,11 +32,10 @@ I. How to build and install
        C compilers known not to work:
            . clang frontend for LLVM (ccc)
 
-    o  Expat (optional)
-           . Tested version:            2.0.1
-
-    o  LibXML2 (optional)
-           . Tested version:            2.6.31
+    o  XML parsing library (REQUIRED)
+       Tested libraries are:
+           . Expat: recommended. Tested: 2.0.1
+           . LibXML2: only experimental support.
 
     o  OpenSSL (optional)
        It's the only TLS engine supported for now.
