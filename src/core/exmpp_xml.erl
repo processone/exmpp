@@ -265,14 +265,14 @@
 %%     Engine = {engine, atom()}
 %%     Stanza_Max_Size  = {max_size, infinity} | {max_size, Size}
 %%     Root_Depth = {root_depth, none} | {root_depth, Depth}
-%%     Name_Format = {names_as_atom, bool()}
+%%     Name_Format = {names_as_atom, boolean()}
 %%     Checks = NS_Check | Elems_Check | Attrs_Check
-%%       NS_Check = {check_nss, Known_List_Name | bool()}
-%%       Elems_Check = {check_elems, Known_List_Name | bool()}
-%%       Attrs_Check = {check_attrs, Known_List_Name | bool()}
+%%       NS_Check = {check_nss, Known_List_Name | boolean()}
+%%       Elems_Check = {check_elems, Known_List_Name | boolean()}
+%%       Attrs_Check = {check_attrs, Known_List_Name | boolean()}
 %%     Known_List_Name = atom()
-%%     Send_End_Element = {emit_endtag, bool()}.
-%% Options of the form `{Key, bool()}' can be specified as `Key'. See
+%%     Send_End_Element = {emit_endtag, boolean()}.
+%% Options of the form `{Key, boolean()}' can be specified as `Key'. See
 %% {@link proplists}.
 %%
 %% <br/><br/>
@@ -324,11 +324,11 @@
       {engine, atom()}                         |
       {max_size, infinity | non_neg_integer()} |
       {root_depth, none | non_neg_integer()}   |
-      {names_as_atom, bool()}                  | names_as_atom |
-      {check_nss, atom() | bool()}             | check_nss     |
-      {check_elems, atom() | bool()}           | check_elems   |
-      {check_attrs, atom() | bool()}           | check_attrs   |
-      {emit_endtag, bool()}                    | emit_endtag
+      {names_as_atom, boolean()}                  | names_as_atom |
+      {check_nss, atom() | boolean()}             | check_nss     |
+      {check_elems, atom() | boolean()}           | check_elems   |
+      {check_attrs, atom() | boolean()}           | check_attrs   |
+      {emit_endtag, boolean()}                    | emit_endtag
      ).
 
 %% @type xmlparser().
@@ -518,11 +518,11 @@ get_engine_names2(Prev_Key, Keys) ->
     get_engine_names2(ets:next(?ENGINES_REGISTRY, Prev_Key),
 		      [Prev_Key | Keys]).
 
-%% @spec (Engine_Name) -> bool()
+%% @spec (Engine_Name) -> boolean()
 %%     Engine_Name = atom()
 %% @doc Tell if `Engine_Name' is available.
 
--spec(is_engine_available/1 :: (atom()) -> bool()).
+-spec(is_engine_available/1 :: (atom()) -> boolean()).
 
 is_engine_available(Engine_Name) ->
     ets:member(?ENGINES_REGISTRY, Engine_Name).
@@ -866,7 +866,7 @@ port_revision(#xml_parser{port = Port} = _Parser) ->
 %% Functions to handle namespaces in XML elements and attributes.
 %% --------------------------------------------------------------------
 
-%% @spec (XML_Element, NS) -> bool()
+%% @spec (XML_Element, NS) -> boolean()
 %%     XML_Element = xmlel()
 %%     NS = atom() | string()
 %% @doc Tell if `NS' was declared within this element.
@@ -874,7 +874,7 @@ port_revision(#xml_parser{port = Port} = _Parser) ->
 %% @todo Like for elements and attributes, implement a more flexible
 %% matching (`string()' vs. `atom()').
 
--spec(is_ns_declared_here/2 :: (xmlel(), xmlname()) -> bool()).
+-spec(is_ns_declared_here/2 :: (xmlel(), xmlname()) -> boolean()).
 
 is_ns_declared_here(#xmlel{declared_ns = Declared_NS}, NS) ->
     lists:keymember(NS, 1, Declared_NS).
@@ -976,14 +976,14 @@ set_attr_value({Name, _}, Value) ->
 attribute(NS, Name, Value) ->
     set_attr_value(#xmlattr{ns = NS, name = Name}, Value).
 
-%% @spec (Attr, Name) -> bool()
+%% @spec (Attr, Name) -> boolean()
 %%     Attr = xmlattr() | xmlattr_old()
 %%     Name = atom() | string()
 %% @doc Tell if `Attr' is named `Name'.
 %%
 %% It takes care of comparison between string and atom.
 
--spec(attribute_matches/2 :: (xmlattr_any(), xmlname()) -> bool()).
+-spec(attribute_matches/2 :: (xmlattr_any(), xmlname()) -> boolean()).
 
 attribute_matches(#xmlattr{name = Name}, Name) ->
     true;
@@ -1007,7 +1007,7 @@ attribute_matches({Name, _Value}, Name_A)
 attribute_matches(_Attr, _Name) ->
     false.
 
-%% @spec (Attr, NS, Name) -> bool()
+%% @spec (Attr, NS, Name) -> boolean()
 %%     Attr = xmlattr()
 %%     NS = atom() | string()
 %%     Name = atom() | string()
@@ -1016,7 +1016,7 @@ attribute_matches(_Attr, _Name) ->
 %% It takes care of comparison between string and atom.
 
 -spec(attribute_matches/3 ::
-      (xmlattr(), xmlname(), xmlname()) -> bool()).
+      (xmlattr(), xmlname(), xmlname()) -> boolean()).
 
 attribute_matches(#xmlattr{ns = NS, name = Name}, NS, Name) ->
     true;
@@ -1417,13 +1417,13 @@ get_attribute_as_binary(#xmlel{attrs = Attrs} = _XML_Element, NS, Name,
 get_attribute_as_binary(undefined, _NS, _Name, Default) ->
     Default.
 
-%% @spec (Attrs, Attr_Name) -> bool()
+%% @spec (Attrs, Attr_Name) -> boolean()
 %%     Attrs = [xmlattr()] | [xmlattr_old()]
 %%     Attr_Name = atom() | string()
 %% @doc Check the presence for attribute `Attr_Name' in the list.
 
 -spec(has_attribute_in_list/2 ::
-      ([xmlattr()] | [xmlattr_old()], xmlname()) -> bool()).
+      ([xmlattr()] | [xmlattr_old()], xmlname()) -> boolean()).
 
 has_attribute_in_list(Attrs, Name) ->
     case get_attribute_node_from_list(Attrs, Name) of
@@ -1431,7 +1431,7 @@ has_attribute_in_list(Attrs, Name) ->
         _         -> true
     end.
 
-%% @spec (Attrs, NS, Attr_Name) -> bool()
+%% @spec (Attrs, NS, Attr_Name) -> boolean()
 %%     Attrs = [xmlattr()]
 %%     NS = atom() | string()
 %%     Attr_Name = atom() | string()
@@ -1439,7 +1439,7 @@ has_attribute_in_list(Attrs, Name) ->
 %% in the list.
 
 -spec(has_attribute_in_list/3 ::
-      ([xmlattr()], xmlname(), xmlname()) -> bool()).
+      ([xmlattr()], xmlname(), xmlname()) -> boolean()).
 
 has_attribute_in_list(Attrs, NS, Name) ->
     case get_attribute_node_from_list(Attrs, NS, Name) of
@@ -1447,13 +1447,13 @@ has_attribute_in_list(Attrs, NS, Name) ->
         _         -> true
     end.
 
-%% @spec (XML_Element, Attr_Name) -> bool()
+%% @spec (XML_Element, Attr_Name) -> boolean()
 %%     XML_Element = xmlel() | xmlel_old() | undefined
 %%     Attr_Name = atom() | string()
 %% @doc Check the presence for attribute `Attr_Name' in the XML element.
 
 -spec(has_attribute/2 ::
-      (xmlel_any() | undefined, xmlname()) -> bool()).
+      (xmlel_any() | undefined, xmlname()) -> boolean()).
 
 has_attribute(#xmlel{attrs = Attrs} = _XML_Element, Name) ->
     has_attribute_in_list(Attrs, Name);
@@ -1462,7 +1462,7 @@ has_attribute(#xmlelement{attrs = Attrs} = _XML_Element, Name) ->
 has_attribute(undefined, _Name) ->
     false.
 
-%% @spec (XML_Element, NS, Attr_Name) -> bool()
+%% @spec (XML_Element, NS, Attr_Name) -> boolean()
 %%     XML_Element = xmlel() | xmlel_old() | undefined
 %%     NS = atom() | string()
 %%     Attr_Name = atom() | string()
@@ -1470,7 +1470,7 @@ has_attribute(undefined, _Name) ->
 %% in the XML element.
 
 -spec(has_attribute/3 ::
-      (xmlel_any() | undefined, xmlname(), xmlname()) -> bool()).
+      (xmlel_any() | undefined, xmlname(), xmlname()) -> boolean()).
 
 has_attribute(#xmlel{attrs = Attrs} = _XML_Element, NS, Name) ->
     has_attribute_in_list(Attrs, NS, Name);
@@ -1924,14 +1924,14 @@ get_name_as_atom(#xmlel{name = Name}) ->
 get_name_as_atom(#xmlelement{name = Name}) ->
     as_atom(Name).
 
-%% @spec (XML_Element, Name) -> bool()
+%% @spec (XML_Element, Name) -> boolean()
 %%     XML_Element = xmlel() | xmlel_old() | undefined
 %%     Name = atom() | string()
 %% @doc Tell if `XML_Element' is named `Name'.
 %%
 %% It takes care of comparison between string and atom.
 
--spec(element_matches/2 :: (xmlel_any(), xmlname()) -> bool()).
+-spec(element_matches/2 :: (xmlel_any(), xmlname()) -> boolean()).
 
 element_matches(#xmlel{name = Name}, Name) ->
     true;
@@ -1955,7 +1955,7 @@ element_matches(#xmlelement{name = Name}, Name_A)
 element_matches(_XML_Element, _Name) ->
     false.
 
-%% @spec (XML_Element, NS, Name) -> bool()
+%% @spec (XML_Element, NS, Name) -> boolean()
 %%     XML_Element = xmlel() | xmlel_old() | undefined
 %%     NS = atom() | string()
 %%     Name = atom() | string()
@@ -1963,7 +1963,7 @@ element_matches(_XML_Element, _Name) ->
 %%
 %% It takes care of comparison between string and atom.
 
--spec(element_matches/3 :: (xmlel(), xmlname(), xmlname()) -> bool()).
+-spec(element_matches/3 :: (xmlel(), xmlname(), xmlname()) -> boolean()).
 
 element_matches(#xmlel{ns = NS, name = Name}, NS, Name) ->
     true;
@@ -1992,14 +1992,14 @@ element_matches(#xmlel{ns = NS, name = Name}, NS, Name_A)
 element_matches(_XML_Element, _NS, _Name) ->
     false.
 
-%% @spec (XML_Element, NS) -> bool()
+%% @spec (XML_Element, NS) -> boolean()
 %%     XML_Element = xmlel() | xmlel_old() | undefined
 %%     NS = atom() | string()
 %% @doc Tell if `XML_Element' has the namespace `NS'.
 %%
 %% It takes care of comparison between string and atom.
 
--spec(element_matches_by_ns/2 :: (xmlel(), xmlname()) -> bool()).
+-spec(element_matches_by_ns/2 :: (xmlel(), xmlname()) -> boolean()).
 
 element_matches_by_ns(#xmlel{ns = NS}, NS) ->
     true;
@@ -2163,13 +2163,13 @@ get_element_by_ns2([], _NS) ->
 get_element_by_ns2(undefined, _NS) ->
     undefined.
 
-%% @spec (XML_Element, Name) -> bool()
+%% @spec (XML_Element, Name) -> boolean()
 %%     XML_Element = xmlel() | xmlel_old() | undefined
 %%     Name = atom() | string()
 %% @doc Check the presence for element `Name' in the children.
 
 -spec(has_element/2 ::
-      (xmlel_any() | undefined, xmlname()) -> bool()).
+      (xmlel_any() | undefined, xmlname()) -> boolean()).
 
 has_element(XML_Element, Name) ->
     case get_element(XML_Element, Name) of
@@ -2177,7 +2177,7 @@ has_element(XML_Element, Name) ->
         _         -> true
     end.
 
-%% @spec (XML_Element, NS, Name) -> bool()
+%% @spec (XML_Element, NS, Name) -> boolean()
 %%     XML_Element = xmlel() | undefined
 %%     NS = atom() | string()
 %%     Name = atom() | string()
@@ -2185,7 +2185,7 @@ has_element(XML_Element, Name) ->
 %% the children.
 
 -spec(has_element/3 ::
-      (xmlel() | undefined, xmlname(), xmlname()) -> bool()).
+      (xmlel() | undefined, xmlname(), xmlname()) -> boolean()).
 
 has_element(XML_Element, NS, Name) ->
     case get_element(XML_Element, NS, Name) of
@@ -2193,14 +2193,14 @@ has_element(XML_Element, NS, Name) ->
         _         -> true
     end.
 
-%% @spec (XML_Element, NS) -> bool()
+%% @spec (XML_Element, NS) -> boolean()
 %%     XML_Element = xmlel() | undefined
 %%     NS = atom() | string()
 %% @doc Check the presence for any elements with `NS' namespace URI in
 %% the children.
 
 -spec(has_element_by_ns/2 ::
-      (xmlel() | undefined, xmlname()) -> bool()).
+      (xmlel() | undefined, xmlname()) -> boolean()).
 
 has_element_by_ns(XML_Element, NS) ->
     case get_element_by_ns(XML_Element, NS) of
@@ -2537,13 +2537,13 @@ set_children(#xmlelement{} = XML_Element, New_Children)
 %%
 %% `Pred' has the following prototype:
 %% ```
-%% fun(XML_Element, Child) -> bool()
+%% fun(XML_Element, Child) -> boolean()
 %% '''
 %%
 %% If `children' is `undefined', the function isn't called.
 
 -spec(filter/2 ::
-      (fun((xmlel_any(), xmlnode()) -> bool()), xmlel_any()) -> xmlel_any()).
+      (fun((xmlel_any(), xmlnode()) -> boolean()), xmlel_any()) -> xmlel_any()).
 
 filter(Pred, #xmlel{children = Children} = XML_Element)
   when is_function(Pred, 2) ->
@@ -2893,7 +2893,7 @@ remove_cdata(#xmlelement{children = Children} = XML_Element) ->
     New_Children = remove_cdata_from_list(Children),
     XML_Element#xmlelement{children = New_Children}.
 
-%% @spec (CData) -> bool()
+%% @spec (CData) -> boolean()
 %%     CData = xmlel() | xmlel_old() | xmlcdata()
 %% @doc Tell if a text node contains only whitespaces.
 %%
@@ -2902,7 +2902,7 @@ remove_cdata(#xmlelement{children = Children} = XML_Element) ->
 %%
 %% Whitespaces are `\s', `\t', `\n' and `\r'.
 
--spec(is_whitespace/1 :: (xmlnode()) -> bool()).
+-spec(is_whitespace/1 :: (xmlnode()) -> boolean()).
 
 is_whitespace(#xmlcdata{cdata = CData}) ->
     is_whitespace2(CData);
