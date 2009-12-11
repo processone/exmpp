@@ -23,7 +23,7 @@
 %% </p>
 %%
 %%
-%% @pablo  IMPORTANT
+%% TODO Pablo:  IMPORTANT
 %%         This transport requires the lhttpc library, it doesn't work
 %%         with OTP's http client. See make_request/2
 
@@ -43,7 +43,10 @@
 -define(VERSION, "1.8").
 -define(WAIT, "3600").
 
--record(state, {bosh_url="",
+-record(state, {
+        parsed_bosh_url, 
+           % {Host::string(), Port:integer(), Path::string(), Ssl::boolean()}
+          % can be obtained by lhttpc_lib:parse_url/1
 		domain="",
 		sid = <<>>,
 		rid = 0,
@@ -71,12 +74,15 @@ close(Pid, _) ->
 %% don't do anything on init. We establish the connection when the stream start 
 %% is sent
 init([ClientPid, StreamRef, URL, Domain]) ->
-    Rid = 324545,
-    State = #state{bosh_url = URL,
+    {A,B,C} = now(),
+    random:seed(A,B,C),
+    Rid = 1000 + random:uniform(100000),
+    ParsedUrl = lhttpc_lib:parse_url(URL),
+    State = #state{parsed_bosh_url = ParsedUrl,
             domain = Domain,
             rid = Rid,
             client_pid = ClientPid,
-            stream_ref = StreamRef
+            stream_ref = exmpp_xmlstream:set_wrapper_tagnames(StreamRef, [body])
             },
      {ok, State}.
 
@@ -84,17 +90,17 @@ init([ClientPid, StreamRef, URL, Domain]) ->
 %% TODO: check if it is not best to do this in do_send/2 
 handle_call(reset_parser, _From, State) ->
     #state{stream_ref = Stream,
-           bosh_url = URL,
+           parsed_bosh_url = ParsedURL,
            rid = Rid,
            sid = Sid,
            auth_id = AuthID,
            open_connections = Open,
            domain = Domain} =  State,
-    Ref = make_request_async(URL, restart_stream_msg(Sid, Rid, Domain)),
+    Ref = make_request_async(ParsedURL, restart_stream_msg(Sid, Rid, Domain)),
 	StreamStart =
 		["<?xml version='1.0'?><stream:stream xmlns='jabber:client'"
 		" xmlns:stream='http://etherx.jabber.org/streams' version='1.0'"
-		" from='" , Domain , "' id='" , AuthID , "'>"],
+		" from='" , Domain , "' id='" , AuthID , "'>"],             
     NewStreamRef = exmpp_xmlstream:reset(Stream),
     {ok, NewStreamRef2} = exmpp_xmlstream:parse(NewStreamRef, StreamStart),
     {reply, ok, State#state{rid = Rid +1,
@@ -122,15 +128,13 @@ handle_info({http_response, Pid, {ok, Resp}}, #state{open_connections = Open, st
             NewState = if
                 length(Open) =:= 1  andalso State#state.new =:= false ->   % for some reason we can't do this before authentication
                     #state{sid = Sid, rid = Rid} = State,
-                    Ref = make_request_async(State#state.bosh_url, empty_msg(Sid, Rid)),
+                    Ref = make_request_async(State#state.parsed_bosh_url, empty_msg(Sid, Rid)),
                     State#state{open_connections = [Ref | lists:delete(Pid, Open)], rid = Rid +1};
                 true ->
                     State#state{open_connections = lists:delete(Pid, Open)} 
             end,
-            [#xmlel{name=body} = BodyEl] = exmpp_xml:parse_document(Resp),
-            Events = [{xmlstreamelement, El} || El <- exmpp_xml:get_child_elements(BodyEl)],
-            exmpp_xmlstream:send_events(Stream, Events),
-            {noreply, NewState}
+             {ok, NewStream} = exmpp_xmlstream:parse(Stream, Resp),
+            {noreply, NewState#state{stream_ref = NewStream}}
      end;
                     
 handle_info(_Info, State) ->
@@ -148,7 +152,7 @@ make_request_async(URL, Body) ->
         BoshMngr ! {http_response, self(), make_request(URL, Body)}
     end).
         
-make_request(URL, Body) ->
+make_request({Host, Port, Path, Ssl}, Body) ->
 %    TODO:  things don't work well with the http client included in OTP. 
 %    Don't know why, but request get stuck.  It works ok with lhttpc.
 %    I have to investigate it further, seems some problem with 
@@ -157,7 +161,8 @@ make_request(URL, Body) ->
 %    Request =  {URL, [], "text/xml; charset=utf-8", Body},
 %    {ok, {{"HTTP/1.1", 200, "OK"}, _Headers, Resp}} = http:request(post, Request, [], [{sync, true}]),
 
-    {ok, {{200, _Reason}, _Headers, Resp}} = lhttpc:request(URL, 'post', [{"Content-Type", ?CONTENT_TYPE}], Body, infinity),
+    {ok, {{200, _Reason}, _Headers, Resp}} = lhttpc:request(Host, Port, Ssl, Path, 'post', [{"Content-Type", ?CONTENT_TYPE}], Body, infinity, []),
+
     {ok, Resp}.
 
 %% after stream restart, we must not sent this to the connection manager. The response is got in reset call
@@ -166,12 +171,12 @@ do_send(#xmlel{ns=?NS_XMPP, name='stream'}, #state{new = false} = State) ->
 
 % we start the session with the connection manager here.
 do_send(#xmlel{ns=?NS_XMPP, name='stream'}, State) ->
-    #state{ bosh_url = URL,
+    #state{ parsed_bosh_url = ParsedURL,
             domain = Domain, 
             stream_ref = StreamRef,
             rid = Rid} = State,
 
-    {ok, Resp} = make_request(URL, create_session_msg(Rid, Domain, 10, 1)),
+    {ok, Resp} = make_request(ParsedURL, create_session_msg(Rid, Domain, 10, 1)),
 
     [#xmlel{name=body} = BodyEl] = exmpp_xml:parse_document(Resp),
     SID = exmpp_xml:get_attribute_as_binary(BodyEl, sid, undefined),
@@ -200,7 +205,7 @@ do_send(Packet, State) ->
             %% TODO: here we must enqueue the stanza for latter delivery, we shouldn't crash.
             exit({max_requests_reached, N, State#state.max_requests});
         _ ->
-            Ref = make_request_async(State#state.bosh_url, 
+            Ref = make_request_async(State#state.parsed_bosh_url, 
                     stanzas_msg(State#state.sid,
                                 State#state.rid,
                                 exmpp_xml:document_to_iolist(Packet))),
