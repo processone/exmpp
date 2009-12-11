@@ -7,6 +7,7 @@ AC_CONFIG_SRCDIR([include/exmpp.hrl])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([ac-aux])
 
+AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([foreign])
 
 AC_PREREQ([2.60])
@@ -332,6 +333,40 @@ AM_CONDITIONAL(WITH_ZLIB, test "x${build_with_zlib}" = "xyes")
 if test "x${build_with_zlib}" = "xyes"; then
 	append_to_EMKOPTS "{d, 'HAVE_ZLIB'}"
 fi
+
+dnl ------------------------------------------------------------------
+dnl Detect Operating System.
+dnl ------------------------------------------------------------------
+
+echo
+COLORED_ECHO([%BDetect Operating System%b])
+
+AC_CANONICAL_SYSTEM
+#AC_DEFINE_UNQUOTED(CPU_VENDOR_OS, "$target")
+#AC_SUBST(target_os)
+case "$target_os" in
+    *darwin10*)
+	echo "Target OS is: Darwin10 (Mac OS X)"
+	AC_LANG(Erlang)
+	AC_RUN_IFELSE(
+	    [AC_LANG_PROGRAM([],[dnl
+	     halt(case erlang:system_info(wordsize) of
+	     8 -> 0; 4 -> 1 end)])],
+	    [AC_MSG_NOTICE(found 64-bit Erlang)
+	     CBIT=-m64],
+	    [AC_MSG_NOTICE(found 32-bit Erlang)
+	     CBIT=-m32])
+	;;
+    *)        
+	echo "Target OS is: '$target_os'"
+	CBIT=""
+	;;
+esac
+CFLAGS="$CFLAGS $CBIT"
+LD_SHARED="$LD_SHARED $CBIT"
+echo "CBIT = '$CBIT'"
+echo "CFLAGS = '$CFLAGS'"
+echo "LD_SHARED = '$LD_SHARED'"
 
 dnl ------------------------------------------------------------------
 dnl Finale substitutions.
