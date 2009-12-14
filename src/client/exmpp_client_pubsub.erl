@@ -21,26 +21,11 @@
   #xmlel{ns = NS, name = 'pubsub', children = Children}
 )).
 
--define(IQ(Type, Service, Id), (
-  exmpp_xml:set_attributes(
-      #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
-          [{'type', Type}, {'to', Service}, {'id', Id}])
-)).
-
--define(IQ_SET(Service, Id), (
-  ?IQ("set", Service, Id)
-)).
-
--define(IQ_GET(Service, Id), (
-  ?IQ("get", Service, Id)
-)).
-
-
 -export([
-         get_subscriptions/1,
-         get_subscriptions/2,
-         get_affiliations/1,
-         get_affiliations/2,
+   get_subscriptions/1,
+   get_subscriptions/2,
+   get_affiliations/1,
+   get_affiliations/2,
 	 create_node/2,
 	 create_node/3,
 	 create_instant_node/1,
@@ -71,17 +56,17 @@
 	 unsubscribe/4,
 	 get_subscriptions_options/3,
 	 get_subscriptions_options/4,
-         set_subscriptions_options/4,
-         set_subscriptions_options/5,
-         subscribe_and_configure/4,
-         subscribe_and_configure/5,
-         get_items/2,
-         get_items/3,
-         get_items_by_id/3,
-         get_items_by_id/4,
-         get_items_max/3,
-         get_items_max/4,
-         publish/2,
+   set_subscriptions_options/4,
+   set_subscriptions_options/5,
+   subscribe_and_configure/4,
+   subscribe_and_configure/5,
+   get_items/2,
+   get_items/3,
+   get_items_by_id/3,
+   get_items_by_id/4,
+   get_items_max/3,
+   get_items_max/4,
+   publish/2,
 	 publish/3,
 	 publish/4,
 	 retract/3,
