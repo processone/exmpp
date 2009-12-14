@@ -19,6 +19,7 @@ HTML_FILES = index.html							\
 	     exmpp.html							\
 	     exmpp_client_binding.html					\
 	     exmpp_client_compression.html				\
+	     exmpp_client_disco.html				\
 	     exmpp_client_legacy_auth.html				\
 	     exmpp_client_privacy.html					\
 	     exmpp_client_pubsub.html					\
