@@ -22,6 +22,7 @@
         exmpp_xmlstream,
         exmpp_client_binding,
         exmpp_client_compression,
+        exmpp_client_disco,
         exmpp_client_legacy_auth,
         exmpp_client_privacy,
         exmpp_client_pubsub,
