@@ -12,6 +12,7 @@
 %% under the License.
 
 %% @author Jean-Sébastien Pédron <js.pedron@meetic-corp.com>
+%% @author Karim Gemayel <kgemayel@process-one.net>
 
 -module(exmpp_client_pubsub).
 
