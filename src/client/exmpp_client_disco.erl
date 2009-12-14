@@ -40,7 +40,7 @@
 
 info(To) ->
   Query = ?QUERY_INFO,
-  Iq = ?IQ_GET(To, iq_id),
+  Iq = ?IQ_GET(To, iq_id()),
   exmpp_xml:append_child(Iq, Query).
 
 %% @spec (To, Node) -> Iq
@@ -51,7 +51,7 @@ info(To) ->
 
 info(To, Node) ->
   Query = exmpp_xml:set_attribute(?QUERY_INFO, 'node', Node),
-  Iq = ?IQ_GET(To, iq_id),
+  Iq = ?IQ_GET(To, iq_id()),
   exmpp_xml:append_child(Iq, Query).
 
 %% @spec (To) -> Iq
@@ -61,7 +61,7 @@ info(To, Node) ->
 
 items(To) ->
   Query = ?QUERY_ITEMS,
-  Iq = ?IQ_GET(To, iq_id),
+  Iq = ?IQ_GET(To, iq_id()),
   exmpp_xml:append_child(Iq, Query).
 
 %% @spec (To, Node) -> Iq
@@ -72,7 +72,7 @@ items(To) ->
 
 items(To, Node) ->
   Query = exmpp_xml:set_attribute(?QUERY_ITEMS, 'node', Node),
-  Iq = ?IQ_GET(To, iq_id),
+  Iq = ?IQ_GET(To, iq_id()),
   exmpp_xml:append_child(Iq, Query).
 
 %% @spec () -> Iq_ID
