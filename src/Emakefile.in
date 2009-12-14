@@ -26,6 +26,7 @@
 		'@srcdir@/network/exmpp_component',
 		'@srcdir@/client/exmpp_client_binding',
 		'@srcdir@/client/exmpp_client_compression',
+		'@srcdir@/client/exmpp_client_disco',
 		'@srcdir@/client/exmpp_client_legacy_auth',
 		'@srcdir@/client/exmpp_client_privacy',
 		'@srcdir@/client/exmpp_client_pubsub',
