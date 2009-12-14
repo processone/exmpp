@@ -41,7 +41,8 @@ stop(EchoClientPid) ->
     EchoClientPid ! stop.
 
 init() ->
-    application:start(exmpp),
+    ok = application:start(exmpp),
+    ok = application:start(lhttpc),
     MySession = exmpp_session:start({1,0}),
     MyJID = exmpp_jid:make("bosh", "localhost", random),
     exmpp_session:auth_basic_digest(MySession, MyJID, "password"),

@@ -308,14 +308,10 @@ set_controlling_process(Session,Client) when is_pid(Session), is_pid(Client) ->
 %% gen_fsm callbacks
 %%====================================================================
 init([Pid]) ->
-    inets:start(),
-    exmpp_stringprep:start(),
     {A1,A2,A3} = now(),
     random:seed(A1, A2, A3),
     {ok, setup, #state{client_pid=Pid, stream_version = {0,0}}}; %%if not specified, do not use version 1.0
 init([Pid, Version]) ->
-    inets:start(),
-    exmpp_stringprep:start(),
     {A1,A2,A3} = now(),
     random:seed(A1, A2, A3),
     {ok, setup, #state{client_pid=Pid, stream_version = Version}}.
