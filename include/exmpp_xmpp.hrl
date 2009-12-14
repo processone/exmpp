@@ -61,3 +61,21 @@
 -define(IS_JID(Jid), (
   element(1, Jid) =:= 'jid' andalso tuple_size(Jid) =:= 5
 )).
+
+% --------------------------------------------------------------------
+% Macros to represent <iq/>
+% --------------------------------------------------------------------
+
+-define(IQ(Type, To, Id), (
+  exmpp_xml:set_attributes(
+    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
+      [{'type', Type}, {'to', To}, {'id', Id}])
+)).
+
+-define(IQ_GET(To, Id), (
+  ?IQ("get", To, Id)
+)).
+
+-define(IQ_SET(To, Id), (
+  ?IQ("set", To, Id)
+)).
