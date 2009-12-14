@@ -407,7 +407,7 @@ error(Message, Error) when ?IS_MESSAGE(Message) ->
 %% You should probably use the `IS_MESSAGE(El)' guard expression.
 
 -spec is_message
-(xmlel()) -> boolean().
+(xmlel()) -> bool().
 
 is_message(Message) when ?IS_MESSAGE(Message) -> true;
 is_message(_El)                               -> false.

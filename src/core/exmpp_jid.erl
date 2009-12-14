@@ -628,12 +628,12 @@ prep_bare_to_binary(#jid{prep_node = Node, prep_domain = Domain}) ->
 %% JID comparison.
 %% --------------------------------------------------------------------
 
-%% @spec (Jid1, Jid2) -> boolean()
+%% @spec (Jid1, Jid2) -> bool()
 %%     Jid1 = jid()
 %%     Jid2 = jid()
 %% @doc Compare full JIDs.
 
--spec(full_compare/2 :: (jid(), jid()) -> boolean()).
+-spec(full_compare/2 :: (jid(), jid()) -> bool()).
 
 full_compare(#jid{prep_node = LNode, prep_domain = LDomain,
 		  prep_resource = LResource},
@@ -643,12 +643,12 @@ full_compare(#jid{prep_node = LNode, prep_domain = LDomain,
 full_compare(_Jid1, _Jid2) ->
     false.
 
-%% @spec (Jid1, Jid2) -> boolean()
+%% @spec (Jid1, Jid2) -> bool()
 %%     Jid1 = jid()
 %%     Jid2 = jid()
 %% @doc Compare bare JIDs.
 
--spec(bare_compare/2 :: (jid(), jid()) -> boolean()).
+-spec(bare_compare/2 :: (jid(), jid()) -> bool()).
 
 bare_compare(#jid{prep_node = LNode, prep_domain = LDomain},
 	     #jid{prep_node = LNode, prep_domain = LDomain}) ->
@@ -656,22 +656,22 @@ bare_compare(#jid{prep_node = LNode, prep_domain = LDomain},
 bare_compare(_Jid1, _Jid2) ->
     false.
 
-%% @spec (Jid1, Jid2) -> boolean()
+%% @spec (Jid1, Jid2) -> bool()
 %%     Jid1 = jid()
 %%     Jid2 = jid()
 %% @doc Compare full JIDs. This function is identical to full_compare/2.
 
--spec(compare/2 :: (jid(), jid()) -> boolean()).
+-spec(compare/2 :: (jid(), jid()) -> bool()).
 
 compare(Jid1, Jid2) ->
     full_compare(Jid1, Jid2).
 
-%% @spec (Jid1, Jid2) -> boolean()
+%% @spec (Jid1, Jid2) -> bool()
 %%     Jid1 = jid()
 %%     Jid2 = jid()
 %% @doc Compare JID's domain.
 
--spec(compare_domains/2 :: (jid(), jid()) -> boolean()).
+-spec(compare_domains/2 :: (jid(), jid()) -> bool()).
 
 compare_domains(#jid{prep_domain = LDomain},
 		#jid{prep_domain = LDomain}) ->
@@ -683,13 +683,13 @@ compare_domains(_Jid1, _Jid2) ->
 %% JID checks.
 %% --------------------------------------------------------------------
 
-%% @spec (Jid) -> boolean()
+%% @spec (Jid) -> bool()
 %%     Jid = jid()
 %% @doc Tell if the argument is a JID.
 %%
 %% You should probably use the `IS_JID(Jid)' guard expression.
 
--spec(is_jid/1 :: (jid()) -> boolean()).
+-spec(is_jid/1 :: (jid()) -> bool()).
 
 is_jid(Jid) when ?IS_JID(Jid) ->
     true;

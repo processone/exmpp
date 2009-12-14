@@ -148,13 +148,13 @@ resourceprep(String) ->
 %% Tools.
 %% --------------------------------------------------------------------
 
-%% @spec (String) -> boolean()
+%% @spec (String) -> bool()
 %%     String = binary() | string()
 %% @throws {stringprep, nodeprep, exmpp_not_started, String}
 %% @doc Tell if `String' conforms the NODEPREP stringprep profile.
 
 -spec is_node
-(binary() | string()) -> boolean().
+(binary() | string()) -> bool().
 
 is_node(<<>>) ->
     false;
@@ -169,13 +169,13 @@ is_node(String) ->
             false
     end.
 
-%% @spec (String) -> boolean()
+%% @spec (String) -> bool()
 %%     String = binary() | string()
 %% @throws {stringprep, nameprep, exmpp_not_started, String}
 %% @doc Tell if `String' conforms the NAMEPREP stringprep profile.
 
 -spec is_name
-(binary() | string()) -> boolean().
+(binary() | string()) -> bool().
 
 is_name(<<>>) ->
     false;
@@ -190,13 +190,13 @@ is_name(String) ->
             false
     end.
 
-%% @spec (String) -> boolean()
+%% @spec (String) -> bool()
 %%     String = binary() | string()
 %% @throws {stringprep, resourceprep, exmpp_not_started, String}
 %% @doc Tell if `String' conforms the RESOURCEPREP stringprep profile.
 
 -spec is_resource
-(binary() | string()) -> boolean().
+(binary() | string()) -> bool().
 
 is_resource(<<>>) ->
     false;

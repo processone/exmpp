@@ -60,7 +60,7 @@
 	  callback             :: callback(),
 	  parser,
 	  xmlstreamstart = old :: new | old,
-	  opened = false       :: boolean(),
+	  opened = false       :: bool(),
 	  wrapper_tagnames = undefined :: undefined | [atom() | string()]
 	 }).
 -type(xmlstream() :: #xml_stream{}).
