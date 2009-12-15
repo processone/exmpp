@@ -25,6 +25,7 @@ BEAM_FILES = exmpp.app							\
 	     exmpp_client_compression.beam				\
 	     exmpp_client_disco.beam					\
 	     exmpp_client_legacy_auth.beam				\
+	     exmpp_client_muc.beam					\
 	     exmpp_client_privacy.beam					\
 	     exmpp_client_pubsub.beam					\
 	     exmpp_client_register.beam					\
