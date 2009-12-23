@@ -90,7 +90,7 @@ bind(Resource) ->
 
 %% @spec (Bind) -> Jid
 %%     Bind = exmpp_xml:xmlel()
-%%     Jid = string()
+%%     Jid = exmpp_jid:jid()
 %% @throws {resource_binding, bounded_jid, invalid_bind, Stanza} |
 %%         {resource_binding, bounded_jid, no_jid, IQ} |
 %%         {resource_binding, bounded_jid, bind_error, Condition}
@@ -104,8 +104,8 @@ bounded_jid(IQ) when ?IS_IQ(IQ) ->
                     case exmpp_xml:get_element(Bind,
 					       ?NS_BIND, 'jid') of
                         #xmlel{} = Jid_El ->
-                            Jid_S = exmpp_xml:get_cdata_as_list(Jid_El),
-                            exmpp_jid:parse(Jid_S);
+                            Jid = exmpp_xml:get_cdata(Jid_El),
+                            exmpp_jid:parse(Jid);
                         _ ->
                             throw({resource_binding, bounded_jid, no_jid, IQ})
                     end;

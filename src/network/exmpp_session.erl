@@ -278,15 +278,15 @@ register_account(Session, Username, Password) ->
 
 
 %% Login session user
-%% Returns ok
+%% Returns {ok, JID}
 login(Session) when is_pid(Session) ->
     case gen_fsm:sync_send_event(Session, {login}) of
-	ok -> ok;
+	{ok, JID} -> {ok, JID};
 	Error when is_tuple(Error) -> erlang:throw(Error)
     end.
 login(Session, Mechanism) when is_pid(Session), is_list(Mechanism) ->
     case gen_fsm:sync_send_event(Session, {login, sasl, Mechanism}) of
-	ok -> ok;
+	{ok, JID} -> {ok, JID};
 	Error when is_tuple(Error) -> erlang:throw(Error)
     end.
 
@@ -531,9 +531,10 @@ wait_for_bind_response(#xmlstreamelement{element = #xmlel{name ='iq'} = IQ}, Sta
     #state{connection = Module, connection_ref = ConnectionRef} = State,
     case exmpp_iq:get_type(IQ) of
         result -> 
+            JID = exmpp_client_binding:bounded_jid(IQ),  
+            NewAuthMethod = {basic, sasl_anonymous, JID, undefined}, %%TODO: is this neccesary? 
             Module:send(ConnectionRef, exmpp_client_session:establish()),
-            {next_state, wait_for_session_response, State};
-             
+            {next_state, wait_for_session_response, State#state{auth_method=NewAuthMethod}};
         _ ->
             {stop, {bind, IQ}, State}
     end.
@@ -542,7 +543,7 @@ wait_for_session_response(#xmlstreamelement{element = #xmlel{name='iq'} = IQ}, S
     #state{from_pid = From} = State,
     case exmpp_iq:get_type(IQ) of
         result ->
-            gen_fsm:reply(From, ok),  %%after successful login, bind and session
+            gen_fsm:reply(From, {ok, get_jid(State#state.auth_method)}),  %%after successful login, bind and session
             {next_state, stream_opened, State#state{from_pid = undefined}};
         _ ->
             {stop, {bind, IQ}, State}
@@ -568,7 +569,7 @@ stream_opened({login}, From, State=#state{connection = Module,
     Module:send(ConnRef,
  		exmpp_client_legacy_auth:request_with_user(Domain, Username)),
     {next_state, wait_for_legacy_auth_method, State#state{from_pid=From}};
-stream_opened({login, sasl, Mechanism}, From, State=#state{connection = Module,
+stream_opened({login, sasl, "PLAIN"}, From, State=#state{connection = Module,
 					  connection_ref = ConnRef,
 					  auth_method=Auth}) ->
     Domain = get_domain(Auth),
@@ -576,8 +577,14 @@ stream_opened({login, sasl, Mechanism}, From, State=#state{connection = Module,
     Password = get_password(Auth),
     InitialResp = iolist_to_binary([Domain, 0, Username, 0, Password]),
     Module:send(ConnRef,
- 		exmpp_client_sasl:selected_mechanism(Mechanism, InitialResp)),
+ 		exmpp_client_sasl:selected_mechanism("PLAIN", InitialResp)),
     {next_state, wait_for_sasl_response, State#state{from_pid=From}};
+stream_opened({login, sasl, "ANONYMOUS"}, From, State=#state{connection = Module,
+					  connection_ref = ConnRef
+					  }) ->
+    Module:send(ConnRef, exmpp_client_sasl:selected_mechanism("ANONYMOUS")),
+    {next_state, wait_for_sasl_response, State#state{from_pid=From}};
+
 stream_opened({register_account, Password}, From,
 	      State=#state{connection = Module,
 			   connection_ref = ConnRef,
@@ -821,6 +828,8 @@ get_password({basic, _Method, _JID, Password}) when is_list(Password) ->
     Password.
 get_method({basic, Method, _JID, _Password}) when is_atom(Method) ->
     Method.
+get_jid({_, _Method, JID, _Password}) when ?IS_JID(JID) ->
+    JID.
 
 %% Parsing functions
 
