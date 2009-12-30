@@ -43,6 +43,7 @@
 -define(VERSION, "1.8").
 -define(WAIT, "3600").
 
+
 -record(state, {
         parsed_bosh_url, 
            % {Host::string(), Port:integer(), Path::string(), Ssl::boolean()}
@@ -54,7 +55,11 @@
 		client_pid,
 		stream_ref,
         max_requests,
+        polling,  %% This attribute specifies the shortest allowable polling interval (in seconds)
+        queue, %% stanzas that have been queued because we reach the limit of requets or the polling
+        last_request_timestamp,
         new = true,
+        max_inactivity,
         open_connections = [] %% http connections currently open and waiting for server response
 	       }).
 
@@ -74,6 +79,9 @@ close(Pid, _) ->
 %% don't do anything on init. We establish the connection when the stream start 
 %% is sent
 init([ClientPid, StreamRef, URL, Domain]) ->
+    inets:start(),
+    exmpp_stringprep:start(),
+
     {A,B,C} = now(),
     random:seed(A,B,C),
     Rid = 1000 + random:uniform(100000),
@@ -82,6 +90,7 @@ init([ClientPid, StreamRef, URL, Domain]) ->
             domain = Domain,
             rid = Rid,
             client_pid = ClientPid,
+            queue = queue:new(),
             stream_ref = exmpp_xmlstream:set_wrapper_tagnames(StreamRef, [body])
             },
      {ok, State}.
@@ -90,23 +99,19 @@ init([ClientPid, StreamRef, URL, Domain]) ->
 %% TODO: check if it is not best to do this in do_send/2 
 handle_call(reset_parser, _From, State) ->
     #state{stream_ref = Stream,
-           parsed_bosh_url = ParsedURL,
-           rid = Rid,
            sid = Sid,
+           rid = Rid,
            auth_id = AuthID,
-           open_connections = Open,
            domain = Domain} =  State,
-    Ref = make_request_async(ParsedURL, restart_stream_msg(Sid, Rid, Domain)),
+    NewState = make_request_async(State, restart_stream_msg(Sid, Rid, Domain)),
 	StreamStart =
 		["<?xml version='1.0'?><stream:stream xmlns='jabber:client'"
 		" xmlns:stream='http://etherx.jabber.org/streams' version='1.0'"
 		" from='" , Domain , "' id='" , AuthID , "'>"],             
     NewStreamRef = exmpp_xmlstream:reset(Stream),
     {ok, NewStreamRef2} = exmpp_xmlstream:parse(NewStreamRef, StreamStart),
-    {reply, ok, State#state{rid = Rid +1,
-                            new = false,
-                            stream_ref = NewStreamRef2, 
-                            open_connections = [Ref | Open]}};
+    {reply, ok, NewState#state{new = false,
+                            stream_ref = NewStreamRef2}, hibernate};
 
 
 
@@ -120,6 +125,11 @@ handle_cast({send, Packet}, State) ->
 handle_cast(_Cast, State) ->
     {noreply, State}.
 
+handle_info(timeout, State) ->
+    NewState = make_request_async(State),
+    {noreply, NewState, hibernate};
+
+    
 handle_info({http_response, Pid, {ok, Resp}}, #state{open_connections = Open, stream_ref = Stream} = State) ->
     case lists:member(Pid, Open) of
         false ->
@@ -127,30 +137,46 @@ handle_info({http_response, Pid, {ok, Resp}}, #state{open_connections = Open, st
         true ->
             NewState = if
                 length(Open) =:= 1  andalso State#state.new =:= false ->   % for some reason we can't do this before authentication
-                    #state{sid = Sid, rid = Rid} = State,
-                    Ref = make_request_async(State#state.parsed_bosh_url, empty_msg(Sid, Rid)),
-                    State#state{open_connections = [Ref | lists:delete(Pid, Open)], rid = Rid +1};
+                    New  = make_request_async(State),
+                    New#state{open_connections = lists:delete(Pid, New#state.open_connections)};
                 true ->
                     State#state{open_connections = lists:delete(Pid, Open)} 
             end,
              {ok, NewStream} = exmpp_xmlstream:parse(Stream, Resp),
-            {noreply, NewState#state{stream_ref = NewStream}}
+            {noreply, NewState#state{stream_ref = NewStream}, hibernate}
      end;
                     
 handle_info(_Info, State) ->
-    io:format("Got unknown info ~p \n", [_Info]),
-    {noreply, State}.
+    {noreply, State, hibernate}.
 terminate(_Reason, _State) ->
     ok.
 code_change(_Old, State, _Extra) ->
     {ok, State}.
 
 
-make_request_async(URL, Body) ->
+make_request_async(#state{sid = Sid, rid = Rid, open_connections = Open, queue = Queue, parsed_bosh_url=URL} = State) ->
     BoshMngr = self(),
-    spawn_link(fun() ->
-        BoshMngr ! {http_response, self(), make_request(URL, Body)}
-    end).
+    Pid = spawn_link(fun() ->
+            StanzasText = [exmpp_xml:document_to_iolist(I) || I <- queue:to_list(Queue)],
+            Body = stanzas_msg(Sid, Rid, StanzasText),
+            BoshMngr ! {http_response, self(), make_request(URL, Body)}
+    end),
+    State#state{open_connections = [Pid | Open],  rid = State#state.rid +1, queue = queue:new()}.
+
+make_request_async(State = #state{sid = Sid, rid = Rid, parsed_bosh_url = URL, open_connections=Open, queue = Queue}, Packet) when is_record(Packet, xmlel) ->
+    BoshMngr = self(),
+    Pid = spawn_link(fun() ->
+            StanzasText = [exmpp_xml:document_to_iolist(I) || I <- queue:to_list(queue:in(Packet,Queue))],
+            Body = stanzas_msg(Sid, Rid, StanzasText),
+            BoshMngr ! {http_response, self(), make_request(URL, Body)}
+    end),
+    State#state{open_connections = [Pid | Open],  rid = State#state.rid +1, queue = queue:new() };
+make_request_async(State = #state{parsed_bosh_url = URL, open_connections=Open}, Body) ->
+    BoshMngr = self(),
+    Pid = spawn_link(fun() ->
+            BoshMngr ! {http_response, self(), make_request(URL, Body)}
+    end),
+    State#state{open_connections = [Pid | Open],  rid = State#state.rid +1}.
         
 make_request({Host, Port, Path, Ssl}, Body) ->
 %    TODO:  things don't work well with the http client included in OTP. 
@@ -176,14 +202,14 @@ do_send(#xmlel{ns=?NS_XMPP, name='stream'}, State) ->
             stream_ref = StreamRef,
             rid = Rid} = State,
 
-    {ok, Resp} = make_request(ParsedURL, create_session_msg(Rid, Domain, 10, 1)),
-
+    {ok, Resp} = make_request(ParsedURL, create_session_msg(Rid, Domain, 30, 1)),
+    
     [#xmlel{name=body} = BodyEl] = exmpp_xml:parse_document(Resp),
     SID = exmpp_xml:get_attribute_as_binary(BodyEl, sid, undefined),
     AuthID = exmpp_xml:get_attribute_as_binary(BodyEl,authid,undefined),
     Requests = list_to_integer(exmpp_xml:get_attribute_as_list(BodyEl,requests,undefined)),
-    %Inactivity = list_to_integer(exmpp_xml:get_attribute_as_list(BodyEl,inactivity,undefined)),
-    Requests = list_to_integer(exmpp_xml:get_attribute_as_list(BodyEl,requests,undefined)),
+    Inactivity = list_to_integer(exmpp_xml:get_attribute_as_list(BodyEl,inactivity,undefined)) * 1000, %sec -> millisecond
+    Polling = list_to_integer(exmpp_xml:get_attribute_as_list(BodyEl,polling,undefined)) * 1000, %sec -> millisecond
     Events = [{xmlstreamelement, El} || El <- exmpp_xml:get_child_elements(BodyEl)],
 
     % first return a fake stream response, then anything found inside the <body/> element (possibly nothing)
@@ -197,21 +223,49 @@ do_send(#xmlel{ns=?NS_XMPP, name='stream'}, State) ->
                           rid = Rid +1, 
                           sid = SID,
                           open_connections = [],
+                          max_requests = Requests,
+                          max_inactivity = Inactivity, %%TODO: not used 
+                          polling = Polling,
                           auth_id = AuthID}};
 
 do_send(Packet, State) ->
-    case length(State#state.open_connections) of
-        N when N >=  State#state.max_requests ->
-            %% TODO: here we must enqueue the stanza for latter delivery, we shouldn't crash.
-            exit({max_requests_reached, N, State#state.max_requests});
-        _ ->
-            Ref = make_request_async(State#state.parsed_bosh_url, 
-                    stanzas_msg(State#state.sid,
-                                State#state.rid,
-                                exmpp_xml:document_to_iolist(Packet))),
-            {noreply, State#state{open_connections = [Ref | State#state.open_connections],
-                        rid = State#state.rid +1}}
-     end.
+    Now = now(),
+    Result  = case length(State#state.open_connections) of
+        N when (N == State#state.max_requests - 1 ) ->   %% check if request aren't too fast http://xmpp.org/extensions/xep-0124.html#overactive
+            Interval = timer:now_diff(Now, State#state.last_request_timestamp) / 1000,  % micro -> millisec
+            case Interval < State#state.polling of
+                true ->
+                    {queue, round(State#state.polling - Interval)}; 
+                false ->
+                    send
+            end;
+        N when N ==  State#state.max_requests ->  %% check that we don't open more request than allowed http://xmpp.org/extensions/xep-0124.html#overactive
+            {queue, undefined};
+        _X ->
+            send
+     end,
+     case Result of
+         send ->
+              NewState= make_request_async(State,Packet), 
+              {noreply, NewState#state{last_request_timestamp=Now}, hibernate};
+         {queue, Time} ->
+                Queue = State#state.queue,
+                NewQueue =  queue:in(Packet, Queue),
+                case Time of
+                     undefined ->
+                        ok;
+                     _ ->
+                         case queue:is_empty(Queue) of  %% first message queue, no timeout was setup yet
+                               true ->
+                                    erlang:send_after(Time, self(), timeout);
+                               false ->
+                                    ok
+                         end
+               end,
+               {noreply, State#state{queue = NewQueue}}
+    end.
+
+
    
     
 
@@ -232,12 +286,6 @@ stanzas_msg(Sid, Rid, Text) ->
        " rid='", integer_to_list(Rid), "'" 
        " sid='", Sid, "'>", Text, "</body>"].
 
-
-empty_msg(Sid, Rid) ->
-    [ "<body xmlns='http://jabber.org/protocol/httpbind' "
-       " rid='", integer_to_list(Rid), "'" 
-       " sid='", Sid, "'></body>"].
-
 restart_stream_msg(Sid, Rid, Domain) ->
     [ "<body xmlns='http://jabber.org/protocol/httpbind' "
        " rid='", integer_to_list(Rid), "'",
@@ -246,3 +294,4 @@ restart_stream_msg(Sid, Rid, Domain) ->
        " xmlns:xmpp='urn:xmpp:xbosh'",
        " to='", Domain, "'",
        "/>"].
+
