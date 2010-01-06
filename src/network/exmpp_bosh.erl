@@ -39,9 +39,9 @@
 
 
 -define(CONTENT_TYPE, "text/xml; charset=utf-8").
--define(HOLD, "2").
 -define(VERSION, "1.8").
--define(WAIT, "3600").
+-define(WAIT, 60). %1 minute
+-define(HOLD, 1). %only 1 request pending
 
 
 -record(state, {
@@ -202,8 +202,8 @@ do_send(#xmlel{ns=?NS_XMPP, name='stream'}, State) ->
             stream_ref = StreamRef,
             rid = Rid} = State,
 
-    {ok, Resp} = make_request(ParsedURL, create_session_msg(Rid, Domain, 30, 1)),
-    
+    {ok, Resp} = make_request(ParsedURL, create_session_msg(Rid, Domain, ?WAIT, ?HOLD)),
+   
     [#xmlel{name=body} = BodyEl] = exmpp_xml:parse_document(Resp),
     SID = exmpp_xml:get_attribute_as_binary(BodyEl, sid, undefined),
     AuthID = exmpp_xml:get_attribute_as_binary(BodyEl,authid,undefined),
@@ -231,14 +231,17 @@ do_send(#xmlel{ns=?NS_XMPP, name='stream'}, State) ->
 do_send(Packet, State) ->
     Now = now(),
     Result  = case length(State#state.open_connections) of
-        N when (N == State#state.max_requests - 1 ) ->   %% check if request aren't too fast http://xmpp.org/extensions/xep-0124.html#overactive
-            Interval = timer:now_diff(Now, State#state.last_request_timestamp) / 1000,  % micro -> millisec
-            case Interval < State#state.polling of
-                true ->
-                    {queue, round(State#state.polling - Interval)}; 
-                false ->
-                    send
-            end;
+     %   TODO: check if/when this situation can actually happen.  The spec says (http://xmpp.org/extensions/xep-0124.html#overactive)
+     %          that we must not send faster than the polling interval *ONLY* if we send empty requests. Here we never sent empty requests.
+     %
+     %   N when (N == State#state.max_requests - 1 ) ->   %% check if request aren't too fast http://xmpp.org/extensions/xep-0124.html#overactive
+     %       Interval = timer:now_diff(Now, State#state.last_request_timestamp) / 1000,  % micro -> millisec
+     %       case Interval < State#state.polling of
+     %           true ->
+     %               {queue, round(State#state.polling - Interval)}; 
+     %           false ->
+     %               send
+     %       end;
         N when N ==  State#state.max_requests ->  %% check that we don't open more request than allowed http://xmpp.org/extensions/xep-0124.html#overactive
             {queue, undefined};
         _X ->
