@@ -687,10 +687,10 @@ wait_for_legacy_auth_method(?streamerror, State) ->
 
 %% TODO: We should be able to match on iq type directly on the first
 %% level record
-wait_for_auth_result(?iq_no_attrs, State = #state{from_pid=From}) ->
+wait_for_auth_result(?iq_no_attrs, State = #state{from_pid=From, auth_method = Auth}) ->
     case exmpp_xml:get_attribute_as_binary(IQElement, type, undefined) of
  	<<"result">> ->
-            gen_fsm:reply(From, ok),
+            gen_fsm:reply(From, {ok, get_jid(Auth)}),
             {next_state, logged_in, State#state{from_pid=undefined}};
 	<<"error">> ->
             Reason = exmpp_stanza:get_condition(IQElement),
