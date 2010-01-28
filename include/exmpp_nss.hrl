@@ -22,6 +22,7 @@
 
 % Defined by XMPP Core (RFC 3920).
 -define(NS_XMPP,                     'http://etherx.jabber.org/streams').
+-define(NS_XMPP_s,                   "http://etherx.jabber.org/streams").
 -define(NS_XMPP_pfx,                 "stream").
 -define(NS_STREAM_ERRORS,            'urn:ietf:params:xml:ns:xmpp-streams').
 -define(NS_TLS,                      'urn:ietf:params:xml:ns:xmpp-tls').
@@ -31,6 +32,7 @@
 
 % Defined by XMPP-IM (RFC 3921).
 -define(NS_JABBER_CLIENT,            'jabber:client').
+-define(NS_JABBER_CLIENT_s,          "jabber:client").
 -define(NS_JABBER_SERVER,            'jabber:server').
 -define(NS_SESSION,                  'urn:ietf:params:xml:ns:xmpp-session').
 -define(NS_ROSTER,                   'jabber:iq:roster').
@@ -293,8 +295,11 @@
   "http://jabber.org/protocol/xdata-validate").
 
 % Defined by XEP-0124: Bidirectional-streams Over Synchronous HTTP.
--define(NS_BOSH,                     'http://jabber.org/protocol/httpbind').
--define(NS_BOSH_s,                   "http://jabber.org/protocol/httpbind").
+-define(NS_BOSH,                     'urn:xmpp:xbosh').
+-define(NS_BOSH_s,                   "urn:xmpp:xbosh").
+
+-define(NS_HTTP_BIND,                'http://jabber.org/protocol/httpbind').
+-define(NS_HTTP_BIND_s,              "http://jabber.org/protocol/httpbind").
 
 % Defined by XEP-0130: Waiting Lists.
 -define(NS_WAITING_LIST,             'http://jabber.org/protocol/waitinglist').
