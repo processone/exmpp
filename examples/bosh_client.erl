@@ -49,7 +49,7 @@ init() ->
     %% Connect in standard TCP:
     {ok, _StreamId, _Features} = exmpp_session:connect_BOSH(MySession,
 					   "http://127.0.0.1:5280/http-bind",
-					   "localhost", 5222),
+					   "localhost", []),
     session(MySession, MyJID).
 
 %% We are connected. We now log in (and try registering if authentication fails)

@@ -216,11 +216,14 @@ connect_TCP(Session, Server, Port, Domain)
 %% If the domain is not passed we expect to find it in the authentication
 %% method. It should thus be set before.
 %% Returns {ok,StreamId::String} | {ok, StreamId::string(), Features :: xmlel{}}
-connect_BOSH(Session, URL, Server, Port)
+%%  Options = [option()]
+%%  Option() = {local_ip, IP} | {local_port, fun() -> integer()}  bind sockets to this local ip / port.
+
+connect_BOSH(Session, URL, Server, Options)
   when is_pid(Session),
        is_list(Server),
-       is_integer(Port) ->
-    case gen_fsm:sync_send_event(Session, {connect_bosh, URL, Server, Port},
+       is_list(Options) ->
+    case gen_fsm:sync_send_event(Session, {connect_bosh, URL, Server, Options},
                                  ?TIMEOUT) of
 	{ok, StreamId} -> {ok, StreamId};
     {ok, StreamId, Features} -> {ok, StreamId, Features};
