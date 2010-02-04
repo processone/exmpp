@@ -46,7 +46,7 @@
 
 -record(state, {
         parsed_bosh_url, 
-           % {Host::string(), Port:integer(), Path::string(), Ssl::boolean()}
+           % {Host::string(), Port:integer(), Path::string(), Ssl::bool()}
         domain="",                                                   
         sid = <<>>,                                                  
         rid = 0,                                                     
@@ -393,7 +393,7 @@ read_length(Hdrs, Socket, Length) ->
 %%   Path = string()                     
 %%   Ssl = bool()                        
 %% @doc                                  
--spec parse_url(string()) -> {string(), integer(), string(), boolean()}.
+-spec parse_url(string()) -> {string(), integer(), string(), bool()}.
 parse_url(URL) ->                                                       
     % XXX This should be possible to do with the re module?             
     {Scheme, HostPortPath} = split_scheme(URL),                         
