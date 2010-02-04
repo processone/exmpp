@@ -40,8 +40,17 @@ reset_parser(ReceiverPid) when is_pid(ReceiverPid) ->
 %% Returns:
 %% Ref or throw error
 %% Ref is a socket
-connect(ClientPid, StreamRef, {Host, Port}) ->
-    DefaultOptions = [{packet,0}, binary, {active, once}],
+connect(ClientPid, StreamRef, {Host, Port, Options}) ->
+    LocalIP = proplists:get_value(local_ip, Options, undefined),                     
+    LocalPort= proplists:get_value(local_port, Options, undefined),                  
+    IPOptions = case LocalIP of                                                                                          
+                        undefined -> [];                                           
+                        _ ->  case LocalPort of                                                                        
+                                undefined -> [{ip, LocalIP}];                     
+                                _ -> [{ip, LocalIP}, {port, LocalPort()}]         
+                              end                                                                                      
+                end,                                                                                                   
+    DefaultOptions = [{packet,0}, binary, {active, once}] ++ IPOptions,
     {SetOptsModule,Opts} =
 	case check_new_ssl() of
 	    true ->  {inet,[{reuseaddr,true}|DefaultOptions]};
