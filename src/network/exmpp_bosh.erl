@@ -53,16 +53,11 @@
         auth_id = <<>>,                                              
         client_pid,                                                  
         stream_ref,                                                  
-        max_requests,                                                        
-        polling,  %% This attribute specifies the shortest allowable polling interval (in seconds)
-        queue, %% stanzas that have been queued because we reach the limit of requets or the polling
-        last_request_timestamp,                                                                     
+        max_requests, %TODO: use this, now fixed on 2
+        queue, %% stanzas that have been queued because we reach the limit of requets
         new = true,                                                                                 
-        max_inactivity,                                                                             
         open, % [{Rid, Socket}]                                                                     
         free,  %[socket()] free keep-alive connections                                              
-        last_response,                                                                              
-        socket,                                                                                     
         local_ip,  %ip to bind sockets to                                                           
         local_port                                                                                  
         }).                                                                                  
@@ -225,7 +220,6 @@ do_send(#xmlel{ns=?NS_XMPP, name='stream'}, State) ->
     AuthID = exmpp_xml:get_attribute_as_binary(BodyEl,authid,undefined),
     Requests = list_to_integer(exmpp_xml:get_attribute_as_list(BodyEl,requests,undefined)),
     Inactivity = list_to_integer(exmpp_xml:get_attribute_as_list(BodyEl,inactivity,undefined)) * 1000, %sec -> millisecond
-    Polling = list_to_integer(exmpp_xml:get_attribute_as_list(BodyEl,polling,undefined)) * 1000, %sec -> millisecond      
     Events = [{xmlstreamelement, El} || El <- exmpp_xml:get_child_elements(BodyEl)],                                      
 
     % first return a fake stream response, then anything found inside the <body/> element (possibly nothing)
@@ -240,8 +234,6 @@ do_send(#xmlel{ns=?NS_XMPP, name='stream'}, State) ->
                           open = [],                                                                        
                           sid = SID,                                                                        
                           max_requests = Requests,                                                          
-                          max_inactivity = Inactivity, %%TODO: not used                                     
-                          polling = Polling,                                                                
                           auth_id = AuthID}};                                                               
 
 do_send(Packet, State) ->
@@ -267,7 +259,7 @@ do_send(Packet, State) ->
          send ->   
               {NewState, Socket} = new_socket(State, once),
               ok = make_request(Socket, Sid, Rid, Queue, Host, Path, Packet), 
-              {noreply, NewState#state{last_request_timestamp=Now, rid = Rid +1, open = [{Socket, Rid}|Open]}, hibernate};
+              {noreply, NewState#state{rid = Rid +1, open = [{Socket, Rid}|Open]}, hibernate};
          queue ->                                                                                                         
                 %io:format("Queuing request.    Open = ~p    Rid= ~p \n", [Open, Rid]),                                   
                 Queue = State#state.queue,                                                                                
