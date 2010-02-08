@@ -89,7 +89,7 @@ init([ClientPid, StreamRef, URL, Domain, Options]) ->
             rid = Rid,                                                          
             open = 0,                                                           
             client_pid = ClientPid,                                             
-            queue = queue:new(),                                                
+            queue = [],                                                
             free = [],                                                          
             local_ip = IP,                                                      
             local_port = Port,                                                  
@@ -150,7 +150,7 @@ handle_info({http, Socket, {http_response, Vsn, 200, <<"OK">>}}, State) ->
                         %io:format("Making empty request\n"),                                        
                         ok = make_empty_request(Socket,Sid, Rid, Queue, Host, Path),                 
                         inet:setopts(Socket, [{packet, http_bin}, {active, once}]),                  
-                        State#state{open = [{Socket, Rid}], rid = Rid +1, queue = queue:new()};      
+                        State#state{open = [{Socket, Rid}], rid = Rid +1, queue = []};      
                      true ->                                                                         
                         %io:format("Closing the socket\n"),                                          
                         NewState = return_socket(State, Socket),                                     
@@ -180,7 +180,7 @@ code_change(_Old, State, _Extra) ->
 
 
 make_empty_request(Socket, Sid, Rid, Queue, Host, Path) ->
-    StanzasText = [exmpp_xml:document_to_iolist(I) || I <- queue:to_list(Queue)],
+    StanzasText = [exmpp_xml:document_to_iolist(I) || I <- lists:reverse(Queue)],
     Body = stanzas_msg(Sid, Rid, StanzasText),                                   
     make_request(Socket, Host, Path, Body).                                      
 
@@ -188,7 +188,7 @@ make_raw_request(Socket, Host, Path, Body) ->
     make_request(Socket, Host, Path, Body).  
 
 make_request(Socket, Sid, Rid, Queue, Host, Path, Packet) when is_record(Packet, xmlel) ->
-    StanzasText = [exmpp_xml:document_to_iolist(I) || I <- queue:to_list(queue:in(Packet,Queue))],
+    StanzasText = [exmpp_xml:document_to_iolist(I) || I <- lists:reverse([Packet|Queue])],
     Body = stanzas_msg(Sid, Rid, StanzasText),                                                    
     make_request(Socket, Host, Path, Body).                                                       
                                                                                                   
@@ -219,7 +219,6 @@ do_send(#xmlel{ns=?NS_XMPP, name='stream'}, State) ->
     SID = exmpp_xml:get_attribute_as_binary(BodyEl, sid, undefined),
     AuthID = exmpp_xml:get_attribute_as_binary(BodyEl,authid,undefined),
     Requests = list_to_integer(exmpp_xml:get_attribute_as_list(BodyEl,requests,undefined)),
-    Inactivity = list_to_integer(exmpp_xml:get_attribute_as_list(BodyEl,inactivity,undefined)) * 1000, %sec -> millisecond
     Events = [{xmlstreamelement, El} || El <- exmpp_xml:get_child_elements(BodyEl)],                                      
 
     % first return a fake stream response, then anything found inside the <body/> element (possibly nothing)
@@ -242,7 +241,6 @@ do_send(Packet, State) ->
           sid = Sid,     
           parsed_bosh_url = {Host, _Port, Path, _}, 
           queue = Queue} = State,                   
-    Now = now(),                                    
     Result = if                                     
                 Open == []  -> send;                
                 true ->                             
@@ -263,7 +261,7 @@ do_send(Packet, State) ->
          queue ->                                                                                                         
                 %io:format("Queuing request.    Open = ~p    Rid= ~p \n", [Open, Rid]),                                   
                 Queue = State#state.queue,                                                                                
-                NewQueue =  queue:in(Packet, Queue),                                                                      
+                NewQueue =  [Packet|Queue],                                                                      
                {noreply, State#state{queue = NewQueue}}                                                                   
     end.                                                                                                                  
 
