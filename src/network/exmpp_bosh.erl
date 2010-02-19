@@ -1,35 +1,35 @@
-%% Copyright ProcessOne 2006-2009. All Rights Reserved.          
-%%                                                               
+%% Copyright ProcessOne 2006-2010. All Rights Reserved.
+%%
 %% The contents of this file are subject to the Erlang Public License,
-%% Version 1.1, (the "License"); you may not use this file except in  
+%% Version 1.1, (the "License"); you may not use this file except in
 %% compliance with the License. You should have received a copy of the
-%% Erlang Public License along with this software. If not, it can be  
-%% retrieved online at http://www.erlang.org/.                        
-%%                                                                    
+%% Erlang Public License along with this software. If not, it can be
+%% retrieved online at http://www.erlang.org/.
+%%
 %% Software distributed under the License is distributed on an "AS IS"
 %% basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
 %% the License for the specific language governing rights and limitations
-%% under the License.                                                    
+%% under the License.
 
 %% @author Mickael Remond <mickael.remond@process-one.net>
 
 %% @doc
 %% The module <strong>{@module}</strong> manages XMPP over HTTP connection
-%% according to the BOSH protocol (XEP-0124: Bidirectional-streams Over   
-%% Synchronous HTTP)                                                      
-%%                                                                        
-%% <p>                                                                    
-%% This module is not intended to be used directly by client developers.  
-%% </p>                                                                   
-%%                                                                        
-%%                                                                        
+%% according to the BOSH protocol (XEP-0124: Bidirectional-streams Over
+%% Synchronous HTTP)
+%%
+%% <p>
+%% This module is not intended to be used directly by client developers.
+%% </p>
+%%
 %% This module uses HTTP parsing functions based on the lhttpc library.
-%% http://bitbucket.org/etc/lhttpc/wiki/Home 
-%% http://bitbucket.org/etc/lhttpc/src/tip/LICENCE 
+%% http://bitbucket.org/etc/lhttpc/wiki/Home
+%% http://bitbucket.org/etc/lhttpc/src/tip/LICENCE
+
 -module(exmpp_bosh).
 
 %-include_lib("exmpp/include/exmpp.hrl").
--include("exmpp.hrl").                   
+-include("exmpp.hrl").
 
 %% Behaviour exmpp_gen_transport ?
 -export([connect/3,  send/2, close/2, reset_parser/1]).
