@@ -34,106 +34,11 @@
 %% Documentation / type definitions.
 %% --------------------------------------------------------------------
 
-%% @type ns() = string() | binary()
-
--type(ns() :: string() | binary()).
-
-
-%% @type value() = string() | binary()
-
--type(value() :: string() | binary()).
-
-
-%% @type var() = string()
-
--type(var() :: string()).
-
-
-%% @type field() = {field, Var, Values}
-%%     Var    = var()
-%%     Values = [value()].
-%% Record representing a field.
-
--record(field,
-	{
-	  var    = "" :: var(),
-	  values = [] :: [value()]
-			 }).
-
--type(field() :: #field{}).
-
-
-%% @type type() = string()
-
--type(type() :: string()).
-
-
-%% @type form() = {form, Type, Fields}
-%%     Type   = type()
-%%     Fields = field() | [field()].
-%% Record representing a form.
-
--record(form,
-	{
-	  type   = "" :: type(),
-	  fields = [] :: field() | [field()]
-			 }).
-
--type(form() :: #form{}).
-
-
-%% @type category() = string()
-
--type(category() :: string()).
-
-
-%% @type lang() = string()
-
--type(lang() :: string()).
-
-
-%% @type name() = string()
-
--type(name() :: string()).
-
-
-%% @type identity() = {identity, Category, Type, Lang, Name}
-%%     Category = category()
-%%     Type     = type()
-%%     Lang     = lang()
-%%     Name     = name().
-%% Record representing an identity.
-
--record(identity,
-	{
-	  category = "" :: category(),
-	  type     = "" :: type(),
-	  lang     = "" :: lang(),
-	  name     = "" :: name()
-			   }).
-
--type(identity() :: #identity{}).
-
-
-%% @type caps() = {caps, Identities, Features, Forms}
+%% @type ecaps() = {ecaps, Identities, Features, Forms}
 %%     Identities = identity() | [identity()]
 %%     Features   = [ns()]     | []
 %%     Forms      = form()     | [form()] | [].
 %% Record representing a Caps.
-
--record(caps,
-	{
-	  identities = [] :: identity() | [identity()],
-	  features   = [] :: [ns()],
-	  forms      = [] :: form()     | [form()]
-			     }).
-
--type(caps() :: #caps{}).
-
-
-%% @type hash() = binary()
-
--type(hash() :: binary()).
 
 
 %% --------------------------------------------------------------------
@@ -141,11 +46,11 @@
 %% --------------------------------------------------------------------
 
 %% @spec (Caps) -> Hash
-%%     Caps = caps() | identity() | [identity()]
+%%     Caps = ecaps() | identity() | [identity()]
 %%     Hash = hash()
 %% @doc Generate a hash from a Caps record.
 
--spec(make/1 :: (caps() | identity() | [identity()]) -> hash()).
+-spec(make/1 :: (ecaps() | identity() | [identity()]) -> hash()).
 
 make(#identity{} = Identity) ->
     make(Identity, []);
@@ -153,14 +58,14 @@ make([]) ->
     throw({exmpp_caps, make, 'Identity : at least one identity() required'});
 make(Identities) when is_list(Identities) ->
     make(Identities, []);
-make(#caps{identities = []}) ->
+make(#ecaps{identities = []}) ->
     throw({exmpp_caps, make, 'Caps : at least one identity() required'});
-make(#caps{identities = Identities, features = Features, forms = []}) ->
+make(#ecaps{identities = Identities, features = Features, forms = []}) ->
     make(Identities, Features);
-make(#caps{identities = Identities, features = Features, forms = Forms}) ->
+make(#ecaps{identities = Identities, features = Features, forms = Forms}) ->
     make(Identities, Features, Forms);
 make(_) ->
-    throw({exmpp_caps, make, 'Caps : caps() | identity() | [identity()]'}).
+    throw({exmpp_caps, make, 'Caps : ecaps() | identity() | [identity()]'}).
 
 
 %% @spec (Identities, Features) -> Hash
@@ -191,7 +96,7 @@ make(Identities, Features) ->
 %% @spec (Identities, Features, Forms) -> Hash
 %%     Identities = identity() | [identity()]
 %%     Features   = [ns()]
-%%     Forms      = form()     | [forms()]
+%%     Forms      = form()     | [form()]
 %%     Hash       = hash()
 %% @doc Generate a hash from an identity record or from a list of identity records,
 %%      a list of namespaces, and a form or a list of forms .

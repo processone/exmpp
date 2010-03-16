@@ -20,6 +20,9 @@
 % Records to represent XMPP/Jabber specific structures.
 -include("exmpp_xmpp.hrl").
 
+% Records to represent Caps.
+-include("exmpp_caps.hrl").
+
 % --------------------------------------------------------------------
 % Records to represent events.
 % --------------------------------------------------------------------
