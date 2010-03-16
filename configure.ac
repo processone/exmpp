@@ -2,7 +2,7 @@ dnl ------------------------------------------------------------------
 dnl Autoconf initialization.
 dnl ------------------------------------------------------------------
 
-AC_INIT([exmpp], [0.9.3], [js.pedron@meetic-corp.com], [exmpp])
+AC_INIT([exmpp], m4_esyscmd([git describe | sed 's/^v//' | tr -d '\n']), [js.pedron@meetic-corp.com], [exmpp])
 AC_CONFIG_SRCDIR([include/exmpp.hrl])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([ac-aux])
@@ -36,7 +36,7 @@ expand_var () {
 }
 
 dnl ------------------------------------------------------------------
-dnl Versionning.
+dnl Versioning.
 dnl ------------------------------------------------------------------
 
 dnl Release date.
@@ -44,22 +44,10 @@ dnl EXMPP_RELEASE_DATE=
 
 dnl Is this a final release?
 is_release=0
-if test "x${EXMPP_RELEASE_DATE}" != "x"; then
-	is_release=1
-fi
-
-dnl Subversion revision.
-if test $is_release -eq 0; then
-	EXMPP_SVNREV=`svnversion $srcdir | sed 's/^[[^:]]*://'`
-	which svnversion > /dev/null; \
-	if test $? -ne 0 -o "x$EXMPP_SVNREV" = "xexported"; then
-		EXMPP_SVNREV=`cat $srcdir/SVNREV`
-	else
-		echo $EXMPP_SVNREV > $srcdir/SVNREV
-	fi
-	if test $EXMPP_SVNREV; then
-		EXMPP_DISTSUFFIX="-r$EXMPP_SVNREV"
-	fi
+GITDESC1=`git describe --abbrev=0`
+GITDESC2=`git describe --abbrev=4`
+if test "${GITDESC1}" = "${GITDESC2}"; then
+       is_release=1
 fi
 
 dnl ------------------------------------------------------------------
@@ -384,9 +372,6 @@ AC_SUBST(EMKOPTS)
 
 AC_SUBST(EXMPP_RELEASE_DATE)
 
-AC_SUBST(EXMPP_SVNREV)
-AC_SUBST(EXMPP_DISTSUFFIX)
-
 AC_SUBST(EXMPP_BUILD_ARCH)
 AC_SUBST(EXMPP_HOST_ARCH)
 
@@ -426,7 +411,7 @@ dnl Configuration report
 dnl --------------------------------------------------
 
 echo
-COLORED_ECHO([ %B== exmpp ${PACKAGE_VERSION}${EXMPP_DISTSUFFIX} ==%b])
+COLORED_ECHO([ %B== exmpp ${PACKAGE_VERSION} ==%b])
 echo
 COLORED_ECHO([Configuration:])
 COLORED_ECHO([    Prefix:             ${prefix}])
