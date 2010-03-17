@@ -23,6 +23,8 @@
 
 -module(exmpp_caps).
 
+-include("exmpp.hrl").
+
 -export([
 	 make/1,
 	 make/2,

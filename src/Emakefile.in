@@ -1,6 +1,7 @@
 {
 	[
 		'@srcdir@/core/exmpp',
+		'@srcdir@/core/exmpp_caps',
 		'@srcdir@/core/exmpp_sup',
 		'@srcdir@/core/exmpp_internals',
 		'@srcdir@/core/exmpp_utils',
