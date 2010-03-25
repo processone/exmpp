@@ -60,8 +60,8 @@
 %% XMPP Session API:
 -export([start/0, start_link/0, start/1, start_link/1,start_debug/0, stop/1]).
 -export([auth_basic/3, auth_basic_digest/3,
-	 connect_SSL/3, connect_SSL/4,
-	 connect_TCP/3, connect_TCP/4,
+	 connect_SSL/2, connect_SSL/3, connect_SSL/4,
+	 connect_TCP/2, connect_TCP/3, connect_TCP/4,
 	 connect_BOSH/4,
 	 register_account/2, register_account/3,
 	 login/1, login/2,
@@ -182,6 +182,14 @@ auth_basic_digest(Session, JID, Password)
 
 
 
+%% Initiate standard TCP XMPP server connection
+%% Resolves server name using DNS SRV records and uses given Server and
+%% default Port (5222) if DNS query fails.
+%% Returns {ok,StreamId::String} | {ok, StreamId::string(), Features :: xmlel{}}
+connect_TCP(Session, Server) ->
+    [{Host, Port} | _] = exmpp_dns:get_c2s(Server),
+    connect_TCP(Session, Host, Port, []).
+
 %% Initiate standard TCP XMPP server connection.
 %% Shortcut for  connect_TCP(Session, Server, Port, []).
 %% As the domain is not passed we expect to find it in the authentication
@@ -226,6 +234,14 @@ connect_BOSH(Session, URL, Server, Options)
     {ok, StreamId, Features} -> {ok, StreamId, Features};
 	Error when is_tuple(Error) -> erlang:throw(Error)
     end.
+
+%% Initiate SSL XMPP server connection
+%% Resolves server name using DNS SRV records and uses given Server and
+%% default Port (5223) if DNS query fails.
+%% Returns {ok,StreamId::String} | {ok, StreamId::string(), Features :: xmlel{}}
+connect_SSL(Session, Server) ->
+    [{Host, Port} | _] = exmpp_dns:get_c2s(Server),
+    connect_SSL(Session, Host, Port + 1, []).
 
 %% Initiate SSL XMPP server connection
 %% Shortcut for  connect_SSL(Session, Server, Port, []).

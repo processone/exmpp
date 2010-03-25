@@ -5,6 +5,7 @@ BEAM_FILES = exmpp.app							\
 	     exmpp.beam							\
 	     exmpp_compress.beam					\
 	     exmpp_dialback.beam					\
+	     exmpp_dns.beam						\
 	     exmpp_internals.beam					\
 	     exmpp_utils.beam						\
 	     exmpp_iq.beam						\
