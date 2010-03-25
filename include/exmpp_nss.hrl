@@ -1233,6 +1233,16 @@
 -define(NS_MUBLOG_0_s,               "urn:xmpp:microblog:0").
 -define(NS_MUBLOG_0_b,               <<"urn:xmpp:microblog:0">>).
 
+% Defined by XEP-0278: Jingle Relay Nodes.
+-define(NS_JINGLE_RELAY_NODES,       'http://jabber.org/protocol/jinglenodes').
+-define(NS_JINGLE_RELAY_NODES_s,     "http://jabber.org/protocol/jinglenodes").
+-define(NS_JINGLE_RELAY_NODES_b,     <<"http://jabber.org/protocol/jinglenodes">>).
+
+% Defined by XEP-0279: Server IP Check.
+-define(NS_SIC_0,                    'urn:xmpp:sic:0').
+-define(NS_SIC_0_s,                  "urn:xmpp:sic:0").
+-define(NS_SIC_0_b,                  <<"urn:xmpp:sic:0">>).
+
 % Defined by XHTML 1.0.
 -define(NS_XHTML,                    'http://www.w3.org/1999/xhtml').
 -define(NS_XHTML_s,                  "http://www.w3.org/1999/xhtml").

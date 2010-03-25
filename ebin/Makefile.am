@@ -3,6 +3,7 @@ beamdir = $(ERLANG_INSTALL_LIB_DIR_exmpp)/ebin
 BEAM_FILES = exmpp.app							\
 	     exmpp.appup						\
 	     exmpp.beam							\
+	     exmpp_caps.beam					\
 	     exmpp_compress.beam					\
 	     exmpp_dialback.beam					\
 	     exmpp_dns.beam						\

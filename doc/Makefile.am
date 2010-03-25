@@ -17,6 +17,7 @@ HTML_FILES = index.html							\
 	     overview-summary.html					\
 	     packages-frame.html					\
 	     exmpp.html							\
+	     exmpp_caps.html					\
 	     exmpp_client_binding.html					\
 	     exmpp_client_compression.html				\
 	     exmpp_client_disco.html				\
