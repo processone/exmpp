@@ -255,7 +255,7 @@ xmlel_to_iq(#xmlel{ns = IQ_NS} = IQ) when ?IS_IQ(IQ) ->
 		end;
 	    #xmlel{ns = N} = P ->
 		{N, P, undefined};
-	    undefined when Type == 'result' ->
+	    undefined ->
 		{undefined, undefined, undefined}
 	end,
     Lang = exmpp_stanza:get_lang(IQ),
