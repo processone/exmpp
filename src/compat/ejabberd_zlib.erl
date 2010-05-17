@@ -24,6 +24,9 @@
 %%%
 %%%----------------------------------------------------------------------
 
+%% @doc
+%% This <strong>{@module}</strong> module is for compatibility with ejabberd.
+
 -module(ejabberd_zlib).
 -author('alexey@process-one.net').
 

@@ -24,6 +24,9 @@
 %%%
 %%%----------------------------------------------------------------------
 
+%% @doc
+%% This <strong>{@module}</strong> module is for compatibility with ejabberd.
+
 -module(xml_stream).
 -author('alexey@process-one.net').
 
@@ -48,6 +51,11 @@ new(CallbackPid) ->
 new(CallbackPid, MaxSize) ->
     exmpp_xmlstream:start({gen_fsm, CallbackPid}, [{maxsize, MaxSize}]).
 
+%% @doc Deprecated for {@link exmpp_xmlstream:parse/2}.
+%% ```
+%% - xml_stream:parse(XMLStreamState, Data)
+%% + exmpp_xmlstream:parse(XMLStreamState, Data)
+%% '''
 
 parse(State, Str) ->
     try
@@ -64,6 +72,11 @@ parse(State, Str) ->
 close(State) ->
     exmpp_xmlstream:stop(State).
 
+%% @doc Deprecated for {@link exmpp_xml:parse_document/2}.
+%% ```
+%% - El = xml_stream:parse_element(Text)
+%% + [El] = exmpp_xml:parse_document(Text, names_as_atom])
+%% '''
 
 parse_element(Str) ->
     exmpp_xmlstream:parse_element(Str).

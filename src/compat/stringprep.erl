@@ -24,6 +24,9 @@
 %%%
 %%%----------------------------------------------------------------------
 
+%% @doc
+%% This <strong>{@module}</strong> module is for compatibility with ejabberd.
+
 -module(stringprep).
 -author('alexey@process-one.net').
 
@@ -45,6 +48,11 @@ start() ->
 start_link() ->
     exmpp_stringprep:start_link().
 
+%% @doc Deprecated for {@link exmpp_stringprep:to_lower/1}.
+%% ```
+%% - stringprep:tolower(String)
+%% + exmpp_stringprep:to_lower(String)
+%% '''
 
 tolower(String) ->
     try
