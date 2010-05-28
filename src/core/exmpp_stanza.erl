@@ -590,7 +590,6 @@ standard_conditions() ->
      {'service-unavailable',     "cancel" },
      {'subscription-required',   "auth"   },
      {'unexpected-request',      "wait"   },
-     {'unexpected-request-cancel', "cancel"   },  %% not defined in XEP-0086, but needed by XEP-0060
      {'undefined-condition',     undefined}
     ].
 
