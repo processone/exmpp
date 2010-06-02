@@ -41,6 +41,7 @@
 	 stop/1,
 	 parse/2,
 	 send_events/2,
+	 change_callback/2,
 	 parse_element/1,
 	 parse_element/2,
 	 set_wrapper_tagnames/2 %% Used to unwrap BOSH enclosing body
@@ -316,6 +317,22 @@ send_events(Stream, [Event | Rest]) ->
     send_events(Stream, Rest);
 send_events(Stream, []) ->
     {ok, Stream}.
+
+%% @spec (Stream, CallBack) -> NewStream
+%%     Stream = xmlstream()
+%%     CallBack = callback()
+%%     NewStream = xmlstream()
+%% @doc Change callback of the stream.
+
+-spec(change_callback/2 :: (xmlstream(), callback()) -> xmlstream()).
+
+change_callback(Stream, CallBack) ->
+    NewCallBack = if is_pid(CallBack) ->
+			  {process, CallBack};
+		     true ->
+			  CallBack
+		  end,
+    Stream#xml_stream{callback = NewCallBack}.
 
 %% --------------------------------------------------------------------
 %% Document parsing.
