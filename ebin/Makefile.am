@@ -42,6 +42,7 @@ BEAM_FILES = exmpp.app							\
 	     exmpp_server_sasl.beam					\
 	     exmpp_server_session.beam					\
 	     exmpp_server_tls.beam					\
+	     exmpp_sasl_digest.beam					\
 	     exmpp_session.beam						\
 	     exmpp_ssl.beam						\
 	     exmpp_tcp.beam						\

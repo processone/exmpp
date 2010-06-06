@@ -43,14 +43,14 @@
 %%
 %%
 %% Initial support for sasl authentication is up and running.
-%% For now, only PLAIN is supported.
+%% For now, DIGEST-MD5 and PLAIN are supported.
 %% Example:
 %%    S = exmpp_session:start_link({1,0}),  %{1,0} is the stream version. You must supply {1,0} to be able to perform sasl authentication.
 %%    JID = exmpp_jid:make("user1", "localhost", "user1"),
-%%    exmpp_session:auth_basic_digest(S, JID, "user1"),   %% it is still called auth_basic_digest.. I must change that.
+%%    exmpp_session:auth_info(S, JID, "user1"),
 %%    {ok, StreamID, Features} = exmpp_session:connect_TCP(S, "localhost", 5222),
-%%    io:format("StreamID ~p Features:  \n", [StreamID]),
-%%    ok = exmpp_session:login(S, "PLAIN"),   %specify "PLAIN" as sasl login method
+%%    io:format("StreamID ~p Features: ~p~n", [StreamID, Features]),
+%%    ok = exmpp_session:login(S, "DIGEST-MD5"),   %specify "DIGEST-MD5" as sasl login method
 %%     ...
 %%
 
@@ -60,6 +60,7 @@
 %% XMPP Session API:
 -export([start/0, start_link/0, start/1, start_link/1,start_debug/0, stop/1]).
 -export([auth_basic/3, auth_basic_digest/3,
+         auth_info/3, auth_method/2, auth/4,
 	 connect_SSL/2, connect_SSL/3, connect_SSL/4,
 	 connect_TCP/2, connect_TCP/3, connect_TCP/4,
 	 connect_BOSH/4,
@@ -95,10 +96,12 @@
 -include("exmpp_client.hrl").
 
 -record(state, {
-	  auth_method = undefined,
+	  auth_method = undefined, %% posibble values: password, digest, "PLAIN", "ANONYMOUS", "DIGEST-MD5"
+          auth_info = undefined,   %% {Jid, Password}
       stream_version,
       authenticated = false,
 	  domain,
+          host, 
 	  client_pid,
 	  connection = exmpp_tcp,
 	  connection_ref,
@@ -106,7 +109,8 @@
 	  stream_id = false, %% XMPP StreamID (Used for digest_auth)
 	  stream_error,
 	  receiver_ref,
-	  from_pid           %% Use by gen_fsm to handle postponed replies
+	  from_pid,           %% Use by gen_fsm to handle postponed replies
+          sasl_state
 	 }).
 
 %% This timeout should match the connect timeout
@@ -165,7 +169,7 @@ auth_basic(Session, JID, Password)
     case exmpp_jid:is_jid(JID) of
 	false -> erlang:error({incorrect_jid,JID});
 	true ->
-	    Auth = {basic, password, JID, Password},
+	    Auth = {password, JID, Password},
 	    gen_fsm:sync_send_event(Session, {set_auth, Auth})
     end.
 
@@ -176,10 +180,49 @@ auth_basic_digest(Session, JID, Password)
     case exmpp_jid:is_jid(JID) of
 	false -> erlang:error({incorrect_jid,JID});
 	true ->
-	    Auth = {basic, digest, JID, Password},
+	    Auth = {digest, JID, Password},
 	    gen_fsm:sync_send_event(Session, {set_auth, Auth})
     end.
 
+%% Set authentication information
+auth_info(Session, JID, Password)
+  when is_pid(Session),
+       is_list(Password) ->
+    case exmpp_jid:is_jid(JID) of
+	false -> erlang:error({incorrect_jid,JID});
+	true ->
+	    Info = {JID, Password},
+	    gen_fsm:sync_send_event(Session, {set_auth_info, Info})
+    end.
+
+%% @spec (Session, Method) -> Reply
+%%     Session = pid()
+%% @doc Set the authentication method for the session.
+%%     Method = password | digest | "PLAIN" | "ANONYMOUS" | "DIGEST-MD5" | string()
+%%
+
+auth_method(Session, Method)
+  when is_pid(Session),
+       is_list(Method) or is_atom(Method) ->
+    gen_fsm:sync_send_event(Session, {set_auth_method, Method}).
+
+%% @spec (Session, Jid, Password, Method) -> Reply
+%%     Session = pid()
+%%     Jid = jid()
+%%     Password = string()
+%% @doc Set the authentication info (user credentials) for the session.
+%%     Method = password | digest | "PLAIN" | "ANONYMOUS" | "DIGEST-MD5" | string()
+%%
+
+auth(Session, JID, Password, Method)
+  when is_pid(Session),
+       is_list(Password) ->
+    case exmpp_jid:is_jid(JID) of
+	false -> erlang:error({incorrect_jid,JID});
+	true ->
+	    Auth = {Method, JID, Password},
+	    gen_fsm:sync_send_event(Session, {set_auth, Auth})
+    end.
 
 
 %% Initiate standard TCP XMPP server connection
@@ -193,7 +236,7 @@ connect_TCP(Session, Server) ->
 %% Initiate standard TCP XMPP server connection.
 %% Shortcut for  connect_TCP(Session, Server, Port, []).
 %% As the domain is not passed we expect to find it in the authentication
-%% method. It should thus be set before.
+%% info. It should thus be set before.
 %% Returns {ok,StreamId::String} | {ok, StreamId::string(), Features :: xmlel{}}
 connect_TCP(Session, Server, Port) ->
 	connect_TCP(Session, Server, Port, []).
@@ -203,7 +246,7 @@ connect_TCP(Session, Server, Port) ->
 %%  Option() = {local_ip, IP} | {local_port, fun() -> integer()}   bind sockets to this local ip / port.
 %%      | {domain, Domain}
 %% If the domain is not passed we expect to find it in the authentication
-%% method. It should thus be set before.
+%% info. It should thus be set before.
 connect_TCP(Session, Server, Port, Options)
   when is_pid(Session),
        is_list(Server),
@@ -246,7 +289,7 @@ connect_SSL(Session, Server) ->
 %% Initiate SSL XMPP server connection
 %% Shortcut for  connect_SSL(Session, Server, Port, []).
 %% As the domain is not passed we expect to find it in the authentication
-%% method. It should thus be set before.
+%% info. It should thus be set before.
 %% Returns {ok,StreamId::String} | {ok, StreamId::string(), Features :: xmlel{}}
 connect_SSL(Session, Server, Port) ->
 	connect_SSL(Session, Server, Port, []).
@@ -295,8 +338,17 @@ login(Session) when is_pid(Session) ->
 	{ok, JID} -> {ok, JID};
 	Error when is_tuple(Error) -> erlang:throw(Error)
     end.
+
+%% Login using chosen SASL Mechanism
 login(Session, Mechanism) when is_pid(Session), is_list(Mechanism) ->
     case gen_fsm:sync_send_event(Session, {login, sasl, Mechanism}) of
+	{ok, JID} -> {ok, JID};
+	Error when is_tuple(Error) -> erlang:throw(Error)
+    end;
+
+%% Login using chosen legacy method
+login(Session, Method) when is_pid(Session), is_atom(Method) ->
+    case gen_fsm:sync_send_event(Session, {login, basic, Method}) of
 	{ok, JID} -> {ok, JID};
 	Error when is_tuple(Error) -> erlang:throw(Error)
     end.
@@ -408,35 +460,42 @@ code_change(_OldVsn, StateName, State, _Extra) ->
 %% Setup state: Configuration
 
 %% Define JID and authentication method
-setup({set_auth, Auth}, _From, State) when is_tuple(Auth) ->
-    {reply, ok, setup, State#state{auth_method=Auth}};
+setup({set_auth, {Method, Jid, Password}}, _From, State) ->
+    {reply, ok, setup, State#state{auth_method=Method, auth_info={Jid, Password} }};
+%% Define JID and password for login
+setup({set_auth_info, {Jid, Password}}, _From, State) ->
+    {reply, ok, setup, State#state{ auth_info={Jid, Password} }};
+%% Define authentication method
+setup({set_auth_method, Method}, _From, State) ->
+    {reply, ok, setup, State#state{auth_method=Method}};
+
 setup({connect_tcp, Host, Port, Options}, From, State) ->
-    case {proplists:get_value(domain, Options, undefined), State#state.auth_method} of
+    case {proplists:get_value(domain, Options, undefined), State#state.auth_info} of
 	{undefined, undefined} ->
 	    {reply, {connect_error,
 		     authentication_or_domain_undefined}, setup, State};
 	{undefined, _Other} ->
-	    connect(exmpp_tcp, {Host, Port, Options}, From, State);
+	    connect(exmpp_tcp, {Host, Port, Options}, From, State#state{host=Host});
 	{Domain, _Any} ->
-    	    connect(exmpp_tcp, {Host, Port, Options}, Domain, From, State)
+    	    connect(exmpp_tcp, {Host, Port, Options}, Domain, From, State#state{host=Host})
     end;
 setup({connect_bosh, URL, Host, Port}, From, State) ->
-    case State#state.auth_method of
+    case State#state.auth_info of
         undefined ->
             {reply, {connect_error,
                      authentication_or_domain_undefined}, setup, State};
         _Other ->
-            connect(exmpp_bosh, {URL, Host, Port}, From, State)
+            connect(exmpp_bosh, {URL, Host, Port}, From, State#state{host=Host})
     end;
 setup({connect_ssl, Host, Port, Options}, From, State) ->
-    case {proplists:get_value(domain, Options, undefined), State#state.auth_method} of
+    case {proplists:get_value(domain, Options, undefined), State#state.auth_info} of
 	{undefined, undefined} ->
 	    {reply, {connect_error,
 		     authentication_or_domain_undefined}, setup, State};
 	{undefined, _Other} ->
-	    connect(exmpp_ssl, {Host, Port, Options}, From, State);
+	    connect(exmpp_ssl, {Host, Port, Options}, From, State#state{host=Host});
 	{Domain, _Any} ->
-    	    connect(exmpp_ssl, {Host, Port, Options}, Domain, From, State)
+    	    connect(exmpp_ssl, {Host, Port, Options}, Domain, From, State#state{host=Host})
     end;
 setup({presence, _Status, _Show}, _From, State) ->
     {reply, {error, not_connected}, setup, State};
@@ -530,7 +589,7 @@ wait_for_stream_features(#xmlstreamelement{element=#xmlel{name='features'} = F},
            stream_id = StreamId} = State,
     case Authenticated of
         true ->
-            Bind = exmpp_client_binding:bind(get_resource(State#state.auth_method)),
+            Bind = exmpp_client_binding:bind(get_resource(State#state.auth_info)),
             Module:send(ConnectionRef, Bind),
             %%@pablo TODO:  send bind request
             {next_state, wait_for_bind_response, State};
@@ -549,6 +608,7 @@ wait_for_bind_response(#xmlstreamelement{element = #xmlel{name ='iq'} = IQ}, Sta
     case exmpp_iq:get_type(IQ) of
         result -> 
             JID = exmpp_client_binding:bounded_jid(IQ),  
+            %%TODO what does this exactly do?
             NewAuthMethod = {basic, sasl_anonymous, JID, undefined}, %%TODO: is this neccesary? 
             Module:send(ConnectionRef, exmpp_client_session:establish()),
             {next_state, wait_for_session_response, State#state{auth_method=NewAuthMethod}};
@@ -560,7 +620,7 @@ wait_for_session_response(#xmlstreamelement{element = #xmlel{name='iq'} = IQ}, S
     #state{from_pid = From} = State,
     case exmpp_iq:get_type(IQ) of
         result ->
-            gen_fsm:reply(From, {ok, get_jid(State#state.auth_method)}),  %%after successful login, bind and session
+            gen_fsm:reply(From, {ok, get_jid(State#state.auth_info)}),  %%after successful login, bind and session
             {next_state, stream_opened, State#state{from_pid = undefined}};
         _ ->
             {stop, {bind, IQ}, State}
@@ -573,11 +633,15 @@ wait_for_session_response(#xmlstreamelement{element = #xmlel{name='iq'} = IQ}, S
 
 %% Supported user commands at this stage:
 %% login and register
+
+%% Login using previously selected authentication method
 stream_opened({login}, _From,State=#state{auth_method=undefined}) ->
     {reply, {error, auth_method_undefined}, stream_opened, State};
+stream_opened({login}, _From,State=#state{auth_info=undefined}) ->
+    {reply, {error, auth_info_undefined}, stream_opened, State};
 stream_opened({login}, From, State=#state{connection = Module,
 					  connection_ref = ConnRef,
-					  auth_method=Auth}) ->
+					  auth_info=Auth}) ->
     %% Retrieve supported authentication methods:
     %% TODO: Do different thing if we use basic or SASL auth
     %% For now, we consider everything is legacy (basic)
@@ -586,13 +650,28 @@ stream_opened({login}, From, State=#state{connection = Module,
     Module:send(ConnRef,
  		exmpp_client_legacy_auth:request_with_user(Domain, Username)),
     {next_state, wait_for_legacy_auth_method, State#state{from_pid=From}};
-stream_opened({login, sasl, "PLAIN"}, From, State=#state{connection = Module,
+
+%% Login using legacy method
+stream_opened({login, basic, _Method}, _From, State=#state{auth_info=undefined}) ->
+    {reply, {error, auth_info_undefined}, stream_opened, State};
+stream_opened({login, basic, Method}, From, State=#state{connection = Module,
 					  connection_ref = ConnRef,
-					  auth_method=Auth}) ->
+					  auth_info=Auth}) when is_atom(Method)->
     Domain = get_domain(Auth),
     Username = get_username(Auth),
+    Module:send(ConnRef,
+ 		exmpp_client_legacy_auth:request_with_user(Domain, Username)),
+    {next_state, wait_for_legacy_auth_method, State#state{from_pid=From, auth_method=Method}};
+
+%% Login using SASL mechanism
+stream_opened({login, sasl, "PLAIN"}, From, State=#state{connection = Module,
+					  connection_ref = ConnRef,
+					  auth_info=Auth}) ->
+ %     Domain = get_domain(Auth),
+    Username = get_username(Auth),
     Password = get_password(Auth),
-    InitialResp = iolist_to_binary([Domain, 0, Username, 0, Password]),
+ %     InitialResp = iolist_to_binary([Domain, 0, Username, 0, Password]),
+    InitialResp = iolist_to_binary([0, Username, 0, Password]),
     Module:send(ConnRef,
  		exmpp_client_sasl:selected_mechanism("PLAIN", InitialResp)),
     {next_state, wait_for_sasl_response, State#state{from_pid=From}};
@@ -601,11 +680,22 @@ stream_opened({login, sasl, "ANONYMOUS"}, From, State=#state{connection = Module
 					  }) ->
     Module:send(ConnRef, exmpp_client_sasl:selected_mechanism("ANONYMOUS")),
     {next_state, wait_for_sasl_response, State#state{from_pid=From}};
+stream_opened({login, sasl, "DIGEST-MD5"}, From, State=#state{connection = Module,
+					  connection_ref = ConnRef,
+                                          auth_info = Auth,
+                                          host = Host
+					  }) ->
+    Username = get_username(Auth),
+    Domain = get_domain(Auth),
+    Password = get_password(Auth),
+    {ok, SASL_State} = exmpp_sasl_digest:mech_client_new(Username, Host, Domain, Password),
+    Module:send(ConnRef, exmpp_client_sasl:selected_mechanism("DIGEST-MD5")),
+    {next_state, wait_for_sasl_response, State#state{from_pid=From, sasl_state=SASL_State }};
 
 stream_opened({register_account, Password}, From,
 	      State=#state{connection = Module,
 			   connection_ref = ConnRef,
-			   auth_method=Auth}) ->
+			   auth_info=Auth}) ->
     Username = get_username(Auth),
     register_account(ConnRef, Module, Username, Password),
     {next_state, wait_for_register_result, State#state{from_pid=From}};
@@ -618,10 +708,20 @@ stream_opened({register_account, Username, Password}, From,
 %% We can define update login informations after we are connected to
 %% the XMPP server:
 %% Define JID and authentication method
-stream_opened({set_auth, Auth}, _From, State) when is_tuple(Auth) ->
-    {reply, ok, stream_opened, State#state{auth_method=Auth}};
+stream_opened({set_auth, {Method, Jid, Password}}, _From, State) ->
+    {reply, ok, stream_opened, State#state{auth_method=Method, auth_info={Jid, Password} }};
+%% Define JID and password for login
+stream_opened({set_auth_info, {Jid, Password}}, _From, State) ->
+    {reply, ok, stream_opened, State#state{ auth_info={Jid, Password} }};
+%% Define authentication method
+stream_opened({set_auth_method, Method}, _From, State) ->
+    {reply, ok, stream_opened, State#state{auth_method=Method}};
+
 stream_opened({presence, _Status, _Show}, _From, State) ->
     {reply, {error, not_logged_in}, setup, State};
+
+
+
 %% We allow to send packet here to give control to the developer on all packet
 %% send to the server. The developer can implements his own login management
 %% code.
@@ -658,11 +758,25 @@ stream_opened(#xmlstreamelement{element=Packet}, State) ->
 
 %% TODO: handle errors
 wait_for_sasl_response(#xmlstreamelement{element=#xmlel{name='success'}}, State) ->
-    #state{connection_ref = ConnRef, receiver_ref = ReceiverRef, connection = Module, auth_method = Auth} = State,
+    #state{connection_ref = ConnRef, receiver_ref = ReceiverRef, connection = Module, auth_info = Auth} = State,
     Domain = get_domain(Auth),
     Module:reset_parser(ReceiverRef),
     ok = Module:send(ConnRef, exmpp_stream:opening(Domain, ?NS_JABBER_CLIENT, {1,0})),
-    {next_state, wait_for_stream, State#state{authenticated = true}}.
+    {next_state, wait_for_stream, State#state{authenticated = true}};
+
+wait_for_sasl_response(#xmlstreamelement{element=#xmlel{name='challenge'} = Element}, State) ->
+    #state{connection_ref = ConnRef, connection = Module, sasl_state = SASL_State} = State,
+    Challenge = base64:decode_to_string(exmpp_xml:get_cdata(Element)),
+    case exmpp_sasl_digest:mech_step(SASL_State, Challenge) of
+         {error, Reason} ->
+              {error, Reason};
+         {continue, ClientIn, NewSASL_State} ->
+             Module:send(ConnRef, exmpp_client_sasl:response(ClientIn)),
+             {next_state, wait_for_sasl_response, State#state{sasl_state= NewSASL_State} };
+         ok ->
+            Module:send(ConnRef, exmpp_client_sasl:response("")),
+            {next_state, wait_for_sasl_response, State }
+    end.
 
 stream_error(_Signal, _From, State) ->
     {reply, {stream_error, State#state.stream_error}, stream_error, State}.
@@ -681,12 +795,12 @@ stream_closed(_Signal, State) ->
 %% Reason comes from streamerror macro
 wait_for_legacy_auth_method(?iq_no_attrs, State = #state{connection = Module,
 							 connection_ref = ConnRef,
-							 auth_method = Auth,
-							 stream_id = StreamId}) ->
+							 auth_method = Method,
+							 auth_info = Auth,
+							 stream_id = StreamId}) when is_atom(Method) ->
     Username = get_username(Auth),
     Password = get_password(Auth),
     Resource = get_resource(Auth),
-    Method = get_method(Auth),
     case check_auth_method(Method, IQElement) of
 	ok ->
 	    case do_auth(Method, ConnRef, Module, Username, Password, Resource,
@@ -704,7 +818,7 @@ wait_for_legacy_auth_method(?streamerror, State) ->
 
 %% TODO: We should be able to match on iq type directly on the first
 %% level record
-wait_for_auth_result(?iq_no_attrs, State = #state{from_pid=From, auth_method = Auth}) ->
+wait_for_auth_result(?iq_no_attrs, State = #state{from_pid=From, auth_info = Auth}) ->
     case exmpp_xml:get_attribute_as_binary(IQElement, type, undefined) of
  	<<"result">> ->
             gen_fsm:reply(From, {ok, get_jid(Auth)}),
@@ -779,7 +893,7 @@ logged_in(_Packet, State) ->
 
 %% Connect to server
 connect(Module, Params, From, State) ->
-    Domain = get_domain(State#state.auth_method),
+    Domain = get_domain(State#state.auth_info),
     connect(Module, Params, Domain, From, State).
 connect(Module, Params, Domain, From, #state{client_pid=_ClientPid, stream_version = Version} = State) ->
     try start_parser() of
@@ -835,17 +949,25 @@ do_auth(digest, _ConnRef, _Module, _Username, _Password, _Resource, StreamId)
 %% Extraction functions
 
 %% Extract domain from Auth Method
-get_domain({basic, _Method, JID, _Password}) when ?IS_JID(JID) ->
+ % get_domain({basic, _Method, JID, _Password}) when ?IS_JID(JID) ->
+ %     exmpp_jid:domain_as_list(JID);
+get_domain({JID, _Password}) when ?IS_JID(JID) ->
     exmpp_jid:domain_as_list(JID).
-get_username({basic, _Method, JID, _Password}) when ?IS_JID(JID) ->
+ % get_username({basic, _Method, JID, _Password}) when ?IS_JID(JID) ->
+ %     exmpp_jid:node_as_list(JID);
+get_username({JID, _Password}) when ?IS_JID(JID) ->
     exmpp_jid:node_as_list(JID).
-get_resource({basic, _Method, JID, _Password}) when ?IS_JID(JID) ->
+ % get_resource({basic, _Method, JID, _Password}) when ?IS_JID(JID) ->
+ %     exmpp_jid:resource_as_list(JID);
+get_resource({JID, _Password}) when ?IS_JID(JID) ->
     exmpp_jid:resource_as_list(JID).
-get_password({basic, _Method, _JID, Password}) when is_list(Password) ->
+ % get_password({basic, _Method, _JID, Password}) when is_list(Password) ->
+ %     Password;
+get_password({_JID, Password}) when is_list(Password) ->
     Password.
-get_method({basic, Method, _JID, _Password}) when is_atom(Method) ->
-    Method.
-get_jid({_, _Method, JID, _Password}) when ?IS_JID(JID) ->
+ % get_jid({_, _Method, JID, _Password}) when ?IS_JID(JID) ->
+ %     JID;
+get_jid({JID, _Password}) when ?IS_JID(JID) ->
     JID.
 
 %% Parsing functions

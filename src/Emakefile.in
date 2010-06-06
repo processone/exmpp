@@ -26,6 +26,7 @@
 		'@srcdir@/network/exmpp_dns',
 		'@srcdir@/network/exmpp_bosh',
 		'@srcdir@/network/exmpp_component',
+		'@srcdir@/network/exmpp_sasl_digest',
 		'@srcdir@/client/exmpp_client_binding',
 		'@srcdir@/client/exmpp_client_compression',
 		'@srcdir@/client/exmpp_client_disco',
