@@ -99,9 +99,10 @@
 -record(state, {
 	  auth_method = undefined, %% posibble values: password, digest, "PLAIN", "ANONYMOUS", "DIGEST-MD5"
           auth_info = undefined,   %% {Jid, Password}
-      stream_version,
-      authenticated = false,
-      compressed = false,
+          stream_version,
+          authenticated = false,
+          compressed = false,
+          options, %% configuration for stream compression/encryption
 	  domain,
           host, 
 	  client_pid,
@@ -465,14 +466,17 @@ setup({set_auth_method, Method}, _From, State) ->
     {reply, ok, setup, State#state{auth_method=Method}};
 
 setup({connect_socket, Host, Port, Options}, From, State) ->
+    Compress = proplists:get_value(compression, Options, enabled),
+    StartTLS = proplists:get_value(starttls, Options, optional),
+    SessionOptions = [{compression, Compress}, {starttls, StartTLS}],
     case {proplists:get_value(domain, Options, undefined), State#state.auth_info} of
 	{undefined, undefined} ->
 	    {reply, {connect_error,
 		     authentication_or_domain_undefined}, setup, State};
 	{undefined, _Other} ->
-	    connect(exmpp_socket, {Host, Port, Options}, From, State#state{host=Host});
+	    connect(exmpp_socket, {Host, Port, Options}, From, State#state{host=Host, options=SessionOptions});
 	{Domain, _Any} ->
-    	    connect(exmpp_socket, {Host, Port, Options}, Domain, From, State#state{host=Host})
+    	    connect(exmpp_socket, {Host, Port, Options}, Domain, From, State#state{host=Host, options=SessionOptions})
     end;
 setup({connect_bosh, URL, Host, Port}, From, State) ->
     case State#state.auth_info of
@@ -569,11 +573,14 @@ wait_for_stream_features(#xmlstreamelement{element=#xmlel{name='features'} = F},
            from_pid = From, 
            authenticated = Authenticated, 
            compressed = Compressed, 
+           options = Options, 
            stream_id = StreamId} = State,
+    Compression = proplists:get_value(compression, Options, enabled),
     case Authenticated of
         true ->
             case exmpp_client_compression:announced_methods(F) of
-                [_|_] when Compressed == false -> %% Compression supported. Compress stream using default 'zlib' method.
+                [_|_] when Compressed == false andalso Compression == enabled -> 
+                    %% Compression supported. Compress stream using default 'zlib' method.
                     Module:send(ConnRef, exmpp_client_compression:selected_method("zlib")),
                     {next_state, wait_for_compression_result, State};
                 _ -> %% Proceed with resource binding.
