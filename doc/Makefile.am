@@ -45,12 +45,11 @@ HTML_FILES = index.html							\
 	     exmpp_server_session.html					\
 	     exmpp_server_tls.html					\
 	     exmpp_session.html						\
-	     exmpp_ssl.html						\
+	     exmpp_socket.html						\
 	     exmpp_stanza.html						\
 	     exmpp_stream.html						\
 	     exmpp_stringprep.html					\
 	     exmpp_sup.html						\
-	     exmpp_tcp.html						\
 	     exmpp_bosh.html						\
 	     exmpp_tls.html						\
 	     exmpp_utils.html						\

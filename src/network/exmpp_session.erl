@@ -89,6 +89,7 @@
 	 wait_for_legacy_auth_method/2,
 	 wait_for_auth_result/2,
 	 wait_for_register_result/2,
+	 wait_for_compression_result/2,
 	 logged_in/2, logged_in/3
 	]).
 
@@ -100,10 +101,11 @@
           auth_info = undefined,   %% {Jid, Password}
       stream_version,
       authenticated = false,
+      compressed = false,
 	  domain,
           host, 
 	  client_pid,
-	  connection = exmpp_tcp,
+	  connection = exmpp_socket,
 	  connection_ref,
 	  stream_ref,
 	  stream_id = false, %% XMPP StreamID (Used for digest_auth)
@@ -163,6 +165,7 @@ stop(Session) ->
     ok.
 
 %% Set authentication mode to basic (password)
+%% @deprecated
 auth_basic(Session, JID, Password)
   when is_pid(Session),
        is_list(Password) ->
@@ -174,6 +177,7 @@ auth_basic(Session, JID, Password)
     end.
 
 %% Set authentication mode to basic (digest)
+%% @deprecated
 auth_basic_digest(Session, JID, Password)
   when is_pid(Session),
        is_list(Password) ->
@@ -197,8 +201,8 @@ auth_info(Session, JID, Password)
 
 %% @spec (Session, Method) -> Reply
 %%     Session = pid()
+%%     Method = atom() | string()
 %% @doc Set the authentication method for the session.
-%%     Method = password | digest | "PLAIN" | "ANONYMOUS" | "DIGEST-MD5" | string()
 %%
 
 auth_method(Session, Method)
@@ -253,7 +257,7 @@ connect_TCP(Session, Server, Port, Options)
        is_integer(Port),
        is_list(Options) ->
     case gen_fsm:sync_send_event(Session,
-				 {connect_tcp, Server, Port, Options},
+				 {connect_socket, Server, Port, Options},
 				 ?TIMEOUT) of
 	{ok, StreamId} -> {ok, StreamId};
     {ok, StreamId, Features} -> {ok, StreamId, Features};
@@ -298,18 +302,8 @@ connect_SSL(Session, Server, Port) ->
 %% Returns {ok,StreamId::String} | {ok, StreamId::string(), Features :: xmlel{}}
 %%  Options = [option()]
 %%  Option() = {local_ip, IP} | {local_port, fun() -> integer()}  bind sockets to this local ip / port.
-connect_SSL(Session, Server, Port, Options)
-  when is_pid(Session),
-       is_list(Server),
-       is_integer(Port),
-       is_list(Options) ->
-    case gen_fsm:sync_send_event(Session,
-				 {connect_ssl, Server, Port, Options},
-				 ?TIMEOUT) of
-	{ok, Streamid} -> {ok, Streamid};
-    {ok, Streamid, Features} -> {ok, Streamid, Features};
-	Error when is_tuple(Error) -> erlang:throw(Error)
-    end.
+connect_SSL(Session, Server, Port, Options) ->
+    connect_TCP(Session, Server, Port, [{socket_type, ssl} | Options]).
 
 %% Try to add the session user with inband registration
 %% In this case, we use the jid data provided with the auth method
@@ -382,6 +376,7 @@ init([Pid]) ->
 init([Pid, Version]) ->
     inets:start(),
     exmpp_stringprep:start(),
+    exmpp_compress:start(),
 
     {A1,A2,A3} = now(),
     random:seed(A1, A2, A3),
@@ -469,15 +464,15 @@ setup({set_auth_info, {Jid, Password}}, _From, State) ->
 setup({set_auth_method, Method}, _From, State) ->
     {reply, ok, setup, State#state{auth_method=Method}};
 
-setup({connect_tcp, Host, Port, Options}, From, State) ->
+setup({connect_socket, Host, Port, Options}, From, State) ->
     case {proplists:get_value(domain, Options, undefined), State#state.auth_info} of
 	{undefined, undefined} ->
 	    {reply, {connect_error,
 		     authentication_or_domain_undefined}, setup, State};
 	{undefined, _Other} ->
-	    connect(exmpp_tcp, {Host, Port, Options}, From, State#state{host=Host});
+	    connect(exmpp_socket, {Host, Port, Options}, From, State#state{host=Host});
 	{Domain, _Any} ->
-    	    connect(exmpp_tcp, {Host, Port, Options}, Domain, From, State#state{host=Host})
+    	    connect(exmpp_socket, {Host, Port, Options}, Domain, From, State#state{host=Host})
     end;
 setup({connect_bosh, URL, Host, Port}, From, State) ->
     case State#state.auth_info of
@@ -486,16 +481,6 @@ setup({connect_bosh, URL, Host, Port}, From, State) ->
                      authentication_or_domain_undefined}, setup, State};
         _Other ->
             connect(exmpp_bosh, {URL, Host, Port}, From, State#state{host=Host})
-    end;
-setup({connect_ssl, Host, Port, Options}, From, State) ->
-    case {proplists:get_value(domain, Options, undefined), State#state.auth_info} of
-	{undefined, undefined} ->
-	    {reply, {connect_error,
-		     authentication_or_domain_undefined}, setup, State};
-	{undefined, _Other} ->
-	    connect(exmpp_ssl, {Host, Port, Options}, From, State#state{host=Host});
-	{Domain, _Any} ->
-    	    connect(exmpp_ssl, {Host, Port, Options}, Domain, From, State#state{host=Host})
     end;
 setup({presence, _Status, _Show}, _From, State) ->
     {reply, {error, not_connected}, setup, State};
@@ -565,10 +550,7 @@ wait_for_stream(_Event, _From, State) ->
 wait_for_stream(?stream, State = #state{authenticated = true}) ->
     {next_state, wait_for_stream_features, State};
 
-wait_for_stream(Start = ?stream, State = #state{connection = _Module,
-						connection_ref = _ConnRef,
-						auth_method = _Auth,
-						from_pid = From}) ->
+wait_for_stream(Start = ?stream, State = #state{from_pid = From}) ->
     %% Get StreamID
     StreamId = exmpp_xml:get_attribute_as_list(Start#xmlstreamstart.element, id, ""),
     
@@ -582,17 +564,23 @@ wait_for_stream(Start = ?stream, State = #state{connection = _Module,
     end.
 
 wait_for_stream_features(#xmlstreamelement{element=#xmlel{name='features'} = F}, State) ->
-    #state{connection = Module, 
-           connection_ref = ConnectionRef, 
+    #state{connection_ref = ConnRef, 
+           connection = Module,
            from_pid = From, 
            authenticated = Authenticated, 
+           compressed = Compressed, 
            stream_id = StreamId} = State,
     case Authenticated of
         true ->
-            Bind = exmpp_client_binding:bind(get_resource(State#state.auth_info)),
-            Module:send(ConnectionRef, Bind),
-            %%@pablo TODO:  send bind request
-            {next_state, wait_for_bind_response, State};
+            case exmpp_client_compression:announced_methods(F) of
+                [_|_] when Compressed == false -> %% Compression supported. Compress stream using default 'zlib' method.
+                    Module:send(ConnRef, exmpp_client_compression:selected_method("zlib")),
+                    {next_state, wait_for_compression_result, State};
+                _ -> %% Proceed with resource binding.
+                    Bind = exmpp_client_binding:bind(get_resource(State#state.auth_info)),
+                    Module:send(ConnRef, Bind),
+                    {next_state, wait_for_bind_response, State}
+            end;
         false ->
             gen_fsm:reply(From, {ok, StreamId, F}),
             {next_state, stream_opened, State#state{from_pid = undefined}}
@@ -603,14 +591,29 @@ wait_for_stream_features(X, State) ->
     {next_state, wait_for_stream_features, State}.
    
 
+wait_for_compression_result(#xmlstreamelement{element=#xmlel{name='compressed'}}, State) ->
+    #state{connection = Module,
+           receiver_ref = ReceiverRef,
+           auth_info = Auth} = State,
+    case Module:compress(ReceiverRef) of
+        {ok, NewSocket} ->
+            Domain = get_domain(Auth),
+            Module:reset_parser(ReceiverRef),
+            ok = Module:send(NewSocket, exmpp_stream:opening(Domain, ?NS_JABBER_CLIENT, {1,0})),
+            {next_state, wait_for_stream, State#state{compressed=true, connection_ref = NewSocket}};
+        _ ->
+            {stop, 'could-not-compress-stream', State}
+    end.
+
+
 wait_for_bind_response(#xmlstreamelement{element = #xmlel{name ='iq'} = IQ}, State) ->
-    #state{connection = Module, connection_ref = ConnectionRef} = State,
+    #state{connection = Module, connection_ref = ConnRef} = State,
     case exmpp_iq:get_type(IQ) of
-        result -> 
-            JID = exmpp_client_binding:bounded_jid(IQ),  
+        result ->
+            JID = exmpp_client_binding:bounded_jid(IQ),
             %%TODO what does this exactly do?
-            NewAuthMethod = {basic, sasl_anonymous, JID, undefined}, %%TODO: is this neccesary? 
-            Module:send(ConnectionRef, exmpp_client_session:establish()),
+            NewAuthMethod = {basic, sasl_anonymous, JID, undefined}, %%TODO: is this neccesary?
+            Module:send(ConnRef, exmpp_client_session:establish()),
             {next_state, wait_for_session_response, State#state{auth_method=NewAuthMethod}};
         _ ->
             {stop, {bind, IQ}, State}
@@ -625,7 +628,7 @@ wait_for_session_response(#xmlstreamelement{element = #xmlel{name='iq'} = IQ}, S
         _ ->
             {stop, {bind, IQ}, State}
     end.
-        
+
 
 
 %% ---------------------------
@@ -639,8 +642,8 @@ stream_opened({login}, _From,State=#state{auth_method=undefined}) ->
     {reply, {error, auth_method_undefined}, stream_opened, State};
 stream_opened({login}, _From,State=#state{auth_info=undefined}) ->
     {reply, {error, auth_info_undefined}, stream_opened, State};
-stream_opened({login}, From, State=#state{connection = Module,
-					  connection_ref = ConnRef,
+stream_opened({login}, From, State=#state{connection_ref = ConnRef,
+                                            connection = Module,
 					  auth_info=Auth}) ->
     %% Retrieve supported authentication methods:
     %% TODO: Do different thing if we use basic or SASL auth
@@ -693,15 +696,14 @@ stream_opened({login, sasl, "DIGEST-MD5"}, From, State=#state{connection = Modul
     {next_state, wait_for_sasl_response, State#state{from_pid=From, sasl_state=SASL_State }};
 
 stream_opened({register_account, Password}, From,
-	      State=#state{connection = Module,
-			   connection_ref = ConnRef,
+	      State=#state{connection_ref = ConnRef,
+                            connection = Module,
 			   auth_info=Auth}) ->
     Username = get_username(Auth),
     register_account(ConnRef, Module, Username, Password),
     {next_state, wait_for_register_result, State#state{from_pid=From}};
 stream_opened({register_account, Username, Password}, From,
-	      State=#state{connection = Module,
-			   connection_ref = ConnRef}) ->
+	      State=#state{connection = Module, connection_ref = ConnRef}) ->
     register_account(ConnRef, Module, Username, Password),
     {next_state, wait_for_register_result, State#state{from_pid=From}};
 
@@ -728,16 +730,14 @@ stream_opened({presence, _Status, _Show}, _From, State) ->
 %% If the packet is an iq set or get:
 %% We check that there is a valid id and return it to match the reply
 stream_opened({send_packet, Packet}, _From,
-	      State = #state{connection = Module,
-			     connection_ref = ConnRef}) ->
-    Id = send_packet(Packet, Module, ConnRef),
+	      State = #state{connection = Module, connection_ref = ConnRef}) ->
+    Id = send_packet(ConnRef, Module, Packet),
     {reply, Id, stream_opened, State}.
 
 %% Process incoming
 %% Dispatch incoming messages
-stream_opened(?message, State = #state{connection = _Module,
-				       connection_ref = _ConnRef}) ->
-    process_message(State#state.client_pid, Attrs, MessageElement),
+stream_opened(?message, State = #state{client_pid = From}) ->
+    process_message(From, Attrs, MessageElement),
     {next_state, stream_opened, State};
 %% Dispach IQs from server
 stream_opened(?iq, State) ->
@@ -765,7 +765,7 @@ wait_for_sasl_response(#xmlstreamelement{element=#xmlel{name='success'}}, State)
     {next_state, wait_for_stream, State#state{authenticated = true}};
 
 wait_for_sasl_response(#xmlstreamelement{element=#xmlel{name='challenge'} = Element}, State) ->
-    #state{connection_ref = ConnRef, connection = Module, sasl_state = SASL_State} = State,
+    #state{connection = Module, connection_ref = ConnRef, sasl_state = SASL_State} = State,
     Challenge = base64:decode_to_string(exmpp_xml:get_cdata(Element)),
     case exmpp_sasl_digest:mech_step(SASL_State, Challenge) of
          {error, Reason} ->
@@ -793,8 +793,8 @@ stream_closed(_Signal, State) ->
     {next_state, stream_closed, State}.
 
 %% Reason comes from streamerror macro
-wait_for_legacy_auth_method(?iq_no_attrs, State = #state{connection = Module,
-							 connection_ref = ConnRef,
+wait_for_legacy_auth_method(?iq_no_attrs, State = #state{connection_ref = ConnRef,
+                                                         connection = Module,
 							 auth_method = Method,
 							 auth_info = Auth,
 							 stream_id = StreamId}) when is_atom(Method) ->
@@ -851,9 +851,8 @@ wait_for_register_result(?streamerror, State) ->
 %% If the packet is an iq set or get:
 %% We check that there is a valid id and return it to match the reply
 logged_in({send_packet, Packet}, _From,
-	  State = #state{connection = Module,
-			 connection_ref = ConnRef}) ->
-    Id = send_packet(Packet, Module, ConnRef),
+	  State = #state{connection = Module, connection_ref = ConnRef}) ->
+    Id = send_packet(ConnRef, Module, Packet),
     {reply, Id, logged_in, State}.
 
 %% ---
@@ -906,6 +905,7 @@ connect(Module, Params, Domain, From, #state{client_pid=_ClientPid, stream_versi
 							  Version)),
 		    %% TODO: Add timeout on wait_for_stream to return
 		    %% meaningfull error.
+
 		    {next_state, wait_for_stream,
 		     State#state{domain = Domain,
 				 connection = Module,
@@ -927,6 +927,7 @@ connect(Module, Params, Domain, From, #state{client_pid=_ClientPid, stream_versi
 	Error ->
 	    {reply, Error, setup, State}
     end.
+
 
 %% Authentication
 %% digest auth will fail if we do not have streamid
@@ -1080,27 +1081,31 @@ get_attribute_value(Attrs, Attr, Default) ->
 
 %% Internal operations
 %% send_packet: actually format and send the packet:
-send_packet(?iqattrs, Module, ConnRef) ->
-    Type = exmpp_xml:get_attribute_from_list_as_binary(Attrs, type, undefined),
-    case Type of
-	<<"error">> ->
-	    {Attrs2, PacketId} = check_id(Attrs),
-	    Module:send(ConnRef, IQElement#xmlel{attrs=Attrs2}),
-	    PacketId;
-	<<"result">> ->
-	    {Attrs2, PacketId} = check_id(Attrs),
-	    Module:send(ConnRef, IQElement#xmlel{attrs=Attrs2}),
-	    PacketId;
-	<<"set">> ->
-	    {Attrs2, PacketId} = check_id(Attrs),
-	    Module:send(ConnRef, IQElement#xmlel{attrs=Attrs2}),
-	    PacketId;
-	<<"get">> ->
-	    {Attrs2, PacketId} = check_id(Attrs),
-	    Module:send(ConnRef, IQElement#xmlel{attrs=Attrs2}),
-	    PacketId
-    end;
-send_packet(?elementattrs, Module, ConnRef) ->
+send_packet(ConnRef, Module, ?iqattrs) ->
+    {Attrs2, PacketId} = check_id(Attrs),
+    Module:send(ConnRef, IQElement#xmlel{attrs=Attrs2}),
+    PacketId;
+ % send_packet(?iqattrs, Module, ConnRef) ->
+ %     Type = exmpp_xml:get_attribute_from_list_as_binary(Attrs, type, undefined),
+ %     case Type of
+ %         <<"error">> ->
+ %             {Attrs2, PacketId} = check_id(Attrs),
+ %             Module:send(ConnRef, IQElement#xmlel{attrs=Attrs2}),
+ %             PacketId;
+ %         <<"result">> ->
+ %             {Attrs2, PacketId} = check_id(Attrs),
+ %             Module:send(ConnRef, IQElement#xmlel{attrs=Attrs2}),
+ %             PacketId;
+ %         <<"set">> ->
+ %             {Attrs2, PacketId} = check_id(Attrs),
+ %             Module:send(ConnRef, IQElement#xmlel{attrs=Attrs2}),
+ %             PacketId;
+ %         <<"get">> ->
+ %             {Attrs2, PacketId} = check_id(Attrs),
+ %             Module:send(ConnRef, IQElement#xmlel{attrs=Attrs2}),
+ %             PacketId
+ %     end;
+send_packet(ConnRef, Module, ?elementattrs) ->
     {Attrs2, Id} = check_id(Attrs),
     Module:send(ConnRef, Element#xmlel{attrs=Attrs2}),
     Id.

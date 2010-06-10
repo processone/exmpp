@@ -22,8 +22,7 @@ EXTRA_DIST = core/exmpp.erl						\
 	     core/exmpp_known_attrs.erl.awk				\
 	     core/exmpp_known_attrs.erl.js				\
 	     network/exmpp_session.erl					\
-	     network/exmpp_ssl.erl					\
-	     network/exmpp_tcp.erl					\
+	     network/exmpp_socket.erl					\
 	     network/exmpp_bosh.erl					\
 	     network/exmpp_component.erl				\
 	     network/exmpp_dns.erl					\
