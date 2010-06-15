@@ -43,6 +43,7 @@
 -export([
 	 connect/4,
 	 accept/4,
+         handshake/5,
 	 get_peer_certificate/1,
 	 get_verify_result/1,
 	 shutdown/1,
@@ -54,6 +55,7 @@
 %% Common socket API.
 -export([
 	 send/2,
+	 send_data/2,
 	 recv/1,
 	 recv/2,
 	 recv_data/2,
@@ -582,6 +584,8 @@ get_engine_from_args(Identity, _Peer_Verification, Options) ->
 get_engine_from_options(Options) ->
     proplists:get_value(engine, Options).
 
+get_engine_from_identity(undefined) ->
+    get_prefered_engine_name(x509);
 get_engine_from_identity({Auth_Method, _, _}) ->
     get_prefered_engine_name(Auth_Method).
 
@@ -635,15 +639,18 @@ check_peer_verification(Peer_Verif, _Mode) ->
 %%     Reason = term()
 %% @doc Send `Orig_Packet' over a TLS-protected connection.
 
-send(#tls_socket{socket = Socket_Desc, port = Port}, Packet) ->
+send(#tls_socket{socket = Socket_Desc} = Socket, Packet) ->
     try
-        engine_set_decrypted_output(Port, Packet),
-        Encrypted = engine_get_encrypted_output(Port),
+        {ok, Encrypted} = send_data(Socket, Packet),
         exmpp_internals:gen_send(Socket_Desc, Encrypted)
     catch
         Exception ->
             {error, Exception}
     end.
+
+send_data(#tls_socket{port = Port}, Packet) ->
+        engine_set_decrypted_output(Port, Packet),
+        {ok, engine_get_encrypted_output(Port)}.
 
 %% @spec (TLS_Socket) -> {ok, Orig_Packet} | {error, Reason}
 %%     TLS_Socket = tls_socket()

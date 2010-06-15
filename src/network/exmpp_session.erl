@@ -90,6 +90,7 @@
 	 wait_for_auth_result/2,
 	 wait_for_register_result/2,
 	 wait_for_compression_result/2,
+         wait_for_starttls_result/2,
 	 logged_in/2, logged_in/3
 	]).
 
@@ -249,7 +250,8 @@ connect_TCP(Session, Server, Port) ->
 %% Initiate standard TCP XMPP server connection
 %% Returns {ok,StreamId::String} | {ok, StreamId::string(), Features :: xmlel{}}
 %%  Option() = {local_ip, IP} | {local_port, fun() -> integer()}   bind sockets to this local ip / port.
-%%      | {domain, Domain}
+%%      | {domain, Domain} | {starttls, Value} | {compression, Value}
+%% Value() = enabled | disabled
 %% If the domain is not passed we expect to find it in the authentication
 %% info. It should thus be set before.
 connect_TCP(Session, Server, Port, Options)
@@ -467,7 +469,7 @@ setup({set_auth_method, Method}, _From, State) ->
 
 setup({connect_socket, Host, Port, Options}, From, State) ->
     Compress = proplists:get_value(compression, Options, enabled),
-    StartTLS = proplists:get_value(starttls, Options, optional),
+    StartTLS = proplists:get_value(starttls, Options, enabled),
     SessionOptions = [{compression, Compress}, {starttls, StartTLS}],
     case {proplists:get_value(domain, Options, undefined), State#state.auth_info} of
 	{undefined, undefined} ->
@@ -576,6 +578,7 @@ wait_for_stream_features(#xmlstreamelement{element=#xmlel{name='features'} = F},
            options = Options, 
            stream_id = StreamId} = State,
     Compression = proplists:get_value(compression, Options, enabled),
+    StartTLS = proplists:get_value(starttls, Options, enabled),
     case Authenticated of
         true ->
             case exmpp_client_compression:announced_methods(F) of
@@ -589,8 +592,14 @@ wait_for_stream_features(#xmlstreamelement{element=#xmlel{name='features'} = F},
                     {next_state, wait_for_bind_response, State}
             end;
         false ->
-            gen_fsm:reply(From, {ok, StreamId, F}),
-            {next_state, stream_opened, State#state{from_pid = undefined}}
+            case exmpp_client_tls:announced_support(F) of
+                X when X == optional orelse X == required, StartTLS == enabled ->
+                    Module:send(ConnRef, exmpp_client_tls:starttls()),
+                    {next_state, wait_for_starttls_result, State};
+                _ ->
+                    gen_fsm:reply(From, {ok, StreamId, F}),
+                    {next_state, stream_opened, State#state{from_pid = undefined}}
+            end
     end;
 
 wait_for_stream_features(X, State) ->
@@ -610,6 +619,20 @@ wait_for_compression_result(#xmlstreamelement{element=#xmlel{name='compressed'}}
             {next_state, wait_for_stream, State#state{compressed=true, connection_ref = NewSocket}};
         _ ->
             {stop, 'could-not-compress-stream', State}
+    end.
+
+wait_for_starttls_result(#xmlstreamelement{element=#xmlel{name='proceed'}}, State) ->
+    #state{connection = Module,
+           receiver_ref = ReceiverRef,
+           auth_info = Auth} = State,
+    case Module:starttls(ReceiverRef, client) of
+        {ok, NewSocket} ->
+            Domain = get_domain(Auth),
+            Module:reset_parser(ReceiverRef),
+            ok = Module:send(NewSocket, exmpp_stream:opening(Domain, ?NS_JABBER_CLIENT, {1,0})),
+            {next_state, wait_for_stream, State#state{connection_ref = NewSocket}};
+        _ ->
+            {stop, 'could-not-encrypt-stream', State}
     end.
 
 
@@ -1089,32 +1112,18 @@ get_attribute_value(Attrs, Attr, Default) ->
 %% Internal operations
 %% send_packet: actually format and send the packet:
 send_packet(ConnRef, Module, ?iqattrs) ->
-    {Attrs2, PacketId} = check_id(Attrs),
-    Module:send(ConnRef, IQElement#xmlel{attrs=Attrs2}),
-    PacketId;
- % send_packet(?iqattrs, Module, ConnRef) ->
- %     Type = exmpp_xml:get_attribute_from_list_as_binary(Attrs, type, undefined),
- %     case Type of
- %         <<"error">> ->
- %             {Attrs2, PacketId} = check_id(Attrs),
- %             Module:send(ConnRef, IQElement#xmlel{attrs=Attrs2}),
- %             PacketId;
- %         <<"result">> ->
- %             {Attrs2, PacketId} = check_id(Attrs),
- %             Module:send(ConnRef, IQElement#xmlel{attrs=Attrs2}),
- %             PacketId;
- %         <<"set">> ->
- %             {Attrs2, PacketId} = check_id(Attrs),
- %             Module:send(ConnRef, IQElement#xmlel{attrs=Attrs2}),
- %             PacketId;
- %         <<"get">> ->
- %             {Attrs2, PacketId} = check_id(Attrs),
- %             Module:send(ConnRef, IQElement#xmlel{attrs=Attrs2}),
- %             PacketId
- %     end;
+    {Attrs2, Id} = check_id(Attrs),
+    XMLPacket = IQElement#xmlel{attrs=Attrs2},
+ %     String = exmpp_xml:document_to_list(XMLPacket),
+ %     Module:send(ConnRef, String),
+    Module:send(ConnRef, XMLPacket),
+    Id;
 send_packet(ConnRef, Module, ?elementattrs) ->
     {Attrs2, Id} = check_id(Attrs),
-    Module:send(ConnRef, Element#xmlel{attrs=Attrs2}),
+    XMLPacket = Element#xmlel{attrs=Attrs2},
+ %     String = exmpp_xml:document_to_list(XMLPacket),
+ %     Module:send(ConnRef, String),
+    Module:send(ConnRef, XMLPacket),
     Id.
 
 register_account(ConnRef, Module, Username, Password) ->

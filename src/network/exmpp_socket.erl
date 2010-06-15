@@ -23,8 +23,8 @@
 
 -module(exmpp_socket).
 
--export([connect/3, send/2, close/1, close/2, reset_parser/1,
-        compress/1
+-export([connect/3, send/2, close/2, reset_parser/1,
+        compress/1, starttls/2
     ]).
 
 %% Internal export
@@ -52,7 +52,7 @@ connect(ClientPid, StreamRef, {Host, Port, Options}) ->
     Opts = [{reuseaddr,true}|DefaultOptions],
     case SckType:connect(Host, Port, Opts, 30000) of
 	{ok, Socket} ->
-            ESocket = {?MODULE, Socket},
+            ESocket = {SckType, Socket},
 	    %% TODO: Hide receiver failures in API
 	    ReceiverPid = spawn_link(?MODULE, receiver,
 				     [ClientPid, ESocket, StreamRef]),
@@ -69,33 +69,27 @@ connect(ClientPid, StreamRef, {Host, Port, Options}) ->
 % receiver process read data from socket before received
 % the stop message, but after the xmlstream was closed.
 % See shutdown order in exmpp_session:terminate/3.
-close(Socket) ->
-    SckType = get_socket_type(Socket),
-    SckType:close(Socket).
 close(_Socket, ReceiverPid) ->
     ReceiverPid ! stop.
 
-send({_Mod, _Sock} = Socket, XMLPacket) ->
-    %% TODO: document_to_binary to reduce memory consumption
-    String = exmpp_xml:document_to_list(XMLPacket),
-    NewStr = send_data(Socket, String),
- %     case exmpp_internals:gen_send(Socket, String) of
-    SckType = get_socket_type(Socket),
-    case SckType:send(get_socket(Socket), NewStr) of
-	ok -> ok;
-	{error, Reason} -> {error, Reason}
-    end;
-send(Socket, XMLPacket) ->
-    String = exmpp_xml:document_to_list(XMLPacket),
-    SckType = get_socket_type(Socket),
-    case SckType:send(Socket, String) of
-	ok -> ok;
-	{error, Reason} -> {error, Reason}
-    end.
+send(Socket, XMLPacket) when is_tuple(XMLPacket) ->
+    Bin = exmpp_xml:document_to_binary(XMLPacket),
+ %     io:format("- SENDING:~n~s~n", [Bin]),
+    exmpp_internals:gen_send(Socket, Bin).
 
 compress(ReceiverPid) ->
     Ref = erlang:make_ref(),
     ReceiverPid ! {compress, self(), Ref},
+    receive
+        {ok, Ref, Socket} -> {ok, Socket}
+    after
+        1000 -> timeout
+    end.
+
+%% Mode -> client | server
+starttls(ReceiverPid, Mode) ->
+    Ref = erlang:make_ref(),
+    ReceiverPid ! {starttls, self(), Ref, Mode},
     receive
         {ok, Ref, Socket} -> {ok, Socket}
     after
@@ -110,7 +104,7 @@ receiver(ClientPid, Socket, StreamRef) ->
 
 receiver_loop(ClientPid, ESocket, StreamRef) ->
     Socket = get_socket(ESocket),
-    setopts(ESocket, [{active, once}]),
+    exmpp_internals:gen_setopts(ESocket, [{active, once}]),
     receive
 	stop -> 
             exmpp_internals:gen_close(ESocket),
@@ -119,12 +113,19 @@ receiver_loop(ClientPid, ESocket, StreamRef) ->
             ZSocket = {exmpp_compress, exmpp_compress:enable_compression(ESocket, [])},
             From ! {ok, Ref, ZSocket},
 	    receiver_loop(ClientPid, ZSocket, StreamRef);
+	{starttls, From, Ref, Mode} -> 
+            exmpp_internals:gen_setopts(ESocket, [{active, false}]),
+            TSocket = {exmpp_tls, exmpp_tls:handshake(Mode, ESocket, undefined, false, [])},
+            From ! {ok, Ref, TSocket},
+	    receiver_loop(ClientPid, TSocket, StreamRef);
         {tcp, Socket, Data} ->
-            Str = recv_data(ESocket, Data),
+            {ok, Str} = recv_data(ESocket, Data),
+ %             io:format("- RECEIVING:~n~s~n", [Str]),
 	    {ok, NewStreamRef} = exmpp_xmlstream:parse(StreamRef, Str),
 	    receiver_loop(ClientPid, ESocket, NewStreamRef);
 	{ssl, Socket, Data} ->
-            Str = recv_data(ESocket, Data),
+            {ok, Str} = recv_data(ESocket, Data),
+ %             io:format("- RECEIVING:~n~s~n", [Str]),
 	    {ok, NewStreamRef} = exmpp_xmlstream:parse(StreamRef, Str),
 	    receiver_loop(ClientPid, ESocket, NewStreamRef);
 	{tcp_closed, Socket} ->
@@ -147,41 +148,13 @@ get_socket({_, Socket, _, _}) ->
 get_socket({_Type, Socket}) ->
     get_socket(Socket).
 
-get_socket_type({_, Socket}) ->
-    get_socket_type(get_socket(Socket));
-get_socket_type({sslsocket, _, _}) ->
-    ssl;
-get_socket_type(Socket) when is_port(Socket)->
-    gen_tcp.
-
-recv_data({?MODULE, _Socket}, Data) ->
-    Data;
-%recv_data({Module, Socket}, ZData) ->
-recv_data({exmpp_compress, Socket}, ZData) ->
-    {ok, Data} = exmpp_compress:decompress(Socket, ZData),
- %     {ok, Data} = Module:recv_data(Socket, ZData),
-    Data.
-
- % setopts({gen_tcp, Socket}, Opts) ->
- %     inet:setopts(Socket, Opts);
-setopts(Socket, Opts) when is_port(Socket) ->
-    inet:setopts(Socket, Opts);
-setopts({sslsocket, _, _} = Socket, Opts) ->
-    ssl:setopts(Socket, Opts);
-setopts({_, Socket}, Opts) ->
-    setopts(Socket, Opts);
-setopts({_, Socket, _, _}, Opts) ->
-    setopts(Socket, Opts).
-
-send_data({gen_tcp, _Socket}, Data) ->
-    Data;
-send_data({?MODULE, _Socket}, Data) ->
-    Data;
-send_data({_, Socket, _, _}, Data) ->
-    send_data(Socket, Data);
- % send_data({Module, Socket}, ZData) ->
-send_data({exmpp_compress, Socket}, ZData) ->
-    {ok, Data} = exmpp_compress:compress(Socket, ZData),
- %     {ok, Data} = Module:send_data(Socket, ZData),
-    send_data(Socket, Data).
-
+%% exmpp_internals:recv_data
+recv_data({gen_tcp, _Socket}, Data) ->
+    {ok, Data};
+recv_data({ssl, _Socket}, Data) ->
+    {ok, Data};
+recv_data({_, Socket, _, _}, Data) ->
+    recv_data(Socket, Data);
+recv_data({Module, Socket}, EData) ->
+    {ok, Data} = recv_data(Socket, EData),
+    Module:recv_data(Socket, Data).

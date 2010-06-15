@@ -50,7 +50,6 @@
 	 send/2,
 	 recv/1,
 	 recv/2,
-	 recv_data/2,
 	 getopts/2,
 	 setopts/2,
 	 peername/1,
@@ -58,8 +57,8 @@
 	 controlling_process/2,
 	 close/1,
 	 port_revision/1,
-         compress/2,
-         decompress/2
+	 recv_data/2,
+	 send_data/2
 	]).
 
 %% gen_server(3erl) callbacks.
@@ -352,6 +351,21 @@ send(#compress_socket{socket = Socket_Desc, port = Port}, Packet) ->
             {error, Exception}
     end.
 
+%% @spec (Compress_Socket, Orig_Data) -> {ok, CompressedData} | {error, Reason}
+%%     Compress_Socket = compress_socket()
+%%     Orig_Data = binary() | list()
+%%     Reason = term()
+%% @doc Compress `Orig_Data' before sending over compressed connection.
+
+send_data(#compress_socket{port = Port}, Data) ->
+    try
+        Compressed = engine_compress(Port, Data),
+        {ok, Compressed}
+    catch
+        Exception ->
+            {error, Exception}
+    end.
+
 %% @spec (Compress_Socket) -> {ok, Orig_Packet} | {error, Reason}
 %%     Compress_Socket = compress_socket()
 %%     Orig_Packet = binary() | list()
@@ -386,7 +400,7 @@ recv(#compress_socket{socket = Socket_Desc} = Compress_Socket, Timeout) ->
 %%     Packet = binary() | list()
 %%     Orig_Packet = binary() | list()
 %%     Reason = term()
-%% @doc Uncompressed already received data.
+%% @doc Uncompress already received data.
 
 recv_data(#compress_socket{port = Port, packet_mode = Packet_Mode}, Packet) ->
     try
@@ -462,40 +476,6 @@ close(#compress_socket{socket = Socket_Desc} = Compress_Socket) ->
     disable_compression(Compress_Socket),
     %% Close the underlying socket.
     exmpp_internals:gen_close(Socket_Desc).
-
-%% @spec (Compress_Socket, Orig_Data) -> {ok, CompressedData} | {error, Reason}
-%%     Compress_Socket = compress_socket()
-%%     Orig_Data = binary() | list()
-%%     Reason = term()
-%% @doc Compress `Orig_Data' before sending over compressed connection.
-
-compress(#compress_socket{port = Port}, Data) ->
-    try
-        Compressed = engine_compress(Port, Data),
-        {ok, Compressed}
-    catch
-        Exception ->
-            {error, Exception}
-    end.
-
-%% @spec (Compress_Socket, CompressedData) -> {ok, Data} | {error, Reason}
-%%     Compress_Socket = compress_socket()
-%%     CompressedData = binary() | list()
-%%     Data = binary() | list()
-%%     Reason = term()
-%% @doc Decompress received data.
-
-decompress(#compress_socket{port = Port, packet_mode = Packet_Mode}, CompressedData) ->
-    try
-        Uncompressed = engine_uncompress(Port, CompressedData),
-        case Packet_Mode of
-            binary -> {ok, Uncompressed};
-            list   -> {ok, binary_to_list(Uncompressed)}
-        end
-    catch
-        Exception ->
-            {error, Exception}
-    end.
 
 %% @hidden
 
