@@ -8,6 +8,7 @@
         exmpp_component,
         exmpp_compress,
         exmpp_dialback,
+        exmpp_dns,
         exmpp_internals,
         exmpp_utils,
         exmpp_iq,
@@ -40,9 +41,9 @@
         exmpp_server_sasl,
         exmpp_server_session,
         exmpp_server_tls,
+        exmpp_sasl_digest,
         exmpp_session,
-        exmpp_ssl,
-        exmpp_tcp@COMPAT_MODULES_START@
+        exmpp_socket@COMPAT_MODULES_START@
         @COMPAT_MODULES@ejabberd_socket,
         @COMPAT_MODULES@ejabberd_zlib,
         @COMPAT_MODULES@jlib,
