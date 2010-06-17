@@ -58,7 +58,7 @@
       domain,
       auth_method,
 	  client_pid,
-	  connection = exmpp_tcp,
+	  connection = exmpp_socket,
 	  connection_ref,
 	  stream_ref,
       stream_id = false,
@@ -238,7 +238,7 @@ setup({connect_tcp, Host, Port}, From, State) ->
 	    {reply, {connect_error,
 		     authentication_or_domain_undefined}, setup, State};
 	_Other ->
-	    connect(exmpp_tcp, {Host, Port, []}, From, State)
+	    connect(exmpp_socket, {Host, Port, []}, From, State)
     end.
 
 %% ---------------------------
