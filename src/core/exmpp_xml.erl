@@ -3629,7 +3629,7 @@ document_to_list(El) ->
 %% list.
 
 -spec(node_to_binary/3 ::
-      (xmlel_any() | [xmlel_any()], xmldefaultnss(), xmlprefixednss()) -> binary()).
+      (xmlel_any() | [xmlel_any()]| #xmlendtag{}, xmldefaultnss(), xmlprefixednss()) -> binary()).
 
 node_to_binary(El, Default_NS, Prefixed_NS) ->
     IO_List = node_to_iolist(El, Default_NS, Prefixed_NS),
@@ -3665,7 +3665,7 @@ document_to_binary(El) ->
 %%       xmlelement() first.
 
 -spec(node_to_iolist/3 ::
-      (xmlel_any() | [xmlel_any()], xmldefaultnss(), xmlprefixednss()) -> iolist()).
+      (xmlel_any() | [xmlel_any()]| #xmlendtag{}, xmldefaultnss(), xmlprefixednss()) -> iolist()).
 
 node_to_iolist(El, Default_NS, Prefixed_NS) when is_list(El) ->
     node_to_iolist2(El, Default_NS, Prefixed_NS, []);
