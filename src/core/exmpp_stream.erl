@@ -33,10 +33,9 @@
 %% </ul>
 %%
 %% <p>
-%% A common use case is illustrated in <em>table 1</em>.
+%% This table illustrates stream opening and closing.
 %% </p>
 %% <table class="illustration">
-%% <caption>Table 1: stream opening and closing</caption>
 %% <tr>
 %% <th>Client-side</th>
 %% <th>Server-side</th>

@@ -19,10 +19,9 @@
 %% 1.0.
 %%
 %% <p>
-%% A common use case is presented in <em>table 1</em>.
+%% This table presents a successful legacy authentication.
 %% </p>
 %% <table class="illustration">
-%% <caption>Table 1: successful legacy authentication</caption>
 %% <tr>
 %% <th>Client-side</th>
 %% <th>Server-side</th>
