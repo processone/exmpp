@@ -463,7 +463,7 @@ set_type(Message, Type) when ?IS_MESSAGE(Message), is_atom(Type) ->
 %% @doc Return the subject of the message.
 
 -spec get_subject
-(xmlel()) -> binary().
+(xmlel()) -> binary() | undefined.
 
 get_subject(#xmlel{ns = NS} = Message) when ?IS_MESSAGE(Message) ->
     case exmpp_xml:get_element(Message, NS, 'subject') of
@@ -505,7 +505,7 @@ set_subject(#xmlel{ns = NS} = Message, Subject) when ?IS_MESSAGE(Message) ->
 %% @doc Return the body of the message.
 
 -spec get_body
-(xmlel()) -> binary().
+(xmlel()) -> binary() | undefined.
 
 get_body(#xmlel{ns = NS} = Message) when ?IS_MESSAGE(Message) ->
     case exmpp_xml:get_element(Message, NS, 'body') of
@@ -547,7 +547,7 @@ set_body(#xmlel{ns = NS} = Message, Body) when ?IS_MESSAGE(Message) ->
 %% @doc Return the thread of the message.
 
 -spec get_thread
-(xmlel()) -> binary().
+(xmlel()) -> binary() | undefined.
 
 get_thread(#xmlel{ns = NS} = Message) when ?IS_MESSAGE(Message) ->
     case exmpp_xml:get_element(Message, NS, 'thread') of
