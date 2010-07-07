@@ -3026,6 +3026,8 @@ get_path(XML_Element, [{element, NS, Name} | Path]) ->
         undefined      -> get_path_not_found(Path);
         XML_Subelement -> get_path(XML_Subelement, Path)
     end;
+get_path(XML_Element, [{attribute, Name}]) ->
+    get_attribute(XML_Element, Name, "");
 get_path(XML_Element, [{attribute, Name, Default}]) ->
     get_attribute(XML_Element, Name, Default);
 get_path(XML_Element, [{attribute, NS, Name, Default}]) ->
@@ -3037,6 +3039,10 @@ get_path(XML_Element, [cdata_as_list]) ->
 get_path(XML_Element, []) ->
     XML_Element;
 get_path(_XML_Element, [{attribute, _Name} | _Rest] = Path) ->
+    throw({xml, path, ending_component_not_at_the_end, Path});
+get_path(_XML_Element, [{attribute, _Name, _Default} | _Rest] = Path) ->
+    throw({xml, path, ending_component_not_at_the_end, Path});
+get_path(_XML_Element, [{attribute, _NS, _Name, _Default} | _Rest] = Path) ->
     throw({xml, path, ending_component_not_at_the_end, Path});
 get_path(_XML_Element, [cdata | _Rest] = Path) ->
     throw({xml, path, ending_component_not_at_the_end, Path});
