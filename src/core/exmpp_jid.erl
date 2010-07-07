@@ -136,7 +136,7 @@
 %% JID creation & conversion.
 %% --------------------------------------------------------------------
 
-%% @spec (Jid::jid()) -> {Node::string(), Domain::string(), Resource::string()}
+%% @spec (Jid::jid()) -> {Node::binary() | undefined, Domain::binary() | undefined, Resource::binary() | undefined}
 to_lower(Jid) when ?IS_JID(Jid)->
     {prep_node(Jid),
      prep_domain(Jid),
