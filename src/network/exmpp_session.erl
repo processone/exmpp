@@ -103,6 +103,7 @@
           stream_version,
           authenticated = false,
           compressed = false,
+          encrypted = false,
           options, %% configuration for stream compression/encryption
 	  domain,
           host, 
@@ -575,30 +576,35 @@ wait_for_stream_features(#xmlstreamelement{element=#xmlel{name='features'} = F},
            from_pid = From, 
            authenticated = Authenticated, 
            compressed = Compressed, 
+           encrypted = Encrypted, 
            options = Options, 
            stream_id = StreamId} = State,
     Compression = proplists:get_value(compression, Options, enabled),
     StartTLS = proplists:get_value(starttls, Options, enabled),
-    case Authenticated of
-        true ->
+    case exmpp_client_tls:announced_support(F) of
+        X when Encrypted == false, StartTLS == enabled, X == optional orelse X == required ->
+            %% Encrypt stream
+            Module:send(ConnRef, exmpp_client_tls:starttls()),
+            {next_state, wait_for_starttls_result, State};
+        _ ->
+            %% Stream already encrypted, encryption not supported or not enabled
             case exmpp_client_compression:announced_methods(F) of
                 [_|_] when Compressed == false andalso Compression == enabled -> 
                     %% Compression supported. Compress stream using default 'zlib' method.
                     Module:send(ConnRef, exmpp_client_compression:selected_method("zlib")),
                     {next_state, wait_for_compression_result, State};
-                _ -> %% Proceed with resource binding.
-                    Bind = exmpp_client_binding:bind(get_resource(State#state.auth_info)),
-                    Module:send(ConnRef, Bind),
-                    {next_state, wait_for_bind_response, State}
-            end;
-        false ->
-            case exmpp_client_tls:announced_support(F) of
-                X when X == optional orelse X == required, StartTLS == enabled ->
-                    Module:send(ConnRef, exmpp_client_tls:starttls()),
-                    {next_state, wait_for_starttls_result, State};
-                _ ->
-                    gen_fsm:reply(From, {ok, StreamId, F}),
-                    {next_state, stream_opened, State#state{from_pid = undefined}}
+                _ -> 
+                    %% Already compressed or compression not supported/enabled
+                    case Authenticated of
+                        true ->
+                            %% Proceed with resource binding.
+                            Bind = exmpp_client_binding:bind(get_resource(State#state.auth_info)),
+                            Module:send(ConnRef, Bind),
+                            {next_state, wait_for_bind_response, State};
+                        false ->
+                            gen_fsm:reply(From, {ok, StreamId, F}),
+                            {next_state, stream_opened, State#state{from_pid = undefined}}
+                    end
             end
     end;
 
