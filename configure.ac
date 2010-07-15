@@ -218,13 +218,13 @@ dnl Get ERTS version.
 ERLANG_CHECK_ERTS
 ERLANG_CHECK_RELEASE
 
-dnl Erlang R12B-0 (ERTS 5.6) is required to build Exmpp.
-AX_COMPARE_VERSION([${ERLANG_ERTS_VER}], [ge], [5.6],
+dnl Erlang R12B-5 (ERTS 5.6.5) is required to build Exmpp.
+AX_COMPARE_VERSION([${ERLANG_ERTS_VER}], [ge], [5.6.5],
     [is_erlang_r12b="yes"],
     [is_erlang_r12b="no"])
 if test "x${is_erlang_r12b}" = "xno"; then
 	AC_MSG_ERROR([
-Erlang R12B is required to build Exmpp but only Erlang $ERLANG_RELEASE was found!])
+Erlang R12B-5 is required to build Exmpp but only Erlang $ERLANG_RELEASE was found!])
 fi
 
 dnl Check for Erlang applications.

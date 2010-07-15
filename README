@@ -20,7 +20,7 @@ I. How to build and install
     o  Erlang/OTP (REQUIRED)
        A full Erlang environment is recommended but only ERTS and
        erl_interface are required.
-           . Minimum version:           R12B
+           . Minimum version:           R12B-5
 
     o  C compiler (REQUIRED)
        Exmpp contains Erlang port drivers which are written in C.
