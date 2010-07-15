@@ -438,7 +438,7 @@ get_peer_certificate(#tls_socket{port = Port}) ->
         undefined ->
             undefined;
         Bin_Cert ->
-            case ssl_pkix:decode_cert(Bin_Cert, [pkix]) of
+            case public_key:pkix_decode_cert(Bin_Cert, plain) of
                 {ok, Cert} ->
                     Cert;
                 {error, Reason} ->
