@@ -75,7 +75,7 @@ close(State) ->
 %% @doc Deprecated for {@link exmpp_xml:parse_document/2}.
 %% ```
 %% - El = xml_stream:parse_element(Text)
-%% + [El] = exmpp_xml:parse_document(Text, names_as_atom])
+%% + [El] = exmpp_xml:parse_document(Text, [names_as_atom])
 %% '''
 
 parse_element(Str) ->
