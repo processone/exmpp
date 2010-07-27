@@ -23,12 +23,18 @@
 
 -module(exmpp_socket).
 
--export([connect/3, send/2, close/2, reset_parser/1,
+-export([connect/3, send/2, close/2, reset_parser/1, get_property/2,
         compress/1, starttls/2
     ]).
 
 %% Internal export
 -export([receiver/3]).
+
+
+% None implemented so far.
+get_property(_Socket, _Prop) ->
+    {error, undefined}.
+
 
 reset_parser(ReceiverPid) when is_pid(ReceiverPid) ->
     ReceiverPid ! reset_parser.

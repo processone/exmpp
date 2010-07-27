@@ -67,7 +67,8 @@
 	 register_account/2, register_account/3,
 	 login/1, login/2,
 	 send_packet/2,
-	 set_controlling_process/2]).
+	 set_controlling_process/2,
+     get_connection_property/2]).
 
 %% gen_fsm callbacks
 -export([init/1,
@@ -358,6 +359,15 @@ send_packet(Session, Packet) when is_pid(Session) ->
         Id -> Id
     end.
 
+%% @doc Get a property of the underling connection (socket or bosh connection)
+%%
+%%      See documentation on exmpp_socket and exmpp_bosh to see the supported properties.
+%%      Returns {error, undefined} if the property is not defined for that kind of connection.
+-spec(get_connection_property/2 :: 
+        (pid(), atom()) -> {ok, any()} | {error, any()}).
+get_connection_property(Session, Prop) ->
+    gen_fsm:sync_send_all_state_event(Session, {get_connection_property, Prop}).
+
 set_controlling_process(Session,Client) when is_pid(Session), is_pid(Client) ->
     case gen_fsm:sync_send_all_state_event(Session, {set_controlling_process,
 						     Client}) of
@@ -398,6 +408,10 @@ handle_sync_event(stop, _From, _StateName, State) ->
 handle_sync_event({set_controlling_process,Client}, _From, StateName, State) ->
     Reply = ok,
     {reply,Reply,StateName,State#state{client_pid=Client}};
+handle_sync_event({get_connection_property,Prop}, _From, StateName, State) ->
+    #state{connection = Module, connection_ref = ConnRef} =  State,
+    Reply = Module:get_property(ConnRef, Prop),
+    {reply,Reply,StateName,State};
 handle_sync_event(_Event, _From, StateName, State) ->
     Reply = ok,
     {reply, Reply, StateName, State}.
