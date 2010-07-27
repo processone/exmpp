@@ -487,7 +487,7 @@ setup({connect_bosh, URL, Host, Port}, From, State) ->
             {reply, {connect_error,
                      authentication_or_domain_undefined}, setup, State};
         _Other ->
-            connect(exmpp_bosh, {URL, Host, Port}, From, State#state{host=Host})
+            connect(exmpp_bosh, {URL, Host, Port}, From, State#state{host=Host, options = []})
     end;
 setup({presence, _Status, _Show}, _From, State) ->
     {reply, {error, not_connected}, setup, State};
