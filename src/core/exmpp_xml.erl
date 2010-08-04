@@ -3674,7 +3674,8 @@ document_to_binary(El) ->
       (xmlel_any() | [xmlel_any()]| #xmlendtag{}, xmldefaultnss(), xmlprefixednss()) -> iolist()).
 
 node_to_iolist(El, Default_NS, Prefixed_NS) when is_list(El) ->
-    node_to_iolist2(El, Default_NS, Prefixed_NS, []);
+    Els = normalize_cdata_in_list(El),
+    node_to_iolist2(Els, Default_NS, Prefixed_NS, []);
 node_to_iolist(El, Default_NS, Prefixed_NS) ->
     node_to_iolist2([El], Default_NS, Prefixed_NS, []).
 
