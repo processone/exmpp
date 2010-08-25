@@ -22,7 +22,7 @@ BUILT_SOURCES = exmpp_known_nss.hrl					\
 
 internalheadersdir = $(ERLANG_INSTALL_LIB_DIR_exmpp)/include/internal
 
-internalheaders_HEADERS = $(BUILT_SOURCES) exmpp_xmpp.hrl
+internalheaders_HEADERS = $(BUILT_SOURCES) 
 
 CLEANFILES = $(BUILT_SOURCES)
 

@@ -7,7 +7,8 @@ dist_headers_DATA = exmpp.hrl						\
 		    exmpp_nss.hrl					\
 		    exmpp_xml.hrl					\
 		    exmpp_xmpp.hrl					\
-		    exmpp_client.hrl
+		    exmpp_client.hrl                \
+            exmpp_jid.hrl
 
 if BUILD_COMPAT
 dist_headers_DATA += jlib.hrl

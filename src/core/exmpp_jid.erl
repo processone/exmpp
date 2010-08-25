@@ -20,7 +20,7 @@
 -module(exmpp_jid).
 
 -include("exmpp.hrl").
--include("internal/exmpp_xmpp.hrl").
+-include("exmpp_jid.hrl").
 
 -export([binary_split/2]).
 
