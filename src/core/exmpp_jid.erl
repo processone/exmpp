@@ -196,10 +196,10 @@ make(<<>>, Domain) ->
 make(undefined, Domain) ->
     try
         LDomain = exmpp_stringprep:nameprep(Domain),
-        #jid{orig_jid = storbi2bi(Domain),
-	     prep_node = undefined,
-	     prep_domain = storbi2bi(LDomain),
-	     prep_resource = undefined
+        #jid{raw = storbi2bi(Domain),
+	     node = undefined,
+	     domain = storbi2bi(LDomain),
+	     resource = undefined
 	    }
     catch
         throw:{stringprep, _, exmpp_not_started, _} = E ->
@@ -217,11 +217,11 @@ make(Node, Domain) ->
     try
         LNode = exmpp_stringprep:nodeprep(Node),
         LDomain = exmpp_stringprep:nameprep(Domain),
-        #jid{orig_jid =
+        #jid{raw =
 	     <<(storbi2bi(Node))/binary, $@, (storbi2bi(Domain))/binary >>,
-	     prep_node = storbi2bi(LNode),
-	     prep_domain = storbi2bi(LDomain),
-	     prep_resource = undefined
+	     node = storbi2bi(LNode),
+	     domain = storbi2bi(LDomain),
+	     resource = undefined
 	    }
     catch
         throw:{stringprep, _, exmpp_not_started, _} = E ->
@@ -286,10 +286,10 @@ make(Orig, Node, Domain, Resource) ->
 			undefined -> undefined;
 			_         -> storbi2bi(exmpp_stringprep:resourceprep(Resource))
 		    end,
-        #jid{orig_jid = Orig,
-	     prep_node = LNode,
-	     prep_domain = LDomain,
-	     prep_resource = LResource
+        #jid{raw = Orig,
+	     node = LNode,
+	     domain = LDomain,
+	     resource = LResource
 	    }
     catch
         throw:{stringprep, _, exmpp_not_started, _} = E ->
@@ -309,14 +309,14 @@ make(Orig, Node, Domain, Resource) ->
 
 -spec(bare/1 :: (jid()) -> jid()).
 
-bare(#jid{orig_jid = Orig_Jid} = Jid) ->
+bare(#jid{raw = Orig_Jid} = Jid) ->
     New_Orig_Jid = case binary_split(Orig_Jid, $/) of
 		       [Bare_Jid, _] -> Bare_Jid;
 		       [Bare_Jid]    -> Bare_Jid
 		   end,
     Jid#jid{
-      orig_jid = New_Orig_Jid,
-      prep_resource = undefined
+      raw = New_Orig_Jid,
+      resource = undefined
      }.
 
 %% @spec (Bare_Jid, Resource) -> Jid
@@ -346,7 +346,7 @@ full(_Jid, Resource)
 full(_Jid, Resource)
   when is_binary(Resource), size(Resource) > ?RESOURCE_MAX_LENGTH ->
     throw({jid, convert, too_long, {resource, Resource}});
-full(#jid{orig_jid = Orig_Jid} = Jid, Resource) ->
+full(#jid{raw = Orig_Jid} = Jid, Resource) ->
     try
         LResource = exmpp_stringprep:resourceprep(Resource),
         Resource_B = storbi2bi(Resource),
@@ -355,8 +355,8 @@ full(#jid{orig_jid = Orig_Jid} = Jid, Resource) ->
 	    [Bare_Jid, _] -> <<Bare_Jid/binary, $/, Resource_B/binary>>;
 	    [Bare_Jid]    -> <<Bare_Jid/binary, $/, Resource_B/binary>>
 				 end,
-        Jid#jid{orig_jid = New_Orig_Jid,
-		prep_resource = storbi2bi(LResource)
+        Jid#jid{raw = New_Orig_Jid,
+		    resource = storbi2bi(LResource)
 	       }
     catch
         throw:{stringprep, _, exmpp_not_started, _} = E ->
@@ -489,7 +489,7 @@ to_list(Node, Domain, Resource) ->
 -spec(prep_to_list/1 :: (jid()) -> string()).
 
 prep_to_list(
-  #jid{prep_node = Node, prep_domain = Domain, prep_resource = Resource}) ->
+  #jid{node = Node, domain = Domain, resource = Resource}) ->
     to_list(Node, Domain, Resource).
 
 %% @spec (Jid) -> String
@@ -521,7 +521,7 @@ bare_to_list(Node, Domain) ->
 -spec(prep_bare_to_list/1 :: (jid()) -> string()).
 
 prep_bare_to_list(
-  #jid{prep_node = Node, prep_domain = Domain}) ->
+  #jid{node = Node, domain = Domain}) ->
     bare_to_list(Node, Domain).
 
 %% @spec (Jid) -> String
@@ -531,7 +531,7 @@ prep_bare_to_list(
 
 -spec(to_binary/1 :: (jid()) -> binary()).
 
-to_binary(#jid{orig_jid = Orig_Jid}) ->
+to_binary(#jid{raw = Orig_Jid}) ->
     Orig_Jid.
 
 %% @spec (Node, Domain) -> String
@@ -575,7 +575,7 @@ to_binary(Node, Domain, Resource)
 -spec(prep_to_binary/1 :: (jid()) -> binary()).
 
 prep_to_binary(
-  #jid{prep_node = Node, prep_domain = Domain, prep_resource = Resource}) ->
+  #jid{node = Node, domain = Domain, resource = Resource}) ->
     to_binary(Node, Domain, Resource).
 
 %% @spec (Jid) -> String
@@ -585,7 +585,7 @@ prep_to_binary(
 
 -spec(bare_to_binary/1 :: (jid()) -> binary()).
 
-bare_to_binary(#jid{orig_jid = Orig_Jid, prep_resource = LResource} = Jid) ->
+bare_to_binary(#jid{raw = Orig_Jid, resource = LResource} = Jid) ->
     case LResource of
         undefined -> Orig_Jid;
         _         -> bare_to_binary(exmpp_jid:node(Jid), domain(Jid))
@@ -621,7 +621,7 @@ bare_to_binary(Node, Domain)
 
 -spec(prep_bare_to_binary/1 :: (jid()) -> binary()).
 
-prep_bare_to_binary(#jid{prep_node = Node, prep_domain = Domain}) ->
+prep_bare_to_binary(#jid{node = Node, domain = Domain}) ->
     bare_to_binary(Node, Domain).
 
 %% --------------------------------------------------------------------
@@ -635,10 +635,10 @@ prep_bare_to_binary(#jid{prep_node = Node, prep_domain = Domain}) ->
 
 -spec(full_compare/2 :: (jid(), jid()) -> bool()).
 
-full_compare(#jid{prep_node = LNode, prep_domain = LDomain,
-		  prep_resource = LResource},
-	     #jid{prep_node = LNode, prep_domain = LDomain,
-		  prep_resource = LResource}) ->
+full_compare(#jid{node = LNode, domain = LDomain,
+		  resource = LResource},
+	     #jid{node = LNode, domain = LDomain,
+		  resource = LResource}) ->
     true;
 full_compare(_Jid1, _Jid2) ->
     false.
@@ -650,8 +650,8 @@ full_compare(_Jid1, _Jid2) ->
 
 -spec(bare_compare/2 :: (jid(), jid()) -> bool()).
 
-bare_compare(#jid{prep_node = LNode, prep_domain = LDomain},
-	     #jid{prep_node = LNode, prep_domain = LDomain}) ->
+bare_compare(#jid{node = LNode, domain = LDomain},
+	     #jid{node = LNode, domain = LDomain}) ->
     true;
 bare_compare(_Jid1, _Jid2) ->
     false.
@@ -673,8 +673,8 @@ compare(Jid1, Jid2) ->
 
 -spec(compare_domains/2 :: (jid(), jid()) -> bool()).
 
-compare_domains(#jid{prep_domain = LDomain},
-		#jid{prep_domain = LDomain}) ->
+compare_domains(#jid{domain = LDomain},
+		#jid{domain = LDomain}) ->
     true;
 compare_domains(_Jid1, _Jid2) ->
     false.
@@ -707,9 +707,9 @@ is_jid(_) ->
 
 -spec(node/1 :: (jid()) -> binary() | undefined).
 
-node(#jid{orig_jid = undefined}) ->
+node(#jid{raw = undefined}) ->
     undefined;
-node(#jid{orig_jid = Orig_Jid}) ->
+node(#jid{raw = Orig_Jid}) ->
     case binary_split(Orig_Jid, $@) of
         [Node, _] -> Node;
         _         -> undefined
@@ -722,7 +722,7 @@ node(#jid{orig_jid = Orig_Jid}) ->
 
 -spec(prep_node/1 :: (jid()) -> binary() | undefined).
 
-prep_node(#jid{prep_node = N}) -> N.
+prep_node(#jid{node = N}) -> N.
 
 %% @spec (Jid) -> Domain | undefined
 %%     Jid = jid()
@@ -731,9 +731,9 @@ prep_node(#jid{prep_node = N}) -> N.
 
 -spec(domain/1 :: (jid()) -> binary() | undefined).
 
-domain(#jid{orig_jid = undefined}) ->
+domain(#jid{raw = undefined}) ->
     undefined;
-domain(#jid{orig_jid = Orig_Jid}) ->
+domain(#jid{raw = Orig_Jid}) ->
     Domain_And_Resource = case binary_split(Orig_Jid, $@) of
 			      [_, Domain1] -> Domain1;
 			      _            -> Orig_Jid
@@ -750,7 +750,7 @@ domain(#jid{orig_jid = Orig_Jid}) ->
 
 -spec(prep_domain/1 :: (jid()) -> binary() | undefined).
 
-prep_domain(#jid{prep_domain = D}) -> D.
+prep_domain(#jid{domain = D}) -> D.
 
 %% @spec (Jid) -> Resource | undefined
 %%     Jid = jid()
@@ -759,9 +759,9 @@ prep_domain(#jid{prep_domain = D}) -> D.
 
 -spec(resource/1 :: (jid()) -> binary() | undefined).
 
-resource(#jid{orig_jid = undefined}) ->
+resource(#jid{raw = undefined}) ->
     undefined;
-resource(#jid{orig_jid = Orig_Jid}) ->
+resource(#jid{raw = Orig_Jid}) ->
     case binary_split(Orig_Jid, $/) of
         [_, Resource] -> Resource;
         _             -> undefined
@@ -774,7 +774,7 @@ resource(#jid{orig_jid = Orig_Jid}) ->
 
 -spec(prep_resource/1 :: (jid()) -> binary() | undefined).
 
-prep_resource(#jid{prep_resource = R}) -> R.
+prep_resource(#jid{resource = R}) -> R.
 
 %% @spec (Jid) -> Node | undefined
 %%     Jid = jid()

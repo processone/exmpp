@@ -22,8 +22,8 @@
 
 % JID.
 -record(jid, {
-  orig_jid  :: binary() | undefined,
-  prep_node     :: binary() | undefined,
-  prep_domain   :: binary() | undefined,
-  prep_resource :: binary() | undefined
+  raw  :: binary() | undefined,   %% original JID
+  node     :: binary() | undefined, %% prepared node
+  domain   :: binary() | undefined, %% prepared domain
+  resource :: binary() | undefined  %% prepared resource
 }).
