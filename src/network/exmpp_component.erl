@@ -459,7 +459,27 @@ start_parser() ->
                           [{xmlstreamstart,new}]).
 
 %% Packet processing functions
+parse_and_deliver(ClientPid, Attrs, Packet, F) ->
+	try
+		F(ClientPid, Attrs, Packet)
+	catch
+		_:_ ->
+			%%Some error, deliver only the raw packet
+			ClientPid ! #received_packet{packet_type = undefined,
+                                 type_attr = undefined,
+                                 from = undefined,
+                                 id = undefined,
+                                 raw_packet = Packet}
+	end.
+
 process_presence(ClientPid, Attrs, Packet) ->
+	parse_and_deliver(ClientPid, Attrs, Packet, fun do_process_presence/3).
+process_message(ClientPid, Attrs, Packet) ->
+	parse_and_deliver(ClientPid, Attrs, Packet, fun do_process_message/3).
+process_iq(ClientPid, Attrs, Packet) ->
+	parse_and_deliver(ClientPid, Attrs, Packet, fun do_process_iq/3).
+
+do_process_presence(ClientPid, Attrs, Packet) ->
     Type = get_attribute_value(Attrs, type, "available"),
     Who = exmpp_jid:to_lower(get_attribute_value(Attrs, from, "")),
     Id = get_attribute_value(Attrs, id, ""),
@@ -469,7 +489,7 @@ process_presence(ClientPid, Attrs, Packet) ->
                                  id = Id,
                                  raw_packet = Packet}.
 
-process_message(ClientPid, Attrs, Packet) ->
+do_process_message(ClientPid, Attrs, Packet) ->
     Type = get_attribute_value(Attrs, type, "normal"),
     Who = exmpp_jid:to_lower(get_attribute_value(Attrs, from, "")),
     Id = get_attribute_value(Attrs, id, ""),
@@ -479,7 +499,7 @@ process_message(ClientPid, Attrs, Packet) ->
                                  id = Id,
                                  raw_packet = Packet}.
 
-process_iq(ClientPid, Attrs, Packet) ->
+do_process_iq(ClientPid, Attrs, Packet) ->
     Type = get_attribute_value(Attrs, type, ""),
     Who = exmpp_jid:to_lower(get_attribute_value(Attrs, from, "")),
     Id = get_attribute_value(Attrs, id, ""),
