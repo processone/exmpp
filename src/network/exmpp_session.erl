@@ -674,7 +674,7 @@ wait_for_session_response(#xmlstreamelement{element = #xmlel{name='iq'} = IQ}, S
     case exmpp_iq:get_type(IQ) of
         result ->
             gen_fsm:reply(From, {ok, get_jid(State#state.auth_info)}),  %%after successful login, bind and session
-            {next_state, stream_opened, State#state{from_pid = undefined}};
+            {next_state, logged_in, State#state{from_pid = undefined}};
         _ ->
             {stop, {bind, IQ}, State}
     end.
