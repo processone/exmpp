@@ -38,6 +38,7 @@
 -export([
 	 is_presence/1,
 	 get_type/1,
+	 set_type/2,
 	 get_show/1,
 	 set_show/2,
 	 get_status/1,
