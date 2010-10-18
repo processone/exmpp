@@ -200,7 +200,7 @@ parse(#xml_stream{parser = Parser} = Stream, Data) ->
             {ok, New_Stream, Events} = process_elements(Stream, XML_Elements),
             send_events(New_Stream, Events)
     catch
-        throw:{xml_parser, parsing, malformed_xml, Reason} ->
+        throw:{xml_parser, parsing, _Error, Reason} ->
             send_events(Stream, [{xmlstreamerror, Reason}]);
 	  throw:Exception ->
             throw(Exception)
