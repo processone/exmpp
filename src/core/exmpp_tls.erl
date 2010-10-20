@@ -712,24 +712,39 @@ recv(#tls_socket{socket = Socket_Desc, port = Port} = TLS_Socket, Timeout) ->
 %% This function won't read anything from the underlying socket but WILL
 %% write to it.
 
-recv_data(#tls_socket{port = Port, packet_mode = Packet_Mode} = TLS_Socket,
+recv_data(#tls_socket{port = Port} = TLS_Socket,
 	  Packet) ->
     try
 	%% Give available encrypted data to the port driver.
         engine_set_encrypted_input(Port, Packet),
 	%% Ask for available unencrypted data.
-        case recv_common(TLS_Socket) of
-            want_read when Packet_Mode == binary -> {ok, <<>>};
-            want_read when Packet_Mode == list   -> {ok, ""};
-            Data                                 -> {ok, Data}
+        case recv_all(TLS_Socket) of
+            {error, Reason} ->
+                {error, Reason};
+            Data -> 
+                {ok, Data}
         end
     catch
         Exception ->
             {error, Exception}
     end.
 
-recv_common(#tls_socket{socket = Socket_Desc, port = Port,
-			packet_mode = Packet_Mode}) ->
+recv_all(TLS_Socket) ->
+    recv_all(TLS_Socket, <<>>, recv_common(TLS_Socket)).
+
+recv_all(_TLS_Socket, _Accum, {error, Reason}) ->
+    {error, Reason};
+%%couldn't be want_write also?, in the c driver it says no because it is a BIO_mem
+recv_all(#tls_socket{packet_mode = PacketMode}, Accum, want_read) -> 
+    case PacketMode of
+        list -> binary_to_list(Accum);
+        binary -> Accum
+    end;
+recv_all(TLS_Socket, Accum, Data) when is_binary(Data) ->
+    recv_all(TLS_Socket, <<Accum/binary, Data/binary>>, recv_common(TLS_Socket)).
+
+
+recv_common(#tls_socket{socket = Socket_Desc, port = Port}) ->
     %% Ask for available unencrypted data.
     case engine_get_decrypted_input(Port) of
         want_read ->
@@ -740,10 +755,7 @@ recv_common(#tls_socket{socket = Socket_Desc, port = Port,
             Ack = engine_get_encrypted_output(Port),
             case exmpp_internals:gen_send(Socket_Desc, Ack) of
                 ok ->
-                    case Packet_Mode of
-                        binary -> Data;
-                        list   -> binary_to_list(Data)
-                    end;
+                    Data;
                 {error, Reason} ->
                     {error, Reason}
             end
