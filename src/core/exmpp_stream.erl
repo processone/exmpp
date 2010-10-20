@@ -416,7 +416,7 @@ get_initiating_entity(Opening) ->
 (xmlel(), binary() | string()) -> xmlel().
 
 set_initiating_entity(#xmlel{attrs = Attrs} = Opening, Hostname) ->
-    New_Attrs = set_receiving_entity_in_attrs(Attrs, Hostname),
+    New_Attrs = set_initiating_entity_in_attrs(Attrs, Hostname),
     Opening#xmlel{attrs = New_Attrs}.
 
 set_initiating_entity_in_attrs(Attrs, undefined) ->
