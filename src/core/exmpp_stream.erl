@@ -115,6 +115,9 @@
 
 -include("exmpp.hrl").
 
+%% avoid name clash with local error/2 function
+-compile({no_auto_import,[error/2]}).
+
 %% Creating elements.
 -export([
 	 opening/3,
