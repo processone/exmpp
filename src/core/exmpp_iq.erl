@@ -86,7 +86,7 @@
 %%     IQ = exmpp_xml:xmlel()
 %% @doc Prepare an `<iq/>' to transport the given `get' request.
 
--spec(get/2 :: (xmlname(), #xmlel{}) -> #xmlel{}).
+-spec(get/2 :: (exmpp_xml:xmlname(), #xmlel{}) -> #xmlel{}).
 
 get(NS, Request) ->
     get(NS, Request, random).
@@ -99,7 +99,7 @@ get(NS, Request) ->
 %% @doc Prepare an `<iq/>' to transport the given `get' request.
 
 -spec(get/3 ::
-      (xmlname(), #xmlel{}, binary() | string() | random) -> #xmlel{}).
+      (exmpp_xml:xmlname(), #xmlel{}, binary() | string() | random) -> #xmlel{}).
 
 get(NS, Request, ID) ->
     Attrs1 = exmpp_stanza:set_type_in_attrs([], <<"get">>),
@@ -116,7 +116,7 @@ get(NS, Request, ID) ->
 %%     Request_IQ = exmpp_xml:xmlel()
 %% @doc Prepare an `<iq/>' to transport the given `set' request.
 
--spec(set/2 :: (xmlname(), #xmlel{}) -> #xmlel{}).
+-spec(set/2 :: (exmpp_xml:xmlname(), #xmlel{}) -> #xmlel{}).
 
 set(NS, Request) ->
     set(NS, Request, random).
@@ -129,7 +129,7 @@ set(NS, Request) ->
 %% @doc Prepare an `<iq/>' to transport the given `set' request.
 
 -spec(set/3 ::
-      (xmlname(), #xmlel{}, binary() | string() | random) -> #xmlel{}).
+      (exmpp_xml:xmlname(), #xmlel{}, binary() | string() | random) -> #xmlel{}).
 
 set(NS, Request, ID) ->
     Attrs1 = exmpp_stanza:set_type_in_attrs([], <<"set">>),

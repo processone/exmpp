@@ -87,7 +87,7 @@
 %% The default namespace is `jabber:client'.
 
 -spec normal
-() -> xmlel().
+() -> exmpp_xml:xmlel().
 
 normal() ->
     make_normal(?NS_JABBER_CLIENT).
@@ -100,7 +100,7 @@ normal() ->
 %% The default namespace is `jabber:client'.
 
 -spec normal
-(binary() | string()) -> xmlel().
+(binary() | string()) -> exmpp_xml:xmlel().
 
 normal(Body) ->
     make_normal(?NS_JABBER_CLIENT, Body).
@@ -114,7 +114,7 @@ normal(Body) ->
 %% The default namespace is `jabber:client'.
 
 -spec normal
-(binary() | string(), binary() | string()) -> xmlel().
+(binary() | string(), binary() | string()) -> exmpp_xml:xmlel().
 
 normal(Subject, Body) ->
     make_normal(?NS_JABBER_CLIENT, Subject, Body).
@@ -125,7 +125,7 @@ normal(Subject, Body) ->
 %% @doc Create an empty message stanza.
 
 -spec make_normal
-(xmlname()) -> xmlel().
+(exmpp_xml:xmlname()) -> exmpp_xml:xmlel().
 
 make_normal(NS) ->
     set_type(?EMPTY_MESSAGE(NS), 'normal').
@@ -137,7 +137,7 @@ make_normal(NS) ->
 %% @doc Create a message stanza with a given body.
 
 -spec make_normal
-(xmlname(), binary() | string()) -> xmlel().
+(exmpp_xml:xmlname(), binary() | string()) -> exmpp_xml:xmlel().
 
 make_normal(NS, Body) ->
     set_body(make_normal(NS), Body).
@@ -150,7 +150,7 @@ make_normal(NS, Body) ->
 %% @doc Create a message stanza with given subject and body.
 
 -spec make_normal
-(xmlname(), binary() | string(), binary() | string()) -> xmlel().
+(exmpp_xml:xmlname(), binary() | string(), binary() | string()) -> exmpp_xml:xmlel().
 
 make_normal(NS, Subject, Body) ->
     set_body(set_subject(make_normal(NS), Subject), Body).
@@ -162,7 +162,7 @@ make_normal(NS, Subject, Body) ->
 %% The default namespace is `jabber:client'.
 
 -spec chat
-() -> xmlel().
+() -> exmpp_xml:xmlel().
 
 chat() ->
     make_chat(?NS_JABBER_CLIENT).
@@ -175,7 +175,7 @@ chat() ->
 %% The default namespace is `jabber:client'.
 
 -spec chat
-(binary() | string()) -> xmlel().
+(binary() | string()) -> exmpp_xml:xmlel().
 
 chat(Body) ->
     make_chat(?NS_JABBER_CLIENT, Body).
@@ -189,7 +189,7 @@ chat(Body) ->
 %% The default namespace is `jabber:client'.
 
 -spec chat
-(binary() | string(), binary() | string()) -> xmlel().
+(binary() | string(), binary() | string()) -> exmpp_xml:xmlel().
 
 chat(Subject, Body) ->
     make_chat(?NS_JABBER_CLIENT, Subject, Body).
@@ -200,7 +200,7 @@ chat(Subject, Body) ->
 %% @doc Create an empty chat message stanza.
 
 -spec make_chat
-(xmlname()) -> xmlel().
+(exmpp_xml:xmlname()) -> exmpp_xml:xmlel().
 
 make_chat(NS) ->
     set_type(?EMPTY_MESSAGE(NS), 'chat').
@@ -212,7 +212,7 @@ make_chat(NS) ->
 %% @doc Create a chat message stanza with a given body.
 
 -spec make_chat
-(xmlname(), binary() | string()) -> xmlel().
+(exmpp_xml:xmlname(), binary() | string()) -> exmpp_xml:xmlel().
 
 make_chat(NS, Body) ->
     set_body(make_chat(NS), Body).
@@ -225,7 +225,7 @@ make_chat(NS, Body) ->
 %% @doc Create a chat message stanza with given subject and body.
 
 -spec make_chat
-(xmlname(), binary() | string(), binary() | string()) -> xmlel().
+(exmpp_xml:xmlname(), binary() | string(), binary() | string()) -> exmpp_xml:xmlel().
 
 make_chat(NS, Subject, Body) ->
     set_body(set_subject(make_chat(NS), Subject), Body).
@@ -236,7 +236,7 @@ make_chat(NS, Subject, Body) ->
 %% The default namespace is `jabber:client'.
 
 -spec groupchat
-() -> xmlel().
+() -> exmpp_xml:xmlel().
 
 groupchat() ->
     make_groupchat(?NS_JABBER_CLIENT).
@@ -249,7 +249,7 @@ groupchat() ->
 %% The default namespace is `jabber:client'.
 
 -spec groupchat
-(binary() | string()) -> xmlel().
+(binary() | string()) -> exmpp_xml:xmlel().
 
 groupchat(Body) ->
     make_groupchat(?NS_JABBER_CLIENT, Body).
@@ -263,7 +263,7 @@ groupchat(Body) ->
 %% The default namespace is `jabber:client'.
 
 -spec groupchat
-(binary() | string(), binary() | string()) -> xmlel().
+(binary() | string(), binary() | string()) -> exmpp_xml:xmlel().
 
 groupchat(Subject, Body) ->
     make_groupchat(?NS_JABBER_CLIENT, Subject, Body).
@@ -274,7 +274,7 @@ groupchat(Subject, Body) ->
 %% @doc Create an empty groupchat message stanza.
 
 -spec make_groupchat
-(xmlname()) -> xmlel().
+(exmpp_xml:xmlname()) -> exmpp_xml:xmlel().
 
 make_groupchat(NS) ->
     set_type(?EMPTY_MESSAGE(NS), 'groupchat').
@@ -286,7 +286,7 @@ make_groupchat(NS) ->
 %% @doc Create a groupchat message stanza with a given body.
 
 -spec make_groupchat
-(xmlname(), binary() | string()) -> xmlel().
+(exmpp_xml:xmlname(), binary() | string()) -> exmpp_xml:xmlel().
 
 make_groupchat(NS, Body) ->
     set_body(make_groupchat(NS), Body).
@@ -299,7 +299,7 @@ make_groupchat(NS, Body) ->
 %% @doc Create a groupchat message stanza with given subject and body.
 
 -spec make_groupchat
-(xmlname(), binary() | string(), binary() | string()) -> xmlel().
+(exmpp_xml:xmlname(), binary() | string(), binary() | string()) -> exmpp_xml:xmlel().
 
 make_groupchat(NS, Subject, Body) ->
     set_body(set_subject(make_groupchat(NS), Subject), Body).
@@ -310,7 +310,7 @@ make_groupchat(NS, Subject, Body) ->
 %% The default namespace is `jabber:client'.
 
 -spec headline
-() -> xmlel().
+() -> exmpp_xml:xmlel().
 
 headline() ->
     make_headline(?NS_JABBER_CLIENT).
@@ -323,7 +323,7 @@ headline() ->
 %% The default namespace is `jabber:client'.
 
 -spec headline
-(binary() | string()) -> xmlel().
+(binary() | string()) -> exmpp_xml:xmlel().
 
 headline(Body) ->
     make_headline(?NS_JABBER_CLIENT, Body).
@@ -337,7 +337,7 @@ headline(Body) ->
 %% The default namespace is `jabber:client'.
 
 -spec headline
-(binary() | string(), binary() | string()) -> xmlel().
+(binary() | string(), binary() | string()) -> exmpp_xml:xmlel().
 
 headline(Subject, Body) ->
     make_headline(?NS_JABBER_CLIENT, Subject, Body).
@@ -348,7 +348,7 @@ headline(Subject, Body) ->
 %% @doc Create an empty headline message stanza.
 
 -spec make_headline
-(xmlname()) -> xmlel().
+(exmpp_xml:xmlname()) -> exmpp_xml:xmlel().
 
 make_headline(NS) ->
     set_type(?EMPTY_MESSAGE(NS), 'headline').
@@ -360,7 +360,7 @@ make_headline(NS) ->
 %% @doc Create a headline message stanza with a given body.
 
 -spec make_headline
-(xmlname(), binary() | string()) -> xmlel().
+(exmpp_xml:xmlname(), binary() | string()) -> exmpp_xml:xmlel().
 
 make_headline(NS, Body) ->
     set_body(make_headline(NS), Body).
@@ -373,7 +373,7 @@ make_headline(NS, Body) ->
 %% @doc Create a headline message stanza with given subject and body.
 
 -spec make_headline
-(xmlname(), binary() | string(), binary() | string()) -> xmlel().
+(exmpp_xml:xmlname(), binary() | string(), binary() | string()) -> exmpp_xml:xmlel().
 
 make_headline(NS, Subject, Body) ->
     set_body(set_subject(make_headline(NS), Subject), Body).
@@ -388,7 +388,7 @@ make_headline(NS, Subject, Body) ->
 %% XMPP Core.
 
 -spec error
-(xmlel(), xmlel() | atom()) -> xmlel().
+(exmpp_xml:xmlel(), exmpp_xml:xmlel() | atom()) -> exmpp_xml:xmlel().
 
 error(Message, Condition) when is_atom(Condition) ->
     Error = exmpp_stanza:error(Message#xmlel.ns, Condition),
@@ -407,7 +407,7 @@ error(Message, Error) when ?IS_MESSAGE(Message) ->
 %% You should probably use the `IS_MESSAGE(El)' guard expression.
 
 -spec is_message
-(xmlel()) -> bool().
+(exmpp_xml:xmlel()) -> bool().
 
 is_message(Message) when ?IS_MESSAGE(Message) -> true;
 is_message(_El)                               -> false.
@@ -418,7 +418,7 @@ is_message(_El)                               -> false.
 %% @doc Return the type of the given `<message/>'.
 
 -spec get_type
-(xmlel()) -> messagetype().
+(exmpp_xml:xmlel()) -> messagetype().
 
 get_type(Message) when ?IS_MESSAGE(Message) ->
     case exmpp_stanza:get_type(Message) of
@@ -439,7 +439,7 @@ get_type(Message) when ?IS_MESSAGE(Message) ->
 %% If `Type' isn't a valid, the type is set to `normal'.
 
 -spec set_type
-(xmlel(), messagetype() | binary() | string()) -> xmlel().
+(exmpp_xml:xmlel(), messagetype() | binary() | string()) -> exmpp_xml:xmlel().
 
 set_type(Message, Type) when is_binary(Type) ->
     set_type(Message, binary_to_list(Type));
@@ -463,7 +463,7 @@ set_type(Message, Type) when ?IS_MESSAGE(Message), is_atom(Type) ->
 %% @doc Return the subject of the message.
 
 -spec get_subject
-(xmlel()) -> binary() | undefined.
+(exmpp_xml:xmlel()) -> binary() | undefined.
 
 get_subject(#xmlel{ns = NS} = Message) when ?IS_MESSAGE(Message) ->
     case exmpp_xml:get_element(Message, NS, 'subject') of
@@ -483,7 +483,7 @@ get_subject(#xmlel{ns = NS} = Message) when ?IS_MESSAGE(Message) ->
 %% subject is removed.
 
 -spec set_subject
-(xmlel(), binary() | string()) -> xmlel().
+(exmpp_xml:xmlel(), binary() | string()) -> exmpp_xml:xmlel().
 
 set_subject(#xmlel{ns = NS} = Message, <<>>) when ?IS_MESSAGE(Message) ->
     exmpp_xml:remove_element(Message, NS, 'subject');
@@ -505,7 +505,7 @@ set_subject(#xmlel{ns = NS} = Message, Subject) when ?IS_MESSAGE(Message) ->
 %% @doc Return the body of the message.
 
 -spec get_body
-(xmlel()) -> binary() | undefined.
+(exmpp_xml:xmlel()) -> binary() | undefined.
 
 get_body(#xmlel{ns = NS} = Message) when ?IS_MESSAGE(Message) ->
     case exmpp_xml:get_element(Message, NS, 'body') of
@@ -525,7 +525,7 @@ get_body(#xmlel{ns = NS} = Message) when ?IS_MESSAGE(Message) ->
 %% body is removed.
 
 -spec set_body
-(xmlel(), binary() | string()) -> xmlel().
+(exmpp_xml:xmlel(), binary() | string()) -> exmpp_xml:xmlel().
 
 set_body(#xmlel{ns = NS} = Message, <<>>) when ?IS_MESSAGE(Message) ->
     exmpp_xml:remove_element(Message, NS, 'body');
@@ -547,7 +547,7 @@ set_body(#xmlel{ns = NS} = Message, Body) when ?IS_MESSAGE(Message) ->
 %% @doc Return the thread of the message.
 
 -spec get_thread
-(xmlel()) -> binary() | undefined.
+(exmpp_xml:xmlel()) -> binary() | undefined.
 
 get_thread(#xmlel{ns = NS} = Message) when ?IS_MESSAGE(Message) ->
     case exmpp_xml:get_element(Message, NS, 'thread') of
@@ -567,7 +567,7 @@ get_thread(#xmlel{ns = NS} = Message) when ?IS_MESSAGE(Message) ->
 %% thread is removed.
 
 -spec set_thread
-(xmlel(), binary()) -> xmlel().
+(exmpp_xml:xmlel(), binary()) -> exmpp_xml:xmlel().
 
 set_thread(#xmlel{ns = NS} = Message, <<>>) when ?IS_MESSAGE(Message) ->
     exmpp_xml:remove_element(Message, NS, 'thread');

@@ -67,7 +67,7 @@
 -type(xmlstream() :: #xml_stream{}).
 
 -type(xmlstreamevent() ::
-      {xmlstreamstart, atom() | string(), [#xmlattr{} | xmlattr_old()]} |
+      {xmlstreamstart, atom() | string(), [#xmlattr{} | exmpp_xml:xmlattr_old()]} |
       #xmlstreamstart{} |
       #xmlstreamelement{} |
       #xmlstreamend{}
@@ -350,7 +350,7 @@ change_callback(Stream, CallBack) ->
 
 -spec(parse_element/1 ::
       (binary() | string()) ->
-	     [xmlnode() | xmlendtag()]).
+	     [exmpp_xml:xmlnode() | exmpp_xml:xmlendtag()]).
 
 parse_element(Data) ->
     parse_element(Data, []).
@@ -368,7 +368,7 @@ parse_element(Data) ->
 
 -spec(parse_element/2 ::
       (binary() | string(), [exmpp_xml:xmlparseroption()]) ->
-	     [xmlnode() | xmlendtag()]).
+	     [exmpp_xml:xmlnode() | exmpp_xml:xmlendtag()]).
 
 parse_element(Data, Parser_Options) ->
     case exmpp_xml:parse_document(Data, Parser_Options) of

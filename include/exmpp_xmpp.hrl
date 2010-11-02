@@ -20,11 +20,11 @@
   kind    :: request | response,
   type    :: get | set | result | error,
   id      :: binary() | undefined,
-  ns      :: xmlname() | undefined,
+  ns      :: exmpp_xml:xmlname() | undefined,
   payload :: #xmlel{} | undefined,
   error   :: #xmlel{} | undefined,
   lang    :: binary() | undefined,
-  iq_ns   :: xmlname() | undefined
+  iq_ns   :: exmpp_xml:xmlname() | undefined
 }).
 
 % --------------------------------------------------------------------

@@ -11,27 +11,6 @@
 %% the License for the specific language governing rights and limitations
 %% under the License.
 
-% --------------------------------------------------------------------
-% Type definition.
-% --------------------------------------------------------------------
-
-% NS, element's name and attribute's name.
--type(xmlname() :: atom() | string()).
-
-% Structures used by XML serialization functions.
--type(xmldefaultns()   :: xmlname() | [xmlname()]).
--type(xmldefaultnss()  :: [xmldefaultns()]).
--type(xmlprefixednss() :: [{xmlname(), string()}]).
-
-% Path description (to be used in exmpp_xml:get_path/2).
--type(xmlpathcomponent() ::
-  {element, xmlname()} |
-  {element, xmlname(), xmlname()} |
-  {attribute, xmlname()} |
-  {attribute, xmlname(), xmlname()} |
-  cdata |
-  cdata_as_list).
--type(xmlpath() :: [xmlpathcomponent()]).
 
 % --------------------------------------------------------------------
 % Records to represent XML nodes.
@@ -43,55 +22,42 @@
 -record(xmlcdata, {
   cdata = <<>>     :: binary()
 }).
--type(xmlcdata() :: #xmlcdata{}).
 
 % Attributes.
 -record(xmlattr, {
-  ns = undefined   :: xmlname() | undefined,
-  name             :: xmlname(),
+  ns = undefined   :: exmpp_xml:xmlname() | undefined,
+  name             :: exmpp_xml:xmlname(),
   value            :: binary()
 }).
--type(xmlattr() :: #xmlattr{}).
-
-% Old attribute isn't represented by a record.
--type(xmlattr_old() :: {xmlname(), string()}).
 
 % Elements.
 -record(xmlel, {
-  ns = undefined   :: xmlname() | undefined,
-  declared_ns = [] :: [{xmlname(), string() | none}],
-  name             :: xmlname(),
-  attrs = []       :: [xmlattr()],
-  children = []    :: [#xmlel{} | xmlcdata()] | undefined
+  ns = undefined   :: exmpp_xml:xmlname() | undefined,
+  declared_ns = [] :: [{exmpp_xml:xmlname(), string() | none}],
+  name             :: exmpp_xml:xmlname(),
+  attrs = []       :: [exmpp_xml:xmlattr()],
+  children = []    :: [#xmlel{} | exmpp_xml:xmlcdata()] | undefined
 }).
--type(xmlel() :: #xmlel{}).
 
 % XML end tag.
 % To use when 'children' is undefined in xmlel or xmlelement.
 -record(xmlendtag, {
-  ns = undefined   :: xmlname() | undefined,
-  name             :: xmlname()
+  ns = undefined   :: exmpp_xml:xmlname() | undefined,
+  name             :: exmpp_xml:xmlname()
 }).
--type(xmlendtag() :: #xmlendtag{}).
 
 % Old record for xmlel.
 -record(xmlelement, {
-  name             :: xmlname(),
-  attrs = []       :: [xmlattr_old()],
-  children = []    :: [#xmlelement{} | xmlcdata()] | undefined
+  name             :: exmpp_xml:xmlname(),
+  attrs = []       :: [exmpp_xml:xmlattr_old()],
+  children = []    :: [#xmlelement{} | exmpp_xml:xmlcdata()] | undefined
 }).
--type(xmlel_old() :: #xmlelement{}).
 
 % Processing Instruction.
 -record(xmlpi, {
   target           :: binary(),
   value            :: binary()
 }).
--type(xmlpi() :: #xmlpi{}).
-
--type(xmlattr_any() :: xmlattr() | xmlattr_old()).
--type(xmlel_any()   :: xmlel() | xmlel_old()).
--type(xmlnode()     :: xmlel() | xmlel_old() | xmlcdata()).
 
 % --------------------------------------------------------------------
 % Macros to help creation of XML nodes.

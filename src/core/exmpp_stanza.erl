@@ -95,6 +95,12 @@
 %% --------------------------------------------------------------------
 %% Documentation / type definition.
 %% --------------------------------------------------------------------
+-export_type([
+  jidlike/0,
+  id/0,
+  type/0,
+  lang/0
+]).
 
 -type(jidlike() :: exmpp_jid:jid() | binary() | string()).
 -type(id()      :: binary() | string() | random | undefined).
@@ -603,7 +609,7 @@ standard_conditions() ->
 %% `jabber:client' or `jabber:server'. This does not contain any text
 %% element.
 
--spec(error/2 :: (xmlname(), atom()) -> #xmlel{}).
+-spec(error/2 :: (exmpp_xml:xmlname(), atom()) -> #xmlel{}).
 
 error(NS, Condition) ->
     error(NS, Condition, {undefined, undefined}).
@@ -622,7 +628,7 @@ error(NS, Condition) ->
 %% element.
 
 -spec(error/3 ::
-      (xmlname(), atom(), {lang(), binary() | string() | undefined}) -> #xmlel{}).
+      (exmpp_xml:xmlname(), atom(), {lang(), binary() | string() | undefined}) -> #xmlel{}).
 
 error(NS, Condition, {Lang, Text}) ->
     Condition_El = #xmlel{
@@ -863,7 +869,7 @@ get_text_in_error(Error) ->
 %% namespace, with the `stream' prefix.
 
 -spec(to_list/2 ::
-  (#xmlel{} | #iq{} | #xmlendtag{}, xmldefaultns()) -> string()).
+  (#xmlel{} | #iq{} | #xmlendtag{}, exmpp_xml:xmldefaultns()) -> string()).
 
 to_list(El, Default_NS) ->
     to_list(El, Default_NS,
@@ -881,7 +887,7 @@ to_list(El, Default_NS) ->
 %% To understand `Default_NS', see {@link exmpp_xml:xmlel_to_xmlelement/3}.
 
 -spec(to_list/3 ::
-  (#xmlel{} | #iq{} | #xmlendtag{}, xmldefaultns(), xmlprefixednss()) -> string()).
+  (#xmlel{} | #iq{} | #xmlendtag{}, exmpp_xml:xmldefaultns(), exmpp_xml:xmlprefixednss()) -> string()).
 
 to_list(#iq{} = El, Default_NS, Prefixed_NS) ->
     to_list(exmpp_iq:iq_to_xmlel(El), Default_NS, Prefixed_NS);
@@ -920,7 +926,7 @@ to_list(El) ->
 %% namespace, with the `stream' prefix.
 
 -spec(to_binary/2 ::
-  (#xmlel{} | #iq{}| #xmlendtag{}, xmldefaultns()) -> binary()).
+  (#xmlel{} | #iq{}| #xmlendtag{}, exmpp_xml:xmldefaultns()) -> binary()).
 
 to_binary(El, Default_NS) ->
     to_binary(El, Default_NS,
@@ -938,7 +944,7 @@ to_binary(El, Default_NS) ->
 %% To understand `Default_NS', see {@link exmpp_xml:xmlel_to_xmlelement/3}.
 
 -spec(to_binary/3 ::
-  (#xmlel{} | #iq{}| #xmlendtag{}, xmldefaultns(), xmlprefixednss()) -> binary()).
+  (#xmlel{} | #iq{}| #xmlendtag{}, exmpp_xml:xmldefaultns(), exmpp_xml:xmlprefixednss()) -> binary()).
 
 to_binary(#iq{} = El, Default_NS, Prefixed_NS) ->
     to_binary(exmpp_iq:iq_to_xmlel(El), Default_NS, Prefixed_NS);
@@ -977,7 +983,7 @@ to_binary(El) ->
 %% namespace, with the `stream' prefix.
 
 -spec(to_iolist/2 ::
-  (#xmlel{} | #iq{}| #xmlendtag{}, xmldefaultns()) -> iolist()).
+  (#xmlel{} | #iq{}| #xmlendtag{}, exmpp_xml:xmldefaultns()) -> iolist()).
 
 to_iolist(El, Default_NS) ->
     to_iolist(El, Default_NS,
@@ -995,7 +1001,7 @@ to_iolist(El, Default_NS) ->
 %% To understand `Default_NS', see {@link exmpp_xml:xmlel_to_xmlelement/3}.
 
 -spec(to_iolist/3 ::
-  (#xmlel{} | #iq{}| #xmlendtag{}, xmldefaultns(), xmlprefixednss()) -> iolist()).
+  (#xmlel{} | #iq{}| #xmlendtag{}, exmpp_xml:xmldefaultns(), exmpp_xml:xmlprefixednss()) -> iolist()).
 
 to_iolist(#iq{} = El, Default_NS, Prefixed_NS) ->
     to_iolist(exmpp_iq:iq_to_xmlel(El), Default_NS, Prefixed_NS);
