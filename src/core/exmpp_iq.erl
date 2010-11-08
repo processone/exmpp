@@ -33,6 +33,7 @@
 	 result/1,
 	 result/2,
 	 error/2,
+	 error/3,
 	 error_without_original/2
 	]).
 
@@ -205,6 +206,33 @@ error(IQ_Rec, Error) when ?IS_IQ_RECORD(IQ_Rec) ->
 	      type = error,
 	      error = Error
 	     }.
+
+%% @spec (Request_IQ, Condition, Text) -> Response_IQ
+%%     Request_IQ = exmpp_xml:xmlel() | iq()
+%%     Condition = atom()
+%%     Text = string() | binary()
+%%     Response_IQ = exmpp_xml:xmlel() | iq()
+%% @doc Prepare an `<iq/>' to notify an error
+%%      with an error <text/>
+%% If `Error' is an atom, it must be a standard condition defined by
+%% XMPP Core.
+
+-spec(error/3 ::
+(
+  Request_IQ :: #xmlel{} | #iq{},
+  Condition  :: atom(),
+  Text       :: string() | binary())
+    -> #xmlel{} | #iq{}
+).
+
+error(IQ, Condition, Text)
+  when is_atom(Condition) andalso ?IS_IQ(IQ) ->
+    Error = exmpp_stanza:error(IQ#xmlel.ns, Condition, {undefined, Text}),
+    error(IQ, Error);
+error(IQ_Rec, Condition, Text)
+  when is_atom(Condition) andalso ?IS_IQ_RECORD(IQ_Rec) ->
+    Error = exmpp_stanza:error(IQ_Rec#iq.iq_ns, Condition, {undefined, Text}),
+    error(IQ_Rec, Error).
 
 %% @spec (Request_IQ, Error) -> Response_IQ
 %%     Request_IQ = exmpp_xml:xmlel() | iq()
