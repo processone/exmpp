@@ -31,31 +31,34 @@
 -include_lib("exmpp/include/exmpp.hrl").
 -include_lib("exmpp/include/exmpp_client.hrl").
 
--export([start/0, stop/1]).
--export([init/0]).
+-export([start/0, start/2, stop/1]).
+-export([init/2]).
 
 start() ->
-    spawn(?MODULE, init, []).
+    start("echo@localhost", "password").
+
+start(JID, Password) ->
+    spawn(?MODULE, init, [JID, Password]).
 
 stop(EchoClientPid) ->
     EchoClientPid ! stop.
 
-
-init() ->
+init(JID, Password) ->
     application:start(exmpp),
     %% Start XMPP session: Needed to start service (Like
     %% exmpp_stringprep):
     MySession = exmpp_session:start(),
     %% Create XMPP ID (Session Key):
-    MyJID = exmpp_jid:make("echo", "localhost", random),
+    [User, Server] = string:tokens(JID, "@"),
+    MyJID = exmpp_jid:make(User, Server, random),
     %% Create a new session with basic (digest) authentication:
-    exmpp_session:auth_basic_digest(MySession, MyJID, "password"),
+    exmpp_session:auth_basic_digest(MySession, MyJID, Password),
     %% Connect in standard TCP:
-    {ok, _StreamId} = exmpp_session:connect_TCP(MySession, "localhost", 5222),
-    session(MySession, MyJID).
+    {ok, _StreamId} = exmpp_session:connect_TCP(MySession, Server, 5222),
+    session(MySession, MyJID, Password).
 
 %% We are connected. We now log in (and try registering if authentication fails)
-session(MySession, _MyJID) ->
+session(MySession, _MyJID, Password) ->
     %% Login with defined JID / Authentication:
     try exmpp_session:login(MySession)
     catch
@@ -64,7 +67,7 @@ session(MySession, _MyJID) ->
 	    io:format("Register~n",[]),
 	    %% In a real life client, we should trap error case here
 	    %% and print the correct message.
-	    exmpp_session:register_account(MySession, "password"),
+	    exmpp_session:register_account(MySession, Password),
 	    %% After registration, retry to login:
 	    exmpp_session:login(MySession)
     end,
