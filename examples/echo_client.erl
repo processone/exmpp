@@ -83,7 +83,9 @@ loop(MySession) ->
         stop ->
             exmpp_session:stop(MySession);
         %% If we receive a message, we reply with the same message
-        Record = #received_packet{packet_type=message, raw_packet=Packet} ->
+        Record = #received_packet{packet_type=message,
+				  raw_packet=Packet,
+				  type_attr=Type} when Type =/= "error" ->
             io:format("~p~n", [Record]),
             echo_packet(MySession, Packet),
             loop(MySession);
