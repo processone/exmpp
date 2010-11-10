@@ -261,11 +261,6 @@
 %% Documentation / type definitions.
 %% --------------------------------------------------------------------
 
--export_type([
-  xmlparseroption/0,
-  xmlparser/0
-]).
-
 %% @type xmlparseroption() = Engine | Namespace_Option | Names_Format | Checks | Stanza_Max_Size | Root_Depth | Send_End_Element | Autoload_Known
 %%     Engine = {engine, atom()}
 %%     Stanza_Max_Size  = {max_size, infinity} | {max_size, Size}
@@ -341,41 +336,10 @@
 %% start_parser/0}.
 
 -record(xml_parser, {
-	  options = [] :: [exmpp_xml:xmlparseroption()],
+	  options = [] :: [xmlparseroption()],
 	  port         :: port()
 	 }).
 -type(xmlparser() :: #xml_parser{}).
-
-%
--export_type([
-  xmlname/0,
-  %%
-  xmldefaultns/0,
-  xmldefaultnss/0,
-  xmlprefixednss/0,
-  %%
-  xmlel/0,
-  xmlattr/0,
-  xmlcdata/0,
-  xmlendtag/0,
-  %%
-  xmlel_old/0,
-  xmlattr_old/0,
-  %%
-  xmlpi/0,
-  %%
-  xmlel_any/0,
-  xmlattr_any/0,
-  xmlnode/0
-]).
-
-% NS, element's name and attribute's name.
--type(xmlname() :: atom() | string()).
-
-% Structures used by XML serialization functions.
--type(xmldefaultns()   :: exmpp_xml:xmlname() | [exmpp_xml:xmlname()]).
--type(xmldefaultnss()  :: [exmpp_xml:xmldefaultns()]).
--type(xmlprefixednss() :: [{exmpp_xml:xmlname(), string()}]).
 
 %% @type xmlel() = {xmlel, NS, Declared_NS, Name, Attrs, Children}
 %%     NS = atom() | string() | undefined
@@ -389,21 +353,15 @@
 %% Declared_NS lists all the namespaces declared in this element, even
 %% if they're not used by it.
 
--type(xmlel() :: #xmlel{}).
-
 %% @type xmlattr() = {xmlattr, NS, Name, Value}
 %%     NS = atom() | string()
 %%     Name = atom() | string()
 %%     Value = binary().
 %% Represents an tag attribute.
 
--type(xmlattr() :: #xmlattr{}).
-
 %% @type xmlcdata() = {xmlcdata, CData}
 %%     CData = binary().
 %% Record representing characters data inside an XML element.
-
--type(xmlcdata() :: #xmlcdata{}).
 
 %% @type xmlendtag() = {xmlendtag, NS, Name}
 %%     NS = atom() | string()
@@ -411,36 +369,16 @@
 %% Record representing an XML end tag, for nodes above the configured
 %% `root_depth' (see {@link xmlparseroption()}).
 
--type(xmlendtag() :: #xmlendtag{}).
-
 %% @type xmlel_old() = {xmlelement, Name, Attrs, Children}
 %%     Name = string()
 %%     Attrs = [xmlattr_old()]
 %%     Children = [xmlel_old() | xmlcdata()] | undefined.
 %% Record representing an XML tag.
 
--type(xmlel_old() :: #xmlelement{}).
-
 %% @type xmlattr_old() = {Name, Value}
 %%     Name = atom() | string()
 %%     Value = string().
 %% Represents an tag attribute.
-
-% Old attribute isn't represented by a record.
--type(xmlattr_old() :: {exmpp_xml:xmlname(), string()}).
-
-%
--type(xmlpi() :: #xmlpi{}).
-
--type(xmlattr_any() :: exmpp_xml:xmlattr() | exmpp_xml:xmlattr_old()).
--type(xmlel_any()   :: exmpp_xml:xmlel() | exmpp_xml:xmlel_old()).
--type(xmlnode()     :: exmpp_xml:xmlel() | exmpp_xml:xmlel_old() | exmpp_xml:xmlcdata()).
-
-%
--export_type([
-  xmlpathcomponent/0,
-  xmlpath/0
-]).
 
 %% @type pathcomponent() = {element, Elem_Name} | {element, NS, Elem_Name} | {attribute, Attr_Name} | {attribute, NS, Attr_Name} | cdata | cdata_as_list
 %%     NS = atom() | string()
@@ -450,16 +388,6 @@
 %% element named `Elem_Name'. The `attr' tuple points to the value of
 %% the `Attr_Name' attribute. cdata asks for the character data of a
 %% node.
-
-% Path description (to be used in exmpp_xml:get_path/2).
--type(xmlpathcomponent() ::
-  {element, exmpp_xml:xmlname()} |
-  {element, exmpp_xml:xmlname(), exmpp_xml:xmlname()} |
-  {attribute, exmpp_xml:xmlname()} |
-  {attribute, exmpp_xml:xmlname(), exmpp_xml:xmlname()} |
-  cdata |
-  cdata_as_list).
--type(xmlpath() :: [exmpp_xml:xmlpathcomponent()]).
 
 %% Internal types.
 -record(state, {

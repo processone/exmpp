@@ -36,104 +36,12 @@
 %% Documentation / type definitions.
 %% --------------------------------------------------------------------
 
--export_type([
-  ns/0,
-  value/0,
-  xvar/0,
-  field/0,
-  %%
-  formtype/0,
-  form/0,
-  %%
-  identitytype/0,
-  identitycategory/0,
-  identitylang/0,
-  identityname/0,
-  identity/0,
-  %%
-  ecaps/0,
-  %%
-  hash/0
-]).
-
-%% @type ns() = string() | binary()
-
--type(ns() :: string() | binary()).
-
-
-%% @type value() = string() | binary()
-
--type(value() :: string() | binary()).
-
-
-%% @type xvar() = string()
-
--type(xvar() :: string()).
-
-
-%% @type field() = {field, Var, Values}
-%%     Var    = xvar()
-%%     Values = [value()].
-%% Record representing a field.
-
--type(field() :: #field{}).
-
-
-%% @type formtype() = string()
-
--type(formtype() :: string()).
-
-
-%% @type form() = {form, Type, Fields}
-%%     Type   = formtype()
-%%     Fields = field() | [field()].
-%% Record representing a form.
-
--type(form() :: #form{}).
-
-
-%% @type identitytype() = string()
-
--type(identitytype() :: string()).
-
-
-%% @type identitycategory() = string()
-
--type(identitycategory() :: string()).
-
-
-%% @type identitylang() = string()
-
--type(identitylang() :: string()).
-
-
-%% @type identityname() = string()
-
--type(identityname() :: string()).
-
-
-%% @type identity() = {identity, Category, Type, Lang, Name}
-%%     Category = identitycategory()
-%%     Type     = identitytype()
-%%     Lang     = identitylang()
-%%     Name     = identityname().
-%% Record representing an identity.
-
--type(identity() :: #identity{}).
-
-
 %% @type ecaps() = {ecaps, Identities, Features, Forms}
 %%     Identities = identity() | [identity()]
 %%     Features   = [ns()]     | []
 %%     Forms      = form()     | [form()] | [].
 %% Record representing a Caps.
 
--type(ecaps() :: #ecaps{}).
-
-
-%% @type hash() = binary()
-
--type(hash() :: binary()).
 
 %% --------------------------------------------------------------------
 %% Hash creation.

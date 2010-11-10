@@ -17,32 +17,108 @@
 %% Documentation / type definitions.
 %% --------------------------------------------------------------------
 
+%% @type ns() = string() | binary()
+
+-type(ns() :: string() | binary()).
+
+
+%% @type value() = string() | binary()
+
+-type(value() :: string() | binary()).
+
+
+%% @type xvar() = string()
+
+-type(xvar() :: string()).
+
+
+%% @type field() = {field, Var, Values}
+%%     Var    = xvar()
+%%     Values = [value()].
+%% Record representing a field.
+
 -record(field,
 	{
-	  var    = "" :: exmpp_caps:xvar(),
-	  values = [] :: [exmpp_caps:value()]
+	  var    = "" :: xvar(),
+	  values = [] :: [value()]
 			 }).
+
+-type(field() :: #field{}).
+
+
+%% @type formtype() = string()
+
+-type(formtype() :: string()).
+
+
+%% @type form() = {form, Type, Fields}
+%%     Type   = formtype()
+%%     Fields = field() | [field()].
+%% Record representing a form.
 
 -record(form,
 	{
-	  type   = "" :: exmpp_caps:formtype(),
-	  fields = [] :: exmpp_caps:field() | [exmpp_caps:field()]
+	  type   = "" :: formtype(),
+	  fields = [] :: field() | [field()]
 			 }).
 
-%
+-type(form() :: #form{}).
+
+
+%% @type identitytype() = string()
+
+-type(identitytype() :: string()).
+
+
+%% @type identitycategory() = string()
+
+-type(identitycategory() :: string()).
+
+
+%% @type identitylang() = string()
+
+-type(identitylang() :: string()).
+
+
+%% @type identityname() = string()
+
+-type(identityname() :: string()).
+
+
+%% @type identity() = {identity, Category, Type, Lang, Name}
+%%     Category = identitycategory()
+%%     Type     = identitytype()
+%%     Lang     = identitylang()
+%%     Name     = identityname().
+%% Record representing an identity.
+
 -record(identity,
 	{
-	  category = "" :: exmpp_caps:identitycategory(),
-	  type     = "" :: exmpp_caps:identitytype(),
-	  lang     = "" :: exmpp_caps:identitylang(),
-	  name     = "" :: exmpp_caps:identityname()
-   }).
+	  category = "" :: identitycategory(),
+	  type     = "" :: identitytype(),
+	  lang     = "" :: identitylang(),
+	  name     = "" :: identityname()
+			   }).
+
+-type(identity() :: #identity{}).
 
 
-%
+%% @type ecaps() = {ecaps, Identities, Features, Forms}
+%%     Identities = identity() | [identity()]
+%%     Features   = [ns()]     | []
+%%     Forms      = form()     | [form()] | [].
+%% Record representing a Caps.
+
 -record(ecaps,
 	{
-	  identities = [] :: exmpp_caps:identity() | [exmpp_caps:identity()],
-	  features   = [] :: [exmpp_caps:ns()],
-	  forms      = [] :: exmpp_caps:form()     | [exmpp_caps:form()]
+	  identities = [] :: identity() | [identity()],
+	  features   = [] :: [ns()],
+	  forms      = [] :: form()     | [form()]
 			     }).
+
+-type(ecaps() :: #ecaps{}).
+
+
+%% @type hash() = binary()
+
+-type(hash() :: binary()).

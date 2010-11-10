@@ -105,10 +105,6 @@
 %% Documentation / type definitions.
 %% --------------------------------------------------------------------
 
--export_type([
-  jid/0
-]).
-
 %% @type jid() = {jid, Orig_Jid, Prepd_Node, Prepd_Domain, Prepd_Resource}
 %%     Orig_Jid = binary() | undefined
 %%     Prepd_Node = binary() | undefined
