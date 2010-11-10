@@ -2,7 +2,10 @@ dnl ------------------------------------------------------------------
 dnl Autoconf initialization.
 dnl ------------------------------------------------------------------
 
-AC_INIT([exmpp], m4_esyscmd([git describe | sed 's/^v//' | tr -d '\n']), [js.pedron@meetic-corp.com], [exmpp])
+AC_INIT([exmpp], m4_esyscmd([git describe | sed 's/^v//' |
+        sed 's/-\([0-9]\)-/-0\1-/' | tr -d '\n']),
+        [js.pedron@meetic-corp.com], [exmpp])
+
 AC_CONFIG_SRCDIR([include/exmpp.hrl])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([ac-aux])
