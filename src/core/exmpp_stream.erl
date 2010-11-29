@@ -378,7 +378,7 @@ closing(#xmlel{ns = NS, name = Name}) ->
 (xmlel()) -> binary() | undefined.
 
 get_receiving_entity(Opening) ->
-    exmpp_xml:get_attribute_as_binary(Opening, 'to', undefined).
+    exmpp_xml:get_attribute_as_binary(Opening, <<"to">>, undefined).
 
 %% @spec (Opening, Hostname) -> New_Opening
 %%     Opening = exmpp_xml:xmlel()
@@ -396,7 +396,7 @@ set_receiving_entity(#xmlel{attrs = Attrs} = Opening, Hostname) ->
 set_receiving_entity_in_attrs(Attrs, undefined) ->
     Attrs;
 set_receiving_entity_in_attrs(Attrs, Hostname) ->
-    exmpp_xml:set_attribute_in_list(Attrs, 'to', Hostname).
+    exmpp_xml:set_attribute_in_list(Attrs, <<"to">>, Hostname).
 
 %% @spec (Opening) -> Hostname | undefined
 %%     Opening = exmpp_xml:xmlel()
@@ -407,7 +407,7 @@ set_receiving_entity_in_attrs(Attrs, Hostname) ->
 (xmlel()) -> binary() | undefined.
 
 get_initiating_entity(Opening) ->
-    exmpp_xml:get_attribute_as_binary(Opening, 'from', undefined).
+    exmpp_xml:get_attribute_as_binary(Opening, <<"from">>, undefined).
 
 %% @spec (Opening, Hostname) -> New_Opening
 %%     Opening = exmpp_xml:xmlel()
@@ -425,7 +425,7 @@ set_initiating_entity(#xmlel{attrs = Attrs} = Opening, Hostname) ->
 set_initiating_entity_in_attrs(Attrs, undefined) ->
     Attrs;
 set_initiating_entity_in_attrs(Attrs, Hostname) ->
-    exmpp_xml:set_attribute_in_list(Attrs, 'from', Hostname).
+    exmpp_xml:set_attribute_in_list(Attrs, <<"from">>, Hostname).
 
 %% @spec (Opening) -> Default_NS | undefined
 %%     Opening = exmpp_xml:xmlel()
@@ -468,7 +468,7 @@ set_default_ns(#xmlel{declared_ns = Declared_NS} = Opening, NS) ->
 (xmlel()) -> streamversion().
 
 get_version(Opening) ->
-    parse_version(exmpp_xml:get_attribute_as_binary(Opening, 'version', <<>>)).
+    parse_version(exmpp_xml:get_attribute_as_binary(Opening, <<"version">>, <<>>)).
 
 %% @spec (Opening, Version) -> New_Opening
 %%     Opening = exmpp_xml:xmlel()
@@ -488,12 +488,12 @@ set_version(#xmlel{attrs = Attrs} = Opening, Version) ->
 set_version_in_attrs(Attrs, Version)
   when Version == undefined;
 Version == ""; Version == <<>>; Version == {0, 0} ->
-    exmpp_xml:remove_attribute_from_list(Attrs, 'version');
+    exmpp_xml:remove_attribute_from_list(Attrs, <<"version">>);
 set_version_in_attrs(Attrs, {_, _} = Version) ->
     Version_B = serialize_version(Version),
     set_version_in_attrs(Attrs, Version_B);
 set_version_in_attrs(Attrs, Version) ->
-    exmpp_xml:set_attribute_in_list(Attrs, 'version', Version).
+    exmpp_xml:set_attribute_in_list(Attrs, <<"version">>, Version).
 
 %% @spec (Opening) -> ID | undefined
 %%     Opening = exmpp_xml:xmlel()
@@ -504,7 +504,7 @@ set_version_in_attrs(Attrs, Version) ->
 (xmlel()) -> binary() | undefined.
 
 get_id(Opening) ->
-    exmpp_xml:get_attribute_as_binary(Opening, 'id', undefined).
+    exmpp_xml:get_attribute_as_binary(Opening, <<"id">>, undefined).
 
 %% @spec (Opening, ID) -> New_Opening
 %%     Opening = exmpp_xml:xmlel()
@@ -522,7 +522,7 @@ set_id(#xmlel{attrs = Attrs} = Opening, ID) ->
 set_id_in_attrs(Attrs, ID) when ID == random; ID == <<>>; ID == "" ->
     set_id_in_attrs(Attrs, exmpp_utils:random_id("stream"));
 set_id_in_attrs(Attrs, ID) ->
-    exmpp_xml:set_attribute_in_list(Attrs, 'id', ID).
+    exmpp_xml:set_attribute_in_list(Attrs, <<"id">>, ID).
 
 %% @spec (Opening) -> Lang | undefined
 %%     Opening = exmpp_xml:xmlel()
@@ -533,7 +533,7 @@ set_id_in_attrs(Attrs, ID) ->
 (xmlel()) -> binary() | undefined.
 
 get_lang(Opening) ->
-    exmpp_xml:get_attribute_as_binary(Opening, ?NS_XML, 'lang', undefined).
+    exmpp_xml:get_attribute_as_binary(Opening, ?NS_XML, <<"lang">>, undefined).
 
 %% @spec (Opening, Lang) -> New_Opening
 %%     Opening = exmpp_xml:xmlel()
@@ -549,7 +549,7 @@ set_lang(#xmlel{attrs = Attrs} = Opening, Lang) ->
     Opening#xmlel{attrs = New_Attrs}.
 
 set_lang_in_attrs(Attrs, Lang) ->
-    exmpp_xml:set_attribute_in_list(Attrs, ?NS_XML, 'lang', Lang).
+    exmpp_xml:set_attribute_in_list(Attrs, ?NS_XML, <<"lang">>, Lang).
 
 %% --------------------------------------------------------------------
 %% Version handling.
@@ -705,7 +705,7 @@ error(Condition, {Lang, Text}) ->
 			      Text_El0;
 			  _ ->
 			      exmpp_xml:set_attribute(Text_El0, ?NS_XML,
-						      'lang', Lang)
+						      <<"lang">>, Lang)
 		      end,
             exmpp_xml:append_child(Error_El0, Text_El)
     end.

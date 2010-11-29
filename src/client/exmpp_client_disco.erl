@@ -50,7 +50,7 @@ info(To) ->
 %% @doc Make an <iq/> for a disco#info to a node
 
 info(To, Node) ->
-  Query = exmpp_xml:set_attribute(?QUERY_INFO, 'node', Node),
+  Query = exmpp_xml:set_attribute(?QUERY_INFO, <<"node">>, Node),
   Iq = ?IQ_GET(To, iq_id()),
   exmpp_xml:append_child(Iq, Query).
 
@@ -71,7 +71,7 @@ items(To) ->
 %% @doc Make an <iq/> for a disco#items to a node 
 
 items(To, Node) ->
-  Query = exmpp_xml:set_attribute(?QUERY_ITEMS, 'node', Node),
+  Query = exmpp_xml:set_attribute(?QUERY_ITEMS, <<"node">>, Node),
   Iq = ?IQ_GET(To, iq_id()),
   exmpp_xml:append_child(Iq, Query).
 

@@ -230,15 +230,15 @@ get_type(Presence) when ?IS_PRESENCE(Presence) ->
 (xmlel(), presencetype() | binary() | string()) -> xmlel().
 
 set_type(Presence, <<>>) when ?IS_PRESENCE(Presence) ->
-    exmpp_xml:remove_attribute(Presence, 'type');
+    exmpp_xml:remove_attribute(Presence, <<"type">>);
 set_type(Presence, "") when ?IS_PRESENCE(Presence) ->
-    exmpp_xml:remove_attribute(Presence, 'type');
+    exmpp_xml:remove_attribute(Presence, <<"type">>);
 set_type(Presence, 'available') when ?IS_PRESENCE(Presence) ->
-    exmpp_xml:remove_attribute(Presence, 'type');
+    exmpp_xml:remove_attribute(Presence, <<"type">>);
 set_type(Presence, <<"available">>) when ?IS_PRESENCE(Presence) ->
-    exmpp_xml:remove_attribute(Presence, 'type');
+    exmpp_xml:remove_attribute(Presence, <<"type">>);
 set_type(Presence, "available") when ?IS_PRESENCE(Presence) ->
-    exmpp_xml:remove_attribute(Presence, 'type');
+    exmpp_xml:remove_attribute(Presence, <<"type">>);
 
 set_type(Presence, Type) when is_binary(Type) ->
     set_type(Presence, binary_to_list(Type));

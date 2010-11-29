@@ -279,7 +279,7 @@ wait_for_stream(Start = ?stream, State = #state{connection = _Module,
 						auth_method = _Auth,
 						from_pid = From}) ->
     %% Get StreamID
-    StreamId = exmpp_xml:get_attribute_as_list(Start#xmlstreamstart.element, id, ""),
+    StreamId = exmpp_xml:get_attribute_as_list(Start#xmlstreamstart.element, <<"id">>, ""),
     gen_fsm:reply(From, StreamId),
     {next_state, stream_opened, State#state{from_pid=undefined,
 					    stream_id = StreamId}}.
@@ -447,7 +447,6 @@ connect(Module, Params, Domain, From, #state{client_pid=_ClientPid} = State) ->
 	 {names_as_atom, true},
 	 {check_nss, xmpp},
 	 {check_elems, xmpp},
-	 {check_attrs, xmpp},
 	 {emit_endtag, false},
 	 {root_depth, 0},
 	 {max_size, infinity}]).
@@ -480,9 +479,9 @@ process_iq(ClientPid, Attrs, Packet) ->
 	parse_and_deliver(ClientPid, Attrs, Packet, fun do_process_iq/3).
 
 do_process_presence(ClientPid, Attrs, Packet) ->
-    Type = get_attribute_value(Attrs, type, "available"),
-    Who = exmpp_jid:to_lower(get_attribute_value(Attrs, from, "")),
-    Id = get_attribute_value(Attrs, id, ""),
+    Type = get_attribute_value(Attrs, <<"type">>, "available"),
+    Who = exmpp_jid:to_lower(get_attribute_value(Attrs, <<"from">>, "")),
+    Id = get_attribute_value(Attrs, <<"id">>, ""),
     ClientPid ! #received_packet{packet_type = presence,
                                  type_attr = Type,
                                  from = Who,
@@ -490,9 +489,9 @@ do_process_presence(ClientPid, Attrs, Packet) ->
                                  raw_packet = Packet}.
 
 do_process_message(ClientPid, Attrs, Packet) ->
-    Type = get_attribute_value(Attrs, type, "normal"),
-    Who = exmpp_jid:to_lower(get_attribute_value(Attrs, from, "")),
-    Id = get_attribute_value(Attrs, id, ""),
+    Type = get_attribute_value(Attrs, <<"type">>, "normal"),
+    Who = exmpp_jid:to_lower(get_attribute_value(Attrs, <<"from">>, "")),
+    Id = get_attribute_value(Attrs, <<"id">>, ""),
     ClientPid ! #received_packet{packet_type = message,
                                  type_attr = Type,
                                  from = Who,
@@ -500,9 +499,9 @@ do_process_message(ClientPid, Attrs, Packet) ->
                                  raw_packet = Packet}.
 
 do_process_iq(ClientPid, Attrs, Packet) ->
-    Type = get_attribute_value(Attrs, type, ""),
-    Who = exmpp_jid:to_lower(get_attribute_value(Attrs, from, "")),
-    Id = get_attribute_value(Attrs, id, ""),
+    Type = get_attribute_value(Attrs, <<"type">>, ""),
+    Who = exmpp_jid:to_lower(get_attribute_value(Attrs, <<"from">>, "")),
+    Id = get_attribute_value(Attrs, <<"id">>, ""),
     NS = exmpp_iq:get_payload_ns_as_atom(Packet),
     ClientPid ! #received_packet{packet_type = iq,
                                  type_attr = Type,
@@ -517,10 +516,10 @@ do_process_iq(ClientPid, Attrs, Packet) ->
 %% This function uses {@link random:uniform/1}. It's up to the caller to
 %% seed the generator.
 check_id(Attrs) ->
-    case exmpp_xml:get_attribute_from_list_as_binary(Attrs, id, <<>>) of
+    case exmpp_xml:get_attribute_from_list_as_binary(Attrs, <<"id">>, <<>>) of
 	<<>> ->
 	    Id = exmpp_utils:random_id("Component"),
-	    {exmpp_xml:set_attribute_in_list(Attrs, id, Id), Id};
+	    {exmpp_xml:set_attribute_in_list(Attrs, <<"id">>, Id), Id};
         Id -> {Attrs, Id}
     end.
 
@@ -532,7 +531,7 @@ get_attribute_value(Attrs, Attr, Default) ->
 %% Internal operations
 %% send_packet: actually format and send the packet:
 send_packet(#xmlel{name=iq, attrs=Attrs}=IQElement, Module, ConnRef) ->
-    Type = exmpp_xml:get_attribute_from_list_as_binary(Attrs, type, undefined),
+    Type = exmpp_xml:get_attribute_from_list_as_binary(Attrs, <<"type">>, undefined),
     case Type of
 	<<"error">> ->
 	    {Attrs2, PacketId} = check_id(Attrs),

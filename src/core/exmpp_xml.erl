@@ -39,7 +39,6 @@
 -include("exmpp.hrl").
 -include("internal/exmpp_known_nss.hrl").
 -include("internal/exmpp_known_elems.hrl").
--include("internal/exmpp_known_attrs.hrl").
 
 %% Initialization.
 -export([
@@ -65,7 +64,6 @@
 	 stop_parser/1,
 	 add_known_nss/2,
 	 add_known_elems/2,
-	 add_known_attrs/2,
 	 parse/2,
 	 parse_final/2,
 	 parse_document/1,
@@ -225,18 +223,16 @@
 
 -define(COMMAND_ADD_KNOWN_NSS,     1).
 -define(COMMAND_ADD_KNOWN_ELEMS,   2).
--define(COMMAND_ADD_KNOWN_ATTRS,   3).
--define(COMMAND_SET_MAX_SIZE,      4).
--define(COMMAND_SET_ROOT_DEPTH,    5).
--define(COMMAND_SET_NAMES_AS_ATOM, 6).
--define(COMMAND_SET_CHECK_NSS,     7).
--define(COMMAND_SET_CHECK_ELEMS,   8).
--define(COMMAND_SET_CHECK_ATTRS,   9).
--define(COMMAND_SET_EMIT_ENDTAG,  10).
--define(COMMAND_PARSE,            11).
--define(COMMAND_PARSE_FINAL,      12).
--define(COMMAND_RESET_PARSER,     13).
--define(COMMAND_PORT_REVISION,    14).
+-define(COMMAND_SET_MAX_SIZE,      3).
+-define(COMMAND_SET_ROOT_DEPTH,    4).
+-define(COMMAND_SET_NAMES_AS_ATOM, 5).
+-define(COMMAND_SET_CHECK_NSS,     6).
+-define(COMMAND_SET_CHECK_ELEMS,   7).
+-define(COMMAND_SET_EMIT_ENDTAG,   8).
+-define(COMMAND_PARSE,             9).
+-define(COMMAND_PARSE_FINAL,      10).
+-define(COMMAND_RESET_PARSER,     11).
+-define(COMMAND_PORT_REVISION,    12).
 
 -define(DEFAULT_PARSER_OPTIONS, [
 				 {max_size, infinity},
@@ -269,7 +265,6 @@
 %%     Checks = NS_Check | Elems_Check | Attrs_Check
 %%       NS_Check = {check_nss, Known_List_Name | bool()}
 %%       Elems_Check = {check_elems, Known_List_Name | bool()}
-%%       Attrs_Check = {check_attrs, Known_List_Name | bool()}
 %%     Known_List_Name = atom()
 %%     Send_End_Element = {emit_endtag, bool()}.
 %% Options of the form `{Key, bool()}' can be specified as `Key'. See
@@ -327,7 +322,6 @@
       {names_as_atom, bool()}                  | names_as_atom |
       {check_nss, atom() | bool()}             | check_nss     |
       {check_elems, atom() | bool()}           | check_elems   |
-      {check_attrs, atom() | bool()}           | check_attrs   |
       {emit_endtag, bool()}                    | emit_endtag
      ).
 
@@ -392,8 +386,8 @@
 %% Internal types.
 -record(state, {
 	  known_nss_lists,   % These are #dict{} but I have no idea how to write the
-	  known_elems_lists, % contract when the type isn't public (it's internal to
-	  known_attrs_lists  % the 'dict' module in stdlib).
+	  known_elems_lists  % contract when the type isn't public (it's internal to
+	                     % the 'dict' module in stdlib).
 	 }).
 
 -record(xml_engine, {
@@ -461,10 +455,8 @@ register_builtin_engine(Name, Driver) ->
 load_builtin_known_lists() ->
     [_ | Known_NSs] = lists:reverse(?XMPP_KNOWN_NSS),
     [_ | Known_Elems] = lists:reverse(?XMPP_KNOWN_ELEMS),
-    [_ | Known_Attrs] = lists:reverse(?XMPP_KNOWN_ATTRS),
     add_known_nss(xmpp, Known_NSs),
-    add_known_elems(xmpp, Known_Elems),
-    add_known_attrs(xmpp, Known_Attrs).
+    add_known_elems(xmpp, Known_Elems).
 
 %% --------------------------------------------------------------------
 %% Registry handling.
@@ -581,22 +573,6 @@ add_known_elems(List_Name, List) ->
         {error, Exception} -> throw(Exception)
     end.
 
-%% @spec (List_Name, List) -> ok
-%%     List_Name = atom()
-%%     List = [Attr]
-%%     Attr = atom()
-%% @doc Tell parsers that `Attr' are known element attributes.
-%%
-%% If `check_attrs' is enabled, all occurences of these attributes will
-%% be represented as an atom().
-
--spec(add_known_attrs/2 :: (atom(), [atom()]) -> ok).
-
-add_known_attrs(List_Name, List) ->
-    case gen_server:call(?SERVER, {add_known, attrs, List_Name, List}) of
-        ok                 -> ok;
-        {error, Exception} -> throw(Exception)
-    end.
 
 %% --------------------------------------------------------------------
 %% Parsing functions (interface to the Expat port driver).
@@ -935,7 +911,7 @@ as_atom(V) when is_list(V) -> list_to_atom(V).
 %% --------------------------------------------------------------------
 
 %% @spec (Name, Value) -> Attr
-%%     Name = atom() | string()
+%%     Name = binary()
 %%     Value = binary() | string() | atom() | integer()
 %%     Attr = xmlattr()
 %% @doc Create an XML attribute with the name `Name'.
@@ -949,7 +925,7 @@ as_atom(V) when is_list(V) -> list_to_atom(V).
       (xmlname(), binary() | string() | atom() | integer()) ->
 	     xmlattr()).
 
-attribute(Name, Value) ->
+attribute(Name, Value) when is_binary(Name) ->
     set_attr_value(#xmlattr{name = Name}, Value).
 
 set_attr_value(#xmlattr{} = Attr, Value) ->
@@ -959,7 +935,7 @@ set_attr_value({Name, _}, Value) ->
 
 %% @spec (NS, Name, Value) -> Attr
 %%     NS = atom() | string() | undefined
-%%     Name = atom() | string()
+%%     Name = binary()
 %%     Value = binary() | string() | atom() | integer()
 %%     Attr = xmlattr()
 %% @doc Create an XML attribute with the name `Name' in the namespace `NS'.
@@ -973,12 +949,12 @@ set_attr_value({Name, _}, Value) ->
       (xmlname(), xmlname(), binary() | string() | atom() | integer()) ->
 	     xmlattr()).
 
-attribute(NS, Name, Value) ->
+attribute(NS, Name, Value) when is_binary(Name) ->
     set_attr_value(#xmlattr{ns = NS, name = Name}, Value).
 
 %% @spec (Attr, Name) -> bool()
 %%     Attr = xmlattr() | xmlattr_old()
-%%     Name = atom() | string()
+%%     Name = atom() | string() | binary()
 %% @doc Tell if `Attr' is named `Name'.
 %%
 %% It takes care of comparison between string and atom.
@@ -990,12 +966,10 @@ attribute_matches(#xmlattr{name = Name}, Name) ->
 attribute_matches({Name, _Value}, Name) ->
     true;
 
-attribute_matches(#xmlattr{name = Name_A}, Name)
-  when is_atom(Name_A), is_list(Name) ->
-    Name_A == list_to_atom(Name);
-attribute_matches(#xmlattr{name = Name}, Name_A)
-  when is_atom(Name_A), is_list(Name) ->
-    Name_A == list_to_atom(Name);
+attribute_matches(Attr, N) when is_list(N) ->
+    attribute_matches(Attr, list_to_binary(N));
+attribute_matches(Attr, N) when is_atom(N) ->
+    attribute_matches(Attr, list_to_binary(atom_to_list(N)));
 
 attribute_matches({Name_A, _Value}, Name)
   when is_atom(Name_A), is_list(Name) ->
@@ -1010,7 +984,7 @@ attribute_matches(_Attr, _Name) ->
 %% @spec (Attr, NS, Name) -> bool()
 %%     Attr = xmlattr()
 %%     NS = atom() | string()
-%%     Name = atom() | string()
+%%     Name = atom() | string() | binary()
 %% @doc Tell if `Attr' has the namespace `NS' and is named `Name'.
 %%
 %% It takes care of comparison between string and atom.
@@ -1018,29 +992,19 @@ attribute_matches(_Attr, _Name) ->
 -spec(attribute_matches/3 ::
       (xmlattr(), xmlname(), xmlname()) -> bool()).
 
+attribute_matches(Attr, NS, Name) when is_atom(Name) ->
+    attribute_matches(Attr, NS, list_to_binary(atom_to_list(Name)));
+attribute_matches(Attr, NS, Name) when is_list(Name) ->
+    attribute_matches(Attr, NS, list_to_binary(Name));
+
+
+attribute_matches(#xmlattr{ns = NS} = Attr, NS2, Name) when is_atom(NS), is_list(NS2) ->
+    attribute_matches(Attr, list_to_atom(NS2), Name);
+attribute_matches(#xmlattr{ns = NS} = Attr, NS2, Name) when is_list(NS),  is_atom(NS2) ->
+    attribute_matches(Attr, atom_to_list(NS2), Name);
+
 attribute_matches(#xmlattr{ns = NS, name = Name}, NS, Name) ->
     true;
-
-attribute_matches(#xmlattr{ns = NS_A, name = Name_A}, NS, Name)
-  when is_atom(NS_A), is_list(NS), is_atom(Name_A), is_list(Name) ->
-    NS_A == list_to_atom(NS) andalso Name_A == list_to_atom(Name);
-attribute_matches(#xmlattr{ns = NS, name = Name}, NS_A, Name_A)
-  when is_atom(NS_A), is_list(NS), is_atom(Name_A), is_list(Name) ->
-    NS_A == list_to_atom(NS) andalso Name_A == list_to_atom(Name);
-
-attribute_matches(#xmlattr{ns = NS_A, name = Name}, NS, Name)
-  when is_atom(NS_A), is_list(NS) ->
-    NS_A == list_to_atom(NS);
-attribute_matches(#xmlattr{ns = NS, name = Name}, NS_A, Name)
-  when is_atom(NS_A), is_list(NS) ->
-    NS_A == list_to_atom(NS);
-
-attribute_matches(#xmlattr{ns = NS, name = Name_A}, NS, Name)
-  when is_atom(Name_A), is_list(Name) ->
-    Name_A == list_to_atom(Name);
-attribute_matches(#xmlattr{ns = NS, name = Name}, NS, Name_A)
-  when is_atom(Name_A), is_list(Name) ->
-    Name_A == list_to_atom(Name);
 
 attribute_matches(_Attr, _NS, _Name) ->
     false.
@@ -1480,7 +1444,7 @@ has_attribute(undefined, _NS, _Name) ->
 %% @spec (Attrs, Attr) -> New_Attrs
 %%     Attrs = [xmlattr()] | [xmlattr_old()]
 %%     Attr = xmlattr() | xmlattr_old()
-%%     Attr_Name = atom() | string()
+%%     Attr_Name = binary()
 %%     Attr_Value = binary() | string() | atom() | integer()
 %%     New_Attrs = [xmlattr()] | [xmlattr_old()]
 %% @doc Add a new attribute or change the value of an existing attribute
@@ -1503,7 +1467,7 @@ has_attribute(undefined, _NS, _Name) ->
       ([xmlattr() | xmlattr_old()], xmlattr() | xmlattr_old()) ->
 	     [xmlattr() | xmlattr_old()]).
 
-set_attribute_in_list(Attrs, {Name, Value}) ->
+set_attribute_in_list(Attrs, {Name, Value}) when is_binary(Name) ->
     set_attribute_in_list(Attrs, Name, Value);
 set_attribute_in_list(Attrs, #xmlattr{} = Attr) ->
     set_attribute_in_list2(Attrs, Attr, []).
@@ -1529,7 +1493,7 @@ set_attribute_in_list2([], New_Attr, New_Attrs) ->
 
 %% @spec (Attrs, Attr_Name, Attr_Value) -> New_Attrs
 %%     Attrs = [xmlattr()] | [xmlattr_old()]
-%%     Attr_Name = atom() | string()
+%%     Attr_Name = binary()
 %%     Attr_Value = binary() | string() | atom() | integer()
 %%     New_Attrs = [xmlattr()] | [xmlattr_old()]
 %% @doc Add a new attribute or change the value of an existing attribute
@@ -1554,7 +1518,7 @@ set_attribute_in_list2([], New_Attr, New_Attrs) ->
        xmlname(), binary() | string() | atom() | integer()) ->
 	     [xmlattr() | xmlattr_old()]).
 
-set_attribute_in_list(Attrs, Name, Value) ->
+set_attribute_in_list(Attrs, Name, Value) when is_binary(Name) ->
     set_attribute_in_list2(Attrs, Name, Value, []).
 
 set_attribute_in_list2([Attr | Rest], Name, Value, New_Attrs) ->
@@ -1580,7 +1544,7 @@ set_attribute_in_list2([], Name, Value, New_Attrs) ->
 %% @spec (Attrs, NS, Attr_Name, Attr_Value) -> New_Attrs
 %%     Attrs = [xmlattr()]
 %%     NS = atom() | string()
-%%     Attr_Name = atom() | string()
+%%     Attr_Name = binary()
 %%     Attr_Value = binary() | string() | atom() | integer()
 %%     New_Attrs = [xmlattr()]
 %% @doc Add a new attribute or change the value of an existing attribute
@@ -1594,7 +1558,7 @@ set_attribute_in_list2([], Name, Value, New_Attrs) ->
        binary() | string() | atom() | integer()) ->
 	     [xmlattr()]).
 
-set_attribute_in_list(Attrs, NS, Name, Value) ->
+set_attribute_in_list(Attrs, NS, Name, Value) when is_binary(Name) ->
     set_attribute_in_list2(Attrs, NS, Name, Value, []).
 
 set_attribute_in_list2([Attr | Rest], NS, Name, Value, New_Attrs) ->
@@ -1631,7 +1595,7 @@ set_attribute(#xmlelement{attrs = Attrs} = XML_Element, Attr) ->
 
 %% @spec (XML_Element, Attr_Name, Attr_Value) -> New_XML_Element
 %%     XML_Element = xmlel() | xmlel_old()
-%%     Attr_Name = atom() | string()
+%%     Attr_Name = binary()
 %%     Attr_Value = binary() | string() | atom() | integer()
 %%     New_XML_Element = xmlel() | xmlel_old()
 %% @doc Add a new attribute or change the value of an existing attribute.
@@ -1642,7 +1606,7 @@ set_attribute(#xmlelement{attrs = Attrs} = XML_Element, Attr) ->
       (xmlel_old(), xmlname(), binary() | string() | atom() | integer()) ->
 	     xmlel_old()).
 
-set_attribute(#xmlel{attrs = Attrs} = XML_Element, Name, Value) ->
+set_attribute(#xmlel{attrs = Attrs} = XML_Element, Name, Value) when is_binary(Name)->
     New_Attrs = set_attribute_ns2(Attrs, Name, Value, []),
     XML_Element#xmlel{attrs = New_Attrs};
 set_attribute(#xmlelement{attrs = Attrs} = XML_Element, Name, Value) ->
@@ -1674,7 +1638,7 @@ set_attribute2([], Name, Value, New_Attrs) ->
 %% @spec (XML_Element, NS, Attr_Name, Attr_Value) -> New_XML_Element
 %%     XML_Element = xmlel()
 %%     NS = atom() | string()
-%%     Attr_Name = atom() | string()
+%%     Attr_Name = binary()
 %%     Attr_Value = binary() | string() | atom() | integer()
 %%     New_XML_Element = xmlel()
 %% @doc Add a new attribute or change the value of an existing attribute
@@ -1684,7 +1648,7 @@ set_attribute2([], Name, Value, New_Attrs) ->
       (xmlel(), xmlname(), xmlname(), binary() | string() | atom() | integer()) ->
 	     xmlel()).
 
-set_attribute(#xmlel{attrs = Attrs} = XML_Element, NS, Name, Value) ->
+set_attribute(#xmlel{attrs = Attrs} = XML_Element, NS, Name, Value) when is_binary(Name) ->
     New_Attrs = set_attribute_ns2(Attrs, NS, Name, Value, []),
     XML_Element#xmlel{attrs = New_Attrs}.
 
@@ -1703,7 +1667,7 @@ set_attribute_ns2([], NS, Name, Value, New_Attrs) ->
 %%     XML_Element = xmlel() | xmlel_old()
 %%     Attrs_Spec = [{Name, Value} | {NS, Name, Value} | xmlattr_old() | xmlattr()]
 %%       NS = atom() | string()
-%%       Name = atom() | string()
+%%       Name = binary()
 %%       Value = binary() | string() | atom() | integer()
 %%     New_XML_Element = xmlel() | xmlel_old()
 %% @doc Set multiple attributes at a time.
@@ -1739,7 +1703,7 @@ set_attributes(XML_Element, []) ->
 
 %% @spec (Attrs, Attr_Name) -> New_Attrs
 %%     Attrs = [xmlattr()] | [xmlattr_old()]
-%%     Attr_Name = atom() | string()
+%%     Attr_Name = binary()
 %%     New_Attrs = [xmlattr()] | [xmlattr_old()]
 %% @doc Remove attribute named `Attr_Name' and return the new list.
 %%
@@ -1758,7 +1722,7 @@ set_attributes(XML_Element, []) ->
 -spec(remove_attribute_from_list/2 ::
       ([xmlattr() | xmlattr_old()], xmlname()) -> [xmlattr() | xmlattr_old()]).
 
-remove_attribute_from_list(Attrs, Name) ->
+remove_attribute_from_list(Attrs, Name)  when is_binary(Name) ->
     remove_attribute_from_list2(Attrs, Name, []).
 
 remove_attribute_from_list2([Attr | Rest], Name, New_Attrs) ->
@@ -1776,7 +1740,7 @@ remove_attribute_from_list2([], _Name, New_Attrs) ->
 
 %% @spec (Attrs, NS, Attr_Name) -> New_Attrs
 %%     Attrs = [xmlattr()]
-%%     Attr_Name = atom() | string()
+%%     Attr_Name = binary()
 %%     New_Attrs = [xmlattr()]
 %% @doc Remove attribute named `Attr_Name' with the `NS' namespace URI
 %% and return the new list.
@@ -1787,7 +1751,7 @@ remove_attribute_from_list2([], _Name, New_Attrs) ->
 -spec(remove_attribute_from_list/3 ::
       ([xmlattr()], xmlname(), xmlname()) -> [xmlattr()]).
 
-remove_attribute_from_list(Attrs, NS, Name) ->
+remove_attribute_from_list(Attrs, NS, Name) when is_binary(Name) ->
     remove_attribute_from_list2(Attrs, NS, Name, []).
 
 remove_attribute_from_list2([Attr | Rest], NS, Name, New_Attrs) ->
@@ -1803,7 +1767,7 @@ remove_attribute_from_list2([], _NS, _Name, New_Attrs) ->
 
 %% @spec (XML_Element, Attr_Name) -> New_XML_Element
 %%     XML_Element = xmlel() | xmlel_old()
-%%     Attr_Name = atom() | string()
+%%     Attr_Name = binary()
 %%     New_XML_Element = xmlel() | xmlel_old()
 %% @doc Remove attribute named `Attr_Name' and return the new element.
 %%
@@ -1814,7 +1778,7 @@ remove_attribute_from_list2([], _NS, _Name, New_Attrs) ->
       (xmlel(), xmlname())     -> xmlel();
       (xmlel_old(), xmlname()) -> xmlel_old()).
 
-remove_attribute(#xmlel{attrs = Attrs} = XML_Element, Name) ->
+remove_attribute(#xmlel{attrs = Attrs} = XML_Element, Name) when is_binary(Name) ->
     New_Attrs = remove_attribute_from_list(Attrs, Name),
     XML_Element#xmlel{attrs = New_Attrs};
 
@@ -1825,7 +1789,7 @@ remove_attribute(#xmlelement{attrs = Attrs} = XML_Element, Name) ->
 %% @spec (XML_Element, NS, Attr_Name) -> New_XML_Element
 %%     XML_Element = xmlel()
 %%     NS = atom() | string()
-%%     Attr_Name = atom() | string()
+%%     Attr_Name = binary()
 %%     New_XML_Element = xmlel()
 %% @doc Remove attribute named `Attr_Name' with the `NS' namespace URI
 %% and return the new element.
@@ -1836,7 +1800,7 @@ remove_attribute(#xmlelement{attrs = Attrs} = XML_Element, Name) ->
 -spec(remove_attribute/3 ::
       (xmlel(), xmlname(), xmlname()) -> xmlel()).
 
-remove_attribute(#xmlel{attrs = Attrs} = XML_Element, NS, Name) ->
+remove_attribute(#xmlel{attrs = Attrs} = XML_Element, NS, Name) when is_binary(Name) ->
     New_Attrs = remove_attribute_from_list(Attrs, NS, Name),
     XML_Element#xmlel{attrs = New_Attrs}.
 
@@ -3186,7 +3150,7 @@ xmlnsattributes_to_xmlattributes(Attrs, Prefixed_NS) ->
 xmlnsattributes_to_xmlattributes2([#xmlattr{ns = NS, name = Name,
 					    value = Value} | Rest],
 				  Prefixed_NS, Converted_Attrs) ->
-    Name_S = exmpp_known_attrs:attr_as_list(Name),
+    Name_S = binary_to_list(Name),
     {New_Name, Converted_Attrs1, Prefixed_NS1} =
 	case NS of
 	    undefined ->
@@ -3217,6 +3181,8 @@ xmlnsattributes_to_xmlattributes2([#xmlattr{ns = NS, name = Name,
     %% the old format required it. But this function is also used by
     %% document_to_iolist/1 & friends. In this context, the call to
     %% binary_to_list/1 is a waste of time.
+    %% TODO: the old format is not used anymore.. fix this conversion stuff
+    %% that is ugly and redundant.     
     xmlnsattributes_to_xmlattributes2(Rest, Prefixed_NS1,
 				      [{New_Name, binary_to_list(Value)}
 				       | Converted_Attrs1]);
@@ -3279,7 +3245,7 @@ forward_declare_ns(Curr_NS, [{NS, none} | Rest],
     %% Forward-declare a default namespace.
     %% XXX This would benefit the addition of exmpp_known_*:*_as_binary/1.
     NS_S = exmpp_known_nss:ns_as_list(NS),
-    NS_Decl = attribute("xmlns", NS_S),
+    NS_Decl = attribute(<<"xmlns">>, NS_S),
     New_Attrs = [NS_Decl | Attrs],
     New_Default_NS = [NS | Default_NS],
     forward_declare_ns(Curr_NS, Rest, New_Attrs, New_Default_NS, Prefixed_NS);
@@ -3296,7 +3262,7 @@ forward_declare_ns(Curr_NS, [{NS, Prefix} = PNS | Rest],
 	    %% XXX This would benefit the addition of
 	    %% exmpp_known_*:*_as_binary/1.
             NS_S = exmpp_known_nss:ns_as_list(NS),
-            NS_Decl = attribute("xmlns:" ++ Prefix, NS_S),
+            NS_Decl = attribute(list_to_binary("xmlns:" ++ Prefix), NS_S),
             New_Attrs = [NS_Decl | Attrs],
             Prefixed_NS1 = [PNS | Prefixed_NS],
             forward_declare_ns(Curr_NS, Rest, New_Attrs,
@@ -3319,7 +3285,7 @@ forward_declare_ns(Curr_NS, [], Attrs, Default_NS, Prefixed_NS) ->
 		    %% XXX This would benefit the addition of
 		    %% exmpp_known_*:*_as_binary/1.
                     Curr_NS_S = exmpp_known_nss:ns_as_list(Curr_NS),
-                    NS_Decl = attribute("xmlns", Curr_NS_S),
+                    NS_Decl = attribute(<<"xmlns">>, Curr_NS_S),
                     New_Attrs = [NS_Decl | Attrs],
                     Default_NS1 = [Curr_NS | Default_NS],
                     {none, New_Attrs, Default_NS1, Prefixed_NS};
@@ -4084,9 +4050,6 @@ set_option(Port, {check_nss, Check}) when is_atom(Check) ->
 set_option(Port, {check_elems, Check}) when is_atom(Check) ->
     engine_set_things_check(Port, names, Check);
 
-set_option(Port, {check_attrs, Check}) when is_atom(Check) ->
-    engine_set_things_check(Port, attrs, Check);
-
 set_option(Port, {emit_endtag, Endtag}) when is_boolean(Endtag) ->
     port_control(Port, ?COMMAND_SET_EMIT_ENDTAG, term_to_binary(Endtag)),
     ok;
@@ -4123,16 +4086,14 @@ control(Port, Command, Data) ->
 engine_add_known(Port, Type, List_Name, New_Items) ->
     Command = case Type of
 		  nss   -> ?COMMAND_ADD_KNOWN_NSS;
-		  names -> ?COMMAND_ADD_KNOWN_ELEMS;
-		  attrs -> ?COMMAND_ADD_KNOWN_ATTRS
+		  names -> ?COMMAND_ADD_KNOWN_ELEMS
 	      end,
     control(Port, Command, term_to_binary({List_Name, New_Items})).
 
 engine_set_things_check(Port, Type, List_Name) ->
     Command = case Type of
 		  nss   -> ?COMMAND_SET_CHECK_NSS;
-		  names -> ?COMMAND_SET_CHECK_ELEMS;
-		  attrs -> ?COMMAND_SET_CHECK_ATTRS
+		  names -> ?COMMAND_SET_CHECK_ELEMS
 	      end,
     case control(Port, Command, term_to_binary(List_Name)) of
         {error, Reason} -> {error, failure, Reason};
@@ -4177,8 +4138,7 @@ init([]) ->
     ets:new(?ENGINES_REGISTRY, [named_table, {keypos, 2}]),
     {ok, #state{
        known_nss_lists = dict:new(),
-       known_elems_lists = dict:new(),
-       known_attrs_lists = dict:new()
+       known_elems_lists = dict:new()
       }}.
 
 %% @hidden
@@ -4188,8 +4148,7 @@ handle_call({register_engine,
 			 driver = Driver_Name} = Engine},
 	    _From,
 	    #state{known_nss_lists = Known_NSs,
-		   known_elems_lists = Known_Names,
-		   known_attrs_lists = Known_Attrs} = State) ->
+		   known_elems_lists = Known_Names} = State) ->
     try
 	%% Load the driver now.
         case Driver_Path of
@@ -4224,13 +4183,6 @@ handle_call({register_engine,
                 _ ->
                     ok
             end,
-            case dict:fold(Fun1, {Port, attrs, ok}, Known_Attrs) of
-                {_Port3, {error, Reason3}} ->
-                    exmpp_internals:close_port(Port),
-                    throw(Reason3);
-                _ ->
-                    ok
-            end,
 	    %% Add engine to the global list.
             Engine1 = Engine#xml_engine{port = Port},
             try
@@ -4254,8 +4206,7 @@ handle_call({register_engine,
 handle_call({add_known, Type, List_Name, New_Items}, _From, State) ->
     Lists = case Type of
 		nss   -> State#state.known_nss_lists;
-		names -> State#state.known_elems_lists;
-		attrs -> State#state.known_attrs_lists
+		names -> State#state.known_elems_lists
 	    end,
     %% Give the new items to all drivers.
     Fun1 = fun(#xml_engine{port = Port}, Acc) ->
@@ -4284,8 +4235,7 @@ handle_call({add_known, Type, List_Name, New_Items}, _From, State) ->
 	    %% Update the state.
             New_State = case Type of
 			    nss   -> State#state{known_nss_lists = New_Lists};
-			    names -> State#state{known_elems_lists = New_Lists};
-			    attrs -> State#state{known_attrs_lists = New_Lists}
+			    names -> State#state{known_elems_lists = New_Lists}
 			end,
             {reply, ok, New_State}
     end;

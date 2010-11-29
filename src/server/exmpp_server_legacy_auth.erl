@@ -109,7 +109,7 @@ failure(Password_IQ, Condition) when ?IS_IQ(Password_IQ) ->
 	   end,
     Error = exmpp_xml:set_attribute(
 	      exmpp_stanza:error(Password_IQ#xmlel.ns, Condition),
-	      'code', Code),
+	      <<"code">>, Code),
     exmpp_iq:error_without_original(Password_IQ, Error).
 
 %% --------------------------------------------------------------------

@@ -41,7 +41,7 @@ list_push(To, List_Name) ->
     List0 = #xmlel{ns = ?NS_PRIVACY,
 		   name = 'list'
 		  },
-    List = exmpp_xml:set_attribute(List0, 'name', List_Name),
+    List = exmpp_xml:set_attribute(List0, <<"name">>, List_Name),
     Query = #xmlel{ns = ?NS_PRIVACY,
 		   name = 'query',
 		   children = [List]

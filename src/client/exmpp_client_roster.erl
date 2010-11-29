@@ -41,7 +41,7 @@ get_roster(Id) ->
     Query = #xmlel{ns = ?NS_ROSTER, name = 'query'},
     Iq = exmpp_xml:set_attributes(
 	   #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
-	   [{'type', "get"}, {'id', Id}]),
+	   [{<<"type">>, "get"}, {<<"id">>, Id}]),
     exmpp_xml:append_child(Iq, Query).
 
 %% @spec (ContactJID, Groups, Nick) -> Roster_Iq
@@ -66,7 +66,7 @@ set_item(Id, ContactJID, Groups, Nick) ->
     Item = exmpp_xml:set_children(
 		exmpp_xml:set_attributes(
 		     #xmlel{name = 'item'},
-		     [{'name', Nick}, {'jid', ContactJID}]),
+		     [{<<"name">>, Nick}, {<<"jid">>, ContactJID}]),
 		[ exmpp_xml:set_cdata(
 			exmpp_xml:element(?NS_ROSTER, 'group'),
 			Gr) || Gr <- Groups]),
@@ -74,7 +74,7 @@ set_item(Id, ContactJID, Groups, Nick) ->
     Query2 = exmpp_xml:append_child(Query, Item),
     Iq = exmpp_xml:set_attributes(
 	   #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
-	   [{'type', "set"}, {'id', Id}]),
+	   [{<<"type">>, "set"}, {<<"id">>, Id}]),
     exmpp_xml:append_child(Iq, Query2).
 
 %% @spec () -> Roster_ID

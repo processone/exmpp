@@ -48,7 +48,7 @@ kick(NS, Room, Nick, Reason) ->
     exmpp_stanza:set_recipient(
         exmpp_iq:set(NS, 
             exmpp_xml:element(?NS_MUC_ADMIN, 'query', [], 
-                [exmpp_xml:element(?NS_MUC_ADMIN, 'item', [?XMLATTR('nick', Nick), ?XMLATTR('role', <<"none">>)], 
+                [exmpp_xml:element(?NS_MUC_ADMIN, 'item', [?XMLATTR(<<"nick">>, Nick), ?XMLATTR(<<"role">>, <<"none">>)], 
                     [exmpp_xml:element(?NS_MUC_ADMIN, 'reason', [], [?XMLCDATA(Reason)])])])), Room).
 
 
@@ -74,7 +74,7 @@ get_banlist(NS, Room) ->
     exmpp_stanza:set_recipient(
         exmpp_iq:get(NS, 
             exmpp_xml:element(?NS_MUC_ADMIN, 'query', [], 
-                [exmpp_xml:element(?NS_MUC_ADMIN, 'item', [?XMLATTR('affiliation', <<"outcast">>)], [])])), Room ).
+                [exmpp_xml:element(?NS_MUC_ADMIN, 'item', [?XMLATTR(<<"affiliation">>, <<"outcast">>)], [])])), Room ).
     
 
 -spec update_banlist(Room :: exmpp_jid:jid(), BanList :: [ban_item()]) -> #xmlel{}.
@@ -91,7 +91,7 @@ update_banlist(NS, Room, BanList) ->
 ban_to_item({JID, Affiliation}) ->
     ban_to_item({JID, Affiliation, <<>>});
 ban_to_item({JID, Affiliation, Reason}) ->
-    exmpp_xml:element(?NS_MUC_ADMIN, 'item', [?XMLATTR('jid', exmpp_jid:to_binary(JID)), ?XMLATTR('affiliation', affiliation_to_binary(Affiliation))], 
+    exmpp_xml:element(?NS_MUC_ADMIN, 'item', [?XMLATTR(<<"jid">>, exmpp_jid:to_binary(JID)), ?XMLATTR(<<"affiliation">>, affiliation_to_binary(Affiliation))], 
         [exmpp_xml:element(?NS_MUC_ADMIN, 'reason', [], [?XMLCDATA(Reason)])]).
 
 

@@ -33,13 +33,11 @@ enum {
 enum {
 	COMMAND_ADD_KNOWN_NSS = 1,
 	COMMAND_ADD_KNOWN_ELEMS,
-	COMMAND_ADD_KNOWN_ATTRS,
 	COMMAND_SET_MAX_SIZE,
 	COMMAND_SET_ROOT_DEPTH,
 	COMMAND_SET_NAMES_AS_ATOM,
 	COMMAND_SET_CHECK_NSS,
 	COMMAND_SET_CHECK_ELEMS,
-	COMMAND_SET_CHECK_ATTRS,
 	COMMAND_SET_EMIT_ENDTAG,
 	COMMAND_PARSE,
 	COMMAND_PARSE_FINAL,
@@ -63,7 +61,6 @@ struct exmpp_xml_ctx {
 	int			 names_as_atom;
 	int			 check_nss;
 	int			 check_elems;
-	int			 check_attrs;
 	int			 emit_endtag;
 	long			 max_size;
 	long			 root_depth;
@@ -76,7 +73,6 @@ struct exmpp_xml_ctx {
 	/* Parsing state. */
 	struct exmpp_hashtable	*known_nss;
 	struct exmpp_hashtable	*known_elems;
-	struct exmpp_hashtable	*known_attrs;
 	long			 cur_size;
 	long			 depth;
 	ei_x_buff		*current_tree;

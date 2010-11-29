@@ -229,9 +229,9 @@ do_send(#xmlel{ns=?NS_XMPP, name='stream'}, State) ->
     NewState2 = return_socket(NewState, Socket), %%TODO: this can be improved.. don't close the socket and reuse it for latter
 
     [#xmlel{name=body} = BodyEl] = exmpp_xml:parse_document(Resp),
-    SID = exmpp_xml:get_attribute_as_binary(BodyEl, sid, undefined),
-    AuthID = exmpp_xml:get_attribute_as_binary(BodyEl,authid,undefined),
-    Requests = list_to_integer(exmpp_xml:get_attribute_as_list(BodyEl,requests,undefined)),
+    SID = exmpp_xml:get_attribute_as_binary(BodyEl, <<"sid">>, undefined),
+    AuthID = exmpp_xml:get_attribute_as_binary(BodyEl,<<"authid">>,undefined),
+    Requests = list_to_integer(exmpp_xml:get_attribute_as_list(BodyEl,<<"requests">>,undefined)),
     Events = [{xmlstreamelement, El} || El <- exmpp_xml:get_child_elements(BodyEl)],                                      
 
     % first return a fake stream response, then anything found inside the <body/> element (possibly nothing)

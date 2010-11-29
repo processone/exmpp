@@ -52,7 +52,7 @@ get_registration_fields(Id) ->
     Query = #xmlel{ns = ?NS_INBAND_REGISTER, name = 'query'},
     Iq = exmpp_xml:set_attributes(
 	   #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
-	   [{'type', "get"}, {'id', Id}]),
+	   [{<<"type">>, "get"}, {<<"id">>, Id}]),
     exmpp_xml:append_child(Iq, Query).
 
 %% @spec (Fields) -> Register_Iq
@@ -81,7 +81,7 @@ register_account(Id, Fields) ->
     %% Put the prepared query in IQ
     Iq = exmpp_xml:set_attributes(
 	   #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
-	   [{'type', "set"}, {'id', Id}]),
+	   [{<<"type">>, "set"}, {<<"id">>, Id}]),
     exmpp_xml:append_child(Iq, PreparedQuery).
 
 %% @spec () -> RemoveRegister_Iq
@@ -104,7 +104,7 @@ remove_account(Id) ->
     %% Put the prepared query in IQ
     Iq = exmpp_xml:set_attributes(
 	   #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
-	   [{'type', "set"}, {'id', Id}]),
+	   [{<<"type">>, "set"}, {<<"id">>, Id}]),
     exmpp_xml:append_child(Iq, PreparedQuery).
 
 %% @hidden

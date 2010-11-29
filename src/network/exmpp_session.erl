@@ -573,9 +573,9 @@ wait_for_stream(?stream, State = #state{authenticated = true}) ->
 
 wait_for_stream(Start = ?stream, State = #state{from_pid = From}) ->
     %% Get StreamID
-    StreamId = exmpp_xml:get_attribute_as_list(Start#xmlstreamstart.element, id, ""),
+    StreamId = exmpp_xml:get_attribute_as_list(Start#xmlstreamstart.element, <<"id">>, ""),
     
-    case exmpp_xml:get_attribute_as_list(Start#xmlstreamstart.element, version, "") of
+    case exmpp_xml:get_attribute_as_list(Start#xmlstreamstart.element, <<"version">>, "") of
             "" ->
                 gen_fsm:reply(From, {ok,StreamId}),
                 {next_state, stream_opened, State#state{from_pid=undefined,
@@ -869,7 +869,7 @@ wait_for_legacy_auth_method(?streamerror, State) ->
 %% TODO: We should be able to match on iq type directly on the first
 %% level record
 wait_for_auth_result(?iq_no_attrs, State = #state{from_pid=From, auth_info = Auth}) ->
-    case exmpp_xml:get_attribute_as_binary(IQElement, type, undefined) of
+    case exmpp_xml:get_attribute_as_binary(IQElement, <<"type">>, undefined) of
  	<<"result">> ->
             gen_fsm:reply(From, {ok, get_jid(Auth)}),
             {next_state, logged_in, State#state{from_pid=undefined}};
@@ -884,7 +884,7 @@ wait_for_auth_result(?iq_no_attrs, State = #state{from_pid=From, auth_info = Aut
 %% requirements. Check that a client can get the list of fields and
 %% override this simple method of registration.
 wait_for_register_result(?iq_no_attrs, State = #state{from_pid=From}) ->
-    case exmpp_xml:get_attribute_as_binary(IQElement, type, undefined) of
+    case exmpp_xml:get_attribute_as_binary(IQElement, <<"type">>, undefined) of
  	<<"result">> ->
             gen_fsm:reply(From, ok),
             {next_state, stream_opened, State#state{from_pid=undefined}};
@@ -1030,7 +1030,6 @@ get_jid({JID, _Password}) when ?IS_JID(JID) ->
 	 {names_as_atom, true},
 	 {check_nss, xmpp},
 	 {check_elems, xmpp},
-	 {check_attrs, xmpp},
 	 {emit_endtag, false},
 	 {root_depth, 0},
 	 {max_size, infinity}]).
@@ -1044,7 +1043,7 @@ start_parser() ->
 %% Authentication functions
 check_auth_method(Method, IQElement) ->
     %% Check auth method if we have the IQ result
-    case exmpp_xml:get_attribute_as_binary(IQElement, type, undefined) of
+    case exmpp_xml:get_attribute_as_binary(IQElement, <<"type">>, undefined) of
 	<<"result">> ->
 	    check_auth_method2(Method, IQElement);
 	_ ->
@@ -1065,13 +1064,13 @@ check_auth_method2(Method, IQElement) ->
 
 %% Packet processing functions
 process_presence(ClientPid, Attrs, Packet) ->
-    Type = get_attribute_value(Attrs, type, "available"),
-    Who = case get_attribute_value(Attrs, from, undefined) of
+    Type = get_attribute_value(Attrs, <<"type">>, "available"),
+    Who = case get_attribute_value(Attrs, <<"from">>, undefined) of
                 undefined -> undefined;
                 "" -> undefined;
                 Value -> exmpp_jid:to_lower(Value)
           end,
-    Id = get_attribute_value(Attrs, id, ""),
+    Id = get_attribute_value(Attrs, <<"id">>, ""),
     ClientPid ! #received_packet{packet_type = presence,
                                  type_attr = Type,
                                  from = Who,
@@ -1079,13 +1078,13 @@ process_presence(ClientPid, Attrs, Packet) ->
                                  raw_packet = Packet}.
 
 process_message(ClientPid, Attrs, Packet) ->
-    Type = get_attribute_value(Attrs, type, "normal"),
-    Who = case get_attribute_value(Attrs, from, undefined) of
+    Type = get_attribute_value(Attrs, <<"type">>, "normal"),
+    Who = case get_attribute_value(Attrs, <<"from">>, undefined) of
                 undefined -> undefined;
                 "" -> undefined;
                 Value -> exmpp_jid:to_lower(Value)
           end,
-    Id = get_attribute_value(Attrs, id, ""),
+    Id = get_attribute_value(Attrs, <<"id">>, ""),
     ClientPid ! #received_packet{packet_type = message,
                                  type_attr = Type,
                                  from = Who,
@@ -1093,13 +1092,13 @@ process_message(ClientPid, Attrs, Packet) ->
                                  raw_packet = Packet}.
 
 process_iq(ClientPid, Attrs, Packet) ->
-    Type = get_attribute_value(Attrs, type, ""),
-    Who = case get_attribute_value(Attrs, from, undefined) of
+    Type = get_attribute_value(Attrs, <<"type">>, ""),
+    Who = case get_attribute_value(Attrs, <<"from">>, undefined) of
                 undefined -> undefined;
                 "" -> undefined;
                 Value -> exmpp_jid:to_lower(Value)
           end,
-    Id = get_attribute_value(Attrs, id, ""),
+    Id = get_attribute_value(Attrs, <<"id">>, ""),
     NS = exmpp_iq:get_payload_ns_as_atom(Packet),
     ClientPid ! #received_packet{packet_type = iq,
                                  queryns = NS,
@@ -1113,14 +1112,13 @@ process_stream_error(ClientPid, Reason) ->
 
 %% Add a packet ID is needed:
 %% Check that the attribute list has defined an ID.
-%% If no ID has been defined, add a packet id to the list of attributes
 %% This function uses {@link random:uniform/1}. It's up to the caller to
 %% seed the generator.
 check_id(Attrs) ->
-    case exmpp_xml:get_attribute_from_list_as_binary(Attrs, id, <<>>) of
+    case exmpp_xml:get_attribute_from_list_as_binary(Attrs, <<"id">>, <<>>) of
 	<<>> ->
 	    Id = exmpp_utils:random_id("session"),
-	    {exmpp_xml:set_attribute_in_list(Attrs, id, Id), Id};
+	    {exmpp_xml:set_attribute_in_list(Attrs, <<"id">>, Id), Id};
         Id -> {Attrs, Id}
     end.
 

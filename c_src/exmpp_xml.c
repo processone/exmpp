@@ -21,7 +21,6 @@
 /* Global known lists. */
 static struct exmpp_hashtable	*known_nss_index = NULL;
 static struct exmpp_hashtable	*known_elems_index = NULL;
-static struct exmpp_hashtable	*known_attrs_index = NULL;
 
 #define	KNOWN_NSS_AVG_MIN_LENGTH	 200
 #define	KNOWN_ELEMS_AVG_MIN_LENGTH	1100
@@ -32,19 +31,14 @@ static struct exmpp_hashtable	*known_attrs_index = NULL;
 
 static int		add_known_nss(const char *buf, int index);
 static int		add_known_elems(const char *buf, int index);
-static int		add_known_attrs(const char *buf, int index);
 static int		select_known_nss(struct exmpp_xml_ctx *ctx,
 			    const char *buf, int index);
 static int		select_known_elems(struct exmpp_xml_ctx *ctx,
-			    const char *buf, int index);
-static int		select_known_attrs(struct exmpp_xml_ctx *ctx,
 			    const char *buf, int index);
 static int		is_known_ns(struct exmpp_xml_ctx *ctx,
 			    const char *ns, int ns_len);
 static int		is_known_elem(struct exmpp_xml_ctx *ctx,
 			    const char *elem, int elem_len);
-static int		is_known_attr(struct exmpp_xml_ctx *ctx,
-			    const char *attr, int attr_len);
 
 static int		encode_ns(struct exmpp_xml_ctx *ctx,
 			    ei_x_buff *tree, const char *ns, int ns_len);
@@ -78,10 +72,6 @@ init_known_lists()
 	if (known_elems_index == NULL)
 		goto err;
 
-	known_attrs_index = exmpp_ht_create(4,
-	    (void (*)(void *))exmpp_ht_destroy);
-	if (known_attrs_index == NULL)
-		goto err;
 
 	return (0);
 
@@ -94,11 +84,6 @@ err:
 	if (known_elems_index != NULL) {
 		exmpp_ht_destroy(known_elems_index);
 		known_elems_index = NULL;
-	}
-
-	if (known_attrs_index != NULL) {
-		exmpp_ht_destroy(known_attrs_index);
-		known_attrs_index = NULL;
 	}
 
 	return (-1);
@@ -116,11 +101,6 @@ free_known_lists()
 	if (known_elems_index != NULL) {
 		exmpp_ht_destroy(known_elems_index);
 		known_elems_index = NULL;
-	}
-
-	if (known_attrs_index != NULL) {
-		exmpp_ht_destroy(known_attrs_index);
-		known_attrs_index = NULL;
 	}
 }
 
@@ -161,16 +141,6 @@ control(struct exmpp_xml_ctx *ctx, unsigned int command,
 		}
 
 		break;
-	case COMMAND_ADD_KNOWN_ATTRS:
-		index = exmpp_skip_version(buf);
-
-		if (add_known_attrs(buf, index) != 0) {
-			ei_x_encode_atom(to_return, "add_known_attrs_failed");
-
-			return (RET_ERROR);
-		}
-
-		break;
 
 	/*
 	 * Options handling.
@@ -197,16 +167,6 @@ control(struct exmpp_xml_ctx *ctx, unsigned int command,
 
 		if (select_known_elems(ctx, buf, index) != 0) {
 			ei_x_encode_atom(to_return, "check_elems_failed");
-
-			return (RET_ERROR);
-		}
-
-		break;
-	case COMMAND_SET_CHECK_ATTRS:
-		index = exmpp_skip_version(buf);
-
-		if (select_known_attrs(ctx, buf, index) != 0) {
-			ei_x_encode_atom(to_return, "check_attrs_failed");
 
 			return (RET_ERROR);
 		}
@@ -256,8 +216,8 @@ init_context(struct exmpp_xml_ctx *ctx)
 	ctx->root_depth = 0;
 	ctx->emit_endtag = 0;
 	ctx->names_as_atom = 1;
-	ctx->check_nss = ctx->check_elems = ctx->check_attrs = 0;
-	ctx->known_nss = ctx->known_elems = ctx->known_attrs = NULL;
+	ctx->check_nss = ctx->check_elems = 0;
+	ctx->known_nss = ctx->known_elems = NULL;
 
 	/* Clear callbacks. */
 	ctx->make_declared_nss = NULL;
@@ -789,29 +749,6 @@ lookup_known_elems(const char *list_name, int list_name_len)
 	return (kl);
 }
 
-static struct exmpp_hashtable *
-lookup_known_attrs(const char *list_name, int list_name_len)
-{
-	struct exmpp_hashtable *kl;
-
-	if (known_attrs_index == NULL)
-		return (NULL);
-
-	/* Lookup the known list. */
-	kl = exmpp_ht_fetch(known_attrs_index, list_name, list_name_len);
-	if (kl == NULL) {
-		/* This list doesn't exist yet, create it. */
-		kl = exmpp_ht_create(KNOWN_ATTRS_AVG_MIN_LENGTH, NULL);
-		if (kl == NULL)
-			return (NULL);
-
-		/* Add it to the lists index. */
-		exmpp_ht_store(known_attrs_index,
-		    list_name, list_name_len, kl);
-	}
-
-	return (kl);
-}
 
 static int
 update_list(struct exmpp_hashtable *kl, const char *buf, int *index)
@@ -889,29 +826,6 @@ add_known_elems(const char *buf, int index)
 	return (RET_OK);
 }
 
-static int
-add_known_attrs(const char *buf, int index)
-{
-	int list_name_len;
-	char list_name[MAXATOMLEN];
-	struct exmpp_hashtable *kl;
-
-	/* Get the list name from the given Erlang term. */
-	if (get_known_list_name(buf, &index, list_name, &list_name_len) != 0)
-		return (RET_ERROR);
-
-	/* We can lookup the list (it will be created if it doesn't
-	 * already exist. */
-	kl = lookup_known_attrs(list_name, list_name_len);
-	if (kl == NULL)
-		return (RET_ERROR);
-
-	/* Update the list. */
-	if (update_list(kl, buf, &index) != 0)
-		return (RET_ERROR);
-
-	return (RET_OK);
-}
 
 static int
 select_known_nss(struct exmpp_xml_ctx *ctx, const char *buf, int index)
@@ -983,40 +897,6 @@ select_known_elems(struct exmpp_xml_ctx *ctx, const char *buf, int index)
 	return (0);
 }
 
-static int
-select_known_attrs(struct exmpp_xml_ctx *ctx, const char *buf, int index)
-{
-	int type, list_name_len;
-	char list_name[MAXATOMLEN];
-	struct exmpp_hashtable *kl;
-
-	if (ei_get_type(buf, &index, &type, &list_name_len) != 0)
-		return (-1);
-	if (ei_decode_atom(buf, &index, list_name) != 0)
-		return (-1);
-
-	if (strcmp(list_name, "false") == 0) {
-		ctx->check_attrs = 0;
-		return (0);
-	}
-	
-	if (strcmp(list_name, "true") == 0) {
-		if (ctx->known_attrs == NULL)
-			return (-1);
-
-		ctx->check_attrs = 1;
-		return (0);
-	}
-
-	kl = exmpp_ht_fetch(known_attrs_index, list_name, list_name_len);
-	if (kl == NULL)
-		return (-1);
-
-	ctx->known_attrs = kl;
-	ctx->check_attrs = 1;
-
-	return (0);
-}
 
 static int
 is_known_ns(struct exmpp_xml_ctx *ctx, const char *ns, int ns_len)
@@ -1052,22 +932,6 @@ is_known_elem(struct exmpp_xml_ctx *ctx, const char *elem, int elem_len)
 	return (is_known);
 }
 
-static int
-is_known_attr(struct exmpp_xml_ctx *ctx, const char *attr, int attr_len)
-{
-	int is_known;
-
-	if (ctx == NULL)
-		return (0);
-	if (!ctx->check_attrs)
-		return (1);
-	if (ctx->known_attrs == NULL)
-		return (0);
-
-	is_known = exmpp_ht_exists(ctx->known_attrs, attr, attr_len);
-
-	return (is_known);
-}
 
 static int
 encode_ns(struct exmpp_xml_ctx *ctx, ei_x_buff *tree,
@@ -1141,27 +1005,11 @@ encode_attr(struct exmpp_xml_ctx *ctx, ei_x_buff *tree,
 {
 	int ret;
 
-	/* Check if the attribute is known and encode it. */
-	if (attr_len <= MAXATOMLEN && ctx->names_as_atom) {
-		if (is_known_attr(ctx, attr, attr_len))
-			if (attr_len == -1)
-				ret = ei_x_encode_atom(tree, attr);
-			else
-				ret = ei_x_encode_atom_len(tree,
-				    attr, attr_len);
-		else
-			if (attr_len == -1)
-				ret = ei_x_encode_string(tree, attr);
-			else
-				ret = ei_x_encode_string_len(tree,
-				    attr, attr_len);
-	} else {
-		if (attr_len == -1)
-			ret = ei_x_encode_string(tree, attr);
-		else
-			ret = ei_x_encode_string_len(tree, attr, attr_len);
-	}
-
+	if (attr_len == -1)
+		ret = ei_x_encode_binary(tree, attr, strlen(attr));
+	else
+		ret = ei_x_encode_binary(tree, attr, attr_len);
+	
 	return (ret);
 }
 

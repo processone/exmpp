@@ -153,7 +153,7 @@ get_sender(#xmlel{attrs = Attrs} = _Stanza) ->
 -spec(get_sender_from_attrs/1 :: ([#xmlattr{}]) -> binary() | undefined).
 
 get_sender_from_attrs(Attrs) ->
-    exmpp_xml:get_attribute_from_list_as_binary(Attrs, 'from', undefined).
+    exmpp_xml:get_attribute_from_list_as_binary(Attrs, <<"from">>, undefined).
 
 %% @spec (Stanza, Sender) -> New_Stanza
 %%     Stanza = exmpp_xml:xmlel()
@@ -186,7 +186,7 @@ set_sender_in_attrs(Attrs, undefined) ->
 set_sender_in_attrs(Attrs, Sender) when ?IS_JID(Sender) ->
     set_sender_in_attrs(Attrs, exmpp_jid:to_binary(Sender));
 set_sender_in_attrs(Attrs, Sender) ->
-    exmpp_xml:set_attribute_in_list(Attrs, 'from', Sender).
+    exmpp_xml:set_attribute_in_list(Attrs, <<"from">>, Sender).
 
 %% @spec (Stanza) -> New_Stanza
 %%     Stanza = exmpp_xml:xmlel()
@@ -207,7 +207,7 @@ remove_sender(#xmlel{attrs = Attrs} = Stanza) ->
 -spec(remove_sender_in_attrs/1 :: ([#xmlattr{}]) -> [#xmlattr{}]).
 
 remove_sender_in_attrs(Attrs) ->
-    exmpp_xml:remove_attribute_from_list(Attrs, 'from').
+    exmpp_xml:remove_attribute_from_list(Attrs, <<"from">>).
 
 %% @spec (Stanza) -> Recipient | undefined
 %%     Stanza = exmpp_xml:xmlel()
@@ -233,7 +233,7 @@ get_recipient(#xmlel{attrs = Attrs} = _Stanza) ->
 -spec(get_recipient_from_attrs/1 :: ([#xmlattr{}]) -> binary() | undefined).
 
 get_recipient_from_attrs(Attrs) ->
-    exmpp_xml:get_attribute_from_list_as_binary(Attrs, 'to', undefined).
+    exmpp_xml:get_attribute_from_list_as_binary(Attrs, <<"to">>, undefined).
 
 %% @spec (Stanza, Recipient) -> New_Stanza
 %%     Stanza = exmpp_xml:xmlel()
@@ -266,7 +266,7 @@ set_recipient_in_attrs(Attrs, undefined) ->
 set_recipient_in_attrs(Attrs, Recipient) when ?IS_JID(Recipient) ->
     set_recipient_in_attrs(Attrs, exmpp_jid:to_binary(Recipient));
 set_recipient_in_attrs(Attrs, Recipient) ->
-    exmpp_xml:set_attribute_in_list(Attrs, 'to', Recipient).
+    exmpp_xml:set_attribute_in_list(Attrs, <<"to">>, Recipient).
 
 %% @spec (Stanza) -> New_Stanza
 %%     Stanza = exmpp_xml:xmlel()
@@ -287,7 +287,7 @@ remove_recipient(#xmlel{attrs= Attrs} = Stanza) ->
 -spec(remove_recipient_in_attrs/1 :: ([#xmlattr{}]) -> [#xmlattr{}]).
 
 remove_recipient_in_attrs(Attrs) ->
-    exmpp_xml:remove_attribute_from_list(Attrs, 'to').
+    exmpp_xml:remove_attribute_from_list(Attrs, <<"to">>).
 
 %% @spec (Stanza, Sender, Recipient) -> New_Stanza
 %%     Stanza = exmpp_xml:xmlel()
@@ -341,7 +341,7 @@ get_id(#iq{id = ID}) ->
 -spec(get_id_from_attrs/1 :: ([#xmlattr{}]) -> binary() | undefined).
 
 get_id_from_attrs(Attrs) ->
-    exmpp_xml:get_attribute_from_list_as_binary(Attrs, 'id', undefined).
+    exmpp_xml:get_attribute_from_list_as_binary(Attrs, <<"id">>, undefined).
 
 %% @spec (Stanza, ID) -> New_Stanza
 %%     Stanza = exmpp_xml:xmlel() | exmpp_iq:iq()
@@ -378,11 +378,11 @@ set_id(#iq{} = Stanza, ID) ->
 -spec(set_id_in_attrs/2 :: ([#xmlattr{}], id()) -> [#xmlattr{}]).
 
 set_id_in_attrs(Attrs, ID) when ID == undefined; ID == <<>>; ID == "" ->
-    exmpp_xml:remove_attribute_from_list(Attrs, 'id');
+    exmpp_xml:remove_attribute_from_list(Attrs, <<"id">>);
 set_id_in_attrs(Attrs, random) ->
     set_id_in_attrs(Attrs, exmpp_utils:random_id("stanza"));
 set_id_in_attrs(Attrs, ID) ->
-    exmpp_xml:set_attribute_in_list(Attrs, 'id', ID).
+    exmpp_xml:set_attribute_in_list(Attrs, <<"id">>, ID).
 
 %% @spec (Stanza) -> Type | undefined
 %%     Stanza = exmpp_xml:xmlel() | exmpp_iq:iq()
@@ -414,7 +414,7 @@ type_to_binary(Type) when is_atom(Type) ->
 -spec(get_type_from_attrs/1 :: ([#xmlattr{}]) -> binary() | undefined).
 
 get_type_from_attrs(Attrs) ->
-    exmpp_xml:get_attribute_from_list_as_binary(Attrs, 'type', undefined).
+    exmpp_xml:get_attribute_from_list_as_binary(Attrs, <<"type">>, undefined).
 
 %% @spec (Stanza, Type) -> New_Stanza
 %%     Stanza = exmpp_xml:xmlel() | exmpp_iq:iq()
@@ -449,7 +449,7 @@ set_type(#iq{} = Stanza, Type) when is_list(Type) ->
 set_type_in_attrs(Attrs, Type) when is_atom(Type) ->
     set_type_in_attrs(Attrs, type_to_binary(Type));
 set_type_in_attrs(Attrs, Type) ->
-    exmpp_xml:set_attribute_in_list(Attrs, 'type', Type).
+    exmpp_xml:set_attribute_in_list(Attrs, <<"type">>, Type).
 
 %% @spec (Stanza) -> Lang | undefined
 %%     Stanza = exmpp_xml:xmlel() | exmpp_iq:iq()
@@ -471,7 +471,7 @@ get_lang(#iq{lang = Lang}) ->
 -spec(get_lang_from_attrs/1 :: ([#xmlattr{}]) -> binary() | undefined).
 
 get_lang_from_attrs(Attrs) ->
-    exmpp_xml:get_attribute_from_list_as_binary(Attrs, ?NS_XML, 'lang',
+    exmpp_xml:get_attribute_from_list_as_binary(Attrs, ?NS_XML, <<"lang">>,
 						undefined).
 
 %% @spec (Stanza, Lang) -> New_Stanza
@@ -502,9 +502,9 @@ set_lang(#iq{} = Stanza, Lang) ->
 
 set_lang_in_attrs(Attrs, Lang)
   when Lang == undefined; Lang == <<>>; Lang == "" ->
-    exmpp_xml:remove_attribute_from_list(Attrs, ?NS_XML, 'lang');
+    exmpp_xml:remove_attribute_from_list(Attrs, ?NS_XML, <<"lang">>);
 set_lang_in_attrs(Attrs, Lang) ->
-    exmpp_xml:set_attribute_in_list(Attrs, ?NS_XML, 'lang', Lang).
+    exmpp_xml:set_attribute_in_list(Attrs, ?NS_XML, <<"lang">>, Lang).
 
 %% --------------------------------------------------------------------
 %% Common operations.
@@ -649,7 +649,7 @@ error(NS, Condition, {Lang, Text}) ->
                 undefined ->
                     Text_El0;
                 _ ->
-                    exmpp_xml:set_attribute(Text_El0, ?NS_XML, 'lang', Lang)
+                    exmpp_xml:set_attribute(Text_El0, ?NS_XML, <<"lang">>, Lang)
             end,
             exmpp_xml:append_child(Error_El0, Text_El)
     end,
@@ -721,7 +721,7 @@ get_error_type(Stanza) ->
     end.
 
 get_error_type_from_error(Error) ->
-    exmpp_xml:get_attribute_as_binary(Error, 'type', <<>>).
+    exmpp_xml:get_attribute_as_binary(Error, <<"type">>, <<>>).
 
 %% @spec (Stanza, Type) -> New_Stanza
 %%     Stanza = exmpp_xml:xmlel()
@@ -742,7 +742,7 @@ set_error_type(Stanza, Type) ->
     end.
 
 set_error_type_in_error(Error, Type) ->
-    exmpp_xml:set_attribute(Error, 'type', Type).
+    exmpp_xml:set_attribute(Error, <<"type">>, Type).
 
 %% @spec (Stanza, Condition) -> New_Stanza
 %%     Stanza = exmpp_xml:xmlel()
