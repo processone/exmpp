@@ -377,7 +377,7 @@
 %% @type pathcomponent() = {element, Elem_Name} | {element, NS, Elem_Name} | {attribute, Attr_Name} | {attribute, NS, Attr_Name} | cdata | cdata_as_list
 %%     NS = atom() | string()
 %%     Elem_Name = atom() | string()
-%%     Attr_Name = atom() | string().
+%%     Attr_Name = binary().
 %% Represents a path component. The `elem' tuple points to an XML
 %% element named `Elem_Name'. The `attr' tuple points to the value of
 %% the `Attr_Name' attribute. cdata asks for the character data of a
@@ -922,7 +922,7 @@ as_atom(V) when is_list(V) -> list_to_atom(V).
 %% '''
 
 -spec(attribute/2 ::
-      (xmlname(), binary() | string() | atom() | integer()) ->
+      (attributename(), binary() | string() | atom() | integer()) ->
 	     xmlattr()).
 
 attribute(Name, Value) when is_binary(Name) ->
@@ -946,7 +946,7 @@ set_attr_value({Name, _}, Value) ->
 %% '''
 
 -spec(attribute/3 ::
-      (xmlname(), xmlname(), binary() | string() | atom() | integer()) ->
+      (xmlname(), attributename(), binary() | string() | atom() | integer()) ->
 	     xmlattr()).
 
 attribute(NS, Name, Value) when is_binary(Name) ->
@@ -959,7 +959,7 @@ attribute(NS, Name, Value) when is_binary(Name) ->
 %%
 %% It takes care of comparison between string and atom.
 
--spec(attribute_matches/2 :: (xmlattr_any(), xmlname()) -> bool()).
+-spec(attribute_matches/2 :: (xmlattr_any(), xmlname() | attributename()) -> bool()).
 
 attribute_matches(#xmlattr{name = Name}, Name) ->
     true;
@@ -990,7 +990,7 @@ attribute_matches(_Attr, _Name) ->
 %% It takes care of comparison between string and atom.
 
 -spec(attribute_matches/3 ::
-      (xmlattr(), xmlname(), xmlname()) -> bool()).
+      (xmlattr(), xmlname(), xmlname() | attributename()) -> bool()).
 
 attribute_matches(Attr, NS, Name) when is_atom(Name) ->
     attribute_matches(Attr, NS, list_to_binary(atom_to_list(Name)));
@@ -1011,7 +1011,7 @@ attribute_matches(_Attr, _NS, _Name) ->
 
 %% @spec (Attrs, Attr_Name) -> Attr | undefined
 %%     Attrs = [xmlattr()] | [xmlattr_old()]
-%%     Attr_Name = atom() | string()
+%%     Attr_Name = binary()
 %%     Attr = xmlattr() | xmlattr_old()
 %% @doc Return the attribute named `Attr_Name' from the list.
 %%
@@ -1027,7 +1027,7 @@ attribute_matches(_Attr, _NS, _Name) ->
 %%   ([xmlattr_old()], xmlname()) -> xmlattr_old() | undefined).
 
 -spec(get_attribute_node_from_list/2 ::
-      ([xmlattr() | xmlattr_old()], xmlname()) ->
+      ([xmlattr() | xmlattr_old()], attributename()) ->
 	     xmlattr() | xmlattr_old() | undefined).
 
 get_attribute_node_from_list([Attr | Rest], Name) ->
@@ -1041,7 +1041,7 @@ get_attribute_node_from_list([], _Name) ->
 %% @spec (Attrs, NS, Attr_Name) -> Attr | undefined
 %%     Attrs = [xmlattr()]
 %%     NS = atom() | string()
-%%     Attr_Name = atom() | string()
+%%     Attr_Name = binary()
 %%     Attr = xmlattr()
 %% @doc Return the attribute named `Attr_Name' from the list with the
 %% `NS' namespace URI.
@@ -1049,7 +1049,7 @@ get_attribute_node_from_list([], _Name) ->
 %% Return `undefined' if the attribute isn't found.
 
 -spec(get_attribute_node_from_list/3 ::
-      ([xmlattr()], xmlname(), xmlname()) -> xmlattr() | undefined).
+      ([xmlattr()], xmlname(), attributename()) -> xmlattr() | undefined).
 
 get_attribute_node_from_list([Attr | Rest], NS, Name) ->
     case attribute_matches(Attr, NS, Name) of
@@ -1061,16 +1061,16 @@ get_attribute_node_from_list([], _NS, _Name) ->
 
 %% @spec (XML_Element, Attr_Name) -> Attr | undefined
 %%     XML_Element = xmlel() | xmlel_old() | undefined
-%%     Attr_Name = atom() | string()
+%%     Attr_Name = binary()
 %%     Attr = xmlattr() | xmlattr_old()
 %% @doc Return the attribute named `Attr_Name'.
 %%
 %% Return `undefined' if the attribute isn't found.
 
 -spec(get_attribute_node/2 ::
-      (xmlel(), xmlname())     -> xmlattr() | undefined;
-      (xmlel_old(), xmlname()) -> xmlattr_old() | undefined;
-      (undefined, xmlname())   -> undefined).
+      (xmlel(), attributename())     -> xmlattr() | undefined;
+      (xmlel_old(), attributename()) -> xmlattr_old() | undefined;
+      (undefined, attributename())   -> undefined).
 
 get_attribute_node(#xmlel{attrs = Attrs} = _XML_Element, Name) ->
     get_attribute_node_from_list(Attrs, Name);
@@ -1082,15 +1082,15 @@ get_attribute_node(undefined, _Name) ->
 %% @spec (XML_Element, NS, Attr_Name) -> Attr | undefined
 %%     XML_Element = xmlel() | undefined
 %%     NS = atom() | string()
-%%     Attr_Name = atom() | string()
+%%     Attr_Name = binary()
 %%     Attr = xmlattr()
 %% @doc Return the attribute named `Attr_Name' with the `NS' namespace URI.
 %%
 %% Return `undefined' if the attribute isn't found.
 
 -spec(get_attribute_node/3 ::
-      (xmlel(), xmlname(), xmlname())   -> xmlattr() | undefined;
-      (undefined, xmlname(), xmlname()) -> undefined).
+      (xmlel(), xmlname(), attributename())   -> xmlattr() | undefined;
+      (undefined, xmlname(), attributename()) -> undefined).
 
 get_attribute_node(#xmlel{attrs = Attrs} = _XML_Element, NS, Name) ->
     get_attribute_node_from_list(Attrs, NS, Name);
@@ -1099,7 +1099,7 @@ get_attribute_node(undefined, _NS, _Name) ->
 
 %% @spec (Attrs, Attr_Name, Default) -> Attr_Value | Default
 %%     Attrs = [xmlattr()] | [xmlattr_old()]
-%%     Attr_Name = atom() | string()
+%%     Attr_Name = binary()
 %%     Default = term()
 %%     Attr_Value = binary() | string()
 %% @doc Return the value of the attribute named `Attr_Name' from the list.
@@ -1117,12 +1117,12 @@ get_attribute_node(undefined, _NS, _Name) ->
 %% inside those list(), we specify a less strict contract.
 %%
 %% -spec(get_attribute_from_list/3 ::
-%%   ([], xmlname(), Default)              -> Default;
-%%   ([xmlattr()], xmlname(), Default)     -> binary() | Default;
-%%   ([xmlattr_old()], xmlname(), Default) -> string() | Default).
+%%   ([], attributename(), Default)              -> Default;
+%%   ([xmlattr()], attributename(), Default)     -> binary() | Default;
+%%   ([xmlattr_old()], attributename(), Default) -> string() | Default).
 
 -spec(get_attribute_from_list/3 ::
-      ([xmlattr() | xmlattr_old()], xmlname(), Default) ->
+      ([xmlattr() | xmlattr_old()], attributename(), Default) ->
 	     binary() | string() | Default).
 
 get_attribute_from_list(Attrs, Attr_Name, Default) ->
@@ -1138,7 +1138,7 @@ get_attribute_from_list(Attrs, Attr_Name, Default) ->
 %% @spec (Attrs, NS, Attr_Name, Default) -> Attr_Value | Default
 %%     Attrs = [xmlattr()]
 %%     NS = atom() | string()
-%%     Attr_Name = atom() | string()
+%%     Attr_Name = binary()
 %%     Default = term()
 %%     Attr_Value = binary()
 %% @doc Return the value of the attribute named `Attr_Name' from the
@@ -1147,7 +1147,7 @@ get_attribute_from_list(Attrs, Attr_Name, Default) ->
 %% Return `Default' if the attribute isn't found.
 
 -spec(get_attribute_from_list/4 ::
-      ([xmlattr()], xmlname(), xmlname(), Default) -> binary() | Default).
+      ([xmlattr()], xmlname(), attributename(), Default) -> binary() | Default).
 
 get_attribute_from_list(Attrs, NS, Attr_Name, Default) ->
     case get_attribute_node_from_list(Attrs, NS, Attr_Name) of
@@ -1159,7 +1159,7 @@ get_attribute_from_list(Attrs, NS, Attr_Name, Default) ->
 
 %% @spec (XML_Element, Attr_Name, Default) -> Attr_Value | Default
 %%     XML_Element = xmlel() | xmlel_old() | undefined
-%%     Attr_Name = atom() | string()
+%%     Attr_Name = binary()
 %%     Default = term()
 %%     Attr_Value = binary() | string()
 %% @doc Return the value of the attribute named `Attr_Name'.
@@ -1173,9 +1173,9 @@ get_attribute_from_list(Attrs, NS, Attr_Name, Default) ->
 %% Return `Default' if the attribute isn't found.
 
 -spec(get_attribute/3 ::
-      (xmlel(), xmlname(), Default)     -> binary() | Default;
-      (xmlel_old(), xmlname(), Default) -> string() | Default;
-      (undefined, xmlname(), Default)   -> Default).
+      (xmlel(), attributename(), Default)     -> binary() | Default;
+      (xmlel_old(), attributename(), Default) -> string() | Default;
+      (undefined, attributename(), Default)   -> Default).
 
 get_attribute(#xmlel{attrs = Attrs} = _XML_Element, Name, Default) ->
     get_attribute_from_list(Attrs, Name, Default);
@@ -1187,7 +1187,7 @@ get_attribute(undefined, _Name, Default) ->
 %% @spec (XML_Element, NS, Attr_Name, Default) -> Attr_Value | Default
 %%     XML_Element = xmlel() | undefined
 %%     NS = atom() | string()
-%%     Attr_Name = atom() | string()
+%%     Attr_Name = binary()
 %%     Default = term()
 %%     Attr_Value = binary()
 %% @doc Return the value of the attribute named `Attr_Name' with the
@@ -1196,8 +1196,8 @@ get_attribute(undefined, _Name, Default) ->
 %% Return `Default' if the attribute isn't found.
 
 -spec(get_attribute/4 ::
-      (xmlel(), xmlname(), xmlname(), Default)   -> binary() | Default;
-      (undefined, xmlname(), xmlname(), Default) -> Default).
+      (xmlel(), xmlname(), attributename(), Default)   -> binary() | Default;
+      (undefined, xmlname(), attributename(), Default) -> Default).
 
 get_attribute(#xmlel{attrs = Attrs} = _XML_Element, NS, Name, Default) ->
     get_attribute_from_list(Attrs, NS, Name, Default);
@@ -1206,7 +1206,7 @@ get_attribute(undefined, _NS, _Name, Default) ->
 
 %% @spec (Attrs, Attr_Name, Default) -> Attr_Value | Default
 %%     Attrs = [xmlattr()] | [xmlattr_old()]
-%%     Attr_Name = atom() | string()
+%%     Attr_Name = binary()
 %%     Default = term()
 %%     Attr_Value = list()
 %% @doc Return the value of the attribute named `Attr_Name' from the
@@ -1215,7 +1215,7 @@ get_attribute(undefined, _NS, _Name, Default) ->
 %% Return `Default' if the attribute isn't found.
 
 -spec(get_attribute_from_list_as_list/3 ::
-      ([xmlattr()] | [xmlattr_old()], xmlname(), Default) -> string() | Default).
+      ([xmlattr()] | [xmlattr_old()], attributename(), Default) -> string() | Default).
 
 get_attribute_from_list_as_list(Attrs, Attr_Name, Default) ->
     case get_attribute_node_from_list(Attrs, Attr_Name) of
@@ -1230,7 +1230,7 @@ get_attribute_from_list_as_list(Attrs, Attr_Name, Default) ->
 %% @spec (Attrs, NS, Attr_Name, Default) -> Attr_Value | Default
 %%     Attrs = [xmlattr()]
 %%     NS = atom() | string()
-%%     Attr_Name = atom() | string()
+%%     Attr_Name = binary()
 %%     Default = term()
 %%     Attr_Value = list()
 %% @doc Return the value of the attribute named `Attr_Name' with the
@@ -1239,7 +1239,7 @@ get_attribute_from_list_as_list(Attrs, Attr_Name, Default) ->
 %% Return `Default' if the attribute isn't found.
 
 -spec(get_attribute_from_list_as_list/4 ::
-      ([xmlattr()], xmlname(), xmlname(), Default) -> string() | Default).
+      ([xmlattr()], xmlname(), attributename(), Default) -> string() | Default).
 
 get_attribute_from_list_as_list(Attrs, NS, Attr_Name, Default) ->
     case get_attribute_node_from_list(Attrs, NS, Attr_Name) of
@@ -1251,7 +1251,7 @@ get_attribute_from_list_as_list(Attrs, NS, Attr_Name, Default) ->
 
 %% @spec (XML_Element, Attr_Name, Default) -> Attr_Value | Default
 %%     XML_Element = xmlel() | xmlel_old() | undefined
-%%     Attr_Name = atom() | string()
+%%     Attr_Name = binary()
 %%     Default = term()
 %%     Attr_Value = list()
 %% @doc Return the value of the attribute named `Attr_Name', as a
@@ -1260,8 +1260,8 @@ get_attribute_from_list_as_list(Attrs, NS, Attr_Name, Default) ->
 %% Return `Default' if the attribute isn't found.
 
 -spec(get_attribute_as_list/3 ::
-      (xmlel_any(), xmlname(), Default) -> string() | Default;
-      (undefined, xmlname(), Default)   -> Default).
+      (xmlel_any(), attributename(), Default) -> string() | Default;
+      (undefined, attributename(), Default)   -> Default).
 
 get_attribute_as_list(#xmlel{attrs = Attrs} = _XML_Element, Name,
 		      Default) ->
@@ -1275,7 +1275,7 @@ get_attribute_as_list(undefined, _Name, Default) ->
 %% @spec (XML_Element, NS, Attr_Name, Default) -> Attr_Value | Default
 %%     XML_Element = xmlel() | undefined
 %%     NS = atom() | string()
-%%     Attr_Name = atom() | string()
+%%     Attr_Name = binary()
 %%     Default = term()
 %%     Attr_Value = list()
 %% @doc Return the value of the attribute named `Attr_Name' with the
@@ -1284,7 +1284,7 @@ get_attribute_as_list(undefined, _Name, Default) ->
 %% Return `Default' if the attribute isn't found.
 
 -spec(get_attribute_as_list/4 ::
-      (xmlel() | undefined, xmlname(), xmlname(), Default) -> string() | Default).
+      (xmlel() | undefined, xmlname(), attributename(), Default) -> string() | Default).
 
 get_attribute_as_list(#xmlel{attrs = Attrs} = _XML_Element, NS, Name,
 		      Default) ->
@@ -1294,7 +1294,7 @@ get_attribute_as_list(undefined, _NS, _Name, Default) ->
 
 %% @spec (Attrs, Attr_Name, Default) -> Attr_Value | Default
 %%     Attrs = [xmlattr()] | [xmlattr_old()]
-%%     Attr_Name = atom() | string()
+%%     Attr_Name = binary()
 %%     Default = term()
 %%     Attr_Value = binary()
 %% @doc Return the value of the attribute named `Attr_Name' from the
@@ -1303,7 +1303,7 @@ get_attribute_as_list(undefined, _NS, _Name, Default) ->
 %% Return `Default' if the attribute isn't found.
 
 -spec(get_attribute_from_list_as_binary/3 ::
-      ([xmlattr()] | [xmlattr_old()], xmlname(), Default) -> binary() | Default).
+      ([xmlattr()] | [xmlattr_old()], attributename(), Default) -> binary() | Default).
 
 get_attribute_from_list_as_binary(Attrs, Attr_Name, Default) ->
     case get_attribute_node_from_list(Attrs, Attr_Name) of
@@ -1318,7 +1318,7 @@ get_attribute_from_list_as_binary(Attrs, Attr_Name, Default) ->
 %% @spec (Attrs, NS, Attr_Name, Default) -> Attr_Value | Default
 %%     Attrs = [xmlattr()]
 %%     NS = atom() | string()
-%%     Attr_Name = atom() | string()
+%%     Attr_Name = binary()
 %%     Default = term()
 %%     Attr_Value = binary()
 %% @doc Return the value of the attribute named `Attr_Name' with the
@@ -1327,7 +1327,7 @@ get_attribute_from_list_as_binary(Attrs, Attr_Name, Default) ->
 %% Return `Default' if the attribute isn't found.
 
 -spec(get_attribute_from_list_as_binary/4 ::
-      ([xmlattr()], xmlname(), xmlname(), Default) -> binary() | Default).
+      ([xmlattr()], xmlname(), attributename(), Default) -> binary() | Default).
 
 get_attribute_from_list_as_binary(Attrs, NS, Attr_Name, Default) ->
     case get_attribute_node_from_list(Attrs, NS, Attr_Name) of
@@ -1339,7 +1339,7 @@ get_attribute_from_list_as_binary(Attrs, NS, Attr_Name, Default) ->
 
 %% @spec (XML_Element, Attr_Name, Default) -> Attr_Value | Default
 %%     XML_Element = xmlel() | xmlel_old() | undefined
-%%     Attr_Name = atom() | string()
+%%     Attr_Name = binary()
 %%     Default = term()
 %%     Attr_Value = binary()
 %% @doc Return the value of the attribute named `Attr_Name', as a
@@ -1348,8 +1348,8 @@ get_attribute_from_list_as_binary(Attrs, NS, Attr_Name, Default) ->
 %% Return `Default' if the attribute isn't found.
 
 -spec(get_attribute_as_binary/3 ::
-      (xmlel_any(), xmlname(), Default) -> binary() | Default;
-      (undefined, xmlname(), Default)   -> Default).
+      (xmlel_any(), attributename(), Default) -> binary() | Default;
+      (undefined, attributename(), Default)   -> Default).
 
 get_attribute_as_binary(#xmlel{attrs = Attrs} = _XML_Element, Name,
 			Default) ->
@@ -1363,7 +1363,7 @@ get_attribute_as_binary(undefined, _Name, Default) ->
 %% @spec (XML_Element, NS, Attr_Name, Default) -> Attr_Value | Default
 %%     XML_Element = xmlel() | undefined
 %%     NS = atom() | string()
-%%     Attr_Name = atom() | string()
+%%     Attr_Name = binary()
 %%     Default = term()
 %%     Attr_Value = binary()
 %% @doc Return the value of the attribute named `Attr_Name' with the
@@ -1372,8 +1372,8 @@ get_attribute_as_binary(undefined, _Name, Default) ->
 %% Return `Default' if the attribute isn't found.
 
 -spec(get_attribute_as_binary/4 ::
-      (xmlel(), xmlname(), xmlname(), Default)   -> binary() | Default;
-      (undefined, xmlname(), xmlname(), Default) -> Default).
+      (xmlel(), xmlname(), attributename(), Default)   -> binary() | Default;
+      (undefined, xmlname(), attributename(), Default) -> Default).
 
 get_attribute_as_binary(#xmlel{attrs = Attrs} = _XML_Element, NS, Name,
 			Default) ->
@@ -1383,11 +1383,11 @@ get_attribute_as_binary(undefined, _NS, _Name, Default) ->
 
 %% @spec (Attrs, Attr_Name) -> bool()
 %%     Attrs = [xmlattr()] | [xmlattr_old()]
-%%     Attr_Name = atom() | string()
+%%     Attr_Name = binary()
 %% @doc Check the presence for attribute `Attr_Name' in the list.
 
 -spec(has_attribute_in_list/2 ::
-      ([xmlattr()] | [xmlattr_old()], xmlname()) -> bool()).
+      ([xmlattr()] | [xmlattr_old()], attributename()) -> bool()).
 
 has_attribute_in_list(Attrs, Name) ->
     case get_attribute_node_from_list(Attrs, Name) of
@@ -1398,12 +1398,12 @@ has_attribute_in_list(Attrs, Name) ->
 %% @spec (Attrs, NS, Attr_Name) -> bool()
 %%     Attrs = [xmlattr()]
 %%     NS = atom() | string()
-%%     Attr_Name = atom() | string()
+%%     Attr_Name = binary()
 %% @doc Check the presence for attribute `Attr_Name' with namespace `NS'
 %% in the list.
 
 -spec(has_attribute_in_list/3 ::
-      ([xmlattr()], xmlname(), xmlname()) -> bool()).
+      ([xmlattr()], xmlname(), attributename()) -> bool()).
 
 has_attribute_in_list(Attrs, NS, Name) ->
     case get_attribute_node_from_list(Attrs, NS, Name) of
@@ -1413,11 +1413,11 @@ has_attribute_in_list(Attrs, NS, Name) ->
 
 %% @spec (XML_Element, Attr_Name) -> bool()
 %%     XML_Element = xmlel() | xmlel_old() | undefined
-%%     Attr_Name = atom() | string()
+%%     Attr_Name = binary()
 %% @doc Check the presence for attribute `Attr_Name' in the XML element.
 
 -spec(has_attribute/2 ::
-      (xmlel_any() | undefined, xmlname()) -> bool()).
+      (xmlel_any() | undefined, attributename()) -> bool()).
 
 has_attribute(#xmlel{attrs = Attrs} = _XML_Element, Name) ->
     has_attribute_in_list(Attrs, Name);
@@ -1429,12 +1429,12 @@ has_attribute(undefined, _Name) ->
 %% @spec (XML_Element, NS, Attr_Name) -> bool()
 %%     XML_Element = xmlel() | xmlel_old() | undefined
 %%     NS = atom() | string()
-%%     Attr_Name = atom() | string()
+%%     Attr_Name = binary()
 %% @doc Check the presence for attribute `Attr_Name' with namespace `NS'
 %% in the XML element.
 
 -spec(has_attribute/3 ::
-      (xmlel_any() | undefined, xmlname(), xmlname()) -> bool()).
+      (xmlel_any() | undefined, xmlname(), attributename()) -> bool()).
 
 has_attribute(#xmlel{attrs = Attrs} = _XML_Element, NS, Name) ->
     has_attribute_in_list(Attrs, NS, Name);
@@ -1508,14 +1508,14 @@ set_attribute_in_list2([], New_Attr, New_Attrs) ->
 %% inside those list(), we specify a less strict contract.
 %%
 %% -spec(set_attribute_in_list/3 ::
-%%   ([xmlattr()], xmlname(), binary() | string() | atom() | integer()) ->
+%%   ([xmlattr()], attributename(), binary() | string() | atom() | integer()) ->
 %%       [xmlattr()];
-%%   ([xmlattr_old()], xmlname(), binary() | string() | atom() | integer()) ->
+%%   ([xmlattr_old()], attributename(), binary() | string() | atom() | integer()) ->
 %%       [xmlattr_old()]).
 
 -spec(set_attribute_in_list/3 ::
       ([xmlattr() | xmlattr_old()],
-       xmlname(), binary() | string() | atom() | integer()) ->
+       attributename(), binary() | string() | atom() | integer()) ->
 	     [xmlattr() | xmlattr_old()]).
 
 set_attribute_in_list(Attrs, Name, Value) when is_binary(Name) ->
@@ -1554,7 +1554,7 @@ set_attribute_in_list2([], Name, Value, New_Attrs) ->
 %% xmlattr()} record.
 
 -spec(set_attribute_in_list/4 ::
-      ([xmlattr()], xmlname(), xmlname(),
+      ([xmlattr()], xmlname(), attributename(),
        binary() | string() | atom() | integer()) ->
 	     [xmlattr()]).
 
@@ -1601,9 +1601,9 @@ set_attribute(#xmlelement{attrs = Attrs} = XML_Element, Attr) ->
 %% @doc Add a new attribute or change the value of an existing attribute.
 
 -spec(set_attribute/3 ::
-      (xmlel(), xmlname(), binary() | string() | atom() | integer()) ->
+      (xmlel(), attributename(), binary() | string() | atom() | integer()) ->
 	     xmlel();
-      (xmlel_old(), xmlname(), binary() | string() | atom() | integer()) ->
+      (xmlel_old(), attributename(), binary() | string() | atom() | integer()) ->
 	     xmlel_old()).
 
 set_attribute(#xmlel{attrs = Attrs} = XML_Element, Name, Value) when is_binary(Name)->
@@ -1645,7 +1645,7 @@ set_attribute2([], Name, Value, New_Attrs) ->
 %% with the same name and the `NS' namespace URI.
 
 -spec(set_attribute/4 ::
-      (xmlel(), xmlname(), xmlname(), binary() | string() | atom() | integer()) ->
+      (xmlel(), xmlname(), attributename(), binary() | string() | atom() | integer()) ->
 	     xmlel()).
 
 set_attribute(#xmlel{attrs = Attrs} = XML_Element, NS, Name, Value) when is_binary(Name) ->
@@ -1678,12 +1678,12 @@ set_attribute_ns2([], NS, Name, Value, New_Attrs) ->
 -spec(set_attributes/2 ::
       (xmlel(),
        [xmlattr() |
-	{xmlname(), binary() | string() | atom() | integer()} |
-	{xmlname(), xmlname(), binary() | string() | atom() | integer()}]) ->
+	{attributename(), binary() | string() | atom() | integer()} |
+	{xmlname(), attributename(), binary() | string() | atom() | integer()}]) ->
 	     xmlel();
       (xmlel_old(),
        [xmlattr_old() |
-	{xmlname(), binary() | string() | atom() | integer()}]) ->
+	{attributename(), binary() | string() | atom() | integer()}]) ->
 	     xmlel_old()).
 
 set_attributes(XML_Element, [{Name, Value} | Rest]) ->
@@ -1715,12 +1715,12 @@ set_attributes(XML_Element, []) ->
 %% inside those list(), we specify a less strict contract.
 %%
 %% -spec(remove_attribute_from_list/2 ::
-%%   ([], xmlname())              -> [];
-%%   ([xmlattr()], xmlname())     -> [xmlattr()];
-%%   ([xmlattr_old()], xmlname()) -> [xmlattr_old()]).
+%%   ([], attributename())              -> [];
+%%   ([xmlattr()], attributename())     -> [xmlattr()];
+%%   ([xmlattr_old()], attributename()) -> [xmlattr_old()]).
 
 -spec(remove_attribute_from_list/2 ::
-      ([xmlattr() | xmlattr_old()], xmlname()) -> [xmlattr() | xmlattr_old()]).
+      ([xmlattr() | xmlattr_old()], attributename()) -> [xmlattr() | xmlattr_old()]).
 
 remove_attribute_from_list(Attrs, Name)  when is_binary(Name) ->
     remove_attribute_from_list2(Attrs, Name, []).
@@ -1749,7 +1749,7 @@ remove_attribute_from_list2([], _Name, New_Attrs) ->
 %% return an error).
 
 -spec(remove_attribute_from_list/3 ::
-      ([xmlattr()], xmlname(), xmlname()) -> [xmlattr()]).
+      ([xmlattr()], xmlname(), attributename()) -> [xmlattr()]).
 
 remove_attribute_from_list(Attrs, NS, Name) when is_binary(Name) ->
     remove_attribute_from_list2(Attrs, NS, Name, []).
@@ -1775,8 +1775,8 @@ remove_attribute_from_list2([], _NS, _Name, New_Attrs) ->
 %% return an error).
 
 -spec(remove_attribute/2 ::
-      (xmlel(), xmlname())     -> xmlel();
-      (xmlel_old(), xmlname()) -> xmlel_old()).
+      (xmlel(), attributename())     -> xmlel();
+      (xmlel_old(), attributename()) -> xmlel_old()).
 
 remove_attribute(#xmlel{attrs = Attrs} = XML_Element, Name) when is_binary(Name) ->
     New_Attrs = remove_attribute_from_list(Attrs, Name),
@@ -1798,7 +1798,7 @@ remove_attribute(#xmlelement{attrs = Attrs} = XML_Element, Name) ->
 %% return an error).
 
 -spec(remove_attribute/3 ::
-      (xmlel(), xmlname(), xmlname()) -> xmlel()).
+      (xmlel(), xmlname(), attributename()) -> xmlel()).
 
 remove_attribute(#xmlel{attrs = Attrs} = XML_Element, NS, Name) when is_binary(Name) ->
     New_Attrs = remove_attribute_from_list(Attrs, NS, Name),
