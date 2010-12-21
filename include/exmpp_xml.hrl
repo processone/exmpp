@@ -49,7 +49,7 @@
 % Attributes.
 -record(xmlattr, {
   ns = undefined   :: xmlname() | undefined,
-  name             :: xmlname(),
+  name             :: attributename(),
   value            :: binary()
 }).
 -type(xmlattr() :: #xmlattr{}).

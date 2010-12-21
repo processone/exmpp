@@ -349,7 +349,7 @@
 
 %% @type xmlattr() = {xmlattr, NS, Name, Value}
 %%     NS = atom() | string()
-%%     Name = atom() | string()
+%%     Name = binary()
 %%     Value = binary().
 %% Represents an tag attribute.
 
