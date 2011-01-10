@@ -791,10 +791,10 @@ e(62) ->                    $+;
 e(63) ->                    $/;
 e(X) ->                     exit({bad_encode_base64_token, X}).
 
-%% @doc Deprecated for {@link net_parse:ntoa/1}.
+%% @doc Deprecated for {@link inet_parse:ntoa/1}.
 %% ```
 %% - jlib:ip_to_list
-%% + net_parse:ntoa(IpTuple)
+%% + inet_parse:ntoa(IpTuple)
 %% '''
 %% Convert Erlang inet IP to list
 
