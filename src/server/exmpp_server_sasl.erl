@@ -92,7 +92,13 @@ standard_conditions() ->
      {'invalid-mechanism'},
      {'mechanism-too-weak'},
      {'not-authorized'},
-     {'temporary-auth-failure'}
+     {'temporary-auth-failure'},
+     %% rfc3920bis
+     {'account-disabled'},
+     {'credentials-expired'},
+     {'encryption-required'},
+     {'malformed-request'},
+     {'undefined-condition'}
     ].
 
 %% @spec (Challenge) -> Challenge_El
