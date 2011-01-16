@@ -661,7 +661,10 @@ standard_conditions() ->
      {'unsupported-encoding'},
      {'unsupported-stanza-type'},
      {'unsupported-version'},
-     {'xml-not-well-formed'}
+     {'xml-not-well-formed'},
+     %% rfc3920bis
+     {'not-well-formed'},
+     {'reset'}
     ].
 
 %% @spec (Condition) -> Stream_Error
