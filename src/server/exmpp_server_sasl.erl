@@ -35,6 +35,7 @@
 -export([
 	 challenge/1,
 	 success/0,
+	 success/1,
 	 failure/0,
 	 failure/1,
 	 next_step/1
@@ -102,12 +103,16 @@ standard_conditions() ->
     ].
 
 %% @spec (Challenge) -> Challenge_El
-%%     Challenge = string()
+%%     Challenge = string() | none
 %%     Challenge_El = exmpp_xml:xmlel()
 %% @doc Prepare a `<challenge/>' element with the given challenge.
 %%
 %% `Challenge' will be Base64-encoded by this function.
 
+challenge(none) ->
+    #xmlel{ns = ?NS_SASL,
+	   name = 'challenge'
+	  };
 challenge(Challenge) ->
     El = #xmlel{ns = ?NS_SASL,
 		name = 'challenge'
@@ -119,9 +124,23 @@ challenge(Challenge) ->
 %% @doc Prepare a `<success/>' element.
 
 success() ->
+    success(none).
+
+%% @spec (Data) -> Success_El
+%%     Data = string() | none
+%%     Success_El = exmpp_xml:xmlel()
+%% @doc Prepare a `<success/>' element with supplied XML character data.
+%% `Data' will be Base64-encoded by this function.
+
+success(none) ->
     #xmlel{ns = ?NS_SASL,
 	   name = 'success'
-	  }.
+	  };
+success(Data) ->
+    El = #xmlel{ns = ?NS_SASL,
+		name = 'success'
+	       },
+    exmpp_xml:set_cdata(El, base64:encode_to_string(Data)).
 
 %% @spec () -> Failure
 %%     Failure = exmpp_xml:xmlel()
