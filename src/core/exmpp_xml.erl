@@ -954,7 +954,7 @@ attribute(NS, Name, Value) when is_binary(Name) ->
 
 %% @spec (Attr, Name) -> bool()
 %%     Attr = xmlattr() | xmlattr_old()
-%%     Name = atom() | string() | binary()
+%%     Name = string() | binary()
 %% @doc Tell if `Attr' is named `Name'.
 %%
 %% It takes care of comparison between string and atom.
@@ -966,17 +966,12 @@ attribute_matches(#xmlattr{name = Name}, Name) ->
 attribute_matches({Name, _Value}, Name) ->
     true;
 
-attribute_matches(Attr, N) when is_list(N) ->
-    attribute_matches(Attr, list_to_binary(N));
-attribute_matches(Attr, N) when is_atom(N) ->
-    attribute_matches(Attr, list_to_binary(atom_to_list(N)));
-
-attribute_matches({Name_A, _Value}, Name)
-  when is_atom(Name_A), is_list(Name) ->
-    Name_A == list_to_atom(Name);
-attribute_matches({Name, _Value}, Name_A)
-  when is_atom(Name_A), is_list(Name) ->
-    Name_A == list_to_atom(Name);
+attribute_matches({Name_B, _Value}, Name)
+  when is_binary(Name_B), is_list(Name) ->
+    Name_B == list_to_binary(Name);
+attribute_matches({Name, _Value}, Name_B)
+  when is_binary(Name_B), is_list(Name) ->
+    Name_B == list_to_binary(Name);
 
 attribute_matches(_Attr, _Name) ->
     false.
@@ -984,7 +979,7 @@ attribute_matches(_Attr, _Name) ->
 %% @spec (Attr, NS, Name) -> bool()
 %%     Attr = xmlattr()
 %%     NS = atom() | string()
-%%     Name = atom() | string() | binary()
+%%     Name = string() | binary()
 %% @doc Tell if `Attr' has the namespace `NS' and is named `Name'.
 %%
 %% It takes care of comparison between string and atom.
@@ -992,8 +987,6 @@ attribute_matches(_Attr, _Name) ->
 -spec(attribute_matches/3 ::
       (xmlattr(), xmlname(), xmlname() | attributename()) -> bool()).
 
-attribute_matches(Attr, NS, Name) when is_atom(Name) ->
-    attribute_matches(Attr, NS, list_to_binary(atom_to_list(Name)));
 attribute_matches(Attr, NS, Name) when is_list(Name) ->
     attribute_matches(Attr, NS, list_to_binary(Name));
 
@@ -3505,7 +3498,7 @@ xmlattributes_to_xmlnsattributes([{Name, Value} | Rest],
     Name_S = exmpp_known_elems:elem_as_list(Name),
     New_Attr = case string:tokens(Name_S, ":") of
 		   [Prefix, Real_Name] ->
-		       Real_Name_A = list_to_atom(Real_Name),
+		       Real_Name_A = list_to_binary(Real_Name),
 		       case search_prefix_in_prefixed_ns(Prefix, Prefixed_NS) of
 			   undefined ->
 			       %% Namespace never declared.
@@ -3515,7 +3508,7 @@ xmlattributes_to_xmlnsattributes([{Name, Value} | Rest],
 		       end;
 		   [Real_Name] ->
 		       %% Not attached to any namespace.
-		       Real_Name_A = list_to_atom(Real_Name),
+		       Real_Name_A = list_to_binary(Real_Name),
 		       attribute(Real_Name_A, Value)
 	       end,
     xmlattributes_to_xmlnsattributes(Rest, Prefixed_NS,
