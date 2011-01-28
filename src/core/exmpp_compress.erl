@@ -144,7 +144,7 @@ register_builtin_engine(Name, Driver, Compress_Methods) ->
 %% @spec (Name, Driver, Compress_Methods) -> ok
 %%     Name = atom()
 %%     Driver = atom()
-%%     Compress_Mehods = [{atom(), Priority}]
+%%     Compress_Methods = [{atom(), Priority}]
 %%     Priority = integer()
 %% @doc Add a new compression engine.
 
@@ -155,7 +155,7 @@ register_engine(Name, Driver, Compress_Methods) ->
 %%     Name = atom()
 %%     Driver_Path = string()
 %%     Driver = atom()
-%%     Compress_Mehods = [{atom(), Priority}]
+%%     Compress_Methods = [{atom(), Priority}]
 %%     Priority = integer()
 %% @doc Add a new compression engine.
 
