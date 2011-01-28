@@ -11,5 +11,5 @@ dist_headers_DATA = exmpp.hrl						\
             exmpp_jid.hrl
 
 if BUILD_COMPAT
-dist_headers_DATA += jlib.hrl
+dist_headers_DATA +=
 endif
