@@ -2,8 +2,8 @@ dnl ------------------------------------------------------------------
 dnl Autoconf initialization.
 dnl ------------------------------------------------------------------
 
-AC_INIT([exmpp], m4_esyscmd([git describe | sed 's/^v//' |
-        sed 's/-\([0-9]\)-/-0\1-/' | tr -d '\n']),
+AC_INIT([exmpp], m4_esyscmd([git describe 2>/dev/null || echo v0.9.5 | sed 's/^v//' |
+        sed 's/-\([0-9]\)-/-0\1-/' | tr -d '\n' || echo 1]),
         [js.pedron@meetic-corp.com], [exmpp])
 
 AC_CONFIG_SRCDIR([include/exmpp.hrl])
@@ -47,8 +47,8 @@ dnl EXMPP_RELEASE_DATE=
 
 dnl Is this a final release?
 is_release=0
-GITDESC1=`git describe --abbrev=0`
-GITDESC2=`git describe --abbrev=4`
+GITDESC1=`git describe --abbrev=0 || echo 1`
+GITDESC2=`git describe --abbrev=4 || echo 1`
 if test "${GITDESC1}" = "${GITDESC2}"; then
        is_release=1
 fi
