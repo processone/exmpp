@@ -24,7 +24,7 @@ EXTRA_DIST = core/exmpp.erl						\
 
 
 
-all:
+all: $(BUILT_SOURCES)
 	@$(ERL) +B -noshell -pa ../ebin			\
 		-eval "case make:all() of				\
 		         up_to_date -> halt(0);				\
@@ -33,7 +33,7 @@ all:
 		           halt(1)					\
 		       end"
 
-install: $(BUILT_SOURCES) all
+install: all
 
 .MAKE: all
 
