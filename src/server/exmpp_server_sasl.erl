@@ -38,6 +38,7 @@
 	 success/1,
 	 failure/0,
 	 failure/1,
+	 failure/2,
 	 next_step/1
 	]).
 
@@ -154,7 +155,7 @@ failure() ->
 %% @spec (Condition) -> Failure
 %%     Condition = atom()
 %%     Failure = exmpp_xml:xmlel()
-%% @doc Prepare a `<failure/>' element.
+%% @doc Prepare a `<failure/>' element with a defined condition.
 
 failure(Condition) ->
     case lists:keymember(Condition, 1, standard_conditions()) of
@@ -165,6 +166,28 @@ failure(Condition) ->
 			  name = Condition
 			 },
     exmpp_xml:append_child(failure(), Condition_El).
+
+%% @spec (Condition, Text) -> Failure
+%%     Condition = atom()
+%%     Text = string()
+%%     Failure = exmpp_xml:xmlel()
+%% @doc Prepare a `<failure/>' element with a defined condition and text.
+
+failure(Condition, "") ->
+    failure(Condition);
+failure(Condition, Text) ->
+    case lists:keymember(Condition, 1, standard_conditions()) of
+        true  -> ok;
+        false -> throw({sasl, failure, invalid_condition, Condition})
+    end,
+    Condition_El = #xmlel{ns = ?NS_SASL,
+			  name = Condition
+			 },
+    Text_El = #xmlel{ns = ?NS_SASL,
+			  name = text,
+			  children = exmpp_xml:cdata(Text)
+			 },
+    exmpp_xml:append_children(failure(), [Condition_El, Text_El]).
 
 %% @spec (El) -> Type
 %%     El = exmpp_xml:xmlel()
