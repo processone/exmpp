@@ -311,7 +311,7 @@ make(Orig, Node, Domain, Resource) ->
 
 bare(#jid{raw = Orig_Jid} = Jid) ->
     New_Orig_Jid = case binary_split(Orig_Jid, $/) of
-		       [Bare_Jid, _] -> Bare_Jid;
+		       [Bare_Jid | _] -> Bare_Jid;
 		       [Bare_Jid]    -> Bare_Jid
 		   end,
     Jid#jid{
