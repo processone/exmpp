@@ -535,7 +535,7 @@ to_binary(#jid{raw = Orig_Jid}) ->
     Orig_Jid.
 
 %% @spec (Node, Domain) -> String
-%%     Node = bianry() | string() | undefined
+%%     Node = binary() | string() | undefined
 %%     Domain = binary() | string()
 %%     String = binary()
 %% @doc Stringify a bare JID.
