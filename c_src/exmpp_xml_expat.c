@@ -486,6 +486,7 @@ init_parser(struct exmpp_xml_data *edd)
 	    expat_cb_end_element);
 	XML_SetCharacterDataHandler(edd->parser,
 	    expat_cb_character_data);
+	XML_SetDefaultHandler(edd->parser, NULL);
 }
 
 static void
