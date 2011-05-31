@@ -2,7 +2,7 @@ dnl ------------------------------------------------------------------
 dnl Autoconf initialization.
 dnl ------------------------------------------------------------------
 
-AC_INIT([exmpp], m4_esyscmd([(git describe 2>/dev/null || echo v0.9.6) | sed 's/^v//' |
+AC_INIT([exmpp], m4_esyscmd([(git describe 2>/dev/null || echo v0.9.7) | sed 's/^v//' |
         sed 's/-\([0-9]\)-/-0\1-/' | tr -d '\n' || echo 1]),
         [js.pedron@meetic-corp.com], [exmpp])
 
