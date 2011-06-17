@@ -69,7 +69,7 @@
 -define(IQ(Type, To, Id), (
   exmpp_xml:set_attributes(
     #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
-      [{'type', Type}, {'to', To}, {'id', Id}])
+      [{<<"type">>, Type}, {<<"to">>, To}, {<<"id">>, Id}])
 )).
 
 -define(IQ_GET(To, Id), (
