@@ -679,6 +679,14 @@ standard_conditions() ->
 error(Condition) ->
     error(Condition, {undefined, undefined}).
 
+%% @spec (Condition, {Lang, Text}) -> Stream_Error
+%%     Condition = atom()
+%%     Stream_Error = exmpp_xml:xmlel()
+%%     Lang = binary() | string() | undefined
+%%     Text = binary() | string() | undefined
+%% @doc Make a standard `<stream:error>' element based on the given
+%% `Condition' with Text child element.
+
 -spec error
 (atom(), {binary() | string() | undefined, binary() | string() | undefined}) ->
     xmlel().
@@ -700,8 +708,10 @@ error(Condition, {Lang, Text}) ->
         undefined ->
             Error_El0;
         _ ->
+            TextChildren = [exmpp_xml:cdata(Text)],
             Text_El0 = #xmlel{ns = ?NS_STREAM_ERRORS,
-			      name = 'text'
+			      name = 'text',
+			      children = TextChildren
 			     },
             Text_El = case Lang of
 			  undefined ->
