@@ -11,7 +11,7 @@
 %% the License for the specific language governing rights and limitations
 %% under the License.
 
-%% @author Emilio Bustos <mickael.remond@process-one.net>
+%% @author Emilio Bustos <emilionicolas@gmail.com>
 
 %% @doc
 %% The module <strong>{@module}</strong> manages TCP/IP socket
