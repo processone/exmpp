@@ -434,20 +434,41 @@ handshake2(server = Mode, Socket_Desc, Port, Recv_Timeout) ->
 
 %% @spec (TLS_Socket) -> Certificate | undefined
 %%     TLS_Socket = tls_socket()
-%%     Certificate = binary()
+%%     Certificate = certificate()
+%%     Reason = term()
+%% @throws {tls, peer_certificate, decode_failed, Reason}
 %% @doc Return the peer certificate if he provided one.
+%%
+%% Note that a client will only send a certificate when requested by a server.
+%% This means that in the server case, this function will return anything
+%% only when peer verification is enabled.
+%%
+%% Certificate is returned as a
+%% <a href="http://erlang.org/doc/apps/public_key/cert_records.html">
+%% public_key certificate record</a>.
 
 get_peer_certificate(#tls_socket{port = Port}) ->
     case engine_get_peer_certificate(Port) of
         undefined ->
             undefined;
         Bin_Cert ->
-            case public_key:pkix_decode_cert(Bin_Cert, plain) of
-                {ok, Cert} ->
-                    Cert;
-                {error, Reason} ->
-                    throw({tls, peer_certificate, decode_failed, Reason})
-            end
+	    try
+		case public_key:pkix_decode_cert(Bin_Cert, plain) of
+		    {ok, Cert} ->
+			%% R13 and earlier
+			Cert;
+		    {error, Reason} ->
+			%% R13 and earlier
+			throw({tls, peer_certificate, decode_failed, Reason});
+		    Certificate ->
+			%% starting from R14, pkix_decode_cert/2 simply returns
+			%% decoded certificate and uses erlang:error/1 for errors
+			Certificate
+		end
+	    catch
+		_:Exception ->
+		    throw({tls, peer_certificate, decode_failed, Exception})
+	    end
     end.
 
 %% @spec (TLS_Socket) -> Result

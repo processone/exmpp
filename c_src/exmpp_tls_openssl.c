@@ -401,19 +401,16 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 	case COMMAND_GET_PEER_CERTIFICATE:
 		/* Get the peer certificate. */
 		cert = SSL_get_peer_certificate(edd->ssl);
-		if (cert == NULL) {
+		if (cert == NULL || (rlen = i2d_X509(cert, NULL)) < 0) {
 			to_send = exmpp_new_xbuf();
 			if (to_send == NULL)
 				return (-1);
 			ei_x_encode_atom(to_send, "no_certificate");
 
 			COPY_AND_FREE_BUF(to_send, size, b, RET_ERROR);
-		}
-
-		/* Calculate the size of the certificate. */
-		rlen = i2d_X509(cert, NULL);
-		if (rlen < 0) {
-			X509_free(cert);
+			if (cert != NULL) {
+				X509_free(cert);
+			}
 			break;
 		}
 
