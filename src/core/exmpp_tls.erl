@@ -49,7 +49,9 @@
 	 shutdown/1,
 	 shutdown/2,
 	 shutdown/3,
-	 quiet_shutdown/1
+	 quiet_shutdown/1,
+	 get_peer_finished/1,
+	 get_finished/1
 	]).
 
 %% Common socket API.
@@ -114,6 +116,8 @@
 -define(COMMAND_SHUTDOWN,             14).
 -define(COMMAND_QUIET_SHUTDOWN,       15).
 -define(COMMAND_PORT_REVISION,        16).
+-define(COMMAND_GET_PEER_FINISHED,    17).
+-define(COMMAND_GET_FINISHED,         18).
 
 %% --------------------------------------------------------------------
 %% Initialization.
@@ -549,6 +553,28 @@ quiet_shutdown(#tls_socket{socket = Socket_Desc, port = Port}) ->
     engine_quiet_shutdown(Port),
     exmpp_internals:close_port(Port),
     Socket_Desc.
+
+%% @spec (TLS_Socket) -> Finished
+%%     TLS_Socket = tls_socket()
+%%     Finished = binary()
+%% @doc Retrieve latest "Finished" message (received on this side).
+%%
+%% "Finished" message is needed for tls-unique channel binding,
+%% used for example by SCRAM-SHA-1-PLUS SASL method.
+
+get_peer_finished(#tls_socket{port = Port}) ->
+    engine_get_peer_finished(Port).
+
+%% @spec (TLS_Socket) -> Finished
+%%     TLS_Socket = tls_socket()
+%%     Finished = binary()
+%% @doc Retrieve latest "Finished" message (sent out from this side).
+%%
+%% "Finished" message is needed for tls-unique channel binding,
+%% used for example by SCRAM-SHA-1-PLUS SASL method.
+
+get_finished(#tls_socket{port = Port}) ->
+    engine_get_finished(Port).
 
 %% --------------------------------------------------------------------
 %% Handshake helpers.
@@ -994,6 +1020,22 @@ engine_port_revision(Port) ->
             throw({tls, port_revision, port_revision, Reason});
         Revision ->
             binary_to_term(Revision)
+    end.
+
+engine_get_peer_finished(Port) ->
+    case control(Port, ?COMMAND_GET_PEER_FINISHED, <<>>) of
+	{error, Reason} ->
+	    throw({tls, get_peer_finished, get_peer_finished, Reason});
+	Result ->
+	    Result
+    end.
+
+engine_get_finished(Port) ->
+    case control(Port, ?COMMAND_GET_FINISHED, <<>>) of
+	{error, Reason} ->
+	    throw({tls, get_finished, get_finished, Reason});
+	Result ->
+	    Result
     end.
 
 %% --------------------------------------------------------------------

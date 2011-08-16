@@ -508,6 +508,22 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 		COPY_AND_FREE_BUF(to_send, size, b, RET_ERROR);
 
 		break;
+	case COMMAND_GET_PEER_FINISHED:
+		size = BUF_SIZE + 1;
+		b = driver_alloc_binary(size);
+		b->orig_bytes[0] = RET_OK;
+		ret = SSL_get_peer_finished(edd->ssl, &(b->orig_bytes[1]), BUF_SIZE);
+		size = ret + 1;
+		b = driver_realloc_binary(b, size);
+		break;
+	case COMMAND_GET_FINISHED:
+		size = BUF_SIZE + 1;
+		b = driver_alloc_binary(size);
+		b->orig_bytes[0] = RET_OK;
+		ret = SSL_get_finished(edd->ssl, &(b->orig_bytes[1]), BUF_SIZE);
+		size = ret + 1;
+		b = driver_realloc_binary(b, size);
+		break;
 	default:
 		/* Commad not recognized. */
 		to_send = exmpp_new_xbuf();
