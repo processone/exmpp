@@ -56,7 +56,6 @@ HTML_FILES = index.html							\
 	     exmpp_xml.html						\
 	     exmpp_xmlstream.html					\
 	     ejabberd_socket.html					\
-	     ejabberd_zlib.html						\
 	     stringprep.html						\
 	     tls.html							\
 	     xml.html							\

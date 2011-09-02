@@ -45,7 +45,6 @@
         exmpp_session,
         exmpp_socket@COMPAT_MODULES_START@
         @COMPAT_MODULES@ejabberd_socket,
-        @COMPAT_MODULES@ejabberd_zlib,
         @COMPAT_MODULES@stringprep,
         @COMPAT_MODULES@tls,
         @COMPAT_MODULES@xml,
