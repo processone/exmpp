@@ -57,11 +57,28 @@
 	 code_change/3
 	]).
 
--record(state, {port}).
+-record(state, {ports}).
 
 -define(SERVER, ?MODULE).
 -define(DRIVER_NAME, exmpp_stringprep).
--define(PORT_REGISTERED_NAME, exmpp_stringprep_port).
+
+%% http://www.erlang.org/doc/efficiency_guide/drivers.html#id68009
+-define(PORT_REGISTERED_NAMES, {exmpp_stringprep_port01,
+				exmpp_stringprep_port02,
+				exmpp_stringprep_port03,
+				exmpp_stringprep_port04,
+				exmpp_stringprep_port05,
+				exmpp_stringprep_port06,
+				exmpp_stringprep_port07,
+				exmpp_stringprep_port08,
+				exmpp_stringprep_port09,
+				exmpp_stringprep_port10,
+				exmpp_stringprep_port11,
+				exmpp_stringprep_port12,
+				exmpp_stringprep_port13,
+				exmpp_stringprep_port14,
+				exmpp_stringprep_port15,
+				exmpp_stringprep_port16}).
 
 -define(COMMAND_LOWERCASE,     0).
 -define(COMMAND_NAMEPREP,      1).
@@ -249,15 +266,16 @@ port_revision() ->
     string() | {error, invalid_string | exmpp_not_started}.
 
 control(Command, String) ->
+    PortName = port_name(erlang:system_info(scheduler_id)),
     try
-        case port_control(?PORT_REGISTERED_NAME, Command, String) of
+        case port_control(PortName, Command, String) of
             [0 | _]      -> {error, invalid_string};
             [1 | Result] -> Result
         end
     catch
         error:badarg ->
-            case erlang:port_info(?PORT_REGISTERED_NAME, registered_name) of
-                {registered_name, ?PORT_REGISTERED_NAME} ->
+            case erlang:port_info(PortName, registered_name) of
+                {registered_name, PortName} ->
                     {error, invalid_string};
                 undefined ->
                     {error, exmpp_not_started}
@@ -290,6 +308,11 @@ control_reuse_arg(Command, String) ->
             Other
     end.
 
+-spec port_name(pos_integer()) -> atom().
+port_name(N) ->
+    element(N rem tuple_size(?PORT_REGISTERED_NAMES) + 1,
+	    ?PORT_REGISTERED_NAMES).
+
 %% --------------------------------------------------------------------
 %% gen_server(3erl) callbacks.
 %% --------------------------------------------------------------------
@@ -299,10 +322,16 @@ control_reuse_arg(Command, String) ->
 init([]) ->
     try
         exmpp_internals:load_driver(?DRIVER_NAME),
-        Port = exmpp_internals:open_port(?DRIVER_NAME),
-        register(?PORT_REGISTERED_NAME, Port),
+	Ports =
+	    lists:map(fun(N) ->
+			      Port = exmpp_internals:open_port(?DRIVER_NAME),
+			      register(port_name(N), Port),
+			      Port
+		      end,
+		      lists:seq(1, min(erlang:system_info(schedulers),
+				       tuple_size(?PORT_REGISTERED_NAMES)))),
         State = #state{
-          port = Port
+          ports = Ports
 	 },
         {ok, State}
     catch
@@ -343,7 +372,9 @@ code_change(Old_Vsn, State, Extra) ->
 
 %% @hidden
 
-terminate(_Reason, #state{port = Port} = _State) ->
-    exmpp_internals:close_port(Port),
+terminate(_Reason, #state{ports = Ports} = _State) ->
+    lists:foreach(fun(Port) ->
+			  exmpp_internals:close_port(Port)
+		  end, Ports),
     exmpp_internals:unload_driver(?DRIVER_NAME),
     ok.
