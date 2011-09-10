@@ -139,6 +139,11 @@ start_link() ->
 
 -ifdef(HAVE_OPENSSL).
 -define(REGISTER_OPENSSL,
+	%% crypto module installs various global OpenSSL callbacks
+	%% that make OpenSSL thread-safe. The OpenSSL driver will
+	%% detect and make use of it, so ensure that crypto is
+	%% started before loading the driver.
+	crypto:start(),
 	register_builtin_engine(openssl, exmpp_tls_openssl,
 				[{x509, 10}])).
 -else.

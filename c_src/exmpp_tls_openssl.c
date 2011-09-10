@@ -854,5 +854,29 @@ DRIVER_INIT(DRIVER_NAME)
 	ssl_ex_index = SSL_get_ex_new_index(0, "exmpp_tls_openssl_data",
 	    NULL, NULL, NULL);
 
+#if defined(SMP_SUPPORT)
+	/**
+	 * To make OpenSSL thread-safe, two callbacks must be set
+	 * as described in http://www.openssl.org/docs/crypto/threads.html
+	 *
+	 * However, OTP comes with crypto module, that links with OpenSSL
+	 * and sets the needed callbacks itself. If another set of
+	 * callbacks had been provided here, it would overwrite
+	 * or be overwritten by those from crypto module.
+	 *
+	 * So instead of providing callbacks, start crypto module
+	 * from Erlang code before loading this driver. As a result
+	 * crypto module will install the needed callbacks and
+	 * this driver also can be made thread safe.
+	 */
+	if (CRYPTO_get_locking_callback() != NULL &&
+	    CRYPTO_get_id_callback() != NULL) {
+		tls_openssl_driver_entry.extended_marker = ERL_DRV_EXTENDED_MARKER;
+		tls_openssl_driver_entry.major_version = ERL_DRV_EXTENDED_MAJOR_VERSION;
+		tls_openssl_driver_entry.minor_version = ERL_DRV_EXTENDED_MINOR_VERSION;
+		tls_openssl_driver_entry.driver_flags = ERL_DRV_FLAG_USE_PORT_LOCKING;
+	}
+#endif
+
 	return &tls_openssl_driver_entry;
 }
