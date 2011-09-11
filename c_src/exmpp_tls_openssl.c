@@ -112,6 +112,12 @@ exmpp_tls_openssl_stop(ErlDrvData drv_data)
 		driver_free(edd->private_key);
 	if (edd->expected_id != NULL)
 		driver_free(edd->expected_id);
+	if (edd->trusted_certs != NULL)
+		driver_free(edd->trusted_certs);
+	if (edd->ssl != NULL)
+		SSL_free(edd->ssl);
+	if (edd->ctx != NULL)
+		SSL_CTX_free(edd->ctx);
 
 	driver_free(edd);
 }
