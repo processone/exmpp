@@ -322,14 +322,20 @@ port_name(N) ->
 init([]) ->
     try
         exmpp_internals:load_driver(?DRIVER_NAME),
+	Schedulers = erlang:system_info(schedulers),
+	PortCount =
+	    if Schedulers > tuple_size(?PORT_REGISTERED_NAMES) ->
+		    tuple_size(?PORT_REGISTERED_NAMES);
+	       true ->
+		    Schedulers
+	    end,
 	Ports =
 	    lists:map(fun(N) ->
 			      Port = exmpp_internals:open_port(?DRIVER_NAME),
 			      register(port_name(N), Port),
 			      Port
 		      end,
-		      lists:seq(1, min(erlang:system_info(schedulers),
-				       tuple_size(?PORT_REGISTERED_NAMES)))),
+		      lists:seq(1, PortCount)),
         State = #state{
           ports = Ports
 	 },
