@@ -41,6 +41,18 @@ struct exmpp_compress_zlib_data {
 	    (to_send)->index);						\
 	exmpp_free_xbuf((to_send));
 
+static void*
+exmpp_compress_zlib_alloc(void *opaque, unsigned int items, unsigned int size)
+{
+	return driver_alloc(items*size);
+}
+
+static void
+exmpp_compress_zlib_free(void *opaque, void *addr)
+{
+	driver_free(addr);
+}
+
 /* -------------------------------------------------------------------
  * Erlang port driver callbacks.
  * ------------------------------------------------------------------- */
@@ -63,8 +75,8 @@ exmpp_compress_zlib_start(ErlDrvPort port, char *command)
 
 	edd->inf_z.next_in  = edd->def_z.next_in  = 0;
 	edd->inf_z.avail_in = edd->def_z.avail_in = 0;
-	edd->inf_z.zalloc   = edd->def_z.zalloc   = NULL;
-	edd->inf_z.zfree    = edd->def_z.zfree    = NULL;
+	edd->inf_z.zalloc   = edd->def_z.zalloc   = exmpp_compress_zlib_alloc;
+	edd->inf_z.zfree    = edd->def_z.zfree    = exmpp_compress_zlib_free;
 	edd->inf_z.opaque   = edd->def_z.opaque   = NULL;
 
 	return (ErlDrvData)edd;
