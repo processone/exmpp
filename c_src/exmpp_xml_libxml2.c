@@ -460,7 +460,6 @@ static ErlDrvEntry driver_entry;
 
 DRIVER_INIT(DRIVER_NAME)
 {
-
 	driver_entry.driver_name = S(DRIVER_NAME);
 	driver_entry.init = exmpp_xml_init;
 	driver_entry.finish = exmpp_xml_finish;
@@ -468,10 +467,10 @@ DRIVER_INIT(DRIVER_NAME)
 	driver_entry.stop = exmpp_xml_stop;
 	driver_entry.control = exmpp_xml_control;
 
-#if defined(SMP_SUPPORT)
 	driver_entry.extended_marker = ERL_DRV_EXTENDED_MARKER;
 	driver_entry.major_version = ERL_DRV_EXTENDED_MAJOR_VERSION;
 	driver_entry.minor_version = ERL_DRV_EXTENDED_MINOR_VERSION;
+#if defined(SMP_SUPPORT)
 	driver_entry.driver_flags = ERL_DRV_FLAG_USE_PORT_LOCKING;
 #endif
 

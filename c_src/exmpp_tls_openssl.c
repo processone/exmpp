@@ -845,7 +845,6 @@ static ErlDrvEntry tls_openssl_driver_entry = {
 
 DRIVER_INIT(DRIVER_NAME)
 {
-
 	/* Initialize OpenSSL. */
 	SSL_library_init();
 	SSL_load_error_strings();
@@ -860,6 +859,9 @@ DRIVER_INIT(DRIVER_NAME)
 	ssl_ex_index = SSL_get_ex_new_index(0, "exmpp_tls_openssl_data",
 	    NULL, NULL, NULL);
 
+	tls_openssl_driver_entry.extended_marker = ERL_DRV_EXTENDED_MARKER;
+	tls_openssl_driver_entry.major_version = ERL_DRV_EXTENDED_MAJOR_VERSION;
+	tls_openssl_driver_entry.minor_version = ERL_DRV_EXTENDED_MINOR_VERSION;
 #if defined(SMP_SUPPORT)
 	/**
 	 * To make OpenSSL thread-safe, two callbacks must be set
@@ -877,9 +879,6 @@ DRIVER_INIT(DRIVER_NAME)
 	 */
 	if (CRYPTO_get_locking_callback() != NULL &&
 	    CRYPTO_get_id_callback() != NULL) {
-		tls_openssl_driver_entry.extended_marker = ERL_DRV_EXTENDED_MARKER;
-		tls_openssl_driver_entry.major_version = ERL_DRV_EXTENDED_MAJOR_VERSION;
-		tls_openssl_driver_entry.minor_version = ERL_DRV_EXTENDED_MINOR_VERSION;
 		tls_openssl_driver_entry.driver_flags = ERL_DRV_FLAG_USE_PORT_LOCKING;
 	}
 #endif

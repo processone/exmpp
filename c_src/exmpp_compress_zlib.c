@@ -348,10 +348,10 @@ static ErlDrvEntry compress_zlib_driver_entry = {
 
 DRIVER_INIT(DRIVER_NAME)
 {
-#if defined(SMP_SUPPORT)
 	compress_zlib_driver_entry.extended_marker = ERL_DRV_EXTENDED_MARKER;
 	compress_zlib_driver_entry.major_version = ERL_DRV_EXTENDED_MAJOR_VERSION;
 	compress_zlib_driver_entry.minor_version = ERL_DRV_EXTENDED_MINOR_VERSION;
+#if defined(SMP_SUPPORT)
 	compress_zlib_driver_entry.driver_flags = ERL_DRV_FLAG_USE_PORT_LOCKING;
 #endif
 	return &compress_zlib_driver_entry;
