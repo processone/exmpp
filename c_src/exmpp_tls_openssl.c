@@ -574,6 +574,24 @@ init_library(struct exmpp_tls_openssl_data *edd,
 		goto err;
 	}
 
+	// SSL 2.0 is deprecated for many years
+	SSL_CTX_set_options(edd->ctx, SSL_OP_NO_SSLv2);
+
+	/*
+	 * Since sessions are cached in SSL_CTX and currently new context
+	 * is used for every connection, then session caching makes little
+	 * sense, turn it off.
+	 */
+	SSL_CTX_set_session_cache_mode(edd->ctx, SSL_SESS_CACHE_OFF);
+	SSL_CTX_set_options(edd->ctx, SSL_OP_NO_TICKET);
+#ifdef SSL_MODE_RELEASE_BUFFERS
+	/*
+	 * This appeared in OpenSSL 1.0.0,
+	 * reduces memory usage on idle connections.
+	 */
+	SSL_CTX_set_mode(edd->ctx, SSL_MODE_RELEASE_BUFFERS);
+#endif
+
 	/* Set our certificate. */
 	if (edd->certificate != NULL) {
 		ret = SSL_CTX_use_certificate_chain_file(edd->ctx,
