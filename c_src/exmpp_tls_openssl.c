@@ -387,21 +387,11 @@ exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
 		break;
 	case COMMAND_GET_ENCRYPTED_OUTPUT:
 		/* Allocate binary to copy encrypted data. */
-		size = BUF_SIZE + 1;
-		rlen = 1;
+		size = BIO_ctrl_pending(edd->bio_write) + 1;
 		b = driver_alloc_binary(size);
 		b->orig_bytes[0] = RET_OK;
 
-		/* Copy data. */
-		while ((ret = BIO_read(edd->bio_write,
-		    b->orig_bytes + rlen, BUF_SIZE)) > 0) {
-			rlen += ret;
-			size += BUF_SIZE;
-			b = driver_realloc_binary(b, size);
-		}
-
-		size = rlen;
-		b = driver_realloc_binary(b, size);
+		BIO_read(edd->bio_write, b->orig_bytes + 1, size - 1);
 
 		break;
 	case COMMAND_GET_PEER_CERTIFICATE:
