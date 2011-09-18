@@ -57,6 +57,7 @@ static int	verify_callback(int preverify_ok, X509_STORE_CTX *x509_ctx);
 
 static int	ssl_ex_index;
 
+#ifndef OPENSSL_NO_DH
 /*
 1024-bit MODP Group with 160-bit prime order subgroup (RFC5114)
 -----BEGIN DH PARAMETERS-----
@@ -68,7 +69,6 @@ sBuIal6RVH+eJ0n01/vX07mpLuGQnQ0iY/gKdqaiTAh6CR9THb8KAWm2oorWYqTR
 jnOvoy13nVkY0IvIhY9Nzvl8KiSFXm7rIrOy5QICAKA=
 -----END DH PARAMETERS-----
  */
-
 static unsigned char dh1024_p[] = {
         0xB1,0x0B,0x8F,0x96,0xA0,0x80,0xE0,0x1D,0xDE,0x92,0xDE,0x5E,
         0xAE,0x5D,0x54,0xEC,0x52,0xC9,0x9F,0xBC,0xFB,0x06,0xA3,0xC6,
@@ -97,6 +97,7 @@ static unsigned char dh1024_g[] = {
 };
 
 static DH *dh1024;
+#endif
 
 #if OPENSSL_VERSION_NUMBER >= 0x10000000L && !defined(OPENSSL_NO_ECDH)
 static EC_KEY *ecdh;
@@ -615,14 +616,16 @@ init_library(struct exmpp_tls_openssl_data *edd,
 	SSL_CTX_set_mode(edd->ctx, SSL_MODE_RELEASE_BUFFERS);
 #endif
 
+#ifndef OPENSSL_NO_DH
 	if (dh1024 != NULL && edd->mode == TLS_MODE_SERVER) {
-		SSL_CTX_set_tmp_dh(edd->ctx, dh1024);
 		SSL_CTX_set_options(edd->ctx, SSL_OP_SINGLE_DH_USE);
+		SSL_CTX_set_tmp_dh(edd->ctx, dh1024);
 	}
+#endif
 #if OPENSSL_VERSION_NUMBER >= 0x10000000L && !defined(OPENSSL_NO_ECDH)
 	if (ecdh != NULL && edd->mode == TLS_MODE_SERVER) {
-		SSL_CTX_set_tmp_ecdh(edd->ctx, ecdh);
 		SSL_CTX_set_options(edd->ctx, SSL_OP_SINGLE_ECDH_USE);
+		SSL_CTX_set_tmp_ecdh(edd->ctx, ecdh);
 	}
 #endif
 
@@ -915,6 +918,7 @@ DRIVER_INIT(DRIVER_NAME)
 	ssl_ex_index = SSL_get_ex_new_index(0, "exmpp_tls_openssl_data",
 	    NULL, NULL, NULL);
 
+#ifndef OPENSSL_NO_DH
 	// Initialize ephemeral Diffie-Hellman parameters.
 	dh1024 = DH_new();
 	if (dh1024 != NULL) {
@@ -925,6 +929,7 @@ DRIVER_INIT(DRIVER_NAME)
 			dh1024 = NULL;
 		}
 	}
+#endif
 
 #if OPENSSL_VERSION_NUMBER >= 0x10000000L && !defined(OPENSSL_NO_ECDH)
 	ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
