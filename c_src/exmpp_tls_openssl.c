@@ -123,19 +123,7 @@ exmpp_tls_openssl_start(ErlDrvPort port, char *command)
 	if (edd == NULL)
 		return (NULL);
 
-	edd->mode = TLS_MODE_UNKNOWN;
-	edd->certificate = edd->private_key = NULL;
-	edd->verify_peer = 0;
-	edd->expected_id = NULL;
-	edd->trusted_certs = NULL;
-	edd->peer_cert_required = 0;
-	edd->accept_expired_cert = 0;
-	edd->accept_revoked_cert = 0;
-	edd->accept_non_trusted_cert = 0;
-	edd->accept_corrupted_cert = 0;
-
-	edd->ctx = NULL;
-	edd->ssl = NULL;
+	memset(edd, 0, sizeof(*edd));
 
 	return (ErlDrvData)edd;
 }
@@ -721,10 +709,14 @@ init_library(struct exmpp_tls_openssl_data *edd,
 	return (0);
 
 err:
-	if (edd->ssl != NULL)
+	if (edd->ssl != NULL) {
 		SSL_free(edd->ssl);
-	if (edd->ctx != NULL)
+		edd->ssl = NULL;
+	}
+	if (edd->ctx != NULL) {
 		SSL_CTX_free(edd->ctx);
+		edd->ctx = NULL;
+	}
 
 	return (-1);
 }
