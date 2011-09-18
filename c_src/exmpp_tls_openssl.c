@@ -98,6 +98,10 @@ static unsigned char dh1024_g[] = {
 
 static DH *dh1024;
 
+#if OPENSSL_VERSION_NUMBER >= 0x10000000L && !defined(OPENSSL_NO_ECDH)
+static EC_KEY *ecdh;
+#endif
+
 #define	COPY_AND_FREE_BUF(to_send, size, b, ret)			\
 	(size) = (to_send)->index + 1;					\
 	(b) = driver_alloc_binary((size));				\
@@ -615,6 +619,12 @@ init_library(struct exmpp_tls_openssl_data *edd,
 		SSL_CTX_set_tmp_dh(edd->ctx, dh1024);
 		SSL_CTX_set_options(edd->ctx, SSL_OP_SINGLE_DH_USE);
 	}
+#if OPENSSL_VERSION_NUMBER >= 0x10000000L && !defined(OPENSSL_NO_ECDH)
+	if (ecdh != NULL && edd->mode == TLS_MODE_SERVER) {
+		SSL_CTX_set_tmp_ecdh(edd->ctx, ecdh);
+		SSL_CTX_set_options(edd->ctx, SSL_OP_SINGLE_ECDH_USE);
+	}
+#endif
 
 	/* Set our certificate. */
 	if (edd->certificate != NULL) {
@@ -915,6 +925,10 @@ DRIVER_INIT(DRIVER_NAME)
 			dh1024 = NULL;
 		}
 	}
+
+#if OPENSSL_VERSION_NUMBER >= 0x10000000L && !defined(OPENSSL_NO_ECDH)
+	ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
+#endif
 
 	tls_openssl_driver_entry.extended_marker = ERL_DRV_EXTENDED_MARKER;
 	tls_openssl_driver_entry.major_version = ERL_DRV_EXTENDED_MAJOR_VERSION;
