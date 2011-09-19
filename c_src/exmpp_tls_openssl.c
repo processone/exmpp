@@ -22,6 +22,7 @@
 #include "exmpp_tls.h"
 
 #define	DRIVER_NAME	exmpp_tls_openssl
+#define CIPHERS         "DEFAULT:!EXPORT:!LOW:!SSLv2"
 
 #define	BUF_SIZE	1024
 
@@ -600,6 +601,8 @@ init_library(struct exmpp_tls_openssl_data *edd,
 
 	// SSL 2.0 is deprecated for many years
 	SSL_CTX_set_options(edd->ctx, SSL_OP_NO_SSLv2);
+
+	SSL_CTX_set_cipher_list(edd->ctx, CIPHERS);
 
 	/*
 	 * Since sessions are cached in SSL_CTX and currently new context
