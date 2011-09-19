@@ -100,7 +100,12 @@ static unsigned char dh1024_g[] = {
 static DH *dh1024;
 #endif
 
-#if OPENSSL_VERSION_NUMBER >= 0x10000000L && !defined(OPENSSL_NO_ECDH)
+/*
+ * ECDHE is enabled only on OpenSSL 1.0.0e and later.
+ * See http://www.openssl.org/news/secadv_20110906.txt
+ * for details.
+ */
+#if OPENSSL_VERSION_NUMBER >= 0x1000005fL && !defined(OPENSSL_NO_ECDH)
 static EC_KEY *ecdh;
 #endif
 
@@ -625,7 +630,7 @@ init_library(struct exmpp_tls_openssl_data *edd,
 		SSL_CTX_set_tmp_dh(edd->ctx, dh1024);
 	}
 #endif
-#if OPENSSL_VERSION_NUMBER >= 0x10000000L && !defined(OPENSSL_NO_ECDH)
+#if OPENSSL_VERSION_NUMBER >= 0x1000005fL && !defined(OPENSSL_NO_ECDH)
 	if (ecdh != NULL && edd->mode == TLS_MODE_SERVER) {
 		SSL_CTX_set_options(edd->ctx, SSL_OP_SINGLE_ECDH_USE);
 		SSL_CTX_set_tmp_ecdh(edd->ctx, ecdh);
@@ -934,7 +939,7 @@ DRIVER_INIT(DRIVER_NAME)
 	}
 #endif
 
-#if OPENSSL_VERSION_NUMBER >= 0x10000000L && !defined(OPENSSL_NO_ECDH)
+#if OPENSSL_VERSION_NUMBER >= 0x1000005fL && !defined(OPENSSL_NO_ECDH)
 	ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
 #endif
 
