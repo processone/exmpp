@@ -55,6 +55,7 @@ static make_attributes_cb	exmpp_xml_cb_make_attributes;
 
 static int		create_parser(struct exmpp_xml_data *edd);
 static void		destroy_parser(struct exmpp_xml_data *edd);
+static char*            libxml2_strdup(const char *str);
 
 /* LibXML2 SAX handler. */
 static xmlSAXHandler sax_handler;
@@ -71,8 +72,20 @@ exmpp_xml_init()
 	if (init_known_lists() != 0)
 		return (-1);
 
+	if (xmlMemSetup(driver_free, driver_alloc,
+			driver_realloc, libxml2_strdup) != 0) {
+		return (-1);
+	}
+
 	/* Initialize and check LibXML2. */
 	LIBXML_TEST_VERSION; /* be safe, plus calls xmlInitParser */
+
+	/* Initialize SAX callbacks. */
+	sax_handler.initialized = XML_SAX2_MAGIC;
+	sax_handler.startElementNs = libxml2_cb_start_element;
+	sax_handler.endElementNs = libxml2_cb_end_element;
+	sax_handler.getEntity = libxml2_cb_get_entity;
+	sax_handler.characters = libxml2_cb_character_data;
 
 	return (0);
 }
@@ -421,14 +434,6 @@ exmpp_xml_cb_make_attributes(struct exmpp_xml_ctx *ctx, void *user_data)
 static int
 create_parser(struct exmpp_xml_data *edd)
 {
-
-	/* Initialize SAX callbacks. */
-	sax_handler.initialized = XML_SAX2_MAGIC;
-	sax_handler.startElementNs = libxml2_cb_start_element;
-	sax_handler.endElementNs = libxml2_cb_end_element;
-	sax_handler.getEntity = libxml2_cb_get_entity;
-	sax_handler.characters = libxml2_cb_character_data;
-
 	/* Create a parser. */
 	edd->parser = xmlCreatePushParserCtxt(&sax_handler, edd,
 	    NULL, 0, NULL);
@@ -450,6 +455,25 @@ destroy_parser(struct exmpp_xml_data *edd)
 		/* Reset generic context. */
 		reset_context(&edd->ctx);
 	}
+}
+
+static char*
+libxml2_strdup(const char *str)
+{
+	int len;
+	char *copy;
+
+	if (str == NULL) {
+		return NULL;
+	}
+
+	len = strlen(str) + 1;
+	copy = driver_alloc(len);
+	if (copy == NULL) {
+		return NULL;
+	}
+
+	return memcpy(copy, str, len);
 }
 
 /* -------------------------------------------------------------------

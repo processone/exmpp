@@ -44,6 +44,8 @@ static int		create_parser(struct exmpp_xml_data *edd);
 static void		init_parser(struct exmpp_xml_data *edd);
 static void		destroy_parser(struct exmpp_xml_data *edd);
 
+static XML_Memory_Handling_Suite memory_suite;
+
 /* -------------------------------------------------------------------
  * Erlang port driver callbacks.
  * ------------------------------------------------------------------- */
@@ -55,6 +57,10 @@ exmpp_xml_init()
 	/* Initialize the global known lists. */
 	if (init_known_lists() != 0)
 		return (-1);
+
+	memory_suite.malloc_fcn = driver_alloc;
+	memory_suite.realloc_fcn = driver_realloc;
+	memory_suite.free_fcn = driver_free;
 
 	return (0);
 }
@@ -353,9 +359,8 @@ exmpp_xml_cb_make_attributes(struct exmpp_xml_ctx *ctx, void *attributes)
 static int
 create_parser(struct exmpp_xml_data *edd)
 {
-
 	/* Create a parser. */
-	edd->parser = XML_ParserCreate("UTF-8");
+	edd->parser = XML_ParserCreate_MM("UTF-8", &memory_suite, NULL);
 	if (edd->parser == NULL)
 		return (-1);
 
