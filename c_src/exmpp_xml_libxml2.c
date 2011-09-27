@@ -55,7 +55,6 @@ static make_attributes_cb	exmpp_xml_cb_make_attributes;
 
 static int		create_parser(struct exmpp_xml_data *edd);
 static void		destroy_parser(struct exmpp_xml_data *edd);
-static char*            libxml2_strdup(const char *str);
 
 /* LibXML2 SAX handler. */
 static xmlSAXHandler sax_handler;
@@ -73,7 +72,7 @@ exmpp_xml_init()
 		return (-1);
 
 	if (xmlMemSetup(driver_free, driver_alloc,
-			driver_realloc, libxml2_strdup) != 0) {
+			driver_realloc, exmpp_strdup) != 0) {
 		return (-1);
 	}
 
@@ -455,25 +454,6 @@ destroy_parser(struct exmpp_xml_data *edd)
 		/* Reset generic context. */
 		reset_context(&edd->ctx);
 	}
-}
-
-static char*
-libxml2_strdup(const char *str)
-{
-	int len;
-	char *copy;
-
-	if (str == NULL) {
-		return NULL;
-	}
-
-	len = strlen(str) + 1;
-	copy = driver_alloc(len);
-	if (copy == NULL) {
-		return NULL;
-	}
-
-	return memcpy(copy, str, len);
 }
 
 /* -------------------------------------------------------------------
