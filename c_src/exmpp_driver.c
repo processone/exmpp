@@ -235,7 +235,7 @@ exmpp_ht_fetch(struct exmpp_hashtable *ht, const char *key, int key_len)
 		/* Check hash value to short circuit heavier comparison. */
 		if (entry->hash == hash &&
 		    ((key_len == -1 &&
-		      strcmp(entry->key, key)) ||
+		      strcmp(entry->key, key) == 0) ||
 		     (entry->key_len == key_len &&
 		      strncmp(entry->key, key, key_len) == 0))) {
 #if defined(USE_RWLOCK)

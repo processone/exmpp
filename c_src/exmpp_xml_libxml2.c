@@ -256,6 +256,7 @@ exmpp_xml_control(ErlDrvData drv_data, unsigned int command,
 
 	case COMMAND_RESET_PARSER:
 		if (edd->parser != NULL) {
+			reset_context(&edd->ctx);
 			xmlCtxtResetPush(edd->parser, NULL, 0, NULL, NULL);
 		}
 		ret = RET_OK;
