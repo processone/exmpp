@@ -32,7 +32,7 @@
 -include("exmpp.hrl").
 
 %% Behaviour exmpp_gen_transport ?
--export([connect/3,  send/2, close/2, reset_parser/1, get_property/2]).
+-export([connect/3,  send/2, close/2, reset_parser/1, get_property/2, wping/1]).
 
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
@@ -82,6 +82,10 @@ send(Pid, Packet) ->
 
 close(Pid, _) ->
     catch gen_server:call(Pid, stop).
+
+%% Don't send whitespace pings on BOSH
+wping(_Pid) ->
+	ok.
 
 %% don't do anything on init. We establish the connection when the stream start 
 %% is sent                                                                      
