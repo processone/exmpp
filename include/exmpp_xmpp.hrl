@@ -32,26 +32,21 @@
 % --------------------------------------------------------------------
 
 % Guard expression to test a stanza as defined by XMPP-IM.
--define(IS_IM_STANZA(El), (
-  El#xmlel.ns == ?NS_JABBER_CLIENT orelse
-  El#xmlel.ns == ?NS_JABBER_SERVER orelse
-  El#xmlel.ns == ?NS_COMPONENT_ACCEPT orelse
-  El#xmlel.ns == ?NS_COMPONENT_CONNECT
-)).
+-define(IS_IM_STANZA(El), element(1,El) == xmlel).
 
 % Guard expression to test a message.
 -define(IS_MESSAGE(El), (
-  ?IS_IM_STANZA(El) andalso El#xmlel.name == 'message'
+  ?IS_IM_STANZA(El) andalso element(2, El) == <<"message">>
 )).
 
 % Guard expression to test a presence.
 -define(IS_PRESENCE(El), (
-  ?IS_IM_STANZA(El) andalso El#xmlel.name == 'presence'
+  ?IS_IM_STANZA(El) andalso element(2, El) == <<"presence">>
 )).
 
 % Guard expression to test an IQ.
 -define(IS_IQ(El), (
-  ?IS_IM_STANZA(El) andalso El#xmlel.name == 'iq'
+  ?IS_IM_STANZA(El) andalso element(2,El) == <<"iq">>
 )).
 -define(IS_IQ_RECORD(IQ), (
   is_record(IQ, iq)
@@ -67,15 +62,13 @@
 % --------------------------------------------------------------------
 
 -define(IQ(Type, To, Id), (
-  exmpp_xml:set_attributes(
-    #xmlel{ns = ?NS_JABBER_CLIENT, name = 'iq'},
-      [{<<"type">>, Type}, {<<"to">>, To}, {<<"id">>, Id}])
+		{xmlel, <<"iq">>, [{<<"type">>, Type}, {<<"to">>, To}, {<<"id">>, Id}], []}
 )).
 
 -define(IQ_GET(To, Id), (
-  ?IQ("get", To, Id)
+  ?IQ(<<"get">>, To, Id)
 )).
 
 -define(IQ_SET(To, Id), (
-  ?IQ("set", To, Id)
+  ?IQ(<<"set">>, To, Id)
 )).

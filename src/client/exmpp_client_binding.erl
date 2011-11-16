@@ -38,17 +38,17 @@
 %% --------------------------------------------------------------------
 
 %% @spec (Features_Announcement) -> bool()
-%%     Features_Announcement = exmpp_xml:xmlel()
+%%     Features_Announcement = exml:xmlel()()
 %% @throws {resource_binding, announced_support, invalid_feature, Feature}
 %% @doc Tell if the Resource Binding feature is supported.
 
-announced_support(#xmlel{ns = ?NS_XMPP, name = 'features'} = El) ->
-    case exmpp_xml:get_element(El, ?NS_BIND, 'bind') of
+announced_support({xmlel, <<"features">>, _Attrs, _Children} = El) ->
+    case exml:get_element(El, <<"bind">>) of
         undefined -> false;
         Child     -> announced_support2(Child)
     end.
 
-announced_support2(#xmlel{children = []}) ->
+announced_support2({xmlel, _, _, []}) ->
     true;
 announced_support2(Feature) ->
     throw({resource_binding, announced_support, invalid_feature, Feature}).
@@ -58,38 +58,28 @@ announced_support2(Feature) ->
 %% --------------------------------------------------------------------
 
 %% @spec () -> Bind
-%%     Bind = exmpp_xml:xmlel()
+%%     Bind = exml:xmlel()
 %% @doc Prepare a Resource Binding request.
 
 bind() ->
     bind(undefined).
 
 %% @spec (Resource) -> Bind
-%%     Bind = exmpp_xml:xmlel()
+%%     Bind = exml:xmlel()
 %% @doc Prepare a Resource Binding request for the given `Resource'.
 
 bind(Resource) ->
     Children = case Resource of
 		   undefined ->
 		       [];
-		   "" ->
-		       [];
 		   _ ->
-		       El = #xmlel{
-			 ns = ?NS_BIND,
-			 name = 'resource'
-			},
-		       [exmpp_xml:set_cdata(El, Resource)]
+			[{xmlel, <<"resource">>, [], [{cdata,  Resource}]}]
 	       end,
-    Bind = #xmlel{
-      ns = ?NS_BIND,
-      name = 'bind',
-      children = Children
-     },
-    exmpp_iq:set(?NS_JABBER_CLIENT, Bind, exmpp_utils:random_id("bind")).
+    Bind = {xmlel, <<"bind">>, [{<<"xmlns">>, ?NS_BIND}], Children},
+    exmpp_iq:set(Bind, exmpp_utils:random_id(<<"bind">>)).
 
 %% @spec (Bind) -> Jid
-%%     Bind = exmpp_xml:xmlel()
+%%     Bind = exml:xmlel()
 %%     Jid = exmpp_jid:jid()
 %% @throws {resource_binding, bounded_jid, invalid_bind, Stanza} |
 %%         {resource_binding, bounded_jid, no_jid, IQ} |
@@ -98,21 +88,20 @@ bind(Resource) ->
 
 bounded_jid(IQ) when ?IS_IQ(IQ) ->
     case exmpp_iq:get_type(IQ) of
-        'result' ->
+        <<"result">> ->
             case exmpp_iq:get_result(IQ) of
-                #xmlel{ns = ?NS_BIND, name = 'bind'} = Bind ->
-                    case exmpp_xml:get_element(Bind,
-					       ?NS_BIND, 'jid') of
-                        #xmlel{} = Jid_El ->
-                            Jid = exmpp_xml:get_cdata(Jid_El),
-                            exmpp_jid:parse(Jid);
-                        _ ->
-                            throw({resource_binding, bounded_jid, no_jid, IQ})
+	    	{xmlel, <<"bind">>, _, _} = Bind ->
+                    case exml:get_element(Bind, <<"jid">>) of
+			undefined -> 
+                            throw({resource_binding, bounded_jid, no_jid, IQ});
+                         Jid_El ->
+                            Jid = exml:get_cdata(Jid_El),
+                            exmpp_jid:parse(Jid)
                     end;
                 _ ->
                     throw({resource_binding, bounded_jid, no_jid, IQ})
             end;
-        'error' ->
+        <<"error">> ->
             Condition = exmpp_stanza:get_condition(IQ),
             throw({resource_binding, bounded_jid, bind_error, Condition})
     end;

@@ -30,7 +30,7 @@
 -define(NS_STREAM_ERRORS,            'urn:ietf:params:xml:ns:xmpp-streams').
 -define(NS_TLS,                      'urn:ietf:params:xml:ns:xmpp-tls').
 -define(NS_SASL,                     'urn:ietf:params:xml:ns:xmpp-sasl').
--define(NS_BIND,                     'urn:ietf:params:xml:ns:xmpp-bind').
+-define(NS_BIND,                     <<"urn:ietf:params:xml:ns:xmpp-bind">>).
 -define(NS_STANZA_ERRORS,            'urn:ietf:params:xml:ns:xmpp-stanzas').
 
 % Defined by XMPP-IM (RFC 3921).
@@ -44,9 +44,7 @@
 
 -define(NS_SESSION,                  'urn:ietf:params:xml:ns:xmpp-session').
 
--define(NS_ROSTER,                   'jabber:iq:roster').
--define(NS_ROSTER_s,                 "jabber:iq:roster").
--define(NS_ROSTER_b,                 <<"jabber:iq:roster">>).
+-define(NS_ROSTER,                 <<"jabber:iq:roster">>).
 
 % Defined by End-to-End Signing and Object Encryption for XMPP (RFC 3923).
 -define(NS_E2E,                      'urn:ietf:params:xml:ns:xmpp-e2e').
@@ -114,14 +112,9 @@
 -define(NS_PGP_SIGNED_b,             <<"jabber:x:signed">>).
 
 % Defined by XEP-0030: Service Discovery.
--define(NS_DISCO_INFO,               'http://jabber.org/protocol/disco#info').
--define(NS_DISCO_ITEMS,              'http://jabber.org/protocol/disco#items').
+-define(NS_DISCO_INFO,               <<"http://jabber.org/protocol/disco#info">>).
+-define(NS_DISCO_ITEMS,              <<"http://jabber.org/protocol/disco#items">>).
 
--define(NS_DISCO_INFO_s,             "http://jabber.org/protocol/disco#info").
--define(NS_DISCO_ITEMS_s,            "http://jabber.org/protocol/disco#items").
-
--define(NS_DISCO_INFO_b,             <<"http://jabber.org/protocol/disco#info">>).
--define(NS_DISCO_ITEMS_b,            <<"http://jabber.org/protocol/disco#items">>).
 
 % Defined by XEP-0033: Extended Stanza Addressing.
 -define(NS_ADDRESS,                  'http://jabber.org/protocol/address').
@@ -134,23 +127,12 @@
 -define(NS_STATS_b,                  <<"http://jabber.org/protocol/stats">>).
 
 % Defined by XEP-0045: Multi-User Chat.
--define(NS_MUC,                      'http://jabber.org/protocol/muc').
--define(NS_MUC_ADMIN,                'http://jabber.org/protocol/muc#admin').
--define(NS_MUC_OWNER,                'http://jabber.org/protocol/muc#owner').
--define(NS_MUC_UNIQUE,               'http://jabber.org/protocol/muc#unique').
--define(NS_MUC_USER,                 'http://jabber.org/protocol/muc#user').
+-define(NS_MUC,                      <<"http://jabber.org/protocol/muc">>).
+-define(NS_MUC_ADMIN,                <<"http://jabber.org/protocol/muc#admin">>).
+-define(NS_MUC_OWNER,                <<"http://jabber.org/protocol/muc#owner">>).
+-define(NS_MUC_UNIQUE,               <<"http://jabber.org/protocol/muc#unique">>).
+-define(NS_MUC_USER,                 <<"http://jabber.org/protocol/muc#user">>).
 
--define(NS_MUC_s,                    "http://jabber.org/protocol/muc").
--define(NS_MUC_ADMIN_s,              "http://jabber.org/protocol/muc#admin").
--define(NS_MUC_OWNER_s,              "http://jabber.org/protocol/muc#owner").
--define(NS_MUC_UNIQUE_s,             "http://jabber.org/protocol/muc#unique").
--define(NS_MUC_USER_s,               "http://jabber.org/protocol/muc#user").
-
--define(NS_MUC_b,                    <<"http://jabber.org/protocol/muc">>).
--define(NS_MUC_ADMIN_b,              <<"http://jabber.org/protocol/muc#admin">>).
--define(NS_MUC_OWNER_b,              <<"http://jabber.org/protocol/muc#owner">>).
--define(NS_MUC_UNIQUE_b,             <<"http://jabber.org/protocol/muc#unique">>).
--define(NS_MUC_USER_b,               <<"http://jabber.org/protocol/muc#user">>).
 
 % Defined by XEP-0047: In-Band Bytestreams.
 -define(NS_IBB,                      'http://jabber.org/protocol/ibb').
@@ -528,24 +510,13 @@
 -define(NS_SOAP_FAULT_b,             <<"http://jabber.org/protocol/soap#fault">>).
 
 % Defined by XEP-0077: In-Band Registration.
--define(NS_INBAND_REGISTER,          'jabber:iq:register').
--define(NS_INBAND_REGISTER_FEAT,     'http://jabber.org/features/iq-register').
-
--define(NS_INBAND_REGISTER_s,        "jabber:iq:register").
--define(NS_INBAND_REGISTER_FEAT_s,   "http://jabber.org/features/iq-register").
-
--define(NS_INBAND_REGISTER_b,        <<"jabber:iq:register">>).
--define(NS_INBAND_REGISTER_FEAT_b,   <<"http://jabber.org/features/iq-register">>).
+-define(NS_INBAND_REGISTER,          <<"jabber:iq:register">>).
+-define(NS_INBAND_REGISTER_FEAT,     <<"http://jabber.org/features/iq-register">>).
 
 % Defined by XEP-0078: Non-SASL Authentication.
--define(NS_LEGACY_AUTH,              'jabber:iq:auth').
--define(NS_LEGACY_AUTH_FEAT,         'http://jabber.org/features/iq-aut').
+-define(NS_LEGACY_AUTH,              <<"jabber:iq:auth">>).
+-define(NS_LEGACY_AUTH_FEAT,         <<"http://jabber.org/features/iq-aut">>).
 
--define(NS_LEGACY_AUTH_s,            "jabber:iq:auth").
--define(NS_LEGACY_AUTH_FEAT_s,       "http://jabber.org/features/iq-aut").
-
--define(NS_LEGACY_AUTH_b,            <<"jabber:iq:auth">>).
--define(NS_LEGACY_AUTH_FEAT_b,       <<"http://jabber.org/features/iq-aut">>).
 
 
 % Defined by XEP-0079: Advanced Message Processing.
@@ -701,14 +672,8 @@
 -define(NS_SI_PUB_b,                 <<"http://jabber.org/protocol/sipub">>).
 
 % Defined by XEP-0138: Stream Compression.
--define(NS_COMPRESS,                 'http://jabber.org/protocol/compress').
--define(NS_COMPRESS_FEAT,            'http://jabber.org/features/compress').
-
--define(NS_COMPRESS_s,               "http://jabber.org/protocol/compress").
--define(NS_COMPRESS_FEAT_s,          "http://jabber.org/features/compress").
-
--define(NS_COMPRESS_b,               <<"http://jabber.org/protocol/compress">>).
--define(NS_COMPRESS_FEAT_b,          <<"http://jabber.org/features/compress">>).
+-define(NS_COMPRESS,                 <<"http://jabber.org/protocol/compress">>).
+-define(NS_COMPRESS_FEAT,            <<"http://jabber.org/features/compress">>).
 
 % Defined by XEP-0141: Data Forms Layout.
 -define(NS_DATA_FORMS_LAYOUT,
@@ -1097,14 +1062,10 @@
 -define(NS_AUTH_TOKEN_b,             <<"urn:xmpp:tmp:auth-token">>).
 
 % Defined by XEP-0237: Roster Versioning.
--define(NS_ROSTER_VER,               'urn:xmpp:features:rosterver').
--define(NS_ROSTER_VER_s,             "urn:xmpp:features:rosterver").
--define(NS_ROSTER_VER_b,             <<"urn:xmpp:features:rosterver">>).
+-define(NS_ROSTER_VER,             <<"urn:xmpp:features:rosterver">>).
 
 %% Deferred : XEP-0237: Roster Sequencing.
--define(NS_ROSTER_SEQ,               'urn:xmpp:tmp:roster-sequencing').
--define(NS_ROSTER_SEQ_s,             "urn:xmpp:tmp:roster-sequencing").
--define(NS_ROSTER_SEQ_b,             <<"urn:xmpp:tmp:roster-sequencing">>).
+-define(NS_ROSTER_SEQ,             <<"urn:xmpp:tmp:roster-sequencing">>).
 
 % Defined by XEP-0244: IO Data.
 -define(NS_IO_DATA_TMP,              'urn:xmpp:tmp:io-data').

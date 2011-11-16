@@ -26,10 +26,10 @@
 
 %% Creation.
 -export([
+	 get/1,
 	 get/2,
-	 get/3,
+	 set/1,
 	 set/2,
-	 set/3,
 	 result/1,
 	 result/2,
 	 error/2,
@@ -84,35 +84,28 @@
 %% IQ creation.
 %% --------------------------------------------------------------------
 
-%% @spec (NS, Request) -> IQ
-%%     NS = atom()
-%%     Request = exmpp_xml:xmlel()
-%%     IQ = exmpp_xml:xmlel()
+%% @spec (Request) -> IQ
+%%     Request = exml:xmlel()
+%%     IQ = exml:xmlel()
 %% @doc Prepare an `<iq/>' to transport the given `get' request.
 
--spec(get/2 :: (xmlname(), #xmlel{}) -> #xmlel{}).
+-spec(get/1 :: (exml:xmlel()) -> exml:xmlel()).
 
-get(NS, Request) ->
-    get(NS, Request, random).
+get(Request) ->
+    get(Request, random).
 
-%% @spec (NS, Request, ID) -> Request_IQ
-%%     NS = atom()
-%%     Request = exmpp_xml:xmlel()
-%%     ID = binary() | string() | random
-%%     Request_IQ = exmpp_xml:xmlel()
+%% @spec (Request, ID) -> Request_IQ
+%%     Request = exml:xmlel()
+%%     ID = binary() | random
+%%     Request_IQ = exml:xmlel()
 %% @doc Prepare an `<iq/>' to transport the given `get' request.
 
--spec(get/3 ::
-      (xmlname(), #xmlel{}, binary() | string() | random) -> #xmlel{}).
-
-get(NS, Request, ID) ->
-    Attrs1 = exmpp_stanza:set_type_in_attrs([], <<"get">>),
-    Attrs2 = exmpp_stanza:set_id_in_attrs(Attrs1, ID),
-    #xmlel{ns = NS,
-	   name = 'iq',
-	   attrs = Attrs2,
-	   children = [Request]
-	  }.
+-spec(get/2 ::
+	(exml:xmlel(), binary() | random) -> exml:xmlel()).
+get({xmlel, Name, _Attrs,_Children}=Request, random) ->
+	get(Request, exmpp_utils:random_id(Name));
+get(Request, ID) ->
+    {xmlel, <<"iq">>, [{<<"type">>, <<"get">>}, {<<"id">>, ID}], [Request]}.
 
 %% @spec (NS, Request) -> Request_IQ
 %%     NS = atom()
@@ -120,10 +113,10 @@ get(NS, Request, ID) ->
 %%     Request_IQ = exmpp_xml:xmlel()
 %% @doc Prepare an `<iq/>' to transport the given `set' request.
 
--spec(set/2 :: (xmlname(), #xmlel{}) -> #xmlel{}).
+-spec(set/1 :: (exml:xmlel()) -> exml:xmlel()).
 
-set(NS, Request) ->
-    set(NS, Request, random).
+set(Request) ->
+    set(Request, random).
 
 %% @spec (NS, Request, ID) -> Request_IQ
 %%     NS = atom()
@@ -132,17 +125,13 @@ set(NS, Request) ->
 %%     Request_IQ = exmpp_xml:xmlel()
 %% @doc Prepare an `<iq/>' to transport the given `set' request.
 
--spec(set/3 ::
-      (xmlname(), #xmlel{}, binary() | string() | random) -> #xmlel{}).
+-spec(set/2 ::
+	(exml:xmlel(), binary() |  random) -> exml:xmlel()).
 
-set(NS, Request, ID) ->
-    Attrs1 = exmpp_stanza:set_type_in_attrs([], <<"set">>),
-    Attrs2 = exmpp_stanza:set_id_in_attrs(Attrs1, ID),
-    #xmlel{ns = NS,
-	   name = 'iq',
-	   attrs = Attrs2,
-	   children = [Request]
-	  }.
+set({xmlel, Name, _Attrs,_Children}=Request, random) ->
+	set(Request, exmpp_utils:random_id(Name));
+set(Request, ID) ->
+    {xmlel, <<"iq">>, [{<<"type">>, <<"set">>}, {<<"id">>, ID}], [Request]}.
 
 %% @spec (Request_IQ) -> Response_IQ
 %%     Request_IQ = exmpp_xml:xmlel() | iq()
@@ -348,24 +337,24 @@ iq_to_xmlel2(#iq{type = Type, id = ID, lang = Lang, payload = Payload,
 %% IQ standard attributes.
 %% --------------------------------------------------------------------
 
-%% @spec (El) -> bool()
+%% @spec (El) -> boolean()
 %%     El = exmpp_xml:xmlel()
 %% @doc Tell if `El' is an IQ.
 %%
 %% You should probably use the `IS_IQ(El)' guard expression.
 
--spec(is_iq/1 :: (#xmlel{}) -> bool()).
+-spec(is_iq/1 :: (#xmlel{}) -> boolean()).
 
 is_iq(IQ) when ?IS_IQ(IQ) -> true;
 is_iq(_El)                -> false.
 
-%% @spec (El) -> bool()
+%% @spec (El) -> boolean()
 %%     El = iq()
 %% @doc Tell if `El' is an IQ record.
 %%
 %% You should probably use the `IS_IQ_RECORD(El)' guard expression.
 
--spec(is_iq_record/1 :: (#iq{}) -> bool()).
+-spec(is_iq_record/1 :: (#iq{}) -> boolean()).
 
 is_iq_record(IQ) when ?IS_IQ_RECORD(IQ) -> true;
 is_iq_record(_El)                       -> false.
@@ -375,17 +364,11 @@ is_iq_record(_El)                       -> false.
 %%     Type = get | set | result | error | undefined
 %% @doc Return the type of the given `<iq/>'.
 
--spec(get_type/1 ::
-      (#xmlel{} | #iq{}) -> get | set | result | error | undefined).
+%-spec(get_type/1 ::
+%	(exml:xmlel() | #iq{}) -> <<"get">> | <<"set">> | <<"result">> | <<"error">> | undefined).
 
 get_type(IQ) when ?IS_IQ(IQ) ->
-    case exmpp_stanza:get_type(IQ) of
-        <<"get">>    -> 'get';
-        <<"set">>    -> 'set';
-        <<"result">> -> 'result';
-        <<"error">>  -> 'error';
-        _            -> undefined
-    end;
+    exmpp_stanza:get_type(IQ); 
 get_type(#iq{type = Type}) ->
     Type.
 
@@ -408,11 +391,11 @@ get_kind(IQ) when ?IS_IQ(IQ) ->
 get_kind(#iq{kind = Kind}) ->
     Kind.
 
-%% @spec (IQ) -> bool()
+%% @spec (IQ) -> boolean()
 %%     IQ = exmpp_xml:xmlel() | iq()
 %% @doc Tell if the IQ is a request.
 
--spec(is_request/1 :: (#xmlel{} | #iq{}) -> bool()).
+-spec(is_request/1 :: (#xmlel{} | #iq{}) -> boolean()).
 
 is_request(IQ) when ?IS_IQ(IQ) ->
     case get_kind(IQ) of
@@ -422,11 +405,11 @@ is_request(IQ) when ?IS_IQ(IQ) ->
 is_request(#iq{kind = Kind}) ->
     Kind == request.
 
-%% @spec (IQ) -> bool()
+%% @spec (IQ) -> boolean()
 %%     IQ = exmpp_xml:xmlel() | iq()
 %% @doc Tell if the IQ is a response.
 
--spec(is_response/1 :: (#xmlel{} | #iq{}) -> bool()).
+-spec(is_response/1 :: (#xmlel{} | #iq{}) -> boolean()).
 
 is_response(IQ) when ?IS_IQ(IQ) ->
     case get_kind(IQ) of
@@ -436,11 +419,11 @@ is_response(IQ) when ?IS_IQ(IQ) ->
 is_response(#iq{kind = Kind}) ->
     Kind == response.
 
-%% @spec (IQ) -> bool()
+%% @spec (IQ) -> boolean()
 %%     IQ = exmpp_xml:xmlel() | iq()
 %% @doc Tell if the IQ is a result (response of type `result').
 
--spec(is_result/1 :: (#xmlel{} | #iq{}) -> bool()).
+-spec(is_result/1 :: (#xmlel{} | #iq{}) -> boolean()).
 
 is_result(IQ) when ?IS_IQ(IQ) ->
     case get_type(IQ) of
@@ -450,11 +433,11 @@ is_result(IQ) when ?IS_IQ(IQ) ->
 is_result(#iq{type = Type}) ->
     Type == 'result'.
 
-%% @spec (IQ) -> bool()
+%% @spec (IQ) -> boolean()
 %%     IQ = exmpp_xml:xmlel() | iq()
 %% @doc Tell if the IQ is an error (response of type `error').
 
--spec(is_error/1 :: (#xmlel{} | #iq{}) -> bool()).
+-spec(is_error/1 :: (#xmlel{} | #iq{}) -> boolean()).
 
 is_error(IQ) when ?IS_IQ(IQ) ->
     case get_type(IQ) of
@@ -519,8 +502,8 @@ get_result(IQ) when ?IS_IQ(IQ) ->
     case get_type(IQ) of
         undefined ->
             throw({iq, get_result, invalid_iq, IQ});
-        'result' ->
-            case exmpp_xml:get_child_elements(IQ) of
+        <<"result">> ->
+		case exml:get_elements(IQ) of
                 [] ->
                     undefined;
                 [Result | _] ->

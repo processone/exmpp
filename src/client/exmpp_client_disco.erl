@@ -18,11 +18,11 @@
 -include("exmpp.hrl").
 
 -define(QUERY_INFO,
-  #xmlel{ns = ?NS_DISCO_INFO, name = 'query'}
+	{xmlel, <<"query">>, [{<<"xmlns">>, ?NS_DISCO_INFO}], []}
 ).
 
 -define(QUERY_ITEMS,
-  #xmlel{ns = ?NS_DISCO_ITEMS, name = 'query'}
+	{xmlel, <<"query">>, [{<<"xmlns">>, ?NS_DISCO_ITEMS}], []}
 ).
 
 %% Creation.
@@ -34,53 +34,53 @@
 	]).
 
 %% @spec (To) -> Iq
-%%     To = string()
-%%     Iq = exmpp_xml:xmlel()
+%%     To = binary()
+%%     Iq = exml:xmlel()
 %% @doc Make an <iq/> for a disco#info
 
 info(To) ->
   Query = ?QUERY_INFO,
   Iq = ?IQ_GET(To, iq_id()),
-  exmpp_xml:append_child(Iq, Query).
+  exml:append_child(Iq, Query).
 
 %% @spec (To, Node) -> Iq
-%%     To   = string()
-%%     Node = string()
-%%     Iq   = exmpp_xml:xmlel()
+%%     To   = binary()
+%%     Node = binary()
+%%     Iq   = exml:xmlel()
 %% @doc Make an <iq/> for a disco#info to a node
 
 info(To, Node) ->
-  Query = exmpp_xml:set_attribute(?QUERY_INFO, <<"node">>, Node),
+  Query = exml:set_attribute(?QUERY_INFO, <<"node">>, Node),
   Iq = ?IQ_GET(To, iq_id()),
-  exmpp_xml:append_child(Iq, Query).
+  exml:append_child(Iq, Query).
 
 %% @spec (To) -> Iq
-%%     To = string()
-%%     Iq = exmpp_xml:xmlel()
+%%     To = binary()
+%%     Iq = exml:xmlel()
 %% @doc Make an <iq/> for a disco#items
 
 items(To) ->
   Query = ?QUERY_ITEMS,
   Iq = ?IQ_GET(To, iq_id()),
-  exmpp_xml:append_child(Iq, Query).
+  exml:append_child(Iq, Query).
 
 %% @spec (To, Node) -> Iq
-%%     To   = string()
-%%     Node = string()
-%%     Iq   = exmpp_xml:xmlel()
+%%     To   = binary()
+%%     Node = binary()
+%%     Iq   = exml:xmlel()
 %% @doc Make an <iq/> for a disco#items to a node 
 
 items(To, Node) ->
-  Query = exmpp_xml:set_attribute(?QUERY_ITEMS, <<"node">>, Node),
+  Query = exml:set_attribute(?QUERY_ITEMS, <<"node">>, Node),
   Iq = ?IQ_GET(To, iq_id()),
-  exmpp_xml:append_child(Iq, Query).
+  exml:append_child(Iq, Query).
 
 %% @spec () -> Iq_ID
-%%     Iq_ID = string()
+%%     Iq_ID = binary()
 %% @doc Generate a random iq ID.
 %%
 %% This function uses {@link random:uniform/1}. It's up to the caller to
 %% seed the generator.
 
 iq_id() ->
-    "iq-" ++ integer_to_list(random:uniform(65536 * 65536)).
+	exmpp_utils:random_id(<<"iq-">>).

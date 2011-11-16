@@ -39,27 +39,27 @@
 %% --------------------------------------------------------------------
 
 %% @spec (Features_Announcement) -> Methods
-%%     Features_Announcement = exmpp_xml:xmlel()
-%%     Methods = [string()]
+%%     Features_Announcement = exml:xmlel()
+%%     Methods = [binary()]
 %% @throws {stream_compression, announced_methods, invalid_feature, Feature} |
 %%         {stream_compression, announced_methods, invalid_method, El}
 %% @doc Return the list of supported compression methods.
 
-announced_methods(#xmlel{ns = ?NS_XMPP, name = 'features'} = El) ->
-    case exmpp_xml:get_element(El, ?NS_COMPRESS_FEAT, 'compression') of
+announced_methods({xmlel, F, _Attrs, _Children} = El) 
+	when F == <<"features">> orelse F == <<"stream:features">> ->
+    case exml:get_element(El,<<"compression">>) of
         undefined -> [];
         Methods   -> announced_methods2(Methods)
     end.
 
-announced_methods2(#xmlel{children = []} = Feature) ->
+announced_methods2({xmlel, _, _, []} = Feature) ->
     throw({stream_compression, announced_methods, invalid_feature, Feature});
-announced_methods2(#xmlel{children = Children}) ->
+announced_methods2({xmlel, _, _, Children}) ->
     announced_methods3(Children, []).
 
-announced_methods3(
-  [#xmlel{ns = ?NS_COMPRESS_FEAT, name = 'method'} = El | Rest], Result) ->
-    case exmpp_xml:get_cdata_as_list(El) of
-        "" ->
+announced_methods3( [{xmlel, <<"method">>, _, _} = El | Rest], Result) ->
+    case exml:get_cdata(El) of
+        <<>> ->
             throw({stream_compression, announced_methods, invalid_method, El});
         Method ->
             announced_methods3(Rest, [Method | Result])
@@ -74,15 +74,10 @@ announced_methods3([], Result) ->
 %% --------------------------------------------------------------------
 
 %% @spec (Method) -> Compress
-%%     Method = string()
-%%     Compress = exmpp_xml:xmlel()
+%%     Method = binary()
+%%     Compress = exml:xmlel()
 %% @doc Prepare an request to select prefered compression method.
 
 selected_method(Method) ->
-    El = #xmlel{ns = ?NS_COMPRESS,
-		name = 'method'
-	       },
-    #xmlel{ns = ?NS_COMPRESS,
-	   name = 'compress',
-	   children = [exmpp_xml:set_cdata(El, Method)]
-	  }.
+	{xmlel, <<"compress">>, [{<<"xmlns">>, ?NS_COMPRESS}], 
+		[{xmlel, <<"method">>, [], [{cdata, Method}]}]}.

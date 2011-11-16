@@ -22,77 +22,58 @@
 
 -export([kick/2, 
          kick/3,
-         kick/4,
          ban/2,
          ban/3,
-         ban/4,
          get_banlist/1,
-         get_banlist/2,
-         update_banlist/2,
-         update_banlist/3
+         update_banlist/2
          ]).
 
--type(ban_item() :: {exmpp_jid:jid(), outcast | none | binary()} | {exmpp_jid:jid(), outcast | none | binary(), binary() | string()}).
+-type(ban_item() :: {binary(), outcast | none | binary()} | {binary(), outcast | none | binary(), binary() | string()}).
 
 
--spec kick(Room :: exmpp_jid:jid(), Nick :: string() | binary()) -> #xmlel{}.
+-spec kick(Room :: binary(), Nick :: binary()) -> exml:xmlel().
 kick(Room, Nick) ->
-   kick(?NS_JABBER_CLIENT, Room, Nick).
+    kick(Room, Nick, <<>>).
 
--spec kick(NS :: atom() | string(), Room :: exmpp_jid:jid(), Nick :: string() | binary()) -> #xmlel{}.
-kick(NS, Room, Nick) ->
-    kick(NS, Room, Nick, <<>>).
-
--spec kick(NS :: atom() | string(), Room :: exmpp_jid:jid(), Nick :: string() | binary(), Reason :: string() | binary()) -> #xmlel{}.
-kick(NS, Room, Nick, Reason) ->
+-spec kick(Room :: binary(), Nick :: binary(), Reason :: binary()) -> exml:xmlel().
+kick(Room, Nick, Reason) ->
     exmpp_stanza:set_recipient(
-        exmpp_iq:set(NS, 
-            exmpp_xml:element(?NS_MUC_ADMIN, 'query', [], 
-                [exmpp_xml:element(?NS_MUC_ADMIN, 'item', [?XMLATTR(<<"nick">>, Nick), ?XMLATTR(<<"role">>, <<"none">>)], 
-                    [exmpp_xml:element(?NS_MUC_ADMIN, 'reason', [], [?XMLCDATA(Reason)])])])), Room).
+        exmpp_iq:set({xmlel, <<"query">>, [{<<"xmlns">>, ?NS_MUC_ADMIN}],   [
+			{xmlel, <<"item">>, [{<<"nick">>, Nick}, {<<"role">>, <<"none">>}], [
+				{xmlel, <<"reason">>, [], [{cdata, Reason}]}
+			]}]}),Room).
 
 
--spec ban(Room :: exmpp_jid:jid(), JID :: exmpp_jid:jid() ) -> #xmlel{}.
+
+-spec ban(Room :: binary(), JID :: binary()) -> exml:xmlel().
 ban(Room, JID) ->
-   ban(?NS_JABBER_CLIENT, Room, JID).
+    ban(Room, JID, <<>>).
 
--spec ban(NS :: atom() | string(), Room :: exmpp_jid:jid(), JID :: exmpp_jid:jid()) -> #xmlel{}.
-ban(NS, Room, JID) ->
-    ban(NS, Room, JID, <<>>).
-
--spec ban(NS :: atom() | string(), Room :: exmpp_jid:jid(), JID :: exmpp_jid:jid(), Reason :: string() | binary()) -> #xmlel{}.
-ban(NS, Room, JID, Reason) ->
-    update_banlist(NS, Room, [{JID, outcast, Reason}]).
+-spec ban(Room :: binary(), JID :: binary(), Reason :: binary()) -> exml:xmlel().
+ban(Room, JID, Reason) ->
+    update_banlist(Room, [{JID, outcast, Reason}]).
 
 
--spec get_banlist(Room :: exmpp_jid:jid()) -> #xmlel{}.
+-spec get_banlist(Room :: binary()) -> exml:xmlel().
 get_banlist(Room) ->
-    get_banlist(?NS_JABBER_CLIENT, Room).
-
--spec get_banlist(NS :: atom() | string(), Room :: exmpp_jid:jid()) -> #xmlel{}.
-get_banlist(NS, Room) ->
     exmpp_stanza:set_recipient(
-        exmpp_iq:get(NS, 
-            exmpp_xml:element(?NS_MUC_ADMIN, 'query', [], 
-                [exmpp_xml:element(?NS_MUC_ADMIN, 'item', [?XMLATTR(<<"affiliation">>, <<"outcast">>)], [])])), Room ).
+	    exmpp_iq:get({xmlel, <<"query">>, [{<<"xmlns">>, ?NS_MUC_ADMIN}], 
+			    [{xmlel, <<"item">>, [{<<"affiliation">>, <<"outcast">>}], []}]}), Room ).
     
 
--spec update_banlist(Room :: exmpp_jid:jid(), BanList :: [ban_item()]) -> #xmlel{}.
+-spec update_banlist(Room :: binary(), BanList :: [ban_item()]) -> exml:xmlel().
 update_banlist(Room, BanList) ->
-    update_banlist(?NS_JABBER_CLIENT, Room, BanList).
-
--spec update_banlist(NS :: atom() | string(), Room :: exmpp_jid:jid(), BanList :: [ban_item()]) -> #xmlel{}.
-update_banlist(NS, Room, BanList) ->
      exmpp_stanza:set_recipient(
-        exmpp_iq:set(NS, 
-            exmpp_xml:element(?NS_MUC_ADMIN, 'query', [], [ban_to_item(Ban) || Ban <- BanList])), Room).
+	     exmpp_iq:set({xmlel, <<"query">>, [{<<"xmlns">>, ?NS_MUC_ADMIN}], 
+			     [ban_to_item(Ban) || Ban <- BanList]}), Room).
 
 
 ban_to_item({JID, Affiliation}) ->
     ban_to_item({JID, Affiliation, <<>>});
 ban_to_item({JID, Affiliation, Reason}) ->
-    exmpp_xml:element(?NS_MUC_ADMIN, 'item', [?XMLATTR(<<"jid">>, exmpp_jid:to_binary(JID)), ?XMLATTR(<<"affiliation">>, affiliation_to_binary(Affiliation))], 
-        [exmpp_xml:element(?NS_MUC_ADMIN, 'reason', [], [?XMLCDATA(Reason)])]).
+	{xmlel, <<"item">>, 
+		[{<<"jid">>, JID}, {<<"affiliation">>, affiliation_to_binary(Affiliation)}], 
+	        [{xmlel, <<"reason">>, [], [{cdata, Reason}]}]}.
 
 
 affiliation_to_binary(outcast) -> <<"outcast">>;
