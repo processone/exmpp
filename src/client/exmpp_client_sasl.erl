@@ -44,27 +44,28 @@
 %% --------------------------------------------------------------------
 
 %% @spec (Features_Announcement) -> Mechanisms
-%%     Features_Announcement = exmpp_xml:xmlel()
-%%     Mechanisms = [string()]
+%%     Features_Announcement = exml:xmlel()
+%%     Mechanisms = [binary()]
 %% @throws {sasl, announced_mechanisms, invalid_feature, Feature} |
 %%         {sasl, announced_mechanisms, invalid_mechanism, El}
 %% @doc Return the list of SASL mechanisms announced by the receiving entity.
 
-announced_mechanisms(#xmlel{ns = ?NS_XMPP, name = 'features'} = El) ->
-    case exmpp_xml:get_element(El, ?NS_SASL, 'mechanisms') of
+announced_mechanisms({xmlel, F, _Attrs, _Children} = El) 
+	when F == <<"features">> orelse F == <<"stream:features">> ->
+    case exml:get_element(El, <<"mechanisms">>) of
         undefined  -> [];
         Mechanisms -> announced_mechanisms2(Mechanisms)
     end.
 
-announced_mechanisms2(#xmlel{children = []} = Feature) ->
+announced_mechanisms2({xmlel, _N, _Attr, []} = Feature) ->
     throw({sasl, announced_mechanisms, invalid_feature, Feature});
-announced_mechanisms2(#xmlel{children = Children}) ->
-    announced_mechanisms3(Children, []).
+announced_mechanisms2(M) ->
+    announced_mechanisms3(exml:get_elements(M), []).
 
 announced_mechanisms3(
-  [#xmlel{ns = ?NS_SASL, name = 'mechanism'} = El | Rest], Result) ->
-    case exmpp_xml:get_cdata_as_list(El) of
-        "" ->
+  [{xmlel,<<"mechanism">>, _Attrs, _Children} = El | Rest], Result) ->
+    case exml:get_cdata(El) of
+        <<>> ->
             throw({sasl, announced_mechanisms, invalid_mechanism, El});
         Mechanism ->
             announced_mechanisms3(Rest, [Mechanism | Result])
@@ -79,76 +80,66 @@ announced_mechanisms3([], Result) ->
 %% --------------------------------------------------------------------
 
 %% @spec (Mechanism) -> Auth
-%%     Mechanism = string()
-%%     Auth = exmpp_xml:xmlel()
+%%     Mechanism = binary()
+%%     Auth = exml:xmlel()
 %% @doc Prepare an `<auth/>' element with the selected mechanism.
 
 selected_mechanism(Mechanism) ->
-    El = #xmlel{
-      ns = ?NS_SASL,
-      name = 'auth'
-     },
-    exmpp_xml:set_attribute(El, <<"mechanism">>, Mechanism).
+	{xmlel, <<"auth">>, [{<<"xmlns">>, ?NS_SASL},{<<"mechanism">>, Mechanism}], []}.
 
 %% @spec (Mechanism, Initial_Response) -> Auth
-%%     Mechanism = string()
-%%     Initial_Response = string()
-%%     Auth = exmpp_xml:xmlel()
+%%     Mechanism = binary()
+%%     Initial_Response = binary()
+%%     Auth = exml:xmlel()
 %% @doc Prepare an `<auth/>' element with the selected mechanism.
 %%
 %% The initial response will be Base64-encoded before inclusion.
 
-selected_mechanism(Mechanism, "") ->
+selected_mechanism(Mechanism, <<>>) ->
     El = selected_mechanism(Mechanism),
-    exmpp_xml:set_cdata(El, "=");
+    exml:append_child(El, {cdata, <<"=">>});
 selected_mechanism(Mechanism, Initial_Response) ->
     El = selected_mechanism(Mechanism),
-    exmpp_xml:set_cdata(El, base64:encode_to_string(Initial_Response)).
+    exml:append_child(El, {cdata, base64:encode(Initial_Response)}).
 
 %% @spec (Response_Data) -> Response
-%%     Response_Data = string()
-%%     Response = exmpp_xml:xmlel()
+%%     Response_Data = binary()
+%%     Response = exml:xmlel()
 %% @doc Prepare a `<response/>' element to send the challenge's response.
 %%
 %% `Response_Data' will be Base64-encoded.
 
 response(Response_Data) ->
-    El = #xmlel{
-      ns = ?NS_SASL,
-      name = 'response'
-     },
-    exmpp_xml:set_cdata(El, base64:encode_to_string(Response_Data)).
+    {xmlel, <<"response">>, [{<<"xmlns">>, ?NS_SASL}], 
+	    [{cdata, base64:encode(Response_Data)}]}.
 
 %% @spec () -> Abort
-%%     Abort = exmpp_xml:xmlel()
+%%     Abort = exml:xmlel()
 %% @doc Make a `<abort/>' element.
 
 abort() ->
-    #xmlel{
-       ns = ?NS_SASL,
-       name = 'abort'
-      }.
+	{xmlel, <<"abort">>, [{<<"xmlns">>, ?NS_SASL}], []}.
 
 %% @spec (El) -> Type
-%%     El = exmpp_xml:xmlel()
+%%     El = exml:xmlel()
 %%     Type = Challenge | Success | Failure
-%%     Challenge = {challenge, string()}
-%%     Success = {success, string()}
+%%     Challenge = {challenge, binary()}
+%%     Success = {success, binary()}
 %%     Failure = {failure, Condition | undefined}
-%%     Condition = atom()
+%%     Condition = binary()
 %% @doc Extract the challenge or the ending element that the receiving
 %% entity sent.
 %%
 %% Any challenge or success data is Base64-decoded.
 
-next_step(#xmlel{ns = ?NS_SASL, name = 'challenge'} = El) ->
-    Encoded = exmpp_xml:get_cdata_as_list(El),
-    {challenge, base64:decode_to_string(Encoded)};
-next_step(#xmlel{ns = ?NS_SASL, name = 'failure',
-		 children = [#xmlel{ns = ?NS_SASL, name = Condition}]}) ->
-    {failure, Condition};
-next_step(#xmlel{ns = ?NS_SASL, name = 'failure'}) ->
-    {failure, undefined};
-next_step(#xmlel{ns = ?NS_SASL, name = 'success'} = El) ->
-    Encoded = exmpp_xml:get_cdata_as_list(El),
-    {success, base64:decode_to_string(Encoded)}.
+next_step({xmlel, <<"challenge">>, _Attrs, _Children} = El) ->
+	{challenge, base64:decode(exml:get_cdata(El))};
+next_step({xmlel, <<"failure">>, _Attrs, _Children} = El) ->
+	case exml:get_elements(El) of
+		[{xmlel, Condition, _, _}] ->
+			{failure, Condition};
+		_ ->
+			{failure, undefined}
+	end;
+next_step({xmlel, <<"success">>, _Attrs, _Children} = El) ->
+    {success, base64:decode(exml:get_cdata(El))}.
