@@ -42,7 +42,7 @@
 -define(NS_JABBER_SERVER_s,          "jabber:server").
 -define(NS_JABBER_SERVER_b,          <<"jabber:server">>).
 
--define(NS_SESSION,                  'urn:ietf:params:xml:ns:xmpp-session').
+-define(NS_SESSION,                 <<"urn:ietf:params:xml:ns:xmpp-session">>).
 
 -define(NS_ROSTER,                 <<"jabber:iq:roster">>).
 
