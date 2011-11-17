@@ -971,13 +971,9 @@
   <<"http://www.xmpp.org/extensions/xep-0215.html#ns">>).
 
 % Defined by XEP-0220: Server Dialback.
--define(NS_DIALBACK,                 'jabber:server:dialback').
--define(NS_DIALBACK_FEAT,            'urn:xmpp:features:dialback').
--define(NS_DIALBACK_pfx,             "db").
--define(NS_DIALBACK_s,               "jabber:server:dialback").
--define(NS_DIALBACK_FEAT_s,          "urn:xmpp:features:dialback").
--define(NS_DIALBACK_b,               <<"jabber:server:dialback">>).
--define(NS_DIALBACK_FEAT_b,          <<"urn:xmpp:features:dialback">>).
+-define(NS_DIALBACK,                 <<"jabber:server:dialback">>).
+-define(NS_DIALBACK_FEAT,            <<"urn:xmpp:features:dialback">>).
+-define(NS_DIALBACK_pfx,             <<"db">>).
 
 % Defined by XEP-0221: Data Forms Media Element.
 %% How about NS_DATA ?

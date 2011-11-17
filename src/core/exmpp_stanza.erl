@@ -359,14 +359,14 @@ set_lang_in_attrs(Attrs, Lang) ->
 %% --------------------------------------------------------------------
 
 %% @spec (Stanza) -> Stanza_Reply
-%%     Stanza = exmpp_xml:xmlel()
-%%     Stanza_Reply = exmpp_xml:xmlel()
+%%     Stanza = exml:xmlel()
+%%     Stanza_Reply = exml:xmlel()
 %% @doc Prepare a reply to `Stanza'.
 %%
 %% @see reply_from_attrs/1.
 
 -spec(reply/1 :: (exml:xmlel()) -> exml:xmlel()).
-reply(#xmlel{attrs = Attrs} = Stanza) ->
+reply(Stanza) ->
     From = get_sender(Stanza),
     To = get_recipient(Stanza),
     set_recipient(set_sender(Stanza, To), From).
