@@ -193,10 +193,10 @@ error(IQ_Rec, Error) when ?IS_IQ_RECORD(IQ_Rec) ->
 %%     Request_IQ = exml:xmlel() | iq()
 %%     Condition = binary()
 %%     Text =  binary()
-%%     Response_IQ = exmpp_xml:xmlel() | iq()
+%%     Response_IQ = exml:xmlel() | iq()
 %% @doc Prepare an `<iq/>' to notify an error
 %%      with an error <text/>
-%% If `Error' is an atom, it must be a standard condition defined by
+%% If `Error' is a binary, it must be a standard condition defined by
 %% XMPP Core.
 
 -spec(error/3 ::
@@ -460,7 +460,7 @@ get_request(IQ) when ?IS_IQ(IQ) ->
         <<"result">> ->
             throw({iq, get_request, unexpected_iq, IQ});
         <<"error">> ->
-            [Request | Rest] = exmpp_xml:get_elements(IQ),
+            [Request | Rest] = exml:get_elements(IQ),
             case Request of
 	    	{xmlel, <<"error">>, _, _} ->
                     case Rest of

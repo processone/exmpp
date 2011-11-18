@@ -359,7 +359,18 @@ set_lang_in_attrs(Attrs, Lang) ->
 reply(Stanza) ->
     From = get_sender(Stanza),
     To = get_recipient(Stanza),
-    set_recipient(set_sender(Stanza, To), From).
+    S1 = case From of
+	    undefined ->
+		    exml:remove_attribute(Stanza, <<"to">>);
+	     _ ->
+		     set_recipient(Stanza, From)
+    end,
+    case To of
+	    undefined ->
+		    exml:remove_attribute(S1, <<"from">>);
+	    _ ->
+		    set_sender(S1, To)
+    end.
 
 
 %% @spec (Stanza) -> Stanza_Reply
