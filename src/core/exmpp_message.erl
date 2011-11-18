@@ -100,7 +100,7 @@ normal(Subject, Body) ->
 
 
 %% @spec () -> Message
-%%     Message = exmpp_xml:xmlel()
+%%     Message = exml:xmlel()
 %% @doc Create an empty chat message stanza.
 %%
 %% The default namespace is `jabber:client'.
