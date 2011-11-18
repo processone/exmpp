@@ -1116,7 +1116,7 @@ process_iq(ClientPid, Attrs, Packet) ->
                 Value -> exmpp_jid:to_lower(Value)
           end,
     Id = get_attribute_value(Attrs, <<"id">>, ""),
-    NS = exmpp_iq:get_payload_ns_as_atom(Packet),
+    NS = exmpp_iq:get_payload_ns(Packet),
     ClientPid ! #received_packet{packet_type = iq,
                                  queryns = NS,
                                  type_attr = Type,

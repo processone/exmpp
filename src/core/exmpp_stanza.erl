@@ -56,8 +56,8 @@
 
 %% Stanza-level errors.
 -export([
+	 error/1,
 	 error/2,
-	 error/3,
 	 stanza_error/2,
 	 stanza_error_without_original/2,
 	 is_stanza_error/1,
@@ -217,10 +217,10 @@ set_jids(Stanza, From, To) ->
 
 -spec(get_id/1 :: (exml:xmlel() | #iq{}) -> binary() | undefined).
 
-get_id(Stanza) ->
-    exml:get_attribute(Stanza, <<"id">>,undefined);
 get_id(#iq{id = ID}) ->
-    ID.
+    ID;
+get_id(Stanza) ->
+    exml:get_attribute(Stanza, <<"id">>).
 
 
 %% @spec (Stanza, ID) -> New_Stanza
@@ -274,30 +274,17 @@ type_to_binary(Type) when is_atom(Type) ->
 
 -spec(set_type/2 :: (#xmlel{} | #iq{}, type()) -> #xmlel{} | #iq{}).
 
-set_type(#xmlel{attrs = Attrs} = Stanza, Type) ->
-    New_Attrs = set_type_in_attrs(Attrs, Type),
-    Stanza#xmlel{attrs = New_Attrs};
-set_type(#iq{} = Stanza, 'get') ->
-    Stanza#iq{type = get, kind = request};
-set_type(#iq{} = Stanza, 'set') ->
-    Stanza#iq{type = set, kind = request};
-set_type(#iq{} = Stanza, 'result') ->
-    Stanza#iq{type = result, kind = response};
-set_type(#iq{} = Stanza, 'error') ->
-    Stanza#iq{type = error, kind = response}.
+set_type({xmlel, _, _, _} = Stanza, Type) ->
+    exml:set_attribute(Stanza, <<"type">>, Type);
+set_type(#iq{} = Stanza, <<"get">>) ->
+    Stanza#iq{type = <<"get">>, kind = request};
+set_type(#iq{} = Stanza, <<"set">>) ->
+    Stanza#iq{type = <<"set">>, kind = request};
+set_type(#iq{} = Stanza, <<"result">>) ->
+    Stanza#iq{type = <<"result">>, kind = response};
+set_type(#iq{} = Stanza, <<"error">>) ->
+    Stanza#iq{type = <<"error">>, kind = response}.
 
-%% @spec (Attrs, Type) -> New_Attrs
-%%     Attrs = [exmpp_xml:xmlattr()]
-%%     Type = atom() | binary() | string()
-%%     New_Attrs = [exmpp_xml:xmlattr()]
-%% @doc Set the type of the stanza.
-
--spec(set_type_in_attrs/2 :: ([#xmlattr{}], type()) -> [#xmlattr{}]).
-
-set_type_in_attrs(Attrs, Type) when is_atom(Type) ->
-    set_type_in_attrs(Attrs, type_to_binary(Type));
-set_type_in_attrs(Attrs, Type) ->
-	lists:keystore(<<"type">>, 1, Attrs, {<<"type">>, Type}).
 
 %% @spec (Stanza) -> Lang | undefined
 %%     Stanza = exmpp_xml:xmlel() | exmpp_iq:iq()
@@ -306,8 +293,11 @@ set_type_in_attrs(Attrs, Type) ->
 
 -spec(get_lang/1 :: (#xmlel{} | #iq{}) -> binary() | undefined).
 
-get_lang(#xmlel{attrs = Attrs} = _Stanza) ->
-    get_lang_from_attrs(Attrs);
+get_lang({xmlel, _, _, _} = Stanza) ->
+    case exml:get_attribute(Stanza, <<"lang">>) of
+	    undefined -> exml:get_attribute(Stanza, <<"xml:lang">>);
+	    Lang -> Lang
+    end;
 get_lang(#iq{lang = Lang}) ->
     Lang.
 
@@ -386,18 +376,18 @@ reply_without_content(Stanza) ->
 
 
 %% @spec (Stanza, Error) -> Stanza_Reply
-%%     Stanza = exmpp_xml:xmlel()
-%%     Error = exmpp_xml:xmlel() | atom()
-%%     Stanza_Reply = exmpp_xml:xmlel()
+%%     Stanza = exml:xmlel()
+%%     Error = exml:xmlel() | binary()
+%%     Stanza_Reply = exml:xmlel()
 %% @doc Prepare an error reply to `Stanza'.
 %%
 %% If `Error' is an atom, it must be a standard condition defined by
 %% XMPP Core.
 
--spec(reply_with_error/2 :: (#xmlel{}, #xmlel{} | atom()) -> #xmlel{}).
+-spec(reply_with_error/2 :: (exml:xmlel(), exml:xmlel() | binary()) -> exml:xmlel()).
 
-reply_with_error(Stanza, Condition) when is_atom(Condition) ->
-    Error = error(Stanza#xmlel.ns, Condition),
+reply_with_error(Stanza, Condition) when is_binary(Condition) ->
+    Error = exmpp_staza:error(Condition),
     reply_with_error(Stanza, Error);
 reply_with_error(Stanza, Error) ->
     Reply = reply(Stanza),
@@ -409,95 +399,76 @@ reply_with_error(Stanza, Error) ->
 
 standard_conditions() ->
     [
-     {'bad-request',             "modify" },
-     {'conflict',                "cancel" },
-     {'feature-not-implemented', "cancel" },
-     {'forbidden',               "auth"   },
-     {'gone',                    "modify" },
-     {'internal-server-error',   "wait"   },
-     {'item-not-found',          "cancel" },
-     {'jid-malformed',           "modify" },
-     {'not-acceptable',          "modify" },
-     {'not-allowed',             "cancel" },
-     {'not-authorized',          "auth"   },
-     {'payment-required',        "auth"   },
-     {'recipient-unavailable',   "wait"   },
-     {'redirect',                "modify" },
-     {'registration-required',   "auth"   },
-     {'remote-server-not-found', "cancel" },
-     {'remote-server-timeout',   "wait"   },
-     {'resource-constraint',     "wait"   },
-     {'service-unavailable',     "cancel" },
-     {'subscription-required',   "auth"   },
-     {'unexpected-request',      "wait"   },
-     {'undefined-condition',     undefined}
+     {<<"bad-request">>,             <<"modify">> },
+     {<<"conflict">>,                <<"cancel">> },
+     {<<"feature-not-implemented">>, <<"cancel">> },
+     {<<"forbidden">>,               <<"auth">>   },
+     {<<"gone">>,                    <<"modify">> },
+     {<<"internal-server-error">>,   <<"wait">>   },
+     {<<"item-not-found">>,          <<"cancel">> },
+     {<<"jid-malformed">>,           <<"modify">> },
+     {<<"not-acceptable">>,          <<"modify">> },
+     {<<"not-allowed">>,             <<"cancel">> },
+     {<<"not-authorized">>,          <<"auth">>   },
+     {<<"payment-required">>,        <<"auth">>   },
+     {<<"recipient-unavailable">>,   <<"wait">>   },
+     {<<"redirect">>,                <<"modify">> },
+     {<<"registration-required">>,   <<"auth">>   },
+     {<<"remote-server-not-found">>, <<"cancel">> },
+     {<<"remote-server-timeout">>,   <<"wait">>   },
+     {<<"resource-constraint">>,     <<"wait">>   },
+     {<<"service-unavailable">>,     <<"cancel">> },
+     {<<"subscription-required">>,   <<"auth">>   },
+     {<<"unexpected-request">>,      <<"wait">>   },
+     {<<"undefined-condition">>,     undefined}
     ].
 
-%% @spec (NS, Condition) -> Stanza_Error
-%%     NS = atom() | string()
-%%     Condition = atom()
-%%     Stanza_Error = exmpp_xml:xmlel()
+%% @spec (Condition) -> Stanza_Error
+%%     Condition = binary()
+%%     Stanza_Error = exml:xmlel()
 %% @doc Create an `<error/>' element based on the given `Condition'.
 %%
-%% A default type is set by {@link set_error_type/2} if `NS' is
-%% `jabber:client' or `jabber:server'. This does not contain any text
-%% element.
+-spec(error/1 :: (binary()) -> exml:xmlel()).
 
--spec(error/2 :: (xmlname(), atom()) -> #xmlel{}).
+error(Condition) ->
+    error(Condition, {undefined, undefined}).
 
-error(NS, Condition) ->
-    error(NS, Condition, {undefined, undefined}).
-
-%% @spec (NS, Condition, Text_Spec) -> Stanza_Error
-%%     NS = atom() | string()
-%%     Condition = atom()
+%% @spec (Condition, Text_Spec) -> Stanza_Error
+%%     Condition = binary()
 %%     Text_Spec = {Lang, Text} | Text | undefined
-%%     Lang = binary() | string() | undefined
-%%     Text = binary() | string() | undefined
-%%     Stanza_Error = exmpp_xml:xmlel()
+%%     Lang = binary() | | undefined
+%%     Text = binary() | | undefined
+%%     Stanza_Error = exml:xmlel()
 %% @doc Create an `<error/>' element based on the given `Condition'.
 %%
-%% A default type is set by {@link set_error_type/2} if `NS' is
-%% `jabber:client' or `jabber:server'. This does not contain any text
-%% element.
 
--spec(error/3 ::
-      (xmlname(), atom(), {lang(), binary() | string() | undefined}) -> #xmlel{}).
+-spec(error/2 ::
+	(binary(), {lang(), binary() | undefined}) -> exml:xmlel()).
 
-error(NS, Condition, {Lang, Text}) ->
-    Condition_El = #xmlel{
-      ns = ?NS_STANZA_ERRORS,
-      name = Condition
-     },
-    Error_El0 = #xmlel{
-      ns = NS,
-      name = 'error',
-      children = [Condition_El]
-     },
+error(Condition, {Lang, Text}) ->
+    Condition_El = {xmlel, Condition, [{<<"xmlns">>, ?NS_STANZA_ERRORS}], []},
+    Error_El0 = {xmlel, <<"error">>, [], [Condition_El]},
     Error_El = case Text of
 		   undefined ->
 		       Error_El0;
 		   _ ->
-		       Text_El0 = exmpp_xml:set_cdata(#xmlel{
-                ns = ?NS_STANZA_ERRORS,
-                name = 'text'
-              }, Text),
-            Text_El = case Lang of
-                undefined ->
-                    Text_El0;
-                _ ->
-                    exmpp_xml:set_attribute(Text_El0, ?NS_XML, <<"lang">>, Lang)
-            end,
-            exmpp_xml:append_child(Error_El0, Text_El)
+		   	Text_El0 = {xmlel, <<"text">>, [{<<"xmlns">>, ?NS_STANZA_ERRORS}], [{cdata, Text}]},
+            		Text_El = case Lang of
+                	undefined ->
+                    		Text_El0;
+                	_ ->
+                    		exml:set_attribute(Text_El0, <<"xml:lang">>, Lang)
+		       end,
+            	       exml:append_child(Error_El0, Text_El)
     end,
     set_error_type_from_condition_in_error(Error_El, Condition);
-error(NS, Condition, Text) ->
-    error(NS, Condition, {undefined, Text}).
+error(Condition, Text) ->
+    error(Condition, {undefined, Text}).
 
 %% @spec (Stanza, Error) -> Stanza_Error
-%%     Stanza = exmpp_xml:xmlel()
-%%     Error = exmpp_xml:xmlel()
-%%     Stanza_Error = exmpp_xml:xmlel()
+%%     Stanza = exml:xmlel()
+%%     Error = exml:xmlel()
+%%     Stanza_Error = exml:xmlel()
 %% @doc Transform `Stanza' in a stanza error.
 %%
 %% The `type' attribute is set and an error condition is added. The
@@ -507,11 +478,11 @@ error(NS, Condition, Text) ->
 %% @see error/2.
 %% @see error/3.
 
--spec(stanza_error/2 :: (#xmlel{}, #xmlel{}) -> #xmlel{}).
+-spec(stanza_error/2 :: (exml:xmlel(), exml:xmlel()) -> exml:xmlel()).
 
 stanza_error(Stanza, Error) ->
-    Stanza_Error = exmpp_xml:append_child(Stanza, Error),
-    set_type(Stanza_Error, "error").
+    Stanza_Error = exml:append_child(Stanza, Error),
+    set_type(Stanza_Error, <<"error">>).
 
 %% @spec (Stanza, Error) -> Stanza_Error
 %%     Stanza = exmpp_xml:xmlel()
@@ -579,7 +550,7 @@ set_error_type(Stanza, Type) ->
     end.
 
 set_error_type_in_error(Error, Type) ->
-    exmpp_xml:set_attribute(Error, <<"type">>, Type).
+    exml:set_attribute(Error, <<"type">>, Type).
 
 %% @spec (Stanza, Condition) -> New_Stanza
 %%     Stanza = exmpp_xml:xmlel()
@@ -603,19 +574,15 @@ set_error_type_from_condition(Stanza, Condition) ->
             exmpp_xml:replace_child(Stanza, Error, New_Error)
     end.
 
-set_error_type_from_condition_in_error(#xmlel{ns = NS} = Error,
-  Condition) when NS == ?NS_JABBER_CLIENT; NS == ?NS_JABBER_SERVER ->
+set_error_type_from_condition_in_error(Error, Condition) ->
     case lists:keysearch(Condition, 1, standard_conditions()) of
         {value, {_, undefined}} ->
             Error;
         {value, {_, Type}} ->
             set_error_type_in_error(Error, Type);
         false ->
-            throw({stanza_error, error_type, invalid_condition,
-                {NS, Condition}})
-    end;
-set_error_type_from_condition_in_error(Error, _Condition) ->
-    Error.
+            throw({stanza_error, error_type, invalid_condition, Condition})
+    end.
 
 %% @spec (Stanza) -> Condition | undefined
 %%     Stanza = exml:xmlel()
