@@ -22,12 +22,10 @@
 -define(NS_XML_pfx,                  "xml").
 
 % Defined by XMPP Core (RFC 3920).
--define(NS_XMPP,                     'http://etherx.jabber.org/streams').
--define(NS_XMPP_s,                   "http://etherx.jabber.org/streams").
--define(NS_XMPP_b,                   <<"http://etherx.jabber.org/streams">>).
+-define(NS_XMPP,                     <<"http://etherx.jabber.org/streams">>).
 
--define(NS_XMPP_pfx,                 "stream").
--define(NS_STREAM_ERRORS,            'urn:ietf:params:xml:ns:xmpp-streams').
+-define(NS_XMPP_pfx,                 <<"stream">>).
+-define(NS_STREAM_ERRORS,            <<"urn:ietf:params:xml:ns:xmpp-streams">>).
 -define(NS_TLS,                      <<"urn:ietf:params:xml:ns:xmpp-tls">>).
 -define(NS_SASL,                     <<"urn:ietf:params:xml:ns:xmpp-sasl">>).
 -define(NS_BIND,                     <<"urn:ietf:params:xml:ns:xmpp-bind">>).
