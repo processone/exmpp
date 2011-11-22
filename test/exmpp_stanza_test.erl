@@ -12,6 +12,7 @@ error_test() ->
    {ok, [E]} = exml:parse_document(S),
    ?assertEqual(<<"modify">>, exmpp_stanza:get_error_type(E)),
    ?assertEqual(exmpp_stanza:get_error(E), exmpp_stanza:get_error(exmpp_iq:xmlel_to_iq(E))),
+   ?assertEqual(<<"bad-request">>, exmpp_stanza:get_condition(E)),
    ok.
 
 remove_sender_test() ->
@@ -47,6 +48,3 @@ type_test() ->
 	?assertEqual(<<"set">>, exmpp_stanza:get_type(exmpp_stanza:set_type(M,<<"set">>))),
 	?assertEqual(<<"get">>, exmpp_stanza:get_type(exmpp_iq:xmlel_to_iq(M))),
 	ok.
-
-
-

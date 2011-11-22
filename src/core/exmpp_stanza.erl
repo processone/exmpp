@@ -573,7 +573,7 @@ get_condition(Stanza) ->
     end.
 
 get_condition_in_error({xmlel, _Name, _Attrs, _Children} = Error)  ->
-	case exml:get_child_elements(Error) of
+	case exml:get_elements(Error) of
 		[{xmlel, Condition, _Attrs2, _C}|_] when Condition /= <<"text">> ->
 			Condition;
 		_ ->
