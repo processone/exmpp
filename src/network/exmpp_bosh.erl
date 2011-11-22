@@ -197,7 +197,7 @@ code_change(_Old, State, _Extra) ->
 
 
 make_empty_request(Socket, Sid, Rid, Queue, Host, Path) ->
-    StanzasText = [exmpp_xml:document_to_iolist(I) || I <- lists:reverse(Queue)],
+    StanzasText = [exml:document_to_iolist(I) || I <- lists:reverse(Queue)],
     Body = stanzas_msg(Sid, Rid, StanzasText),                                   
     make_request(Socket, Host, Path, Body).                                      
 
@@ -205,7 +205,7 @@ make_raw_request(Socket, Host, Path, Body) ->
     make_request(Socket, Host, Path, Body).  
 
 make_request(Socket, Sid, Rid, Queue, Host, Path, Packet) when is_record(Packet, xmlel) ->
-    StanzasText = [exmpp_xml:document_to_iolist(I) || I <- lists:reverse([Packet|Queue])],
+    StanzasText = [exml:document_to_iolist(I) || I <- lists:reverse([Packet|Queue])],
     Body = stanzas_msg(Sid, Rid, StanzasText),                                                    
     make_request(Socket, Host, Path, Body).                                                       
                                                                                                   
@@ -217,11 +217,13 @@ make_request(Socket,Host, Path, Body) ->
 
 
 %% after stream restart, we must not sent this to the connection manager. The response is got in reset call
-do_send(#xmlel{ns=?NS_XMPP, name='stream'}, #state{new = false} = State) ->                                
+do_send({xmlel, Stream, _, _}, #state{new = false} = State) 
+	when Stream == <<"stream">> ; Stream == <<"stream:stream">>->                                
         {noreply, State};                                                                                  
 
 % we start the session with the connection manager here.
-do_send(#xmlel{ns=?NS_XMPP, name='stream'}, State) ->   
+do_send({xmlel, Stream, _, _}, State) 
+	when Stream == <<"stream">> ; Stream == <<"stream:stream">>->                                
     #state{ parsed_bosh_url = ParsedURL,                
             domain = Domain,                            
             stream_ref = StreamRef,                     
@@ -232,11 +234,11 @@ do_send(#xmlel{ns=?NS_XMPP, name='stream'}, State) ->
     {ok, {{200, <<"OK">>}, _Hdrs, Resp}} = read_response(Socket, nil, nil, [], <<>>),        
     NewState2 = return_socket(NewState, Socket), %%TODO: this can be improved.. don't close the socket and reuse it for latter
 
-    [#xmlel{name=body} = BodyEl] = exmpp_xml:parse_document(Resp),
-    SID = exmpp_xml:get_attribute_as_binary(BodyEl, <<"sid">>, undefined),
-    AuthID = exmpp_xml:get_attribute_as_binary(BodyEl,<<"authid">>,undefined),
-    Requests = list_to_integer(exmpp_xml:get_attribute_as_list(BodyEl,<<"requests">>,undefined)),
-    Events = [{xmlstreamelement, El} || El <- exmpp_xml:get_child_elements(BodyEl)],                                      
+    {ok, [{xmlel, <<"body">>, _, _} = BodyEl]} = exml:parse_document(Resp),
+    SID = exml:get_attribute(BodyEl, <<"sid">>, undefined),
+    AuthID = exml:get_attribute(BodyEl,<<"authid">>,undefined),
+    Requests = list_to_integer(binary_to_list(exml:get_attribute(BodyEl,<<"requests">>,undefined))),
+    Events = [{xmlstreamelement, El} || El <- exml:get_elements(BodyEl)],                                      
 
     % first return a fake stream response, then anything found inside the <body/> element (possibly nothing)
         StreamStart =                                                                                       
