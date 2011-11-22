@@ -9,6 +9,7 @@ opening_test() ->
 	?assertEqual(<<"domain.com">>, exmpp_stream:get_receiving_entity(O)),
 	?assertEqual(<<"jabber:client">>, exmpp_stream:get_default_ns(O)),
 	?assertEqual({1,0}, exmpp_stream:get_version(O)),
+	?assertEqual(<<"http://etherx.jabber.org/streams">>, exml:get_attribute(O,<<"xmlns:stream">>)),
 	?assertMatch({xmlel, <<"stream:stream">>, _,undefined}, O),
 	S = exml:document_to_iolist(O),
 	{ok, P} = exml:start_parser([{root_depth, 1}]),

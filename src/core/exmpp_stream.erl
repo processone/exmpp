@@ -214,7 +214,7 @@ opening(To, Default_NS, Version) ->
 
 opening(To, Default_NS, Version, Lang) ->
     %% Prepare attributes.
-    S1 = set_receiving_entity({xmlel, <<?NS_XMPP_pfx/binary,":stream">>, [{<<"xmlns">>, Default_NS}, {?NS_XMPP_pfx, ?NS_XMPP}], undefined}, To),
+    S1 = set_receiving_entity({xmlel, <<?NS_XMPP_pfx/binary,":stream">>, [{<<"xmlns">>, Default_NS}, {<<"xmlns:", ?NS_XMPP_pfx/binary>>, ?NS_XMPP}], undefined}, To),
     S2 = set_version(S1, Version),
     case Lang of 
 	    undefined -> S2;
