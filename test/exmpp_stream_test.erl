@@ -34,6 +34,7 @@ opening_reply_test() ->
 	?assertEqual(<<"id">>, exmpp_stream:get_id(O)),
 	?assertMatch({xmlel, <<"stream:stream">>, _,undefined}, O),
 	?assertEqual(<<"EN">>, exmpp_stream:get_lang(O)),
+	?assertEqual(<<"http://etherx.jabber.org/streams">>, exml:get_attribute(O,<<"xmlns:stream">>)),
 	ok.
 
 opening_reply_from_opening_test() ->

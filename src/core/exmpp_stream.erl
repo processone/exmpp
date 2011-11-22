@@ -269,7 +269,7 @@ opening_reply(From, Default_NS, Version, ID, Lang) ->
     %% Prepare attributes.
     %% Prepare attributes.
     S1 = set_initiating_entity({xmlel, <<?NS_XMPP_pfx/binary,":stream">>, 
-		    [{<<"xmlns">>, Default_NS}, {?NS_XMPP_pfx, ?NS_XMPP}], undefined}, From),
+		    [{<<"xmlns">>, Default_NS}, {<<"xmlns:",?NS_XMPP_pfx/binary>>, ?NS_XMPP}], undefined}, From),
     S2 = set_id(set_version(S1, Version), ID),
     case Lang of 
 	    undefined -> S2;
