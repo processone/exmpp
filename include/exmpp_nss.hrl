@@ -608,8 +608,8 @@
 -define(NS_USER_PHYSLOC_b,           <<"http://jabber.org/protocol/physloc">>).
 
 % Defined by XEP-0114: Jabber Component Protocol.
--define(NS_COMPONENT_ACCEPT,         'jabber:component:accept').
--define(NS_COMPONENT_CONNECT,        'jabber:component:connect').
+-define(NS_COMPONENT_ACCEPT,         <<"jabber:component:accept">>).
+-define(NS_COMPONENT_CONNECT,        <<"jabber:component:connect">>).
 
 -define(NS_COMPONENT_ACCEPT_s,       "jabber:component:accept").
 -define(NS_COMPONENT_CONNECT_s,      "jabber:component:connect").
