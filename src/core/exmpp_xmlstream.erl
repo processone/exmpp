@@ -16,7 +16,7 @@
 %% @doc
 %% The module <strong>{@module}</strong> sends events to a specified
 %% process or function based on elements and trees returned by the
-%% parser `exmpp_xml'.
+%% parser `exml'.
 %%
 %% <p>
 %% It also provides a high-level function to parse an XML document
@@ -35,7 +35,6 @@
 
 -export([
 	 start/2,
-	 start/3,
 	 reset/1,
 	 get_parser/1,
 	 stop/1,
@@ -60,14 +59,13 @@
 -record(xml_stream, {
 	  callback             :: callback(),
 	  parser,
-	  xmlstreamstart = old :: new | old,
-	  opened = false       :: bool(),
-	  wrapper_tagnames = undefined :: undefined | [atom() | string()]
+	  opened = false       :: boolean(),
+	  wrapper_tagnames = undefined :: undefined | [binary() ]
 	 }).
 -type(xmlstream() :: #xml_stream{}).
 
 -type(xmlstreamevent() ::
-      {xmlstreamstart, atom() | string(), [#xmlattr{} | xmlattr_old()]} |
+	{xmlstreamstart, binary(), [exml:xmlattr()]} |
       #xmlstreamstart{} |
       #xmlstreamelement{} |
       #xmlstreamend{}
@@ -80,59 +78,29 @@
 %% @spec (Callback, Parser) -> Stream
 %%     Callback = callback()
 %%     Stream = xmlstream()
-%%     Parser = exmpp_xml:xmlparser()
+%%     Parser = exml:xmlparser()
 %% @doc Start a new stream handler.
 %%
-%% The XML parser is reset and options `{root_depth, 1}' and `emit_endtag'
-%% are set.
+%% The XML parser is reset and option `{root_depth, 1}' is set 
 %%
-%% The stream will use the old xmlstreamstart tuple.
 %%
-%% @see exmpp_xml:start_parser/1.
-%% @see exmpp_xml:reset_parser/2.
+%% @see exml:start_parser/1.
+%% @see exml:reset_parser/2.
 
 -spec(start/2 ::
-      (callback(), exmpp_xml:xmlparser()) -> xmlstream()).
+      (callback(), exml:xmlparser()) -> xmlstream()).
+
 
 start(Callback, Parser) ->
-    start(Callback, Parser, []).
-
-%% @spec (Callback, Parser, Stream_Options) -> Stream
-%%     Callback = callback()
-%%     Stream = xmlstream()
-%%     Parser = exmpp_xml:xmlparser()
-%%     Stream_Options = [Stream_Option]
-%%     Stream_Option = {xmlstreamstart, old | new}
-%% @doc Start a new stream handler.
-%%
-%% The XML parser is reset and options `{root_depth, 1}' and `emit_endtag'
-%% are set.
-%%
-%% The stream will use the old xmlstreamstart tuple by default.
-%%
-%% @see exmpp_xml:start_parser/1.
-%% @see exmpp_xml:reset_parser/2.
-
--spec(start/3 ::
-      (callback(), exmpp_xml:xmlparser(), [{xmlstreamstart, new | old}]) ->
-	     xmlstream()).
-
-start(Callback, Parser, Stream_Options) ->
     Callback2 = case Callback of
 		    Pid when is_pid(Pid) -> {process, Pid};
 		    _                    -> Callback
 		end,
-    New_Parser = exmpp_xml:reset_parser(Parser,
-					[{root_depth, 1}, emit_endtag]),
-    Stream_Start = case lists:keysearch(xmlstreamstart, 1, Stream_Options) of
-		       {value, {_, new}} -> new;
-		       {value, {_, old}} -> old;
-		       false             -> old
-		   end,
+    ok = exml:reset_parser(Parser,
+					[{root_depth, 1} ]),
     #xml_stream{
 		     callback = Callback2,
-		     parser = New_Parser,
-		     xmlstreamstart = Stream_Start
+		     parser = Parser
 		    }.
 
 %% @spec (Stream) -> New_Stream
@@ -143,15 +111,15 @@ start(Callback, Parser, Stream_Options) ->
 -spec(reset/1 :: (xmlstream()) -> xmlstream()).
 
 reset(#xml_stream{parser = Parser} = Stream) ->
-    New_Parser = exmpp_xml:reset_parser(Parser),
-    Stream#xml_stream{parser = New_Parser, opened = false}.
+    ok = exml:reset_parser(Parser),
+    Stream#xml_stream{opened = false}.
 
 %% @spec (Stream) -> Parser
 %%     Stream = xmlstream()
-%%     Parser = exmpp_xml:xmlparser()
+%%     Parser = exml:xmlparser()
 %% @doc Return the XML parser used.
 
--spec(get_parser/1 :: (xmlstream()) -> exmpp_xml:xmlparser()).
+-spec(get_parser/1 :: (xmlstream()) -> exml:xmlparser()).
 
 get_parser(#xml_stream{parser = Parser}) ->
     Parser.
@@ -176,7 +144,7 @@ stop(_Stream) ->
 
 %% @spec (Stream, Data) -> {ok, New_Stream} | {ok, New_Stream, Events} | {error, Reason}
 %%     Stream = xmlstream()
-%%     Data = string() | binary()
+%%     Data = binary()
 %%     New_Stream = xmlstream()
 %%     Events = [xmlstreamevent()]
 %% @doc Parse a chunk of XML data and send events to the callback
@@ -188,17 +156,15 @@ stop(_Stream) ->
 %% Potential events are described by the {@link xmlstreamevent()} type.
 
 -spec(parse/2 ::
-      (xmlstream(), binary() | string()) ->
+      (xmlstream(), binary() ) ->
 	     {ok, xmlstream()} | {ok, xmlstream(), [xmlstreamevent()]} |
 		 {error, any()}).
 
 parse(#xml_stream{parser = Parser} = Stream, Data) ->
-    try exmpp_xml:parse(Parser, Data) of
-        continue ->
-            send_events(Stream, []);
-        XML_Elements ->
-            {ok, New_Stream, Events} = process_elements(Stream, XML_Elements),
-            send_events(New_Stream, Events)
+    try exml:parse(Parser, Data) of
+	    {ok, XML_Elements} ->
+		    {ok, New_Stream, Events} = process_elements(Stream, XML_Elements),
+		    send_events(New_Stream, Events)
     catch
         throw:{xml_parser, parsing, Error, Reason} ->
             send_events(Stream, [{xmlstreamerror, {Error, Reason}}]);
@@ -216,60 +182,45 @@ process_elements(#xml_stream{wrapper_tagnames=TagNames} = Stream, XML_Elements)
   when TagNames /= undefined ->
     New_XML_Elements =
 	lists:map(
-	  fun(XML_Element) when is_record(XML_Element, xmlel) ->
-		  case lists:member(XML_Element#xmlel.name,
-				    TagNames) of
-		      true -> XML_Element#xmlel.children;
+	  fun({xmlel, Name, _Attrs, Children} = XML_Element) ->
+		  case lists:member(Name, TagNames) of
+		      true -> case Children of
+				      undefined -> [];
+				      _ -> Children
+				end;
 		      false -> XML_Element
 		  end;
-	     (XML_Element) when is_record(XML_Element, xmlelement) ->
-		  case lists:member(XML_Element#xmlelement.name,
-				    TagNames) of
-		      true -> XML_Element#xmlelement.children;
+	      ({xmlelend, Name} = XML_Element)->
+		  case lists:member(Name, TagNames) of
+		      true -> [];
 		      false -> XML_Element
 		  end
 	  end, XML_Elements),
-    process_elements2(Stream, lists:flatten(New_XML_Elements), []);
+    %%horrible hack, fixme
+    Filtered = lists:flatten(New_XML_Elements),
+    Opened = Stream#xml_stream.opened orelse length(Filtered) /= length(XML_Elements),
+    process_elements2(Stream#xml_stream{opened = Opened}, Filtered, []);
 %% All other cases (for example endtag)
 process_elements(Stream, XML_Elements) ->
     process_elements2(Stream, XML_Elements, []).
 
 process_elements2(Stream, [XML_Element | Rest], Events) ->
+	io:format("~p|~p \n", [XML_Element, Rest]),
     case XML_Element of
-	%% With namespace support.
-        #xmlel{name = Name, attrs = Attrs}
-	when Stream#xml_stream.opened == false ->
+	{xmlel, _Name, _Attrs, _} when Stream#xml_stream.opened == false ->
 	    %% Stream is freshly opened.
             New_Stream = Stream#xml_stream{opened = true},
-            New_Events = case Stream#xml_stream.xmlstreamstart of
-			     old -> [{xmlstreamstart, Name, Attrs} | Events];
-			     new -> [#xmlstreamstart{element = XML_Element} | Events]
-			 end,
+            New_Events =  [#xmlstreamstart{element = XML_Element} | Events],
             process_elements2(New_Stream, Rest, New_Events);
-        #xmlel{} ->
+    	{xmlel, _, _,_} ->
 	    %% An "depth 1" element and its children.
             New_Events = [#xmlstreamelement{element = XML_Element} |
 			  Events],
             process_elements2(Stream, Rest, New_Events);
 
-	%% Without namespace support.
-        #xmlelement{name = Name, attrs = Attrs}
-	when Stream#xml_stream.opened == false ->
-	    %% Stream is freshly opened.
-            New_Stream = Stream#xml_stream{opened = true},
-            New_Events = case Stream#xml_stream.xmlstreamstart of
-			     old -> [{xmlstreamstart, Name, Attrs} | Events];
-			     new -> [#xmlstreamstart{element = XML_Element} | Events]
-			 end,
-            process_elements2(New_Stream, Rest, New_Events);
-        #xmlelement{} ->
-	    %% A "depth 1" element and its children.
-            New_Events = [#xmlstreamelement{element = XML_Element} |
-			  Events],
-            process_elements2(Stream, Rest, New_Events);
 
 	%% Common.
-        #xmlendtag{} ->
+	{xmlelend, _Name} ->
 	    %% Stream is closed.
             New_Stream = Stream#xml_stream{opened = false},
             New_Events = [#xmlstreamend{endtag = XML_Element} |
@@ -278,7 +229,7 @@ process_elements2(Stream, [XML_Element | Rest], Events) ->
 
 	%% Character data as <stream> child, ignore.
 	%% This is probably a keep-alive whitespace.
-        #xmlcdata{} ->
+	{cdata, _} ->
             process_elements2(Stream, Rest, Events)
     end;
 process_elements2(Stream, [], Events) ->
@@ -339,55 +290,53 @@ change_callback(Stream, CallBack) ->
 %% --------------------------------------------------------------------
 
 %% @spec (Data) -> [XML_Element]
-%%     Data = string() | binary()
-%%     XML_Element = exmpp_xml:xmlel() | exmpp_xml:xmlel_old() | exmpp_xml:xmlcdata()
+%%     Data =  binary()
+%%     XML_Element = exml:xmlel() 
 %% @doc Parse the given data.
 %%
 %% The XML parser is created with default options.
 %%
-%% @see exmpp_xml:start_parser/0.
-%% @see exmpp_xml:parse_document/1.
+%% @see exml:start_parser/0.
+%% @see exml:parse_document/1.
 
 -spec(parse_element/1 ::
-      (binary() | string()) ->
-	     [xmlnode() | xmlendtag()]).
+      (binary() ) ->
+	     [exml:xmlnode() | emxl:xmlendtag()]).
 
 parse_element(Data) ->
     parse_element(Data, []).
 
 %% @spec (Data, Parser_Options) -> [XML_Element]
-%%     Data = string() | binary()
-%%     Parser_Options = [exmpp_xml:xmlparseroption()]
-%%     XML_Element = exmpp_xml:xmlel() | exmpp_xml:xmlel_old() | exmpp_xml:xmlcdata()
+%%     Data = binary()
+%%     Parser_Options = [exml:xmlparseroption()]
+%%     XML_Element = exml:xmlel() | exml:xmlcdata()
 %% @doc Parse the given data.
 %%
 %% The XML parser is created with given `Parser_Options' options.
 %%
-%% @see exmpp_xml:start_parser/1.
-%% @see exmpp_xml:parse_document/2.
+%% @see exml:start_parser/1.
+%% @see exml:parse_document/2.
 
 -spec(parse_element/2 ::
-      (binary() | string(), [exmpp_xml:xmlparseroption()]) ->
-	     [xmlnode() | xmlendtag()]).
+      (binary() , [exml:xmlparseroption()]) ->
+	     [exml:xmlnode() | exml:xmlendtag()]).
 
 parse_element(Data, Parser_Options) ->
-    case exmpp_xml:parse_document(Data, Parser_Options) of
-        done ->
-            throw({xmlstream, parse_element, parse_error, done});
-        [] ->
+    case exml:parse_document(Data, Parser_Options) of
+       {ok, []} ->
             throw({xmlstream, parse_element, parse_error, []});
-        XML_Element ->
+       {ok, [XML_Element]} ->
             XML_Element
     end.
 
 %% @spec (Stream, TagNames) -> New_Stream
 %%     Stream = xmlstream()
-%%     TagNames =  [atom()|string()]
+%%     TagNames =  [binary()]
 %%     New_Stream = xmlstream()
 %% @doc Reset stream and the underlying XML parser.
 %% TODO: Support wrapper tag match on both namespace and name ?
 
--spec(set_wrapper_tagnames/2 :: (xmlstream(), [atom()|string()]) -> xmlstream()).
+-spec(set_wrapper_tagnames/2 :: (xmlstream(), [binary()]) -> xmlstream()).
 
 set_wrapper_tagnames(Stream, TagNames) when is_list(TagNames) ->
     Stream#xml_stream{wrapper_tagnames = TagNames}.
@@ -440,9 +389,9 @@ set_wrapper_tagnames(Stream, TagNames) when is_list(TagNames) ->
 %%     Stream_Start = {xmlstreamstart, XML_Element} | {xmlstreamstart, Name, Attrs}
 %%     Stream_Element = {xmlstreamelement, XML_Element}
 %%     Stream_End = {xmlstreamend, XML_End_Tag}
-%%       XML_Element = exmpp_xml:xmlel() | exmpp_xml:xmlel_old()
-%%       XML_End_Tag = exmpp_xml:xmlendtag()
-%%       Name = atom() | string()
-%%       Attrs = [exmpp_xml:xmlattr_old() | exmpp_xml:xmlattr()]
+%%       XML_Element = exml:xmlel() 
+%%       XML_End_Tag = exml:xmlendtag()
+%%       Name = binary()
+%%       Attrs = [exml:xmlattr()]
 %%     Stream_Error = {xmlstreamerror, Reason}.
 %% Records representing an event sent by the {@link parse/2} function.
