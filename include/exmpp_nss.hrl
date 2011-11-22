@@ -32,13 +32,9 @@
 -define(NS_STANZA_ERRORS,            <<"urn:ietf:params:xml:ns:xmpp-stanzas">>).
 
 % Defined by XMPP-IM (RFC 3921).
--define(NS_JABBER_CLIENT,            'jabber:client').
--define(NS_JABBER_CLIENT_s,          "jabber:client").
--define(NS_JABBER_CLIENT_b,          <<"jabber:client">>).
+-define(NS_JABBER_CLIENT,            <<"jabber:client">>).
 
--define(NS_JABBER_SERVER,            'jabber:server').
--define(NS_JABBER_SERVER_s,          "jabber:server").
--define(NS_JABBER_SERVER_b,          <<"jabber:server">>).
+-define(NS_JABBER_SERVER,            <<"jabber:server">>).
 
 -define(NS_SESSION,                 <<"urn:ietf:params:xml:ns:xmpp-session">>).
 

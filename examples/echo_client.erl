@@ -35,10 +35,11 @@
 -export([init/2]).
 
 start() ->
-    start("echo@localhost", "password").
+    start(<<"echo@localhost">>, <<"password">>).
 
 start(JID, Password) ->
     spawn(?MODULE, init, [JID, Password]).
+
 
 stop(EchoClientPid) ->
     EchoClientPid ! stop.
@@ -47,20 +48,23 @@ init(JID, Password) ->
     application:start(exmpp),
     %% Start XMPP session: Needed to start service (Like
     %% exmpp_stringprep):
-    MySession = exmpp_session:start(),
+    %MySession = exmpp_session:start(),
+    MySession = exmpp_session:start({1,0}),
     %% Create XMPP ID (Session Key):
-    [User, Server] = string:tokens(JID, "@"),
+    [User, Server] = binary:split(JID, <<$@>>),
     MyJID = exmpp_jid:make(User, Server, random),
     %% Create a new session with basic (digest) authentication:
     exmpp_session:auth_basic_digest(MySession, MyJID, Password),
     %% Connect in standard TCP:
-    {ok, _StreamId} = exmpp_session:connect_TCP(MySession, Server, 5222),
+    %{ok, _StreamId} = exmpp_session:connect_TCP(MySession, binary_to_list(Server), 5222), %%USE THIS FOR LEGACY AUTH
+    {ok, _StreamId, _Features} = exmpp_session:connect_TCP(MySession, binary_to_list(Server), 5222),
     session(MySession, MyJID, Password).
 
 %% We are connected. We now log in (and try registering if authentication fails)
 session(MySession, _MyJID, Password) ->
     %% Login with defined JID / Authentication:
-    try exmpp_session:login(MySession)
+    %%try exmpp_session:login(MySession)  %% USE THUS FOR LEGACY AUTH
+    try exmpp_session:login(MySession, <<"PLAIN">>)
     catch
 	throw:{auth_error, 'not-authorized'} ->
 	    %% Try creating a new user:
@@ -74,7 +78,7 @@ session(MySession, _MyJID, Password) ->
     %% We explicitely send presence:
     exmpp_session:send_packet(MySession,
 			      exmpp_presence:set_status(
-				exmpp_presence:available(), "Echo Ready")),
+				exmpp_presence:available(), <<"Echo Ready">>)),
     loop(MySession).
 
 %% Process exmpp packet:
@@ -83,14 +87,14 @@ loop(MySession) ->
         stop ->
             exmpp_session:stop(MySession);
         %% If we receive a message, we reply with the same message
-        Record = #received_packet{packet_type=message,
+        Record = #received_packet{packet_type= <<"message">>,
 				  raw_packet=Packet,
-				  type_attr=Type} when Type =/= "error" ->
+				  type_attr=Type} when Type =/= <<"error">> ->
             io:format("Received Message stanza:~n~p~n~n", [Record]),
             echo_packet(MySession, Packet),
             loop(MySession);
 	%% If we receive a presence stanza, handle it
-	Record when Record#received_packet.packet_type == 'presence' ->
+	Record when Record#received_packet.packet_type == <<"presence">> ->
 	    io:format("Received Presence stanza:~n~p~n~n", [Record]),
 	    handle_presence(MySession, Record, Record#received_packet.raw_packet),
 	    loop(MySession);
@@ -101,27 +105,27 @@ loop(MySession) ->
 
 %% Send the same packet back for each message received
 echo_packet(MySession, Packet) ->
-    From = exmpp_xml:get_attribute(Packet, <<"from">>, <<"unknown">>),
-    To = exmpp_xml:get_attribute(Packet, <<"to">>, <<"unknown">>),
-    TmpPacket = exmpp_xml:set_attribute(Packet, <<"from">>, To),
-    TmpPacket2 = exmpp_xml:set_attribute(TmpPacket, <<"to">>, From),
-    NewPacket = exmpp_xml:remove_attribute(TmpPacket2, <<"id">>),
+    From = exml:get_attribute(Packet, <<"from">>, <<"unknown">>),
+    To = exml:get_attribute(Packet, <<"to">>, <<"unknown">>),
+    TmpPacket = exml:set_attribute(Packet, <<"from">>, To),
+    TmpPacket2 = exml:set_attribute(TmpPacket, <<"to">>, From),
+    NewPacket = exml:remove_attribute(TmpPacket2, <<"id">>),
     exmpp_session:send_packet(MySession, NewPacket).
 
 handle_presence(Session, Packet, _Presence) ->
     case exmpp_jid:make(_From = Packet#received_packet.from) of
 	JID ->
 	    case _Type = Packet#received_packet.type_attr of
-		"available" ->
+		<<"available">> ->
 		    %% handle presence availabl
 		    ok;
-		"unavailable" ->
+		<<"unavailable">> ->
 		    %% handle presence unavailable
 		    ok;
-		"subscribe" ->
+		<<"subscribe">> ->
 		    presence_subscribed(Session, JID),
 		    presence_subscribe(Session, JID);
-		"subscribed" ->
+		<<"subscribed">> ->
 		    presence_subscribed(Session, JID),
 		    presence_subscribe(Session, JID)
 	    end

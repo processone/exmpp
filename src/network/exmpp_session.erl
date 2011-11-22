@@ -99,7 +99,7 @@
 -include("exmpp_client.hrl").
 
 -record(state, {
-	  auth_method = undefined, %% posibble values: password, digest, "PLAIN", "ANONYMOUS", "DIGEST-MD5"
+	  auth_method = undefined, %% posibble values: <<"password">>, <<"digest">>, "PLAIN", "ANONYMOUS", "DIGEST-MD5"
           auth_info = undefined,   %% {Jid, Password}
           stream_version,
           authenticated = false,
@@ -173,11 +173,11 @@ stop(Session) ->
 %% @deprecated
 auth_basic(Session, JID, Password)
   when is_pid(Session),
-       is_list(Password) ->
+       is_binary(Password) ->
     case exmpp_jid:is_jid(JID) of
 	false -> erlang:error({incorrect_jid,JID});
 	true ->
-	    Auth = {password, JID, Password},
+	    Auth = {<<"password">>, JID, Password},
 	    gen_fsm:sync_send_event(Session, {set_auth, Auth})
     end.
 
@@ -185,18 +185,18 @@ auth_basic(Session, JID, Password)
 %% @deprecated
 auth_basic_digest(Session, JID, Password)
   when is_pid(Session),
-       is_list(Password) ->
+       is_binary(Password) ->
     case exmpp_jid:is_jid(JID) of
 	false -> erlang:error({incorrect_jid,JID});
 	true ->
-	    Auth = {digest, JID, Password},
+	    Auth = {<<"digest">>, JID, Password},
 	    gen_fsm:sync_send_event(Session, {set_auth, Auth})
     end.
 
 %% Set authentication information
 auth_info(Session, JID, Password)
   when is_pid(Session),
-       is_list(Password) ->
+       is_binary(Password) ->
     case exmpp_jid:is_jid(JID) of
 	false -> erlang:error({incorrect_jid,JID});
 	true ->
@@ -212,7 +212,7 @@ auth_info(Session, JID, Password)
 
 auth_method(Session, Method)
   when is_pid(Session),
-       is_list(Method) or is_atom(Method) ->
+       is_binary(Method) ->
     gen_fsm:sync_send_event(Session, {set_auth_method, Method}).
 
 %% @spec (Session, Jid, Password, Method) -> Reply
@@ -220,12 +220,12 @@ auth_method(Session, Method)
 %%     Jid = jid()
 %%     Password = string()
 %% @doc Set the authentication info (user credentials) for the session.
-%%     Method = password | digest | "PLAIN" | "ANONYMOUS" | "DIGEST-MD5" | string()
+%%     Method = <<"password">> | <<"digest">> | <<"PLAIN">> | <<"ANONYMOUS">> | <<"DIGEST-MD5">> | binary()
 %%
 
 auth(Session, JID, Password, Method)
   when is_pid(Session),
-       is_list(Password) ->
+       is_binary(Password) ->
     case exmpp_jid:is_jid(JID) of
 	false -> erlang:error({incorrect_jid,JID});
 	true ->
@@ -342,7 +342,7 @@ login(Session) when is_pid(Session) ->
     end.
 
 %% Login using chosen SASL Mechanism
-login(Session, Mechanism) when is_pid(Session), is_list(Mechanism) ->
+login(Session, Mechanism) when is_pid(Session), is_binary(Mechanism) ->
     case gen_fsm:sync_send_event(Session, {login, sasl, Mechanism}) of
 	{ok, JID} -> {ok, JID};
 	Error when is_tuple(Error) -> erlang:throw(Error)
@@ -432,7 +432,6 @@ terminate(Reason, _StateName, #state{connection_ref = undefined,
 				     stream_ref = StreamRef,
 				     from_pid=From}) ->
     exmpp_xmlstream:stop(StreamRef),
-    exmpp_xml:stop_parser(exmpp_xmlstream:get_parser(StreamRef)),
     reply(Reason, From),
     ok;
 terminate(Reason, _StateName, #state{connection_ref = ConnRef,
@@ -449,7 +448,6 @@ terminate(Reason, _StateName, #state{connection_ref = ConnRef,
 				     from_pid=From}) ->
     Module:close(ConnRef, ReceiverRef), %stop receiving data from socket
     exmpp_xmlstream:stop(StreamRef),
-    exmpp_xml:stop_parser(exmpp_xmlstream:get_parser(StreamRef)),
     reply(Reason, From),
     ok.
 
@@ -523,51 +521,24 @@ setup(_UnknownMessage, _From, State) ->
 %% TODO: Defines should probably be refactored with the other parts of
 %% exmpp.
 
-%% Standard opening stream:
--define(stream,
-	#xmlstreamstart{element=#xmlel{
-			  ns='http://etherx.jabber.org/streams',
-			  name=stream}}).
-%% Standard stream error:
--define(streamerror,
-	#xmlstreamelement{element=#xmlel{
-			    ns='http://etherx.jabber.org/streams',
-			    name=error,
-			    children=[#xmlel{name=Reason} | _MoreReasons]}}).
-
-%% Special stream error: disconnected
--define(streamdisconnected,
-        #xmlstreamelement{element=#xmlel{
-			    ns='http://etherx.jabber.org/streams',
-			    name=error,
-			    children=[#xmlcdata{cdata=  <<"Disconnected">> }]}}).
 
 %% Standard end of stream:
 -define(streamend,
-        #xmlstreamend{endtag=#xmlendtag{
-			ns='http://etherx.jabber.org/streams',
-			name=stream}}).
+	#xmlstreamend{endtag=_}).
 
 %% Extract IQElement from IQ
 -define(iq,
 	#xmlstreamelement{
-	  element=#xmlel{name=iq, attrs=Attrs}=IQElement}).
--define(iq_no_attrs,
-	#xmlstreamelement{
-	  element=#xmlel{name=iq}=IQElement}).
+	  element={xmlel, <<"iq">>, _, _}=IQElement}).
 
 %% Used to match a presence packet in stream.
 -define(presence,
 	#xmlstreamelement{
-	  element=#xmlel{name=presence, attrs=Attrs}=PresenceElement}).
+	  element={xmlel, <<"presence">>,_,_}=PresenceElement}).
 %% Used to match a message packet in stream
 -define(message,
 	#xmlstreamelement{
-	  element=#xmlel{name=message, attrs=Attrs}=MessageElement}).
-%% To match an XMLNSElement of type Iq:
--define(iqattrs, #xmlel{name=iq, attrs=Attrs}=IQElement).
-%% To match either presence or message
--define(elementattrs, #xmlel{attrs=Attrs}=Element).
+	  element={xmlel, <<"message">>, _, _}=MessageElement}).
 
 
 %% We cannot receive API call in this state
@@ -577,23 +548,26 @@ wait_for_stream(_Event, _From, State) ->
 %% parsing library.
 
 %% stream already authenticated by sasl
-wait_for_stream(?stream, State = #state{authenticated = true}) ->
+wait_for_stream(#xmlstreamstart{element={xmlel, Stream, _, _}}, State = #state{authenticated = true}) 
+	when Stream == <<"stream">> ; Stream == <<"stream:stream">> ->
     {next_state, wait_for_stream_features, State};
 
-wait_for_stream(Start = ?stream, State = #state{from_pid = From}) ->
+wait_for_stream(#xmlstreamstart{element={xmlel, Stream, _, _}} = Start, State = #state{from_pid = From})
+	when Stream == <<"stream">> ; Stream == <<"stream:stream">> ->
     %% Get StreamID
-    StreamId = exmpp_xml:get_attribute_as_list(Start#xmlstreamstart.element, <<"id">>, ""),
+    StreamId = exmpp_stream:get_id(Start#xmlstreamstart.element),
     
-    case exmpp_xml:get_attribute_as_list(Start#xmlstreamstart.element, <<"version">>, "") of
-            "" ->
+    case exmpp_stream:get_version(Start#xmlstreamstart.element) of
+	    {0,0} ->
                 gen_fsm:reply(From, {ok,StreamId}),
                 {next_state, stream_opened, State#state{from_pid=undefined,
 					    stream_id = StreamId, stream_version = {0,0}}};
-            "1.0" ->
+	    {1,0} ->
                 {next_state, wait_for_stream_features, State#state{stream_id =  StreamId}}
     end.
 
-wait_for_stream_features(#xmlstreamelement{element=#xmlel{name='features'} = F}, State) ->
+wait_for_stream_features(#xmlstreamelement{element={xmlel, Features, _, _} = F}, State) 
+	when Features == <<"features">> ; Features == <<"stream:features">> ->
     #state{connection_ref = ConnRef, 
            connection = Module,
            from_pid = From, 
@@ -636,7 +610,7 @@ wait_for_stream_features(X, State) ->
     {next_state, wait_for_stream_features, State}.
    
 
-wait_for_compression_result(#xmlstreamelement{element=#xmlel{name='compressed'}}, State) ->
+wait_for_compression_result(#xmlstreamelement{element={xmlel, <<"compressed">>, _, _}}, State) ->
     #state{connection = Module,
            receiver_ref = ReceiverRef,
            auth_info = Auth} = State,
@@ -650,7 +624,7 @@ wait_for_compression_result(#xmlstreamelement{element=#xmlel{name='compressed'}}
             {stop, 'could-not-compress-stream', State}
     end.
 
-wait_for_starttls_result(#xmlstreamelement{element=#xmlel{name='proceed'}}, State) ->
+wait_for_starttls_result(#xmlstreamelement{element={xmlel, <<"proceed">>, _ , _}}, State) ->
     #state{connection = Module,
            receiver_ref = ReceiverRef,
            auth_info = Auth} = State,
@@ -665,10 +639,10 @@ wait_for_starttls_result(#xmlstreamelement{element=#xmlel{name='proceed'}}, Stat
     end.
 
 
-wait_for_bind_response(#xmlstreamelement{element = #xmlel{name ='iq'} = IQ}, State) ->
+wait_for_bind_response(#xmlstreamelement{element = {xmlel, <<"iq">>, _, _} = IQ}, State) ->
     #state{connection = Module, connection_ref = ConnRef} = State,
     case exmpp_iq:get_type(IQ) of
-        result ->
+        <<"result">> ->
             JID = exmpp_client_binding:bounded_jid(IQ),
             %%TODO what does this exactly do?
             NewAuthMethod = {basic, sasl_anonymous, JID, undefined}, %%TODO: is this neccesary?
@@ -678,10 +652,10 @@ wait_for_bind_response(#xmlstreamelement{element = #xmlel{name ='iq'} = IQ}, Sta
             {stop, {bind, IQ}, State}
     end.
 
-wait_for_session_response(#xmlstreamelement{element = #xmlel{name='iq'} = IQ}, State) ->
+wait_for_session_response(#xmlstreamelement{element = {xmlel, <<"iq">>, _, _} = IQ}, State) ->
     #state{from_pid = From} = State,
     case exmpp_iq:get_type(IQ) of
-        result ->
+        <<"result">> ->
             gen_fsm:reply(From, {ok, get_jid(State#state.auth_info)}),  %%after successful login, bind and session
             {next_state, logged_in, State#state{from_pid = undefined}, State#state.whitespace_ping};
         _ ->
@@ -726,7 +700,7 @@ stream_opened({login, basic, Method}, From, State=#state{connection = Module,
     {next_state, wait_for_legacy_auth_method, State#state{from_pid=From, auth_method=Method}};
 
 %% Login using SASL mechanism
-stream_opened({login, sasl, "PLAIN"}, From, State=#state{connection = Module,
+stream_opened({login, sasl, <<"PLAIN">>}, From, State=#state{connection = Module,
 					  connection_ref = ConnRef,
 					  auth_info=Auth}) ->
  %     Domain = get_domain(Auth),
@@ -735,14 +709,14 @@ stream_opened({login, sasl, "PLAIN"}, From, State=#state{connection = Module,
  %     InitialResp = iolist_to_binary([Domain, 0, Username, 0, Password]),
     InitialResp = iolist_to_binary([0, Username, 0, Password]),
     Module:send(ConnRef,
- 		exmpp_client_sasl:selected_mechanism("PLAIN", InitialResp)),
+ 		exmpp_client_sasl:selected_mechanism(<<"PLAIN">>, InitialResp)),
     {next_state, wait_for_sasl_response, State#state{from_pid=From}};
-stream_opened({login, sasl, "ANONYMOUS"}, From, State=#state{connection = Module,
+stream_opened({login, sasl, <<"ANONYMOUS">>}, From, State=#state{connection = Module,
 					  connection_ref = ConnRef
 					  }) ->
-    Module:send(ConnRef, exmpp_client_sasl:selected_mechanism("ANONYMOUS")),
+    Module:send(ConnRef, exmpp_client_sasl:selected_mechanism(<<"ANONYMOUS">>)),
     {next_state, wait_for_sasl_response, State#state{from_pid=From}};
-stream_opened({login, sasl, "DIGEST-MD5"}, From, State=#state{connection = Module,
+stream_opened({login, sasl, <<"DIGEST-MD5">>}, From, State=#state{connection = Module,
 					  connection_ref = ConnRef,
                                           auth_info = Auth,
                                           host = Host
@@ -751,7 +725,7 @@ stream_opened({login, sasl, "DIGEST-MD5"}, From, State=#state{connection = Modul
     Domain = get_domain(Auth),
     Password = get_password(Auth),
     {ok, SASL_State} = exmpp_sasl_digest:mech_client_new(Username, Host, Domain, Password),
-    Module:send(ConnRef, exmpp_client_sasl:selected_mechanism("DIGEST-MD5")),
+    Module:send(ConnRef, exmpp_client_sasl:selected_mechanism(<<"DIGEST-MD5">>)),
     {next_state, wait_for_sasl_response, State#state{from_pid=From, sasl_state=SASL_State }};
 
 stream_opened({register_account, Password}, From,
@@ -796,16 +770,17 @@ stream_opened({send_packet, Packet}, _From,
 %% Process incoming
 %% Dispatch incoming messages
 stream_opened(?message, State = #state{client_pid = From}) ->
-    process_message(From, Attrs, MessageElement),
+    process_message(From, MessageElement),
     {next_state, stream_opened, State};
 %% Dispach IQs from server
 stream_opened(?iq, State) ->
-    process_iq(State#state.client_pid, Attrs, IQElement),
+    process_iq(State#state.client_pid, IQElement),
     {next_state, stream_opened, State};
 %% Handle stream error: We keep the process alive to be able
 %%                      return errors
-stream_opened(?streamerror, State) ->
-    {next_state, stream_error, State#state{stream_error=Reason}};
+stream_opened(#xmlstreamelement{element={xmlel, Error, _, _} = El}, State)
+	when Error == <<"error">> ; Error == <<"stream:error">> ->
+    {next_state, stream_error, State#state{stream_error=exmpp_stream:get_condition(El)}};
 %% Handle end of stream
 stream_opened(?streamend, State) ->
     {next_state, stream_closed, State};
@@ -816,16 +791,16 @@ stream_opened(#xmlstreamelement{element=Packet}, State) ->
     {next_state, stream_opened, State}.
 
 %% TODO: handle errors
-wait_for_sasl_response(#xmlstreamelement{element=#xmlel{name='success'}}, State) ->
+wait_for_sasl_response(#xmlstreamelement{element={xmlel, <<"success">>, _, _}}, State) ->
     #state{connection_ref = ConnRef, receiver_ref = ReceiverRef, connection = Module, auth_info = Auth} = State,
     Domain = get_domain(Auth),
     Module:reset_parser(ReceiverRef),
     ok = Module:send(ConnRef, exmpp_stream:opening(Domain, ?NS_JABBER_CLIENT, {1,0})),
     {next_state, wait_for_stream, State#state{authenticated = true}};
 
-wait_for_sasl_response(#xmlstreamelement{element=#xmlel{name='challenge'} = Element}, State) ->
+wait_for_sasl_response(#xmlstreamelement{element={xmlel, <<"challenge">>, _, _} = Element}, State) ->
     #state{connection = Module, connection_ref = ConnRef, sasl_state = SASL_State} = State,
-    Challenge = base64:decode_to_string(exmpp_xml:get_cdata(Element)),
+    Challenge = base64:decode_to_string(exml:get_cdata(Element)),
     case exmpp_sasl_digest:mech_step(SASL_State, Challenge) of
          {error, Reason} ->
               {error, Reason};
@@ -851,12 +826,11 @@ stream_closed(_Signal, _From, State) ->
 stream_closed(_Signal, State) ->
     {next_state, stream_closed, State}.
 
-%% Reason comes from streamerror macro
-wait_for_legacy_auth_method(?iq_no_attrs, State = #state{connection_ref = ConnRef,
+wait_for_legacy_auth_method(?iq, State = #state{connection_ref = ConnRef,
                                                          connection = Module,
 							 auth_method = Method,
 							 auth_info = Auth,
-							 stream_id = StreamId}) when is_atom(Method) ->
+							 stream_id = StreamId})  ->
     Username = get_username(Auth),
     Password = get_password(Auth),
     Resource = get_resource(Auth),
@@ -872,13 +846,14 @@ wait_for_legacy_auth_method(?iq_no_attrs, State = #state{connection_ref = ConnRe
 	{error, Reason} ->
 	    {stop, {error, Reason}, State}
     end;
-wait_for_legacy_auth_method(?streamerror, State) ->
-    {stop, {error, Reason}, State}.
+wait_for_legacy_auth_method(#xmlstreamelement{element = {xmlel, Error, _,_} =El}, State) 
+	when Error == <<"error">> ; Error == <<"stream:error">> -> 
+    {stop, {error, exmpp_stream:get_condition(El)}, State}.
 
 %% TODO: We should be able to match on iq type directly on the first
 %% level record
-wait_for_auth_result(?iq_no_attrs, State = #state{from_pid=From, auth_info = Auth}) ->
-    case exmpp_xml:get_attribute_as_binary(IQElement, <<"type">>, undefined) of
+wait_for_auth_result(?iq, State = #state{from_pid=From, auth_info = Auth}) ->
+    case exml:get_attribute(IQElement, <<"type">>, undefined) of
  	<<"result">> ->
             gen_fsm:reply(From, {ok, get_jid(Auth)}),
             {next_state, logged_in, State#state{from_pid=undefined}, State#state.whitespace_ping};
@@ -892,8 +867,8 @@ wait_for_auth_result(?iq_no_attrs, State = #state{from_pid=From, auth_info = Aut
 %% TODO: The API should be flexible to adapt to server
 %% requirements. Check that a client can get the list of fields and
 %% override this simple method of registration.
-wait_for_register_result(?iq_no_attrs, State = #state{from_pid=From}) ->
-    case exmpp_xml:get_attribute_as_binary(IQElement, <<"type">>, undefined) of
+wait_for_register_result(?iq, State = #state{from_pid=From}) ->
+    case exml:get_attribute(IQElement, <<"type">>, undefined) of
  	<<"result">> ->
             gen_fsm:reply(From, ok),
             {next_state, stream_opened, State#state{from_pid=undefined}};
@@ -902,8 +877,9 @@ wait_for_register_result(?iq_no_attrs, State = #state{from_pid=From}) ->
             gen_fsm:reply(From, {register_error, Reason}),
             {next_state, stream_opened, State#state{from_pid=undefined}}
     end;
-wait_for_register_result(?streamerror, State) ->
-    {stop, {error, Reason}, State}.
+wait_for_register_result(#xmlstreamelement{element={xmlel, Error, _, _} = El}, State)
+	when Error == <<"error">> ; Error == <<"stream:error">> ->
+    {stop, {error, exmpp_stream:get_condition(El)}, State}.
 
 
 %% ---
@@ -928,19 +904,21 @@ logged_in(?presence,
 	  State = #state{connection = _Module,
 			 connection_ref = _ConnRef,
 		 	 whitespace_ping = WPT}) ->
-    process_presence(State#state.client_pid, Attrs, PresenceElement),
+    process_presence(State#state.client_pid, PresenceElement),
     {next_state, logged_in, State, WPT};
 %% Dispatch incoming messages
 logged_in(?message, State = #state{connection = _Module,
 				   connection_ref = _ConnRef,
 			   	   whitespace_ping = WPT}) ->
-    process_message(State#state.client_pid, Attrs, MessageElement),
+    process_message(State#state.client_pid, MessageElement),
     {next_state, logged_in, State, WPT};
 %% Dispach IQs from server
 logged_in(?iq, State) ->
-    process_iq(State#state.client_pid, Attrs, IQElement),
+    process_iq(State#state.client_pid, IQElement),
     {next_state, logged_in, State, State#state.whitespace_ping};
-logged_in(?streamerror, State) ->
+logged_in(#xmlstreamelement{element={xmlel, Error, _, _} = El}, State)
+	when Error == <<"error">> ; Error == <<"stream:error">> ->
+    Reason = exmpp_stream:get_condition(El),
     process_stream_error(State#state.client_pid, Reason),
     {next_state, stream_error, State#state{stream_error=Reason}};
 %% Process unexpected packet
@@ -959,9 +937,12 @@ logged_in(_Packet, State) ->
 
 %% Connect to server
 connect(Module, Params, From, State) ->
+
     Domain = get_domain(State#state.auth_info),
+    io:format("Connect/4 ~p\n", [Domain]),
     connect(Module, Params, Domain, From, State).
 connect(Module, Params, Domain, From, #state{client_pid=_ClientPid, stream_version = Version} = State) ->
+    io:format("Connect/5 ~p\n", [Domain]),
     try start_parser() of
 	StreamRef ->
 	    try Module:connect(self(), StreamRef, Params) of
@@ -998,21 +979,20 @@ connect(Module, Params, Domain, From, #state{client_pid=_ClientPid, stream_versi
 
 %% Authentication
 %% digest auth will fail if we do not have streamid
-do_auth(password, ConnRef, Module, Username, Password, Resource, _StreamId) ->
+do_auth(<<"password">>, ConnRef, Module, Username, Password, Resource, _StreamId) ->
     Module:send(ConnRef,
 		exmpp_client_legacy_auth:password_plain(Username, Password,
 							Resource));
-do_auth(digest, ConnRef, Module, Username, Password, Resource, StreamId)
-  when is_list(StreamId) ->
+%% In this case StreamId can be false
+do_auth(<<"digest">>, _ConnRef, _Module, _Username, _Password, _Resource, StreamId)
+  when is_atom(StreamId) ->
+    {auth_error, no_streamid_for_digest_auth};
+do_auth(<<"digest">>, ConnRef, Module, Username, Password, Resource, StreamId) ->
     Module:send(ConnRef,
 		exmpp_client_legacy_auth:password_digest(Username,
 							 Password,
 							 Resource,
-							 StreamId));
-%% In this case StreamId can be false
-do_auth(digest, _ConnRef, _Module, _Username, _Password, _Resource, StreamId)
-  when is_atom(StreamId) ->
-    {auth_error, no_streamid_for_digest_auth}.
+							 StreamId)).
 
 %% Extraction functions
 
@@ -1020,18 +1000,18 @@ do_auth(digest, _ConnRef, _Module, _Username, _Password, _Resource, StreamId)
  % get_domain({basic, _Method, JID, _Password}) when ?IS_JID(JID) ->
  %     exmpp_jid:domain_as_list(JID);
 get_domain({JID, _Password}) when ?IS_JID(JID) ->
-    exmpp_jid:domain_as_list(JID).
+    exmpp_jid:domain(JID).
  % get_username({basic, _Method, JID, _Password}) when ?IS_JID(JID) ->
  %     exmpp_jid:node_as_list(JID);
 get_username({JID, _Password}) when ?IS_JID(JID) ->
-    exmpp_jid:node_as_list(JID).
+    exmpp_jid:node(JID).
  % get_resource({basic, _Method, JID, _Password}) when ?IS_JID(JID) ->
  %     exmpp_jid:resource_as_list(JID);
 get_resource({JID, _Password}) when ?IS_JID(JID) ->
-    exmpp_jid:resource_as_list(JID).
+    exmpp_jid:resource(JID).
  % get_password({basic, _Method, _JID, Password}) when is_list(Password) ->
  %     Password;
-get_password({_JID, Password}) when is_list(Password) ->
+get_password({_JID, Password}) when is_binary(Password) ->
     Password.
  % get_jid({_, _Method, JID, _Password}) when ?IS_JID(JID) ->
  %     JID;
@@ -1044,35 +1024,27 @@ get_jid({JID, _Password}) when ?IS_JID(JID) ->
 %% No compatibility mode: We use all the nice optimisation of exmpp:
 -define(PARSER_OPTIONS,
 	[
-	 {names_as_atom, true},
-	 {check_nss, xmpp},
-	 {check_elems, xmpp},
-	 {emit_endtag, false},
-	 {root_depth, 0},
-	 {max_size, infinity}]).
+	 {root_depth, 0}
+	 ]).
 
 %% Start parser and return stream reference
 start_parser() ->
-    exmpp_xmlstream:start({gen_fsm, self()},
-                          exmpp_xml:start_parser(?PARSER_OPTIONS),
-                          [{xmlstreamstart,new}]).
+    {ok, P} = exml:start_parser(?PARSER_OPTIONS),
+    exmpp_xmlstream:start({gen_fsm, self()}, P).
 
 %% Authentication functions
 check_auth_method(Method, IQElement) ->
+	io:format("check_auth_method ~p ~p \n", [Method, IQElement]),
     %% Check auth method if we have the IQ result
-    case exmpp_xml:get_attribute_as_binary(IQElement, <<"type">>, undefined) of
+    case exml:get_attribute(IQElement, <<"type">>, undefined) of
 	<<"result">> ->
 	    check_auth_method2(Method, IQElement);
 	_ ->
 	    {error, not_auth_method_result}
     end.
 check_auth_method2(Method, IQElement) ->
-    QueryElement = exmpp_xml:get_element(IQElement,
-					 'jabber:iq:auth',
-					 'query'),
-    case exmpp_xml:get_element(QueryElement,
-			       'jabber:iq:auth',
-			       Method) of
+    QueryElement = exml:get_element(IQElement, <<"query">>),
+    case exml:get_element(QueryElement,  Method) of
 	undefined ->
 	    {error, no_supported_auth_method};
 	_ ->
@@ -1080,44 +1052,44 @@ check_auth_method2(Method, IQElement) ->
     end.
 
 %% Packet processing functions
-process_presence(ClientPid, Attrs, Packet) ->
-    Type = get_attribute_value(Attrs, <<"type">>, "available"),
-    Who = case get_attribute_value(Attrs, <<"from">>, undefined) of
+process_presence(ClientPid, Packet) ->
+    Type = exmpp_presence:get_type(Packet),
+    Who = case exml:get_attribute(Packet, <<"from">>, undefined) of
                 undefined -> undefined;
-                "" -> undefined;
+                <<>> -> undefined;
                 Value -> exmpp_jid:to_lower(Value)
           end,
-    Id = get_attribute_value(Attrs, <<"id">>, ""),
-    ClientPid ! #received_packet{packet_type = presence,
+    Id = exml:get_attribute(Packet, <<"id">>, <<>>),
+    ClientPid ! #received_packet{packet_type = <<"presence">>,
                                  type_attr = Type,
                                  from = Who,
                                  id = Id,
                                  raw_packet = Packet}.
 
-process_message(ClientPid, Attrs, Packet) ->
-    Type = get_attribute_value(Attrs, <<"type">>, "normal"),
-    Who = case get_attribute_value(Attrs, <<"from">>, undefined) of
+process_message(ClientPid, Packet) ->
+    Type = exmpp_message:get_type(Packet),
+    Who = case exml:get_attribute(Packet, <<"from">>, undefined) of
                 undefined -> undefined;
-                "" -> undefined;
+                <<>> -> undefined;
                 Value -> exmpp_jid:to_lower(Value)
           end,
-    Id = get_attribute_value(Attrs, <<"id">>, ""),
-    ClientPid ! #received_packet{packet_type = message,
+    Id = exml:get_attribute(Packet, <<"id">>, ""),
+    ClientPid ! #received_packet{packet_type = <<"message">>,
                                  type_attr = Type,
                                  from = Who,
                                  id = Id,
                                  raw_packet = Packet}.
 
-process_iq(ClientPid, Attrs, Packet) ->
-    Type = get_attribute_value(Attrs, <<"type">>, ""),
-    Who = case get_attribute_value(Attrs, <<"from">>, undefined) of
+process_iq(ClientPid, Packet) ->
+    Type = exmpp_iq:get_type(Packet),
+    Who = case exml:get_attribute(Packet, <<"from">>, undefined) of
                 undefined -> undefined;
-                "" -> undefined;
+                <<>> -> undefined;
                 Value -> exmpp_jid:to_lower(Value)
           end,
-    Id = get_attribute_value(Attrs, <<"id">>, ""),
+    Id = exml:get_attribute(Packet, <<"id">>, <<>>),
     NS = exmpp_iq:get_payload_ns(Packet),
-    ClientPid ! #received_packet{packet_type = iq,
+    ClientPid ! #received_packet{packet_type = <<"iq">>,
                                  queryns = NS,
                                  type_attr = Type,
                                  from = Who,
@@ -1131,33 +1103,19 @@ process_stream_error(ClientPid, Reason) ->
 %% Check that the attribute list has defined an ID.
 %% This function uses {@link random:uniform/1}. It's up to the caller to
 %% seed the generator.
-check_id(Attrs) ->
-    case exmpp_xml:get_attribute_from_list_as_binary(Attrs, <<"id">>, <<>>) of
+check_id(Packet) ->
+	case exml:get_attribute(Packet, <<"id">>, <<>>) of
 	<<>> ->
-	    Id = exmpp_utils:random_id("session"),
-	    {exmpp_xml:set_attribute_in_list(Attrs, <<"id">>, Id), Id};
-        Id -> {Attrs, Id}
+	    Id = exmpp_utils:random_id(<<"session">>),
+	    {exml:set_attribute(Packet, <<"id">>, Id), Id};
+        Id -> {Packet, Id}
     end.
 
-%% Try getting a given atribute from a list of xmlattr records
-%% Return default value if attribute is not found
-get_attribute_value(Attrs, Attr, Default) ->
-    exmpp_xml:get_attribute_from_list_as_list(Attrs, Attr, Default).
 
 %% Internal operations
 %% send_packet: actually format and send the packet:
-send_packet(ConnRef, Module, ?iqattrs) ->
-    {Attrs2, Id} = check_id(Attrs),
-    XMLPacket = IQElement#xmlel{attrs=Attrs2},
- %     String = exmpp_xml:document_to_list(XMLPacket),
- %     Module:send(ConnRef, String),
-    Module:send(ConnRef, XMLPacket),
-    Id;
-send_packet(ConnRef, Module, ?elementattrs) ->
-    {Attrs2, Id} = check_id(Attrs),
-    XMLPacket = Element#xmlel{attrs=Attrs2},
- %     String = exmpp_xml:document_to_list(XMLPacket),
- %     Module:send(ConnRef, String),
+send_packet(ConnRef, Module, Packet) ->
+    {XMLPacket, Id} = check_id(Packet), 
     Module:send(ConnRef, XMLPacket),
     Id.
 
