@@ -130,44 +130,44 @@ want_fields(_Stanza) ->
     false.
 
 %% @spec (Password_IQ) -> Credentials
-%%     Password_IQ = exmpp_xml:xmlel()
+%%     Password_IQ = exml:xmlel()
 %%     Credentials = {Username, Password, Resource}
-%%     Username = string()
-%%     Password = {plain, string()} | {digest, string()}
-%%     Resource = string()
+%%     Username = binary()
+%%     Password = {plain, binary()} | {digest, binary()}
+%%     Resource = binary()
 %% @doc Extract credentials from the `Password_IQ'.
 %%
 %% For digest, hexadecimal content is decoded.
 
 get_credentials(Password_IQ) when ?IS_IQ(Password_IQ) ->
     Request = exmpp_iq:get_request(Password_IQ),
-    case Request of
-        #xmlel{ns = ?NS_LEGACY_AUTH, name = 'query', children = Children}
-	when length(Children) == 3 ->
+    Children = exml:get_elements(Request),
+    case length(Children) of
+	3 ->
             get_credentials2(Children, {undefined, undefined, undefined});
         _ ->
             throw({legacy_auth, get_credentials, invalid_iq, Password_IQ})
     end.
 
 get_credentials2(
-  [#xmlel{ns = ?NS_LEGACY_AUTH, name = 'username'} = Field | Rest],
+  [{xmlel, <<"username">>, _, _} = Field | Rest],
   {_Username, Password, Resource}) ->
-    Username = exmpp_xml:get_cdata_as_list(Field),
+    Username = exml:get_cdata(Field),
     get_credentials2(Rest, {Username, Password, Resource});
 get_credentials2(
-  [#xmlel{ns = ?NS_LEGACY_AUTH, name = 'password'} = Field | Rest],
+  [{xmlel,<<"password">>, _, _} = Field | Rest],
   {Username, _Password, Resource}) ->
-    Password = exmpp_xml:get_cdata_as_list(Field),
+    Password = exml:get_cdata(Field),
     get_credentials2(Rest, {Username, {plain, Password}, Resource});
 get_credentials2(
-  [#xmlel{ns = ?NS_LEGACY_AUTH, name = 'digest'} = Field | Rest],
+  [{xmlel, <<"digest">>, _, _} = Field | Rest],
   {Username, _Password, Resource}) ->
-    Password = unhex(exmpp_xml:get_cdata_as_list(Field)),
+    Password = list_to_binary(unhex(binary_to_list(exml:get_cdata(Field)))),
     get_credentials2(Rest, {Username, {digest, Password}, Resource});
 get_credentials2(
-  [#xmlel{ns = ?NS_LEGACY_AUTH, name = 'resource'} = Field | Rest],
+  [{xmlel, <<"resource">>, _, _} = Field | Rest],
   {Username, Password, _Resource}) ->
-    Resource = exmpp_xml:get_cdata_as_list(Field),
+    Resource = exml:get_cdata(Field),
     get_credentials2(Rest, {Username, Password, Resource});
 get_credentials2([Field | _Rest], _Credentials) ->
     throw({legacy_auth, get_credentials, invalid_field, Field});

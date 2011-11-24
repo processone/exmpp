@@ -52,4 +52,21 @@ want_fields_test() ->
 	?assert(exmpp_server_legacy_auth:want_fields(Req)),
 	ok.
 
+get_credentials_test() ->
+	S = <<"<iq type='set' id='auth2'> <query xmlns='jabber:iq:auth'>
+    	<username>bill</username> <password>Calli0pe</password>
+    	<resource>globe</resource> </query> </iq>">>,
+    	{ok, [Req]} = exml:parse_document(S),
+	?assertMatch({<<"bill">>, {plain, <<"Calli0pe">>}, <<"globe">>}, exmpp_server_legacy_auth:get_credentials(Req)),
+	S2 = <<"<iq type='set' id='auth2'>
+		  <query xmlns='jabber:iq:auth'>
+			    <username>bill</username>
+			    <digest>48fc78be9ec8f86d8ce1c39c320c97c21d62334d</digest>
+			    <resource>globe</resource>
+		  </query>
+		</iq>">>,
+    	{ok, [Req2]} = exml:parse_document(S2),
+	?assertMatch({<<"bill">>, {digest,_}, <<"globe">>}, exmpp_server_legacy_auth:get_credentials(Req2)),
+	%%TODO: check digest result
+	ok.
 
