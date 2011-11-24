@@ -41,8 +41,8 @@
 %% --------------------------------------------------------------------
 
 %% @spec (Methods) -> Feature
-%%     Methods = [string()]
-%%     Feature = exmpp_xml:xmlel()
+%%     Methods = [binary()]
+%%     Feature = exml:xmlel()
 %% @throws {stream_compression, feature_announcement, invalid_methods_list,
 %%           []} |
 %%         {stream_compression, feature_announcement, invalid_method, Method}
@@ -59,10 +59,7 @@
 %% The result should then be passed to {@link exmpp_stream:features/1}.
 
 feature(Methods) ->
-    #xmlel{ns = ?NS_COMPRESS_FEAT,
-	   name = 'compression',
-	   children = methods_list(Methods)
-	  }.
+	{xmlel, <<"compression">>, [{<<"xmlns">>, ?NS_COMPRESS_FEAT}], methods_list(Methods)}.
 
 methods_list([]) ->
     throw({stream_compression, feature_announcement,
@@ -71,17 +68,7 @@ methods_list(Methods) ->
     methods_list2(Methods, []).
 
 methods_list2([Method | Rest], Children) ->
-    case io_lib:deep_char_list(Method) of
-        true ->
-            Child = #xmlel{ns = ?NS_COMPRESS_FEAT,
-			   name = 'method'
-			  },
-            methods_list2(Rest,
-			  Children ++ [exmpp_xml:set_cdata(Child, Method)]);
-        false ->
-            throw({stream_compression, feature_announcement,
-		   invalid_method, Method})
-    end;
+	methods_list2(Rest, [{xmlel, <<"method">>, [], [{cdata, Method}]}|Children]);
 methods_list2([], Children) ->
     Children.
 
@@ -91,8 +78,8 @@ methods_list2([], Children) ->
 
 standard_conditions() ->
     [
-     {'unsupported-method'},
-     {'setup-failed'}
+     {<<"unsupported-method">>},
+     {<<"setup-failed">>}
     ].
 
 %% @spec (El) -> Method
@@ -100,43 +87,34 @@ standard_conditions() ->
 %%     Method = string()
 %% @doc Extract the method chosen by the initiating entity.
 
-selected_method(#xmlel{ns = ?NS_COMPRESS, name = 'compress'} = El) ->
-    case exmpp_xml:get_element(El, ?NS_COMPRESS, 'method') of
+selected_method({xmlel, <<"compress">>, _, _} = El) ->
+    case exml:get_element(El, <<"method">>) of
         undefined ->
             undefined;
         Sub_El ->
-            exmpp_xml:get_cdata(Sub_El)
+            exml:get_cdata(Sub_El)
     end;
 selected_method(El) ->
     throw({stream_compression, selected_method, unexpected_element, El}).
 
 %% @spec () -> Compressed
-%%     Compressed = exmpp_xml:xmlel()
+%%     Compressed = exml:xmlel()
 %% @doc Prepare a `<compressed/>' element.
 
 compressed() ->
-    #xmlel{
-	    ns = ?NS_COMPRESS,
-	    name = 'compressed'
-	   }.
+	{xmlel, <<"compressed">>, [{<<"xmlns">>, ?NS_COMPRESS}], []}.
 
 %% @spec (Condition) -> Failure
-%%     Condition = atom()
-%%     Failure = exmpp_xml:xmlel()
+%%     Condition = binary()
+%%     Failure = exml:xmlel()
 %% @throws {stream_compression, failure, invalid_condition, Condition}
 %% @doc Prepare a `<failure/>' element.
 
 failure(Condition) ->
     case lists:keysearch(Condition, 1, standard_conditions()) of
         {value, _} ->
-            Condition_El = #xmlel{
-              ns = ?NS_COMPRESS,
-              name = Condition
-	     },
-            #xmlel{ns = ?NS_COMPRESS,
-		   name = failure,
-		   children = [Condition_El]
-		  };
+		{xmlel, <<"failure">>, [{<<"xmlns">>, ?NS_COMPRESS}], 
+			[{xmlel, Condition, [], []}]}; 
         _ ->
             throw({stream_compression, failure, invalid_condition, Condition})
     end.
