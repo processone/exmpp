@@ -49,8 +49,8 @@
 %% --------------------------------------------------------------------
 
 %% @spec (Request_IQ) -> Fields_IQ
-%%     Request_IQ = exmpp_xml:xmlel()
-%%     Fields_IQ = exmpp_xml:xmlel()
+%%     Request_IQ = exml:xmlel()
+%%     Fields_IQ = exml:xmlel()
 %% @doc Make an `<iq>' for advertising fields.
 %%
 %% Both authentication methods are proposed.
@@ -59,56 +59,52 @@ fields(Request_IQ) ->
     fields(Request_IQ, both).
 
 %% @spec (Request_IQ, Auth) -> Fields_IQ
-%%     Request_IQ = exmpp_xml:xmlel()
+%%     Request_IQ = exlm:xmlel()
 %%     Auth = plain | digest | both
-%%     Fields_IQ = exmpp_xml:xmlel()
+%%     Fields_IQ = exlm:xmlel()
 %% @doc Make an `<iq>' for advertising fields.
 
 fields(Request_IQ, Auth) when ?IS_IQ(Request_IQ) ->
-    Path = [ {element, 'query' }, {element, 'username'}, cdata ],
-    Username_Children = case exmpp_xml:get_path(Request_IQ, Path) of
+    Path = [ {element, <<"query">> }, {element, <<"username">>}, cdata ],
+    Username_Children = case exml:get_path(Request_IQ, Path) of
                    <<>> -> [];
-                   Username -> [#xmlcdata{cdata = Username}]
+                   Username -> [{cdata, Username}]
                 end,
-    Username_El = #xmlel{ns = ?NS_LEGACY_AUTH, name = 'username',
-			 children = Username_Children},
-    Password_El = #xmlel{ns = ?NS_LEGACY_AUTH, name = 'password'},
-    Digest_El   = #xmlel{ns = ?NS_LEGACY_AUTH, name = 'digest'},
-    Resource_El = #xmlel{ns = ?NS_LEGACY_AUTH, name = 'resource'},
+    
+    Username_El = {xmlel, <<"username">>, [], Username_Children},
+    Digest_El = {xmlel, <<"digest">>, [], []},
+    Resource_El = {xmlel, <<"resource">>, [], []},
+    Password_El = {xmlel, <<"password">>, [], []},
     Children = case Auth of
 		   plain  -> [Username_El, Password_El, Resource_El];
 		   digest -> [Username_El, Digest_El, Resource_El];
 		   both   -> [Username_El, Password_El, Digest_El, Resource_El]
 	       end,
-    Query = #xmlel{
-      ns = ?NS_LEGACY_AUTH,
-      name = 'query',
-      children = Children
-     },
+    Query = {xmlel, <<"query">>, [{<<"xmlns">>, ?NS_LEGACY_AUTH}], Children},
     exmpp_iq:result(Request_IQ, Query).
 
 %% @spec (Password_IQ) -> Success_IQ
-%%     Password_IQ = exmpp_xml:xmlel()
-%%     Success_IQ = exmpp_xml:xmlel()
+%%     Password_IQ = exml:xmlel()
+%%     Success_IQ = exml:xmlel()
 %% @doc Make an `<iq>' to notify a successfull authentication.
 
 success(Password_IQ) when ?IS_IQ(Password_IQ) ->
     exmpp_iq:result(Password_IQ).
 
 %% @spec (Password_IQ, Condition) -> Failure_IQ
-%%     Password_IQ = exmpp_xml:xmlel()
-%%     Condition = not_authorized | conflict | not_acceptable
-%%     Failure_IQ = exmpp_xml:xmlel()
+%%     Password_IQ = exml:xmlel()
+%%     Condition = <<"not_authorized">> | <<"conflict">> | <<"not_acceptable">>
+%%     Failure_IQ = exml:xmlel()
 %% @doc Make an `<iq>' to notify a successfull authentication.
 
 failure(Password_IQ, Condition) when ?IS_IQ(Password_IQ) ->
     Code = case Condition of
-	       'not-authorized' -> "401";
-	       'conflict'       -> "409";
-	       'not-acceptable' -> "406"
+	       <<"not-authorized">> -> <<"401">>;
+	       <<"conflict">>       -> <<"409">>;
+	       <<"not-acceptable">> -> <<"406">>
 	   end,
-    Error = exmpp_xml:set_attribute(
-	      exmpp_stanza:error(Password_IQ#xmlel.ns, Condition),
+    Error = exml:set_attribute(
+	      exmpp_stanza:error(Condition),
 	      <<"code">>, Code),
     exmpp_iq:error_without_original(Password_IQ, Error).
 
@@ -117,14 +113,14 @@ failure(Password_IQ, Condition) when ?IS_IQ(Password_IQ) ->
 %% --------------------------------------------------------------------
 
 %% @spec (Request_IQ) -> bool()
-%%     Request_IQ = exmpp_xml:xmlel()
+%%     Request_IQ = exml:xmlel()
 %% @doc Tell if the initiating entity asks for the authentication fields.
 
 want_fields(Request_IQ) when ?IS_IQ(Request_IQ) ->
     case exmpp_iq:get_type(Request_IQ) of
-        'get' ->
+        <<"get">> ->
             case exmpp_iq:get_request(Request_IQ) of
-                #xmlel{ns = ?NS_LEGACY_AUTH, name = 'query'} -> true;
+		    {xmlel, <<"query">>, _, _} -> true;
                 _                                            -> false
             end;
         _ ->
