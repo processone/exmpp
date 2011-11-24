@@ -83,8 +83,8 @@ standard_conditions() ->
     ].
 
 %% @spec (El) -> Method
-%%     El = exmpp_xml:xmlel()
-%%     Method = string()
+%%     El = exml:xmlel()
+%%     Method = binary()
 %% @doc Extract the method chosen by the initiating entity.
 
 selected_method({xmlel, <<"compress">>, _, _} = El) ->
