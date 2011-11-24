@@ -156,7 +156,7 @@ result(Request_IQ_Rec) when ?IS_IQ_RECORD(Request_IQ_Rec) ->
 -spec(result/2 :: (exml:xmlel() | #iq{}, exml:xmlel()) -> exml:xmlel() | #iq{}).
 
 result(Request_IQ, Result) when ?IS_IQ(Request_IQ) ->
-    exml:append_chil(result(Request_IQ), Result);
+    exml:append_child(result(Request_IQ), Result);
 result(Request_IQ_Rec, Result) when ?IS_IQ_RECORD(Request_IQ_Rec) ->
     Result_IQ_Rec = result(Request_IQ_Rec),
     Result_IQ_Rec#iq{ns = Result#xmlel.ns, payload = Result}.
