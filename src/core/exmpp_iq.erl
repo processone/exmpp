@@ -159,7 +159,7 @@ result(Request_IQ, Result) when ?IS_IQ(Request_IQ) ->
     exml:append_child(result(Request_IQ), Result);
 result(Request_IQ_Rec, Result) when ?IS_IQ_RECORD(Request_IQ_Rec) ->
     Result_IQ_Rec = result(Request_IQ_Rec),
-    Result_IQ_Rec#iq{ns = Result#xmlel.ns, payload = Result}.
+    Result_IQ_Rec#iq{ns = exml:get_attribute(Result, <<"xmlns">>), payload = Result}.
 
 %% @spec (Request_IQ, Error) -> Response_IQ
 %%     Request_IQ = exml:xmlel() | iq()
@@ -286,7 +286,7 @@ xmlel_to_iq(IQ) when ?IS_IQ(IQ) ->
 %% @spec (IQ_Rec) -> IQ
 %%     IQ_Rec = iq()
 %%     IQ = exml:xmlel()
-%% @doc Convert an IQ stanza from its #iq form to its #xmlel form.
+%% @doc Convert an IQ stanza from its #iq form to its exml:xmlel() form.
 
 -spec(iq_to_xmlel/1 :: (#iq{}) -> exml:xmlel()).
 
@@ -298,7 +298,7 @@ iq_to_xmlel(IQ_Rec) when ?IS_IQ_RECORD(IQ_Rec) ->
 %%     Sender =  binary() 
 %%     Recipient = binary()
 %%     IQ = exml:xmlel()
-%% @doc Convert an IQ stanza from its #iq form to its #xmlel form and
+%% @doc Convert an IQ stanza from its #iq form to its exml:xmlel() form and
 %% set the sender and recipient at the same time.
 
 -spec(iq_to_xmlel/3 ::

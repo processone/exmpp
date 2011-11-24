@@ -36,7 +36,14 @@ result_test() ->
 	?assertEqual(<<"result">>, exml:get_attribute(R, <<"type">>)),
 	?assertEqual(From, exml:get_attribute(R, <<"to">>)),
 	?assertEqual(To, exml:get_attribute(R, <<"from">>)),
+
+	IQR = exmpp_iq:result(exmpp_iq:xmlel_to_iq(Q2), {xmlel, <<"result">>, [{<<"xmlns">>, <<"sample">>}], []}),
+	?assertEqual({xmlel, <<"result">>, [{<<"xmlns">>, <<"sample">>}], []}, IQR#iq.payload),
+	?assertEqual(<<"result">>, exmpp_iq:get_type(IQR)),
+	?assertEqual(<<"sample">>, exmpp_iq:get_payload_ns(IQR)),
+	?assertEqual(<<"sample">>, IQR#iq.ns),
 	ok.
+
 
 error2_test() ->
 	From = <<"from.com">>,
