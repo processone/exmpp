@@ -76,9 +76,7 @@
 -define(NS_OFFLINE_b,                <<"http://jabber.org/protocol/offline">>).
 
 % Defined by XEP-0016: Privacy Lists.
--define(NS_PRIVACY,                  'jabber:iq:privacy').
--define(NS_PRIVACY_s,                "jabber:iq:privacy").
--define(NS_PRIVACY_b,                <<"jabber:iq:privacy">>).
+-define(NS_PRIVACY,                  <<"jabber:iq:privacy">>).
 
 % Defined by XEP-0020: Feature Negotiation.
 -define(NS_FEATURE_NEG,              'http://jabber.org/protocol/feature-neg').
