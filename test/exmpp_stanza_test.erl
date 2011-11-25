@@ -48,3 +48,19 @@ type_test() ->
 	?assertEqual(<<"set">>, exmpp_stanza:get_type(exmpp_stanza:set_type(M,<<"set">>))),
 	?assertEqual(<<"get">>, exmpp_stanza:get_type(exmpp_iq:xmlel_to_iq(M))),
 	ok.
+
+to_iolist_test() ->
+	M = {xmlel, <<"iq">>, [{<<"id">>, <<"some">>}, {<<"type">>, <<"get">>}], 
+		[{xmlel, <<"query">>, [{<<"xmlns">>, <<"http://jabber.org/protocol/disco#info">>}], []}]},
+	S = iolist_to_binary(exmpp_stanza:to_iolist(M)),
+	{ok, [M2]} = exml:parse_document(S),
+	?assertEqual(<<"some">>, exmpp_stanza:get_id(M2)),
+	?assertEqual(<<"http://jabber.org/protocol/disco#info">>, 
+		exml:get_path(M2, [{element, <<"query">>}, {attribute, <<"xmlns">>}])),
+	S2 = iolist_to_binary(exmpp_stanza:to_iolist(exmpp_iq:xmlel_to_iq(M))),
+	{ok, [M3]} = exml:parse_document(S2),
+	?assertEqual(<<"some">>, exmpp_stanza:get_id(M3)),
+	?assertEqual(<<"http://jabber.org/protocol/disco#info">>, 
+		exml:get_path(M3, [{element, <<"query">>}, {attribute, <<"xmlns">>}])),
+	ok.
+

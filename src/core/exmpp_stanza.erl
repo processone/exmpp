@@ -70,14 +70,6 @@
 
 %% Serialization wrappers.
 -export([
-	 to_list/2,
-	 to_list/3,
-	 to_list/1,
-	 to_binary/2,
-	 to_binary/3,
-	 to_binary/1,
-	 to_iolist/2,
-	 to_iolist/3,
 	 to_iolist/1
 	]).
 
@@ -607,173 +599,17 @@ get_text_in_error(Error) ->
 %% Serialization wrappers.
 %% --------------------------------------------------------------------
 
-%% @spec (El, Default_NS) -> XML_Text
-%%     El = exmpp_xml:xmlel() | exmpp_iq:iq() | list()
-%%     Default_NS = NS | Equivalent_NSs
-%%     NS = atom() | string()
-%%     Equivalent_NSs = [NS]
-%%     XML_Text = string()
-%% @doc Serialize a stanza using the given default namespace.
-%%
-%% The XMPP namespace `http://etherx.jabber.org/streams' and the
-%% Server Dialback `jabber:server:dialback' are included as a prefixed
-%% namespace, with the `stream' prefix.
-
--spec(to_list/2 ::
-	(exml:xmlel() | #iq{} | #xmlendtag{}, xmldefaultns()) -> string()).
-
-to_list(El, Default_NS) ->
-    to_list(El, Default_NS,
-      [{?NS_XMPP, ?NS_XMPP_pfx}, {?NS_DIALBACK, ?NS_DIALBACK_pfx}]). %%TODO
-
-%% @spec (El, Default_NS, Prefix) -> XML_Text
-%%     El = exmpp_xml:xmlel() | exmpp_iq:iq() | list()
-%%     Default_NS = [NS]
-%%     Prefixed_NS = [{NS, Prefix}]
-%%     NS = atom() | string()
-%%     Prefix = string()
-%%     XML_Text = string()
-%% @doc Serialize a stanza using the given namespaces.
-%%
-%% To understand `Default_NS', see {@link exmpp_xml:xmlel_to_xmlelement/3}.
-
--spec(to_list/3 ::
-  (#xmlel{} | #iq{} | #xmlendtag{}, xmldefaultns(), xmlprefixednss()) -> string()).
-
-to_list(#iq{} = El, Default_NS, Prefixed_NS) ->
-    to_list(exmpp_iq:iq_to_xmlel(El), Default_NS, Prefixed_NS);
-to_list(El, Default_NS, Prefixed_NS) ->
-    exmpp_xml:node_to_list(El, [Default_NS], Prefixed_NS).
 
 %% @spec (El) -> XML_Text
-%%     El = exmpp_xml:xmlel() | exmpp_iq:iq() | list()
-%%     XML_Text = string()
-%% @doc Serialize a stanza using common XMPP default namespaces.
-%%
-%% This function calls {@link to_list/2} with `Default_NS' set to
-%% `[?NS_JABBER_CLIENT, ?NS_JABBER_SERVER, ?NS_COMPONENT_ACCEPT,
-%% ?NS_COMPONENT_CONNECT]'.
-
--spec(to_list/1 :: (#xmlel{} | #iq{} | #xmlendtag{}) -> string()).
-
-to_list(El) ->
-    to_list(El, [
-        ?NS_JABBER_CLIENT,
-        ?NS_JABBER_SERVER,
-        ?NS_COMPONENT_ACCEPT,
-        ?NS_COMPONENT_CONNECT
-      ]).
-
-%% @spec (El, Default_NS) -> XML_Text
-%%     El = exmpp_xml:xmlel() | exmpp_iq:iq() | list()
-%%     Default_NS = NS | Equivalent_NSs
-%%     NS = atom() | string()
-%%     Equivalent_NSs = [NS]
-%%     XML_Text = binary()
-%% @doc Serialize a stanza using the given default namespace.
-%%
-%% The XMPP namespace `http://etherx.jabber.org/streams' and the
-%% Server Dialback `jabber:server:dialback' are included as a prefixed
-%% namespace, with the `stream' prefix.
-
--spec(to_binary/2 ::
-  (#xmlel{} | #iq{}| #xmlendtag{}, xmldefaultns()) -> binary()).
-
-to_binary(El, Default_NS) ->
-    to_binary(El, Default_NS,
-      [{?NS_XMPP, ?NS_XMPP_pfx}, {?NS_DIALBACK, ?NS_DIALBACK_pfx}]).
-
-%% @spec (El, Default_NS, Prefix) -> XML_Text
-%%     El = exmpp_xml:xmlel() | exmpp_iq:iq() | list()
-%%     Default_NS = [NS]
-%%     Prefixed_NS = [{NS, Prefix}]
-%%     NS = atom() | string()
-%%     Prefix = string()
-%%     XML_Text = binary()
-%% @doc Serialize a stanza using the given namespaces.
-%%
-%% To understand `Default_NS', see {@link exmpp_xml:xmlel_to_xmlelement/3}.
-
--spec(to_binary/3 ::
-  (#xmlel{} | #iq{}| #xmlendtag{}, xmldefaultns(), xmlprefixednss()) -> binary()).
-
-to_binary(#iq{} = El, Default_NS, Prefixed_NS) ->
-    to_binary(exmpp_iq:iq_to_xmlel(El), Default_NS, Prefixed_NS);
-to_binary(El, Default_NS, Prefixed_NS) ->
-    exmpp_xml:node_to_binary(El, [Default_NS], Prefixed_NS).
-
-%% @spec (El) -> XML_Text
-%%     El = exmpp_xml:xmlel() | exmpp_iq:iq() | list()
-%%     XML_Text = binary()
-%% @doc Serialize a stanza using common XMPP default namespaces.
-%%
-%% This function calls {@link to_binary/2} with `Default_NS' set to
-%% `[?NS_JABBER_CLIENT, ?NS_JABBER_SERVER, ?NS_COMPONENT_ACCEPT,
-%% ?NS_COMPONENT_CONNECT]'.
-
--spec(to_binary/1 :: (#xmlel{} | #iq{}| #xmlendtag{}) -> binary()).
-
-to_binary(El) ->
-    to_binary(El, [
-        ?NS_JABBER_CLIENT,
-        ?NS_JABBER_SERVER,
-        ?NS_COMPONENT_ACCEPT,
-        ?NS_COMPONENT_CONNECT
-      ]).
-
-%% @spec (El, Default_NS) -> XML_Text
-%%     El = exmpp_xml:xmlel() | exmpp_iq:iq() | list()
-%%     Default_NS = NS | Equivalent_NSs
-%%     NS = atom() | string()
-%%     Equivalent_NSs = [NS]
-%%     XML_Text = iolist()
-%% @doc Serialize a stanza using the given default namespace.
-%%
-%% The XMPP namespace `http://etherx.jabber.org/streams' and the
-%% Server Dialback `jabber:server:dialback' are included as a prefixed
-%% namespace, with the `stream' prefix.
-
--spec(to_iolist/2 ::
-  (#xmlel{} | #iq{}| #xmlendtag{}, xmldefaultns()) -> iolist()).
-
-to_iolist(El, Default_NS) ->
-    to_iolist(El, Default_NS,
-      [{?NS_XMPP, ?NS_XMPP_pfx}, {?NS_DIALBACK, ?NS_DIALBACK_pfx}]).
-
-%% @spec (El, Default_NS, Prefix) -> XML_Text
-%%     El = exmpp_xml:xmlel() | exmpp_iq:iq() | list()
-%%     Default_NS = [NS]
-%%     Prefixed_NS = [{NS, Prefix}]
-%%     NS = atom() | string()
-%%     Prefix = string()
-%%     XML_Text = iolist()
-%% @doc Serialize a stanza using the given namespaces.
-%%
-%% To understand `Default_NS', see {@link exmpp_xml:xmlel_to_xmlelement/3}.
-
--spec(to_iolist/3 ::
-  (#xmlel{} | #iq{}| #xmlendtag{}, xmldefaultns(), xmlprefixednss()) -> iolist()).
-
-to_iolist(#iq{} = El, Default_NS, Prefixed_NS) ->
-    to_iolist(exmpp_iq:iq_to_xmlel(El), Default_NS, Prefixed_NS);
-to_iolist(El, Default_NS, Prefixed_NS) ->
-    exmpp_xml:node_to_iolist(El, [Default_NS], Prefixed_NS).
-
-%% @spec (El) -> XML_Text
-%%     El = exmpp_xml:xmlel() | exmpp_iq:iq() | list()
+%%     El = exml:xmlel() | exmpp_iq:iq()  
 %%     XML_Text = iolist()
 %% @doc Serialize a stanza using common XMPP default namespaces.
 %%
-%% This function calls {@link to_iolist/2} with `Default_NS' set to
-%% `[?NS_JABBER_CLIENT, ?NS_JABBER_SERVER, ?NS_COMPONENT_ACCEPT,
-%% ?NS_COMPONENT_CONNECT]'.
 
--spec(to_iolist/1 :: (#xmlel{} | #iq{}| #xmlendtag{}) -> iolist()).
+-spec(to_iolist/1 :: (exml:xmlel() | #iq{}) -> iolist()).
 
-to_iolist(El) ->
-    to_iolist(El, [
-        ?NS_JABBER_CLIENT,
-        ?NS_JABBER_SERVER,
-        ?NS_COMPONENT_ACCEPT,
-        ?NS_COMPONENT_CONNECT
-      ]).
+to_iolist(#iq{} = IQ) ->
+	to_iolist(exmpp_iq:iq_to_xmlel(IQ));
+to_iolist({xmlel, _, _, _} =  El) ->
+	exml:document_to_iolist(El).
+
