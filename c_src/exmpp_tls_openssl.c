@@ -162,9 +162,9 @@ exmpp_tls_openssl_stop(ErlDrvData drv_data)
 	driver_free(edd);
 }
 
-static int
+static ErlDrvSSizeT
 exmpp_tls_openssl_control(ErlDrvData drv_data, unsigned int command,
-    char *buf, int len, char **rbuf, int rlen)
+    char *buf, ErlDrvSizeT len, char **rbuf, ErlDrvSizeT rlen)
 {
 	struct exmpp_tls_openssl_data *edd;
 	int ret, index, arity, type, type_size, flag;

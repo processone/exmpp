@@ -25,6 +25,16 @@
 #include <erl_driver.h>
 
 /*
+ * R15B changed several driver callbacks to use ErlDrvSizeT and
+ * ErlDrvSSizeT typedefs instead of int.
+ * This provides missing typedefs on older OTP versions.
+ */
+#if ERL_DRV_EXTENDED_MAJOR_VERSION < 2
+typedef int ErlDrvSizeT;
+typedef int ErlDrvSSizeT;
+#endif
+
+/*
  * This macro is used to stringify the driver name in the driver's
  * ErlDrvEntry. One use it like this:
  *     static ErlDrvEntry driver_entry = {
