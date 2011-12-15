@@ -111,9 +111,9 @@ static int	compose(int ch1, int ch2);
  * Erlang port driver callbacks.
  * ------------------------------------------------------------------- */
 
-static int
+static ErlDrvSSizeT
 exmpp_stringprep_control(ErlDrvData drv_data, unsigned int command,
-    char *buf, int len, char **rbuf, int rlen)
+    char *buf, ErlDrvSizeT len, char **rbuf, ErlDrvSizeT rlen)
 {
 	int i, j, pos;
 	unsigned char c;
