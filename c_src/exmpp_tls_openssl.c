@@ -21,6 +21,10 @@
 
 #include "exmpp_tls.h"
 
+#if (defined(__MACH__) && defined(__APPLE__))
+#  pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
 #define	DRIVER_NAME	exmpp_tls_openssl
 #define CIPHERS         "DEFAULT:!EXPORT:!LOW:!SSLv2"
 
