@@ -539,26 +539,26 @@
 
 % Defined by XEP-0078: Non-SASL Authentication.
 -define(NS_LEGACY_AUTH,              'jabber:iq:auth').
--define(NS_LEGACY_AUTH_FEAT,         'http://jabber.org/features/iq-aut').
+-define(NS_LEGACY_AUTH_FEAT,         'http://jabber.org/features/iq-auth').
 
 -define(NS_LEGACY_AUTH_s,            "jabber:iq:auth").
--define(NS_LEGACY_AUTH_FEAT_s,       "http://jabber.org/features/iq-aut").
+-define(NS_LEGACY_AUTH_FEAT_s,       "http://jabber.org/features/iq-auth").
 
 -define(NS_LEGACY_AUTH_b,            <<"jabber:iq:auth">>).
--define(NS_LEGACY_AUTH_FEAT_b,       <<"http://jabber.org/features/iq-aut">>).
+-define(NS_LEGACY_AUTH_FEAT_b,       <<"http://jabber.org/features/iq-auth">>).
 
 
 % Defined by XEP-0079: Advanced Message Processing.
 -define(NS_AMP,                      'http://jabber.org/protocol/amp').
--define(NS_AMP_ERRORS,               'http://jabber.org/protocol/amp#error').
+-define(NS_AMP_ERRORS,               'http://jabber.org/protocol/amp#errors').
 -define(NS_AMP_FEAT,                 'http://jabber.org/features/amp').
 
 -define(NS_AMP_s,                    "http://jabber.org/protocol/amp").
--define(NS_AMP_ERRORS_s,             "http://jabber.org/protocol/amp#error").
+-define(NS_AMP_ERRORS_s,             "http://jabber.org/protocol/amp#errors").
 -define(NS_AMP_FEAT_s,               "http://jabber.org/features/amp").
 
 -define(NS_AMP_b,                    <<"http://jabber.org/protocol/amp">>).
--define(NS_AMP_ERRORS_b,             <<"http://jabber.org/protocol/amp#error">>).
+-define(NS_AMP_ERRORS_b,             <<"http://jabber.org/protocol/amp#errors">>).
 -define(NS_AMP_FEAT_b,               <<"http://jabber.org/features/amp">>).
 
 % Defined by XEP-0080: User Location.
@@ -780,14 +780,14 @@
 -define(NS_JINGLE_ERRORS_b,          <<"urn:xmpp:tmp:jingle:errors">>).
 
 % Defined by XEP-0167: Jingle RTP Sessions.
--define(NS_JINGLE_RPT,               'urn:xmpp:tmp:jingle:apps:rtp').
--define(NS_JINGLE_RPT_INFO,          'urn:xmpp:tmp:jingle:apps:rtp:info').
+-define(NS_JINGLE_RTP,               'urn:xmpp:tmp:jingle:apps:rtp').
+-define(NS_JINGLE_RTP_INFO,          'urn:xmpp:tmp:jingle:apps:rtp:info').
 
--define(NS_JINGLE_RPT_s,             "urn:xmpp:tmp:jingle:apps:rtp").
--define(NS_JINGLE_RPT_INFO_s,        "urn:xmpp:tmp:jingle:apps:rtp:info").
+-define(NS_JINGLE_RTP_s,             "urn:xmpp:tmp:jingle:apps:rtp").
+-define(NS_JINGLE_RTP_INFO_s,        "urn:xmpp:tmp:jingle:apps:rtp:info").
 
--define(NS_JINGLE_RPT_b,             <<"urn:xmpp:tmp:jingle:apps:rtp">>).
--define(NS_JINGLE_RPT_INFO_b,        <<"urn:xmpp:tmp:jingle:apps:rtp:info">>).
+-define(NS_JINGLE_RTP_b,             <<"urn:xmpp:tmp:jingle:apps:rtp">>).
+-define(NS_JINGLE_RTP_INFO_b,        <<"urn:xmpp:tmp:jingle:apps:rtp:info">>).
 
 % Defined by XEP-0168: Resource Application Priority.
 -define(NS_RAP,
