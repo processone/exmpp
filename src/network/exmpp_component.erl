@@ -254,7 +254,7 @@ wait_for_stream(Start = #xmlstreamstart{element={xmlel, Stream, _, _}}, State = 
 						from_pid = From}) when Stream == <<"stream">> ; Stream == <<"stream:stream">> ->
 
     %% Get StreamID
-    StreamId = exml:get_attribute(Start#xmlstreamstart.element, <<"id">>, <<>>),
+    StreamId = exxml:get_attribute(Start#xmlstreamstart.element, <<"id">>, <<>>),
     gen_fsm:reply(From, StreamId),
     {next_state, stream_opened, State#state{from_pid=undefined,
 					    stream_id = StreamId}}.
@@ -426,7 +426,7 @@ connect(Module, Params, Domain, From, #state{client_pid=_ClientPid} = State) ->
 
 %% Start parser and return stream reference
 start_parser() ->
-    {ok, P} = exml:start_parser(?PARSER_OPTIONS),
+    {ok, P} = exxml:start_parser(?PARSER_OPTIONS),
     exmpp_xmlstream:start({gen_fsm, self()},
                           P).
 
@@ -453,8 +453,8 @@ process_iq(ClientPid, Packet) ->
 
 do_process_presence(ClientPid, Packet) ->
     Type = exmpp_presence:get_type(Packet),
-    Who = exmpp_jid:to_lower(exml:get_attribute(Packet, <<"from">>, <<>>)),
-    Id = exml:get_attribute(Packet, <<"id">>, <<>>),
+    Who = exmpp_jid:to_lower(exxml:get_attribute(Packet, <<"from">>, <<>>)),
+    Id = exxml:get_attribute(Packet, <<"id">>, <<>>),
     ClientPid ! #received_packet{packet_type = <<"presence">>,
                                  type_attr = Type,
                                  from = Who,
@@ -463,8 +463,8 @@ do_process_presence(ClientPid, Packet) ->
 
 do_process_message(ClientPid, Packet) ->
     Type = exmpp_message:get_type(Packet),
-    Who = exmpp_jid:to_lower(exml:get_attribute(Packet, <<"from">>, <<>>)),
-    Id = exml:get_attribute(Packet, <<"id">>, <<>>),
+    Who = exmpp_jid:to_lower(exxml:get_attribute(Packet, <<"from">>, <<>>)),
+    Id = exxml:get_attribute(Packet, <<"id">>, <<>>),
     ClientPid ! #received_packet{packet_type = <<"message">>,
                                  type_attr = Type,
                                  from = Who,
@@ -473,8 +473,8 @@ do_process_message(ClientPid, Packet) ->
 
 do_process_iq(ClientPid, Packet) ->
     Type = exmpp_iq:get_type(Packet),
-    Who = exmpp_jid:to_lower(exml:get_attribute(Packet, <<"from">>, <<>>)),
-    Id = exml:get_attribute(Packet, <<"id">>, <<>>),
+    Who = exmpp_jid:to_lower(exxml:get_attribute(Packet, <<"from">>, <<>>)),
+    Id = exxml:get_attribute(Packet, <<"id">>, <<>>),
     NS = exmpp_iq:get_payload_ns(Packet),
     ClientPid ! #received_packet{packet_type = <<"iq">>,
                                  type_attr = Type,
@@ -489,10 +489,10 @@ do_process_iq(ClientPid, Packet) ->
 %% This function uses {@link random:uniform/1}. It's up to the caller to
 %% seed the generator.
 check_id(Packet) ->
-    case exml:get_attribute(Packet, <<"id">>, <<>>) of
+    case exxml:get_attribute(Packet, <<"id">>, <<>>) of
 	<<>> ->
 	    Id = exmpp_utils:random_id(<<"Component">>),
-	    {exml:set_attribute(Packet, <<"id">>, Id), Id};
+	    {exxml:set_attribute(Packet, <<"id">>, Id), Id};
         Id -> {Packet, Id}
     end.
 

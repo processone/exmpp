@@ -55,7 +55,7 @@ error_test() ->
 	?assertMatch({xmlel, <<"presence">>, _,_} , P),
 	?assertEqual(<<"error">>, exmpp_presence:get_type(P)),
 	?assertEqual(<<"urn:ietf:params:xml:ns:xmpp-stanzas">>, 
-		exml:get_path(P, [{element, <<"error">>}, {element, <<"forbidden">>},{attribute, <<"xmlns">>}])),
+		exxml:get_path(P, [{element, <<"error">>}, {element, <<"forbidden">>},{attribute, <<"xmlns">>}])),
 	ok.
 
 is_presence_test() ->

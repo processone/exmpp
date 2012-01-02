@@ -9,46 +9,46 @@ fields_test() ->
 	S = <<"<iq type='get' to='shakespeare.lit' id='auth1'>
 		  <query xmlns='jabber:iq:auth'/>
 		</iq>">>,
-	{ok, [Req]} = exml:parse_document(S),
+	{ok, [Req]} = exxml:parse_document(S),
 	?assertMatch([{xmlel, <<"username">>, _, _}, {xmlel, <<"password">>, _, _}, {xmlel, <<"resource">>, _, _}],
-		exml:get_elements(exml:get_element(exmpp_server_legacy_auth:fields(Req, plain),<<"query">>))),
+		exxml:get_elements(exxml:get_element(exmpp_server_legacy_auth:fields(Req, plain),<<"query">>))),
 	?assertMatch([{xmlel, <<"username">>, _, _}, {xmlel, <<"digest">>, _, _}, {xmlel, <<"resource">>, _, _}],
-		exml:get_elements(exml:get_element(exmpp_server_legacy_auth:fields(Req, digest),<<"query">>))),
+		exxml:get_elements(exxml:get_element(exmpp_server_legacy_auth:fields(Req, digest),<<"query">>))),
 	?assertMatch([{xmlel, <<"username">>, _, _}, {xmlel, <<"password">>, _, _},{xmlel, <<"digest">>, _, _}, {xmlel, <<"resource">>, _, _}],
-		exml:get_elements(exml:get_element(exmpp_server_legacy_auth:fields(Req, both),<<"query">>))),
+		exxml:get_elements(exxml:get_element(exmpp_server_legacy_auth:fields(Req, both),<<"query">>))),
 	ok.
    
 success_test() ->
 	S = <<"<iq type='set' id='auth2'> <query xmlns='jabber:iq:auth'>
     	<username>bill</username> <password>Calli0pe</password>
     	<resource>globe</resource> </query> </iq>">>,
-    	{ok, [Req]} = exml:parse_document(S),
+    	{ok, [Req]} = exxml:parse_document(S),
 	Sucess = exmpp_server_legacy_auth:success(Req),
 	?assertMatch({xmlel, <<"iq">>, _, []}, Sucess),
-	?assertEqual(<<"result">>, exml:get_attribute(Sucess, <<"type">>)),
-	?assertEqual(<<"auth2">>, exml:get_attribute(Sucess, <<"id">>)),
+	?assertEqual(<<"result">>, exxml:get_attribute(Sucess, <<"type">>)),
+	?assertEqual(<<"auth2">>, exxml:get_attribute(Sucess, <<"id">>)),
 	ok.
 
 failure_test() ->
 	S = <<"<iq type='set' id='auth2'> <query xmlns='jabber:iq:auth'>
     	<username>bill</username> <password>Calli0pe</password>
     	<resource>globe</resource> </query> </iq>">>,
-    	{ok, [Req]} = exml:parse_document(S),
+    	{ok, [Req]} = exxml:parse_document(S),
 	F = exmpp_server_legacy_auth:failure(Req, <<"not-authorized">>),
 	?assertMatch({xmlel, <<"iq">>, _, _}, F),
 	?assertEqual(<<"401">>, 
-		exml:get_path(F,[{element, <<"error">>}, {attribute, <<"code">>}])),
+		exxml:get_path(F,[{element, <<"error">>}, {attribute, <<"code">>}])),
 	?assertEqual(<<"auth">>, 
-		exml:get_path(F,[{element, <<"error">>}, {attribute, <<"type">>}])),
+		exxml:get_path(F,[{element, <<"error">>}, {attribute, <<"type">>}])),
 	?assertEqual(<<"urn:ietf:params:xml:ns:xmpp-stanzas">>, 
-		exml:get_path(F,[{element, <<"error">>}, {element, <<"not-authorized">>}, {attribute, <<"xmlns">>}])),
+		exxml:get_path(F,[{element, <<"error">>}, {element, <<"not-authorized">>}, {attribute, <<"xmlns">>}])),
 	ok.
 
 want_fields_test() ->
 	S = <<"<iq type='get' to='shakespeare.lit' id='auth1'>
 		  <query xmlns='jabber:iq:auth'/>
 		</iq>">>,
-	{ok, [Req]} = exml:parse_document(S),
+	{ok, [Req]} = exxml:parse_document(S),
 	?assert(exmpp_server_legacy_auth:want_fields(Req)),
 	ok.
 
@@ -56,7 +56,7 @@ get_credentials_test() ->
 	S = <<"<iq type='set' id='auth2'> <query xmlns='jabber:iq:auth'>
     	<username>bill</username> <password>Calli0pe</password>
     	<resource>globe</resource> </query> </iq>">>,
-    	{ok, [Req]} = exml:parse_document(S),
+    	{ok, [Req]} = exxml:parse_document(S),
 	?assertMatch({<<"bill">>, {plain, <<"Calli0pe">>}, <<"globe">>}, exmpp_server_legacy_auth:get_credentials(Req)),
 	S2 = <<"<iq type='set' id='auth2'>
 		  <query xmlns='jabber:iq:auth'>
@@ -65,7 +65,7 @@ get_credentials_test() ->
 			    <resource>globe</resource>
 		  </query>
 		</iq>">>,
-    	{ok, [Req2]} = exml:parse_document(S2),
+    	{ok, [Req2]} = exxml:parse_document(S2),
 	?assertMatch({<<"bill">>, {digest,_}, <<"globe">>}, exmpp_server_legacy_auth:get_credentials(Req2)),
 	%%TODO: check digest result
 	ok.

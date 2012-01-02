@@ -38,7 +38,7 @@
 %% --------------------------------------------------------------------
 
 %% @spec () -> Feature
-%%     Feature = exml:xmlel()
+%%     Feature = exxml:xmlel()
 %% @doc Make a feature announcement child.
 %%
 %% The result should then be passed to {@link exmpp_stream:features/1}.
@@ -51,7 +51,7 @@ feature() ->
 %% --------------------------------------------------------------------
 
 %% @spec (IQ) -> Resource | undefined
-%%     IQ = exml:xmlel()
+%%     IQ = exxml:xmlel()
 %%     Resource = binary()
 %% @throws {resource_binding, wished_resource, invalid_bind, IQ}
 %% @doc Return the resource the client wants or `undefined' if he
@@ -62,11 +62,11 @@ wished_resource(IQ) when ?IS_IQ(IQ) ->
         <<"set">> ->
             case exmpp_iq:get_request(IQ) of
 		    {xmlel, <<"bind">>, _, _} = Bind ->
-                    case exml:get_element(Bind, <<"resource">>) of
+                    case exxml:get_element(Bind, <<"resource">>) of
 			undefined ->
 				undefined;
                         Resource ->
-                            exml:get_cdata(Resource)
+                            exxml:get_cdata(Resource)
                     end;
                 _ ->
                     throw({resource_binding, wished_resource,
@@ -79,9 +79,9 @@ wished_resource(Stanza) ->
     throw({resource_binding, wished_resource, invalid_bind, Stanza}).
 
 %% @spec (IQ, Jid) -> Reply
-%%     IQ = exml:xmlel()
+%%     IQ = exxml:xmlel()
 %%     Jid = exmpp_jid:jid()
-%%     Reply = exml:xmlel()
+%%     Reply = exxml:xmlel()
 %% @doc Prepare a reply to `IQ' to inform the client of its final JID.
 
 bind(IQ, Jid) when ?IS_IQ(IQ) ->
@@ -91,9 +91,9 @@ bind(IQ, Jid) when ?IS_IQ(IQ) ->
     exmpp_iq:result(IQ, Bind).
 
 %% @spec (IQ, Condition) -> Error_IQ
-%%     IQ = exml:xmlel()
+%%     IQ = exxml:xmlel()
 %%     Condition = binary()
-%%     Error_IQ = exml:xmlel()
+%%     Error_IQ = exxml:xmlel()
 %% @doc Prepare an error reply to `IQ'.
 
 error(IQ, Condition) when ?IS_IQ(IQ) ->

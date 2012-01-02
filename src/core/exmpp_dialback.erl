@@ -38,7 +38,7 @@
 %%     From =  binary()
 %%     To =  binary()
 %%     Key = binary() 
-%%     Result = exml:xmlel()
+%%     Result = exxml:xmlel()
 %% @doc Prepare a `<db:result/>' element to send the key to the
 %% Receiving Server.
 
@@ -52,7 +52,7 @@ key(From, To, Key) ->
 %%     To = binary()
 %%     ID = binary() | random
 %%     Key = binary() 
-%%     Request = exml:xmlel()
+%%     Request = exxml:xmlel()
 %% @doc Prepare a `<db:verify/>' element to send to the Authoritative
 %% Server.
 
@@ -65,33 +65,33 @@ verify_request(From, To, ID, Key) ->
 
 
 %% @spec (Request, Is_Valid) -> Response
-%%     Request = exml:xmlel()
+%%     Request = exxml:xmlel()
 %%     Is_Valid = boolean()
-%%     Response = exml:xmlel()
+%%     Response = exxml:xmlel()
 %% @doc Prepare a `<db:verify/>' element to answer to the Receiving
 %% Server.
 
 verify_response(Request, Is_Valid) ->
     Response = exmpp_stanza:reply_without_content(Request),
     case Is_Valid of
-        true  -> exml:set_attribute(Response, <<"type">>, <<"valid">>);
-        false -> exml:set_attribute(Response,<<"type">>, <<"invalid">>)
+        true  -> exxml:set_attribute(Response, <<"type">>, <<"valid">>);
+        false -> exxml:set_attribute(Response,<<"type">>, <<"invalid">>)
     end.
 
 %% @spec (Result) -> Response
-%%     Result = exml:xmlel()
-%%     Response = exml:xmlel()
+%%     Result = exxml:xmlel()
+%%     Response = exxml:xmlel()
 %% @doc Prepare a `<db:result/>' element to answer to the Originating
 %% Server.
 
 validate(Result) ->
     Response = exmpp_stanza:reply_without_content(Result),
-    exml:set_attribute(Response,<<"type">>, <<"valid">>).
+    exxml:set_attribute(Response,<<"type">>, <<"valid">>).
 
 %% @spec (From, To) -> Response
 %%     From = binary()
 %%     To =  binary()
-%%     Response = exml:xmlel()
+%%     Response = exxml:xmlel()
 %% @doc Prepare a `<db:result/>' element to answer to the Originating
 %% Server.
 

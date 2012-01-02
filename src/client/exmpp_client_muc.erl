@@ -31,11 +31,11 @@
 -type(ban_item() :: {binary(), outcast | none | binary()} | {binary(), outcast | none | binary(), binary() | string()}).
 
 
--spec kick(Room :: binary(), Nick :: binary()) -> exml:xmlel().
+-spec kick(Room :: binary(), Nick :: binary()) -> exxml:xmlel().
 kick(Room, Nick) ->
     kick(Room, Nick, <<>>).
 
--spec kick(Room :: binary(), Nick :: binary(), Reason :: binary()) -> exml:xmlel().
+-spec kick(Room :: binary(), Nick :: binary(), Reason :: binary()) -> exxml:xmlel().
 kick(Room, Nick, Reason) ->
     exmpp_stanza:set_recipient(
         exmpp_iq:set({xmlel, <<"query">>, [{<<"xmlns">>, ?NS_MUC_ADMIN}],   [
@@ -45,23 +45,23 @@ kick(Room, Nick, Reason) ->
 
 
 
--spec ban(Room :: binary(), JID :: binary()) -> exml:xmlel().
+-spec ban(Room :: binary(), JID :: binary()) -> exxml:xmlel().
 ban(Room, JID) ->
     ban(Room, JID, <<>>).
 
--spec ban(Room :: binary(), JID :: binary(), Reason :: binary()) -> exml:xmlel().
+-spec ban(Room :: binary(), JID :: binary(), Reason :: binary()) -> exxml:xmlel().
 ban(Room, JID, Reason) ->
     update_banlist(Room, [{JID, outcast, Reason}]).
 
 
--spec get_banlist(Room :: binary()) -> exml:xmlel().
+-spec get_banlist(Room :: binary()) -> exxml:xmlel().
 get_banlist(Room) ->
     exmpp_stanza:set_recipient(
 	    exmpp_iq:get({xmlel, <<"query">>, [{<<"xmlns">>, ?NS_MUC_ADMIN}], 
 			    [{xmlel, <<"item">>, [{<<"affiliation">>, <<"outcast">>}], []}]}), Room ).
     
 
--spec update_banlist(Room :: binary(), BanList :: [ban_item()]) -> exml:xmlel().
+-spec update_banlist(Room :: binary(), BanList :: [ban_item()]) -> exxml:xmlel().
 update_banlist(Room, BanList) ->
      exmpp_stanza:set_recipient(
 	     exmpp_iq:set({xmlel, <<"query">>, [{<<"xmlns">>, ?NS_MUC_ADMIN}], 

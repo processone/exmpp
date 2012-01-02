@@ -7,8 +7,8 @@
 
 establish_test() ->
 	R = exmpp_client_session:establish(),
-	?assertEqual(<<"set">>, exml:get_attribute(R, <<"type">>)),
-	?assertEqual(?NS_SESSION, exml:get_path(R, [{element, <<"session">>}, {attribute, <<"xmlns">>}])),
+	?assertEqual(<<"set">>, exxml:get_attribute(R, <<"type">>)),
+	?assertEqual(?NS_SESSION, exxml:get_path(R, [{element, <<"session">>}, {attribute, <<"xmlns">>}])),
 	ok.
 
 

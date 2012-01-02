@@ -42,7 +42,7 @@
 
 %% @spec (Methods) -> Feature
 %%     Methods = [binary()]
-%%     Feature = exml:xmlel()
+%%     Feature = exxml:xmlel()
 %% @throws {stream_compression, feature_announcement, invalid_methods_list,
 %%           []} |
 %%         {stream_compression, feature_announcement, invalid_method, Method}
@@ -83,22 +83,22 @@ standard_conditions() ->
     ].
 
 %% @spec (El) -> Method
-%%     El = exml:xmlel()
+%%     El = exxml:xmlel()
 %%     Method = binary()
 %% @doc Extract the method chosen by the initiating entity.
 
 selected_method({xmlel, <<"compress">>, _, _} = El) ->
-    case exml:get_element(El, <<"method">>) of
+    case exxml:get_element(El, <<"method">>) of
         undefined ->
             undefined;
         Sub_El ->
-            exml:get_cdata(Sub_El)
+            exxml:get_cdata(Sub_El)
     end;
 selected_method(El) ->
     throw({stream_compression, selected_method, unexpected_element, El}).
 
 %% @spec () -> Compressed
-%%     Compressed = exml:xmlel()
+%%     Compressed = exxml:xmlel()
 %% @doc Prepare a `<compressed/>' element.
 
 compressed() ->
@@ -106,7 +106,7 @@ compressed() ->
 
 %% @spec (Condition) -> Failure
 %%     Condition = binary()
-%%     Failure = exml:xmlel()
+%%     Failure = exxml:xmlel()
 %% @throws {stream_compression, failure, invalid_condition, Condition}
 %% @doc Prepare a `<failure/>' element.
 

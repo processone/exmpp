@@ -71,14 +71,14 @@
 %%
 %% The default namespace is `jabber:client'.
 
--spec normal () -> exml:xmlel().
+-spec normal () -> exxml:xmlel().
 
 normal() ->
     exmpp_stanza:set_type(?EMPTY_MESSAGE, <<"normal">>).
 
 %% @spec (Body) -> Message
 %%     Body = binary()
-%%     Message = exml:xmlel()
+%%     Message = exxml:xmlel()
 %% @doc Create a message stanza with a given body.
 %%
 -spec normal (binary() ) -> xmlel().
@@ -89,7 +89,7 @@ normal(Body) ->
 %% @spec (Subject, Body) -> Message
 %%     Subject = binary()
 %%     Body = binary()
-%%     Message = exml:xmlel()
+%%     Message = exxml:xmlel()
 %% @doc Create a message stanza with given subject and body.
 %%
 
@@ -100,7 +100,7 @@ normal(Subject, Body) ->
 
 
 %% @spec () -> Message
-%%     Message = exml:xmlel()
+%%     Message = exxml:xmlel()
 %% @doc Create an empty chat message stanza.
 %%
 %% The default namespace is `jabber:client'.
@@ -112,11 +112,11 @@ chat() ->
 
 %% @spec (Body) -> Message
 %%     Body = binary()
-%%     Message = exml:xmlel()
+%%     Message = exxml:xmlel()
 %% @doc Create a chat message stanza with a given body.
 %%
 
--spec chat (binary() ) -> exml:xmlel().
+-spec chat (binary() ) -> exxml:xmlel().
 
 chat(Body) ->
 	set_body(chat(), Body).
@@ -124,11 +124,11 @@ chat(Body) ->
 %% @spec (Subject, Body) -> Message
 %%     Subject = binary()
 %%     Body =  binary()
-%%     Message = exml:xmlel()
+%%     Message = exxml:xmlel()
 %% @doc Create a chat message stanza with given subject and body.
 %%
 
--spec chat (binary() , binary() ) -> exml:xmlel().
+-spec chat (binary() , binary() ) -> exxml:xmlel().
 
 chat(Subject, Body) ->
 	set_subject(chat(Body), Subject).
@@ -138,18 +138,18 @@ chat(Subject, Body) ->
 %% @doc Create an empty groupchat message stanza.
 %%
 
--spec groupchat () -> exml:xmlel().
+-spec groupchat () -> exxml:xmlel().
 
 groupchat() ->
     exmpp_stanza:set_type(?EMPTY_MESSAGE, <<"groupchat">>).
 
 %% @spec (Body) -> Message
 %%     Body = binary()
-%%     Message = exml:xmlel()
+%%     Message = exxml:xmlel()
 %% @doc Create a groupchat message stanza with a given body.
 %%
 
--spec groupchat (binary() ) -> exml:xmlel().
+-spec groupchat (binary() ) -> exxml:xmlel().
 
 groupchat(Body) ->
 	set_body(groupchat(), Body).
@@ -157,7 +157,7 @@ groupchat(Body) ->
 %% @spec (Subject, Body) -> Message
 %%     Subject =  binary()
 %%     Body =  binary()
-%%     Message = exml:xmlel()
+%%     Message = exxml:xmlel()
 %% @doc Create a groupchat message stanza with given subject and body.
 %%
 
@@ -170,18 +170,18 @@ groupchat(Subject, Body) ->
 %% @doc Create an empty headline message stanza.
 %%
 
--spec headline () -> exml:xmlel().
+-spec headline () -> exxml:xmlel().
 
 headline() ->
     exmpp_stanza:set_type(?EMPTY_MESSAGE, <<"headline">>).
 
 %% @spec (Body) -> Message
 %%     Body =  binary()
-%%     Message = exml:xmlel()
+%%     Message = exxml:xmlel()
 %% @doc Create a headline message stanza with a given body.
 %%
 
--spec headline (binary() ) -> exml:xmlel().
+-spec headline (binary() ) -> exxml:xmlel().
 
 headline(Body) ->
 	set_body(headline(), Body).
@@ -189,27 +189,27 @@ headline(Body) ->
 %% @spec (Subject, Body) -> Message
 %%     Subject = binary()
 %%     Body = binary()
-%%     Message = exml:xmlel()
+%%     Message = exxml:xmlel()
 %% @doc Create a headline message stanza with given subject and body.
 %%
 
--spec headline (binary() , binary() ) -> exml:xmlel().
+-spec headline (binary() , binary() ) -> exxml:xmlel().
 
 headline(Subject, Body) ->
     set_subject(headline(Body), Subject).
 
 
 %% @spec (Message, Error) -> New_Message
-%%     Message = exml:xmlel()
-%%     Error = exml:xmlel() | binary()
-%%     New_Message = exml:xmlel()
+%%     Message = exxml:xmlel()
+%%     Error = exxml:xmlel() | binary()
+%%     New_Message = exxml:xmlel()
 %% @doc Prepare a message stanza to notify an error.
 %%
 %% If `Error' is a binary, it must be a standard condition defined by
 %% XMPP Core.
 
 -spec error
-(exml:xmlel(), exml:xmlel() | binary()) -> exml:xmlel().
+(exxml:xmlel(), exxml:xmlel() | binary()) -> exxml:xmlel().
 
 error(Message, Condition) when is_binary(Condition) ->
     Error = exmpp_stanza:error(Condition),
@@ -222,119 +222,119 @@ error(Message, Error) when ?IS_MESSAGE(Message) ->
 %% --------------------------------------------------------------------
 
 %% @spec (El) -> boolean
-%%     El = exml:xmlel()
+%%     El = exxml:xmlel()
 %% @doc Tell if `El' is a message.
 %%
 %% You should probably use the `IS_MESSAGE(El)' guard expression.
 
 -spec is_message
-(exml:xmlel()) -> boolean().
+(exxml:xmlel()) -> boolean().
 
 is_message(Message) when ?IS_MESSAGE(Message) -> true;
 is_message(_El)                               -> false.
 
 %% @spec (Message) -> Type
-%%     Message = exml:xmlel()
+%%     Message = exxml:xmlel()
 %%     Type = <<"chat">> | <<"groupchat">> | <<"headline">> | <<"normal">> | <<"error">>
 %% @doc Return the type of the given `<message/>'.
 
--spec get_type (exml:xmlel()) -> messagetype().
+-spec get_type (exxml:xmlel()) -> messagetype().
 
 get_type(Message) when ?IS_MESSAGE(Message) ->
-	exml:get_attribute(Message, <<"type">>, <<"normal">>).
+	exxml:get_attribute(Message, <<"type">>, <<"normal">>).
 
 %% @spec (Message, Type) -> New_Message
-%%     Message = exml:xmlel()
+%%     Message = exxml:xmlel()
 %%     Type = binary()
-%%     New_Message = exml:xmlel()
+%%     New_Message = exxml:xmlel()
 %% @doc Set the type of the given `<message/>'.
 %%
 
--spec set_type (xmlel(), messagetype() ) -> exml:xmlel().
+-spec set_type (xmlel(), messagetype() ) -> exxml:xmlel().
 
 set_type(Message, Type) when is_binary(Type) ->
     exmpp_stanza:set_type(Message, Type).
 
 %% @spec (Message) -> Subject | undefined
-%%     Message = exml:xmlel()
+%%     Message = exxml:xmlel()
 %%     Subject = binary()
 %% @doc Return the subject of the message.
 
--spec get_subject (exml:xmlel()) -> binary() | undefined.
+-spec get_subject (exxml:xmlel()) -> binary() | undefined.
 
 get_subject(Message) when ?IS_MESSAGE(Message) ->
-    case exml:get_element(Message, <<"subject">>) of
+    case exxml:get_element(Message, <<"subject">>) of
         undefined ->
             undefined;
         Subject_El ->
-            exml:get_cdata(Subject_El)
+            exxml:get_cdata(Subject_El)
     end.
 
 %% @spec (Message, Subject) -> New_Message
-%%     Message = exml:xmlel()
+%%     Message = exxml:xmlel()
 %%     Subject =  binary()
-%%     New_Message = exml:xmlel()
+%%     New_Message = exxml:xmlel()
 %% @doc Set the `<subject/>' field of a message stanza.
 %%
 
--spec set_subject (exml:xmlel(), binary() ) -> exml:xmlel().
+-spec set_subject (exxml:xmlel(), binary() ) -> exxml:xmlel().
 
 set_subject(Message, Subject) when ?IS_MESSAGE(Message) ->
 	New_Subject_El = {xmlel, <<"subject">>, [], [{cdata, Subject}]},
-	exml:set_or_replace_child(Message, New_Subject_El).
+	exxml:set_or_replace_child(Message, New_Subject_El).
 
 %% @spec (Message) -> Body | undefined
-%%     Message = exml:xmlel()
+%%     Message = exxml:xmlel()
 %%     Body = binary()
 %% @doc Return the body of the message.
 
--spec get_body (exml:xmlel()) -> binary() | undefined.
+-spec get_body (exxml:xmlel()) -> binary() | undefined.
 
 get_body(Message) when ?IS_MESSAGE(Message) ->
-    case exml:get_element(Message, <<"body">>) of
+    case exxml:get_element(Message, <<"body">>) of
         undefined ->
             undefined;
         Body_El ->
-            exml:get_cdata(Body_El)
+            exxml:get_cdata(Body_El)
     end.
 
 %% @spec (Message, Body) -> New_Message
-%%     Message = exml:xmlel()
+%%     Message = exxml:xmlel()
 %%     Body = binary()
-%%     New_Message = exml:xmlel()
+%%     New_Message = exxml:xmlel()
 %% @doc Set the `<body/>' field of a message stanza.
 %%
 
--spec set_body (exml:xmlel(), binary() ) -> exml:xmlel().
+-spec set_body (exxml:xmlel(), binary() ) -> exxml:xmlel().
 
 set_body(Message, Body) when ?IS_MESSAGE(Message) ->
 	New_Body_El = {xmlel, <<"body">>, [], [{cdata, Body}]},
-	exml:set_or_replace_child(Message, New_Body_El).
+	exxml:set_or_replace_child(Message, New_Body_El).
 
 %% @spec (Message) -> Thread | undefined
-%%     Message = exml:xmlel()
+%%     Message = exxml:xmlel()
 %%     Thread = binary()
 %% @doc Return the thread of the message.
 
--spec get_thread (exml:xmlel()) -> binary() | undefined.
+-spec get_thread (exxml:xmlel()) -> binary() | undefined.
 
 get_thread(Message) when ?IS_MESSAGE(Message) ->
-    case exml:get_element(Message, <<"thread">>) of
+    case exxml:get_element(Message, <<"thread">>) of
         undefined ->
             undefined;
         Thread_El ->
-            exml:get_cdata(Thread_El)
+            exxml:get_cdata(Thread_El)
     end.
 
 %% @spec (Message, Thread) -> New_Message
-%%     Message = exml:xmlel()
+%%     Message = exxml:xmlel()
 %%     Thread = binary()
-%%     New_Message = exml:xmlel()
+%%     New_Message = exxml:xmlel()
 %% @doc Set the `<thread/>' field of a message stanza.
 %%
 
--spec set_thread (exml:xmlel(), binary()) -> exml:xmlel().
+-spec set_thread (exxml:xmlel(), binary()) -> exxml:xmlel().
 
 set_thread(Message, Thread) when ?IS_MESSAGE(Message) ->
 	New_Thread_El = {xmlel, <<"thread">>, [], [{cdata, Thread}]},
-	exml:set_or_replace_child(Message, New_Thread_El).
+	exxml:set_or_replace_child(Message, New_Thread_El).

@@ -6,7 +6,7 @@
 
 
 start_test() ->
-	{ok, P} = exml:start_parser([{root_depth, 1}]),
+	{ok, P} = exxml:start_parser([{root_depth, 1}]),
 	X = exmpp_xmlstream:start(self(), P),
 	?assertEqual(P, exmpp_xmlstream:get_parser(X)),
 	exmpp_xmlstream:parse(X, <<"<stream><a>aa</a><b b='b'/>">>),
@@ -19,14 +19,14 @@ start_test() ->
 	receive
 		#xmlstreamelement{element = E2} -> 
 			?assertMatch({xmlel,<<"a">>, [],_}, E2),
-			?assertEqual(<<"aa">>, exml:get_cdata(E2))
+			?assertEqual(<<"aa">>, exxml:get_cdata(E2))
 	after 0 ->
 			?assert(false)
 	end,
 	receive
 		#xmlstreamelement{element = E3} -> 
 			?assertMatch({xmlel,<<"b">>, _,[]}, E3),
-			?assertEqual(<<"b">>, exml:get_attribute(E3, <<"b">>))
+			?assertEqual(<<"b">>, exxml:get_attribute(E3, <<"b">>))
 	after 0 ->
 			?assert(false)
 	end,
@@ -42,21 +42,21 @@ start_test() ->
 	receive
 		#xmlstreamelement{element = E22} -> 
 			?assertMatch({xmlel,<<"a">>, [],_}, E22),
-			?assertEqual(<<"aa">>, exml:get_cdata(E22))
+			?assertEqual(<<"aa">>, exxml:get_cdata(E22))
 	after 0 ->
 			?assert(false)
 	end,
 	receive
 		#xmlstreamelement{element = E23} -> 
 			?assertMatch({xmlel,<<"b">>, _,[]}, E23),
-			?assertEqual(<<"b">>, exml:get_attribute(E23, <<"b">>))
+			?assertEqual(<<"b">>, exxml:get_attribute(E23, <<"b">>))
 	after 0 ->
 			?assert(false)
 	end.
 
 
 change_callback_test() ->
-	{ok, P} = exml:start_parser([{root_depth, 1}]),
+	{ok, P} = exxml:start_parser([{root_depth, 1}]),
 	X = exmpp_xmlstream:start(self(), P),
 	X2 = exmpp_xmlstream:change_callback(X, no_callback),
 	{ok, _, [A,B,C]} = exmpp_xmlstream:parse(X2, <<"<stream><a>aa</a><b b='b'/>">>),
@@ -74,7 +74,7 @@ parse_element_test() ->
 % TODO: not sure how this is supposed to work. Review latter when working on BOSH that 
 
 wrapper_tagnames_test() ->
-	{ok, P} = exml:start_parser(),
+	{ok, P} = exxml:start_parser(),
 	X = exmpp_xmlstream:start(no_callback, P),
 	X2 = exmpp_xmlstream:set_wrapper_tagnames(X, [<<"body">>]),
 

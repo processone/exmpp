@@ -63,9 +63,9 @@ loop(XmppCom) ->
 
 %% Send the same packet back for each message received
 echo_packet(XmppCom, Packet) ->
-    From = exml:get_attribute(Packet, <<"from">>, <<"unknown">>),
-    To = exml:get_attribute(Packet, <<"to">>, <<"service@monet.opengoss.com">>),
-    TmpPacket = exml:set_attribute(Packet, <<"from">>, To),
-    TmpPacket2 = exml:set_attribute(TmpPacket, <<"to">>, From),
-    NewPacket = exml:remove_attribute(TmpPacket2, <<"id">>),
+    From = exxml:get_attribute(Packet, <<"from">>, <<"unknown">>),
+    To = exxml:get_attribute(Packet, <<"to">>, <<"service@monet.opengoss.com">>),
+    TmpPacket = exxml:set_attribute(Packet, <<"from">>, To),
+    TmpPacket2 = exxml:set_attribute(TmpPacket, <<"to">>, From),
+    NewPacket = exxml:remove_attribute(TmpPacket2, <<"id">>),
     exmpp_component:send_packet(XmppCom, NewPacket).

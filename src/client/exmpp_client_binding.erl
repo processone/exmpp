@@ -38,12 +38,12 @@
 %% --------------------------------------------------------------------
 
 %% @spec (Features_Announcement) -> bool()
-%%     Features_Announcement = exml:xmlel()()
+%%     Features_Announcement = exxml:xmlel()()
 %% @throws {resource_binding, announced_support, invalid_feature, Feature}
 %% @doc Tell if the Resource Binding feature is supported.
 
 announced_support({xmlel, <<"features">>, _Attrs, _Children} = El) ->
-    case exml:get_element(El, <<"bind">>) of
+    case exxml:get_element(El, <<"bind">>) of
         undefined -> false;
         Child     -> announced_support2(Child)
     end.
@@ -58,14 +58,14 @@ announced_support2(Feature) ->
 %% --------------------------------------------------------------------
 
 %% @spec () -> Bind
-%%     Bind = exml:xmlel()
+%%     Bind = exxml:xmlel()
 %% @doc Prepare a Resource Binding request.
 
 bind() ->
     bind(undefined).
 
 %% @spec (Resource) -> Bind
-%%     Bind = exml:xmlel()
+%%     Bind = exxml:xmlel()
 %% @doc Prepare a Resource Binding request for the given `Resource'.
 
 bind(Resource) ->
@@ -79,7 +79,7 @@ bind(Resource) ->
     exmpp_iq:set(Bind, exmpp_utils:random_id(<<"bind">>)).
 
 %% @spec (Bind) -> Jid
-%%     Bind = exml:xmlel()
+%%     Bind = exxml:xmlel()
 %%     Jid = exmpp_jid:jid()
 %% @throws {resource_binding, bounded_jid, invalid_bind, Stanza} |
 %%         {resource_binding, bounded_jid, no_jid, IQ} |
@@ -91,11 +91,11 @@ bounded_jid(IQ) when ?IS_IQ(IQ) ->
         <<"result">> ->
             case exmpp_iq:get_result(IQ) of
 	    	{xmlel, <<"bind">>, _, _} = Bind ->
-                    case exml:get_element(Bind, <<"jid">>) of
+                    case exxml:get_element(Bind, <<"jid">>) of
 			undefined -> 
                             throw({resource_binding, bounded_jid, no_jid, IQ});
                          Jid_El ->
-                            Jid = exml:get_cdata(Jid_El),
+                            Jid = exxml:get_cdata(Jid_El),
                             exmpp_jid:parse(Jid)
                     end;
                 _ ->

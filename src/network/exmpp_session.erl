@@ -800,7 +800,7 @@ wait_for_sasl_response(#xmlstreamelement{element={xmlel, <<"success">>, _, _}}, 
 
 wait_for_sasl_response(#xmlstreamelement{element={xmlel, <<"challenge">>, _, _} = Element}, State) ->
     #state{connection = Module, connection_ref = ConnRef, sasl_state = SASL_State} = State,
-    Challenge = base64:decode_to_string(exml:get_cdata(Element)),
+    Challenge = base64:decode_to_string(exxml:get_cdata(Element)),
     case exmpp_sasl_digest:mech_step(SASL_State, Challenge) of
          {error, Reason} ->
               {error, Reason};
@@ -853,7 +853,7 @@ wait_for_legacy_auth_method(#xmlstreamelement{element = {xmlel, Error, _,_} =El}
 %% TODO: We should be able to match on iq type directly on the first
 %% level record
 wait_for_auth_result(?iq, State = #state{from_pid=From, auth_info = Auth}) ->
-    case exml:get_attribute(IQElement, <<"type">>, undefined) of
+    case exxml:get_attribute(IQElement, <<"type">>, undefined) of
  	<<"result">> ->
             gen_fsm:reply(From, {ok, get_jid(Auth)}),
             {next_state, logged_in, State#state{from_pid=undefined}, State#state.whitespace_ping};
@@ -868,7 +868,7 @@ wait_for_auth_result(?iq, State = #state{from_pid=From, auth_info = Auth}) ->
 %% requirements. Check that a client can get the list of fields and
 %% override this simple method of registration.
 wait_for_register_result(?iq, State = #state{from_pid=From}) ->
-    case exml:get_attribute(IQElement, <<"type">>, undefined) of
+    case exxml:get_attribute(IQElement, <<"type">>, undefined) of
  	<<"result">> ->
             gen_fsm:reply(From, ok),
             {next_state, stream_opened, State#state{from_pid=undefined}};
@@ -1029,22 +1029,22 @@ get_jid({JID, _Password}) when ?IS_JID(JID) ->
 
 %% Start parser and return stream reference
 start_parser() ->
-    {ok, P} = exml:start_parser(?PARSER_OPTIONS),
+    {ok, P} = exxml:start_parser(?PARSER_OPTIONS),
     exmpp_xmlstream:start({gen_fsm, self()}, P).
 
 %% Authentication functions
 check_auth_method(Method, IQElement) ->
 	io:format("check_auth_method ~p ~p \n", [Method, IQElement]),
     %% Check auth method if we have the IQ result
-    case exml:get_attribute(IQElement, <<"type">>, undefined) of
+    case exxml:get_attribute(IQElement, <<"type">>, undefined) of
 	<<"result">> ->
 	    check_auth_method2(Method, IQElement);
 	_ ->
 	    {error, not_auth_method_result}
     end.
 check_auth_method2(Method, IQElement) ->
-    QueryElement = exml:get_element(IQElement, <<"query">>),
-    case exml:get_element(QueryElement,  Method) of
+    QueryElement = exxml:get_element(IQElement, <<"query">>),
+    case exxml:get_element(QueryElement,  Method) of
 	undefined ->
 	    {error, no_supported_auth_method};
 	_ ->
@@ -1054,12 +1054,12 @@ check_auth_method2(Method, IQElement) ->
 %% Packet processing functions
 process_presence(ClientPid, Packet) ->
     Type = exmpp_presence:get_type(Packet),
-    Who = case exml:get_attribute(Packet, <<"from">>, undefined) of
+    Who = case exxml:get_attribute(Packet, <<"from">>, undefined) of
                 undefined -> undefined;
                 <<>> -> undefined;
                 Value -> exmpp_jid:to_lower(Value)
           end,
-    Id = exml:get_attribute(Packet, <<"id">>, <<>>),
+    Id = exxml:get_attribute(Packet, <<"id">>, <<>>),
     ClientPid ! #received_packet{packet_type = <<"presence">>,
                                  type_attr = Type,
                                  from = Who,
@@ -1068,12 +1068,12 @@ process_presence(ClientPid, Packet) ->
 
 process_message(ClientPid, Packet) ->
     Type = exmpp_message:get_type(Packet),
-    Who = case exml:get_attribute(Packet, <<"from">>, undefined) of
+    Who = case exxml:get_attribute(Packet, <<"from">>, undefined) of
                 undefined -> undefined;
                 <<>> -> undefined;
                 Value -> exmpp_jid:to_lower(Value)
           end,
-    Id = exml:get_attribute(Packet, <<"id">>, ""),
+    Id = exxml:get_attribute(Packet, <<"id">>, ""),
     ClientPid ! #received_packet{packet_type = <<"message">>,
                                  type_attr = Type,
                                  from = Who,
@@ -1082,12 +1082,12 @@ process_message(ClientPid, Packet) ->
 
 process_iq(ClientPid, Packet) ->
     Type = exmpp_iq:get_type(Packet),
-    Who = case exml:get_attribute(Packet, <<"from">>, undefined) of
+    Who = case exxml:get_attribute(Packet, <<"from">>, undefined) of
                 undefined -> undefined;
                 <<>> -> undefined;
                 Value -> exmpp_jid:to_lower(Value)
           end,
-    Id = exml:get_attribute(Packet, <<"id">>, <<>>),
+    Id = exxml:get_attribute(Packet, <<"id">>, <<>>),
     NS = exmpp_iq:get_payload_ns(Packet),
     ClientPid ! #received_packet{packet_type = <<"iq">>,
                                  queryns = NS,
@@ -1104,10 +1104,10 @@ process_stream_error(ClientPid, Reason) ->
 %% This function uses {@link random:uniform/1}. It's up to the caller to
 %% seed the generator.
 check_id(Packet) ->
-	case exml:get_attribute(Packet, <<"id">>, <<>>) of
+	case exxml:get_attribute(Packet, <<"id">>, <<>>) of
 	<<>> ->
 	    Id = exmpp_utils:random_id(<<"session">>),
-	    {exml:set_attribute(Packet, <<"id">>, Id), Id};
+	    {exxml:set_attribute(Packet, <<"id">>, Id), Id};
         Id -> {Packet, Id}
     end.
 

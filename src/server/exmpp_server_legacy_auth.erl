@@ -49,8 +49,8 @@
 %% --------------------------------------------------------------------
 
 %% @spec (Request_IQ) -> Fields_IQ
-%%     Request_IQ = exml:xmlel()
-%%     Fields_IQ = exml:xmlel()
+%%     Request_IQ = exxml:xmlel()
+%%     Fields_IQ = exxml:xmlel()
 %% @doc Make an `<iq>' for advertising fields.
 %%
 %% Both authentication methods are proposed.
@@ -66,7 +66,7 @@ fields(Request_IQ) ->
 
 fields(Request_IQ, Auth) when ?IS_IQ(Request_IQ) ->
     Path = [ {element, <<"query">> }, {element, <<"username">>}, cdata ],
-    Username_Children = case exml:get_path(Request_IQ, Path) of
+    Username_Children = case exxml:get_path(Request_IQ, Path) of
                    <<>> -> [];
                    Username -> [{cdata, Username}]
                 end,
@@ -84,17 +84,17 @@ fields(Request_IQ, Auth) when ?IS_IQ(Request_IQ) ->
     exmpp_iq:result(Request_IQ, Query).
 
 %% @spec (Password_IQ) -> Success_IQ
-%%     Password_IQ = exml:xmlel()
-%%     Success_IQ = exml:xmlel()
+%%     Password_IQ = exxml:xmlel()
+%%     Success_IQ = exxml:xmlel()
 %% @doc Make an `<iq>' to notify a successfull authentication.
 
 success(Password_IQ) when ?IS_IQ(Password_IQ) ->
     exmpp_iq:result(Password_IQ).
 
 %% @spec (Password_IQ, Condition) -> Failure_IQ
-%%     Password_IQ = exml:xmlel()
+%%     Password_IQ = exxml:xmlel()
 %%     Condition = <<"not_authorized">> | <<"conflict">> | <<"not_acceptable">>
-%%     Failure_IQ = exml:xmlel()
+%%     Failure_IQ = exxml:xmlel()
 %% @doc Make an `<iq>' to notify a successfull authentication.
 
 failure(Password_IQ, Condition) when ?IS_IQ(Password_IQ) ->
@@ -103,7 +103,7 @@ failure(Password_IQ, Condition) when ?IS_IQ(Password_IQ) ->
 	       <<"conflict">>       -> <<"409">>;
 	       <<"not-acceptable">> -> <<"406">>
 	   end,
-    Error = exml:set_attribute(
+    Error = exxml:set_attribute(
 	      exmpp_stanza:error(Condition),
 	      <<"code">>, Code),
     exmpp_iq:error_without_original(Password_IQ, Error).
@@ -113,7 +113,7 @@ failure(Password_IQ, Condition) when ?IS_IQ(Password_IQ) ->
 %% --------------------------------------------------------------------
 
 %% @spec (Request_IQ) -> bool()
-%%     Request_IQ = exml:xmlel()
+%%     Request_IQ = exxml:xmlel()
 %% @doc Tell if the initiating entity asks for the authentication fields.
 
 want_fields(Request_IQ) when ?IS_IQ(Request_IQ) ->
@@ -130,7 +130,7 @@ want_fields(_Stanza) ->
     false.
 
 %% @spec (Password_IQ) -> Credentials
-%%     Password_IQ = exml:xmlel()
+%%     Password_IQ = exxml:xmlel()
 %%     Credentials = {Username, Password, Resource}
 %%     Username = binary()
 %%     Password = {plain, binary()} | {digest, binary()}
@@ -141,7 +141,7 @@ want_fields(_Stanza) ->
 
 get_credentials(Password_IQ) when ?IS_IQ(Password_IQ) ->
     Request = exmpp_iq:get_request(Password_IQ),
-    Children = exml:get_elements(Request),
+    Children = exxml:get_elements(Request),
     case length(Children) of
 	3 ->
             get_credentials2(Children, {undefined, undefined, undefined});
@@ -152,22 +152,22 @@ get_credentials(Password_IQ) when ?IS_IQ(Password_IQ) ->
 get_credentials2(
   [{xmlel, <<"username">>, _, _} = Field | Rest],
   {_Username, Password, Resource}) ->
-    Username = exml:get_cdata(Field),
+    Username = exxml:get_cdata(Field),
     get_credentials2(Rest, {Username, Password, Resource});
 get_credentials2(
   [{xmlel,<<"password">>, _, _} = Field | Rest],
   {Username, _Password, Resource}) ->
-    Password = exml:get_cdata(Field),
+    Password = exxml:get_cdata(Field),
     get_credentials2(Rest, {Username, {plain, Password}, Resource});
 get_credentials2(
   [{xmlel, <<"digest">>, _, _} = Field | Rest],
   {Username, _Password, Resource}) ->
-    Password = list_to_binary(unhex(binary_to_list(exml:get_cdata(Field)))),
+    Password = list_to_binary(unhex(binary_to_list(exxml:get_cdata(Field)))),
     get_credentials2(Rest, {Username, {digest, Password}, Resource});
 get_credentials2(
   [{xmlel, <<"resource">>, _, _} = Field | Rest],
   {Username, Password, _Resource}) ->
-    Resource = exml:get_cdata(Field),
+    Resource = exxml:get_cdata(Field),
     get_credentials2(Rest, {Username, Password, Resource});
 get_credentials2([Field | _Rest], _Credentials) ->
     throw({legacy_auth, get_credentials, invalid_field, Field});

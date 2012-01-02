@@ -21,8 +21,8 @@
   type    :: binary(),  %<<"get">> | <<"set">> | <<"result">> | <<"error">>,
   id      :: binary() | undefined,
   ns      :: binary() | undefined,
-  payload :: exml:xmlel() | undefined,
-  error   :: exml:xmlel() | undefined,
+  payload :: exxml:xmlel() | undefined,
+  error   :: exxml:xmlel() | undefined,
   lang    :: binary() | undefined
 }).
 

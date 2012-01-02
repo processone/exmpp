@@ -33,7 +33,7 @@
 %% @spec (To, List_Name) -> Push_IQ
 %%     To =  binary()
 %%     List_Name = binary()
-%%     Push_IQ = exml:xmlel()
+%%     Push_IQ = exxml:xmlel()
 %% @doc Create an `<iq/>' to notify `To' that the privacy list
 %% `List_Name' has been created or has changed.
 

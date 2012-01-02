@@ -32,7 +32,7 @@
 	 remove_account/0, remove_account/1]).
 
 %% @spec () -> Register_Iq
-%%     Register_Iq = exml:xmlel()
+%%     Register_Iq = exxml:xmlel()
 %% @doc Make an `<iq>' to get the instruction to register and the list
 %% of registration fields.
 %%
@@ -43,7 +43,7 @@ get_registration_fields() ->
 
 %% @spec (Id) -> Register_Iq
 %%     Id = binary()
-%%     Register_Iq = exml:xmlel()
+%%     Register_Iq = exxml:xmlel()
 %% @doc Make an `<iq>' to get the instruction to register and the list
 %% of registration fields.
 
@@ -57,7 +57,7 @@ get_registration_fields(Id) ->
 %%     Field = {Fieldname, Value}
 %%     Fieldname = binary()
 %%     Value = binary()
-%%     Register_Iq = exml:xmlel()
+%%     Register_Iq = exxml:xmlel()
 %% @doc Make an `<iq>' that prepare a registration packet for the user.
 register_account(Fields) ->
     register_account(register_id(), Fields).
@@ -68,7 +68,7 @@ register_account(Fields) ->
 %%     Field = {Fieldname, Value}
 %%     Fieldname = binary()
 %%     Value = binary()
-%%     Register_Iq = exml:xmlel()
+%%     Register_Iq = exxml:xmlel()
 %% @doc Make an `<iq>' that prepare a registration packet for the user.
 register_account(Id, Fields) ->
     %% Make query tag
@@ -80,7 +80,7 @@ register_account(Id, Fields) ->
 	    [PreparedQuery]}.
 
 %% @spec () -> RemoveRegister_Iq
-%%     RemoveRegister_Iq = exml:xmlel()
+%%     RemoveRegister_Iq = exxml:xmlel()
 %% @doc Make an `<iq>' that delete user account on the server. The
 %% user is supposed to be already logged in.
 remove_account() ->
@@ -88,7 +88,7 @@ remove_account() ->
 
 %% @spec (Id) -> RemoveRegister_Iq
 %%     Id = string()
-%%     RemoveRegister_Iq = exml:xmlel()
+%%     RemoveRegister_Iq = exxml:xmlel()
 %% @doc Make an `<iq>' that delete user account on the server. The
 %% user is supposed to be already logged in.
 remove_account(Id) ->
@@ -105,7 +105,7 @@ append_fields(PreparedQuery, []) ->
     PreparedQuery;
 append_fields(Query, [{Field, Value}|Fields]) ->
 	FieldElement = {xmlel, Field, [], [{cdata, Value}]},
-    	UpdatedQuery = exml:append_child(Query, FieldElement),
+    	UpdatedQuery = exxml:append_child(Query, FieldElement),
 	append_fields(UpdatedQuery, Fields).
 
 %% TODO: register_form

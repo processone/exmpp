@@ -26,7 +26,7 @@
 	 set_item/3, set_item/4]).
 
 %% @spec () -> Roster_Iq
-%%     Roster_Iq = exml:xmlel()
+%%     Roster_Iq = exxml:xmlel()
 %% @doc Make an `<iq>' to retrieve user roster.
 %%
 %% The stanza `id' is generated automatically.
@@ -35,7 +35,7 @@ get_roster() ->
 
 %% @spec (Id) -> Roster_Iq
 %%     Id = binary()
-%%     Roster_Iq = exml:xmlel()
+%%     Roster_Iq = exxml:xmlel()
 %% @doc Make an `<iq>' to retrieve user roster.
 get_roster(Id) ->
    Query = {xmlel, <<"query">>, [{<<"xmlns">>, ?NS_ROSTER}], []},
@@ -45,7 +45,7 @@ get_roster(Id) ->
 %%     ContactJID = binary()
 %%     Groups = [binary()]
 %%     Nick = binary()
-%%     Roster_Iq = exml:xmlel()
+%%     Roster_Iq = exxml:xmlel()
 %% @doc Make an `<iq>' to update a roster item. This function is used
 %% both to create a roster item and to update an roster entry
 set_item(ContactJID, Groups, Nick) ->
@@ -56,7 +56,7 @@ set_item(ContactJID, Groups, Nick) ->
 %%     ContactJID = binary()
 %%     Groups = [binary()]
 %%     Nick = binary()
-%%     Roster_Iq = exml:xmlel()
+%%     Roster_Iq = exxml:xmlel()
 %% @doc Make an `<iq>' to update a roster item. This function is used
 %% both to create a roster item and to update an roster entry
 set_item(Id, ContactJID, Groups, Nick) ->

@@ -39,7 +39,7 @@
 %% --------------------------------------------------------------------
 
 %% @spec (Features_Announcement) -> Methods
-%%     Features_Announcement = exml:xmlel()
+%%     Features_Announcement = exxml:xmlel()
 %%     Methods = [binary()]
 %% @throws {stream_compression, announced_methods, invalid_feature, Feature} |
 %%         {stream_compression, announced_methods, invalid_method, El}
@@ -47,7 +47,7 @@
 
 announced_methods({xmlel, F, _Attrs, _Children} = El) 
 	when F == <<"features">> orelse F == <<"stream:features">> ->
-    case exml:get_element(El,<<"compression">>) of
+    case exxml:get_element(El,<<"compression">>) of
         undefined -> [];
         Methods   -> announced_methods2(Methods)
     end.
@@ -58,7 +58,7 @@ announced_methods2({xmlel, _, _, Children}) ->
     announced_methods3(Children, []).
 
 announced_methods3( [{xmlel, <<"method">>, _, _} = El | Rest], Result) ->
-    case exml:get_cdata(El) of
+    case exxml:get_cdata(El) of
         <<>> ->
             throw({stream_compression, announced_methods, invalid_method, El});
         Method ->
@@ -75,7 +75,7 @@ announced_methods3([], Result) ->
 
 %% @spec (Method) -> Compress
 %%     Method = binary()
-%%     Compress = exml:xmlel()
+%%     Compress = exxml:xmlel()
 %% @doc Prepare an request to select prefered compression method.
 
 selected_method(Method) ->

@@ -16,7 +16,7 @@
 %% @doc
 %% The module <strong>{@module}</strong> sends events to a specified
 %% process or function based on elements and trees returned by the
-%% parser `exml'.
+%% parser `exxml'.
 %%
 %% <p>
 %% It also provides a high-level function to parse an XML document
@@ -65,7 +65,7 @@
 -type(xmlstream() :: #xml_stream{}).
 
 -type(xmlstreamevent() ::
-	{xmlstreamstart, binary(), [exml:xmlattr()]} |
+	{xmlstreamstart, binary(), [exxml:xmlattr()]} |
       #xmlstreamstart{} |
       #xmlstreamelement{} |
       #xmlstreamend{}
@@ -78,17 +78,17 @@
 %% @spec (Callback, Parser) -> Stream
 %%     Callback = callback()
 %%     Stream = xmlstream()
-%%     Parser = exml:xmlparser()
+%%     Parser = exxml:xmlparser()
 %% @doc Start a new stream handler.
 %%
 %% The XML parser is reset and option `{root_depth, 1}' is set 
 %%
 %%
-%% @see exml:start_parser/1.
-%% @see exml:reset_parser/2.
+%% @see exxml:start_parser/1.
+%% @see exxml:reset_parser/2.
 
 -spec(start/2 ::
-      (callback(), exml:xmlparser()) -> xmlstream()).
+      (callback(), exxml:xmlparser()) -> xmlstream()).
 
 
 start(Callback, Parser) ->
@@ -96,7 +96,7 @@ start(Callback, Parser) ->
 		    Pid when is_pid(Pid) -> {process, Pid};
 		    _                    -> Callback
 		end,
-    ok = exml:reset_parser(Parser,
+    ok = exxml:reset_parser(Parser,
 					[{root_depth, 1} ]),
     #xml_stream{
 		     callback = Callback2,
@@ -111,15 +111,15 @@ start(Callback, Parser) ->
 -spec(reset/1 :: (xmlstream()) -> xmlstream()).
 
 reset(#xml_stream{parser = Parser} = Stream) ->
-    ok = exml:reset_parser(Parser),
+    ok = exxml:reset_parser(Parser),
     Stream#xml_stream{opened = false}.
 
 %% @spec (Stream) -> Parser
 %%     Stream = xmlstream()
-%%     Parser = exml:xmlparser()
+%%     Parser = exxml:xmlparser()
 %% @doc Return the XML parser used.
 
--spec(get_parser/1 :: (xmlstream()) -> exml:xmlparser()).
+-spec(get_parser/1 :: (xmlstream()) -> exxml:xmlparser()).
 
 get_parser(#xml_stream{parser = Parser}) ->
     Parser.
@@ -161,7 +161,7 @@ stop(_Stream) ->
 		 {error, any()}).
 
 parse(#xml_stream{parser = Parser} = Stream, Data) ->
-    try exml:parse(Parser, Data) of
+    try exxml:parse(Parser, Data) of
 	    {ok, XML_Elements} ->
 		    {ok, New_Stream, Events} = process_elements(Stream, XML_Elements),
 		    send_events(New_Stream, Events)
@@ -291,38 +291,38 @@ change_callback(Stream, CallBack) ->
 
 %% @spec (Data) -> [XML_Element]
 %%     Data =  binary()
-%%     XML_Element = exml:xmlel() 
+%%     XML_Element = exxml:xmlel() 
 %% @doc Parse the given data.
 %%
 %% The XML parser is created with default options.
 %%
-%% @see exml:start_parser/0.
-%% @see exml:parse_document/1.
+%% @see exxml:start_parser/0.
+%% @see exxml:parse_document/1.
 
 -spec(parse_element/1 ::
       (binary() ) ->
-	     [exml:xmlnode() | emxl:xmlendtag()]).
+	     [exxml:xmlnode() | emxl:xmlendtag()]).
 
 parse_element(Data) ->
     parse_element(Data, []).
 
 %% @spec (Data, Parser_Options) -> [XML_Element]
 %%     Data = binary()
-%%     Parser_Options = [exml:xmlparseroption()]
-%%     XML_Element = exml:xmlel() | exml:xmlcdata()
+%%     Parser_Options = [exxml:xmlparseroption()]
+%%     XML_Element = exxml:xmlel() | exxml:xmlcdata()
 %% @doc Parse the given data.
 %%
 %% The XML parser is created with given `Parser_Options' options.
 %%
-%% @see exml:start_parser/1.
-%% @see exml:parse_document/2.
+%% @see exxml:start_parser/1.
+%% @see exxml:parse_document/2.
 
 -spec(parse_element/2 ::
-      (binary() , [exml:xmlparseroption()]) ->
-	     [exml:xmlnode() | exml:xmlendtag()]).
+      (binary() , [exxml:xmlparseroption()]) ->
+	     [exxml:xmlnode() | exxml:xmlendtag()]).
 
 parse_element(Data, Parser_Options) ->
-    case exml:parse_document(Data, Parser_Options) of
+    case exxml:parse_document(Data, Parser_Options) of
        {ok, []} ->
             throw({xmlstream, parse_element, parse_error, []});
        {ok, [XML_Element]} ->
@@ -389,9 +389,9 @@ set_wrapper_tagnames(Stream, TagNames) when is_list(TagNames) ->
 %%     Stream_Start = {xmlstreamstart, XML_Element} | {xmlstreamstart, Name, Attrs}
 %%     Stream_Element = {xmlstreamelement, XML_Element}
 %%     Stream_End = {xmlstreamend, XML_End_Tag}
-%%       XML_Element = exml:xmlel() 
-%%       XML_End_Tag = exml:xmlendtag()
+%%       XML_Element = exxml:xmlel() 
+%%       XML_End_Tag = exxml:xmlendtag()
 %%       Name = binary()
-%%       Attrs = [exml:xmlattr()]
+%%       Attrs = [exxml:xmlattr()]
 %%     Stream_Error = {xmlstreamerror, Reason}.
 %% Records representing an event sent by the {@link parse/2} function.

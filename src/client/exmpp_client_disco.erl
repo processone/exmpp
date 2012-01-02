@@ -35,45 +35,45 @@
 
 %% @spec (To) -> Iq
 %%     To = binary()
-%%     Iq = exml:xmlel()
+%%     Iq = exxml:xmlel()
 %% @doc Make an <iq/> for a disco#info
 
 info(To) ->
   Query = ?QUERY_INFO,
   Iq = ?IQ_GET(To, iq_id()),
-  exml:append_child(Iq, Query).
+  exxml:append_child(Iq, Query).
 
 %% @spec (To, Node) -> Iq
 %%     To   = binary()
 %%     Node = binary()
-%%     Iq   = exml:xmlel()
+%%     Iq   = exxml:xmlel()
 %% @doc Make an <iq/> for a disco#info to a node
 
 info(To, Node) ->
-  Query = exml:set_attribute(?QUERY_INFO, <<"node">>, Node),
+  Query = exxml:set_attribute(?QUERY_INFO, <<"node">>, Node),
   Iq = ?IQ_GET(To, iq_id()),
-  exml:append_child(Iq, Query).
+  exxml:append_child(Iq, Query).
 
 %% @spec (To) -> Iq
 %%     To = binary()
-%%     Iq = exml:xmlel()
+%%     Iq = exxml:xmlel()
 %% @doc Make an <iq/> for a disco#items
 
 items(To) ->
   Query = ?QUERY_ITEMS,
   Iq = ?IQ_GET(To, iq_id()),
-  exml:append_child(Iq, Query).
+  exxml:append_child(Iq, Query).
 
 %% @spec (To, Node) -> Iq
 %%     To   = binary()
 %%     Node = binary()
-%%     Iq   = exml:xmlel()
+%%     Iq   = exxml:xmlel()
 %% @doc Make an <iq/> for a disco#items to a node 
 
 items(To, Node) ->
-  Query = exml:set_attribute(?QUERY_ITEMS, <<"node">>, Node),
+  Query = exxml:set_attribute(?QUERY_ITEMS, <<"node">>, Node),
   Iq = ?IQ_GET(To, iq_id()),
-  exml:append_child(Iq, Query).
+  exxml:append_child(Iq, Query).
 
 %% @spec () -> Iq_ID
 %%     Iq_ID = binary()

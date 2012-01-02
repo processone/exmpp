@@ -197,7 +197,7 @@ code_change(_Old, State, _Extra) ->
 
 
 make_empty_request(Socket, Sid, Rid, Queue, Host, Path) ->
-    StanzasText = [exml:document_to_iolist(I) || I <- lists:reverse(Queue)],
+    StanzasText = [exxml:document_to_iolist(I) || I <- lists:reverse(Queue)],
     Body = stanzas_msg(Sid, Rid, StanzasText),                                   
     make_request(Socket, Host, Path, Body).                                      
 
@@ -205,7 +205,7 @@ make_raw_request(Socket, Host, Path, Body) ->
     make_request(Socket, Host, Path, Body).  
 
 make_request(Socket, Sid, Rid, Queue, Host, Path, Packet) when is_record(Packet, xmlel) ->
-    StanzasText = [exml:document_to_iolist(I) || I <- lists:reverse([Packet|Queue])],
+    StanzasText = [exxml:document_to_iolist(I) || I <- lists:reverse([Packet|Queue])],
     Body = stanzas_msg(Sid, Rid, StanzasText),                                                    
     make_request(Socket, Host, Path, Body).                                                       
                                                                                                   
@@ -234,11 +234,11 @@ do_send({xmlel, Stream, _, _}, State)
     {ok, {{200, <<"OK">>}, _Hdrs, Resp}} = read_response(Socket, nil, nil, [], <<>>),        
     NewState2 = return_socket(NewState, Socket), %%TODO: this can be improved.. don't close the socket and reuse it for latter
 
-    {ok, [{xmlel, <<"body">>, _, _} = BodyEl]} = exml:parse_document(Resp),
-    SID = exml:get_attribute(BodyEl, <<"sid">>, undefined),
-    AuthID = exml:get_attribute(BodyEl,<<"authid">>,undefined),
-    Requests = list_to_integer(binary_to_list(exml:get_attribute(BodyEl,<<"requests">>,undefined))),
-    Events = [{xmlstreamelement, El} || El <- exml:get_elements(BodyEl)],                                      
+    {ok, [{xmlel, <<"body">>, _, _} = BodyEl]} = exxml:parse_document(Resp),
+    SID = exxml:get_attribute(BodyEl, <<"sid">>, undefined),
+    AuthID = exxml:get_attribute(BodyEl,<<"authid">>,undefined),
+    Requests = list_to_integer(binary_to_list(exxml:get_attribute(BodyEl,<<"requests">>,undefined))),
+    Events = [{xmlstreamelement, El} || El <- exxml:get_elements(BodyEl)],                                      
 
     % first return a fake stream response, then anything found inside the <body/> element (possibly nothing)
         StreamStart =                                                                                       

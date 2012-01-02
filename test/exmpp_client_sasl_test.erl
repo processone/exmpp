@@ -9,7 +9,7 @@ announced_mechanism_test() ->
        "<mechanism>EXTERNAL</mechanism> <mechanism>SCRAM-SHA-1-PLUS</mechanism>",
        "<mechanism>SCRAM-SHA-1</mechanism> <mechanism>PLAIN</mechanism>",
      "</mechanisms></stream:features>">>,
-     {ok, [M]} = exml:parse_document(S),
+     {ok, [M]} = exxml:parse_document(S),
      R = exmpp_client_sasl:announced_mechanisms(M),
      ?assertEqual(4, length(R)),
      ?assert(lists:member(<<"EXTERNAL">>, R)),
@@ -20,26 +20,26 @@ announced_mechanism_test() ->
 
 selected_mechanism1_test() ->
 	R = exmpp_client_sasl:selected_mechanism(<<"PLAIN">>),
-	?assertEqual(?NS_SASL, exml:get_attribute(R, <<"xmlns">>)),
-	?assertEqual(<<"PLAIN">>, exml:get_attribute(R, <<"mechanism">>)),
+	?assertEqual(?NS_SASL, exxml:get_attribute(R, <<"xmlns">>)),
+	?assertEqual(<<"PLAIN">>, exxml:get_attribute(R, <<"mechanism">>)),
 	ok.
 
 selected_mechanism2_test() ->
 	R = exmpp_client_sasl:selected_mechanism(<<"PLAIN">>, <<>>),
-	?assertEqual(?NS_SASL, exml:get_attribute(R, <<"xmlns">>)),
-	?assertEqual(<<"PLAIN">>, exml:get_attribute(R, <<"mechanism">>)),
-	?assertEqual(<<"=">>, exml:get_cdata(R)),
-	?assertEqual(?NS_SASL, exml:get_attribute(R, <<"xmlns">>)),
-	?assertEqual(<<"PLAIN">>, exml:get_attribute(R, <<"mechanism">>)),
+	?assertEqual(?NS_SASL, exxml:get_attribute(R, <<"xmlns">>)),
+	?assertEqual(<<"PLAIN">>, exxml:get_attribute(R, <<"mechanism">>)),
+	?assertEqual(<<"=">>, exxml:get_cdata(R)),
+	?assertEqual(?NS_SASL, exxml:get_attribute(R, <<"xmlns">>)),
+	?assertEqual(<<"PLAIN">>, exxml:get_attribute(R, <<"mechanism">>)),
 	?assertEqual(base64:encode(<<"test">>), 
-		exml:get_cdata(exmpp_client_sasl:selected_mechanism(<<"PLAIN">>, <<"test">>))),
+		exxml:get_cdata(exmpp_client_sasl:selected_mechanism(<<"PLAIN">>, <<"test">>))),
 	ok.
 
 
 response_test() ->
 	R = exmpp_client_sasl:response(<<"aa">>),
-	?assertEqual(?NS_SASL, exml:get_attribute(R, <<"xmlns">>)),
-	?assertEqual(<<"aa">>, base64:decode(exml:get_cdata(R))),
+	?assertEqual(?NS_SASL, exxml:get_attribute(R, <<"xmlns">>)),
+	?assertEqual(<<"aa">>, base64:decode(exxml:get_cdata(R))),
 	ok.
 
 abort_test() ->
@@ -47,20 +47,20 @@ abort_test() ->
 	ok.
 
 next_step_failure_test() ->
-	{ok, [F]} = exml:parse_document(
+	{ok, [F]} = exxml:parse_document(
 		<<"<failure xmlns='urn:ietf:params:xml:ns:xmpp-sasl'> <not-authorized/> </failure>">>),
 	?assertMatch({failure, <<"not-authorized">>}, exmpp_client_sasl:next_step(F)),
 	ok.
 
 next_step_success_test() ->
-	{ok, [F]} = exml:parse_document(
+	{ok, [F]} = exxml:parse_document(
 		<<"<success xmlns='urn:ietf:params:xml:ns:xmpp-sasl'/>">>),
 	?assertMatch({success, <<>>}, exmpp_client_sasl:next_step(F)),
 	ok.
 
 next_step_challenge_test() ->
 	%% Values taken from RFC6120
-	{ok, [F]} = exml:parse_document(
+	{ok, [F]} = exxml:parse_document(
 		<<"<challenge xmlns='urn:ietf:params:xml:ns:xmpp-sasl'>",
      "cj1vTXNUQUF3QUFBQU1BQUFBTlAwVEFBQUFBQUJQVTBBQWUxMjQ2OTViLTY5Y",
      "TktNGRlNi05YzMwLWI1MWIzODA4YzU5ZSxzPU5qaGtZVE0wTURndE5HWTBaaT",

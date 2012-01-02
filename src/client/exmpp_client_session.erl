@@ -32,7 +32,7 @@
 %% --------------------------------------------------------------------
 
 %% @spec () -> Session
-%%     Session = exml:xmlel()
+%%     Session = exxml:xmlel()
 %% @doc Make a `<session/>' element to create a session.
 
 establish() ->

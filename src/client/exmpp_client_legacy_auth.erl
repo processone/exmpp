@@ -140,7 +140,7 @@
 
 %% @spec (To) -> Request_IQ
 %%     To = binary()
-%%     Request_IQ = exml:xmlel()
+%%     Request_IQ = exxml:xmlel()
 %% @doc Make an `<iq>' for requesting legacy authentication.
 %%
 %% The stanza ID is generated automatically.
@@ -151,7 +151,7 @@ request(To) ->
 %% @spec (To, ID) -> Request_IQ
 %%     To = binary()
 %%     ID = binary()
-%%     Request_IQ = exml:xmlel()
+%%     Request_IQ = exxml:xmlel()
 %% @doc Make an `<iq>' for requesting legacy authentication.
 
 request(To, ID) ->
@@ -162,7 +162,7 @@ request(To, ID) ->
 %% @spec (To, Username) -> Request_IQ
 %%     To = binary()
 %%     Username = binary()
-%%     Request_IQ = exml:xmlel()
+%%     Request_IQ = exxml:xmlel()
 %% @doc Make an `<iq>' for requesting legacy authentication.
 %%
 %% The stanza ID is generated automatically.
@@ -174,7 +174,7 @@ request_with_user(To, Username) ->
 %%     To = binary()
 %%     Username = binary()
 %%     ID = binary()
-%%     Response_IQ = exml:xmlel()
+%%     Response_IQ = exxml:xmlel()
 %% @doc Make an `<iq>' for requesting legacy authentication.
 
 request_with_user(To, Username, ID) ->
@@ -184,11 +184,11 @@ request_with_user(To, Username, ID) ->
     	exmpp_stanza:set_recipient(IQ, To).
 
 %% @spec (Fields_IQ, Username, Password, Resource) -> Password_IQ
-%%     Fields_IQ = exml:xmlel()
+%%     Fields_IQ = exxml:xmlel()
 %%     Username = binary()
 %%     Password = binary() | nil()
 %%     Resource = binary()
-%%     Password_IQ = exml:xmlel()
+%%     Password_IQ = exxml:xmlel()
 %% @doc Make an `<iq/>' to send authentication informations.
 %%
 %% The stanza ID is generated automatically.
@@ -197,12 +197,12 @@ password(Fields_IQ, Username, Password, Resource) ->
     password(Fields_IQ, Username, Password, Resource, auth_id()).
 
 %% @spec (Fields_IQ, Username, Password, Resource, ID) -> Password_IQ
-%%     Fields_IQ = exml:xmlel()
+%%     Fields_IQ = exxml:xmlel()
 %%     Username = binary()
 %%     Password = binary() | nil()
 %%     Resource = binary()
 %%     ID = binary()
-%%     Password_IQ = exml:xmlel()
+%%     Password_IQ = exxml:xmlel()
 %% @doc Make an `<iq/>' to send authentication informations.
 
 password(Fields_IQ, Username, Password, Resource, ID) ->
@@ -215,7 +215,7 @@ password(Fields_IQ, Username, Password, Resource, ID) ->
 %%     Username = binary()
 %%     Password = binary() | nil()
 %%     Resource = binary()
-%%     Password_IQ = exml:xmlel()
+%%     Password_IQ = exxml:xmlel()
 %% @doc Make an `<iq>' to send authentication informations.
 %%
 %% The stanza ID is generated automatically.
@@ -228,7 +228,7 @@ password_plain(Username, Password, Resource) ->
 %%     Password = binary() | nil()
 %%     Resource = binary()
 %%     ID = binary()
-%%     Password_IQ = exml:xmlel()
+%%     Password_IQ = exxml:xmlel()
 %% @doc Make an `<iq>' to send authentication informations.
 %%
 %% `Password' is in clear plain text in the stanza.
@@ -247,7 +247,7 @@ password_plain(Username, Password, Resource, ID) ->
 %%     Username = binary()
 %%     Password = binary()
 %%     Resource = binary()
-%%     Password_IQ = exml:xmlel()
+%%     Password_IQ = exxml:xmlel()
 %% @doc Make an `<iq>' to send authentication informations.
 %%
 %% The stanza ID is generated automatically.
@@ -260,7 +260,7 @@ password_digest(Username, Password, Resource) ->
 %%     Password = binary()
 %%     Resource = binary()
 %%     ID = binary()
-%%     Password_IQ = exml:xmlel()
+%%     Password_IQ = exxml:xmlel()
 %% @doc Make an `<iq>' to send authentication informations.
 %%
 %% `Password' is encoded as specified in XEP-0078.
@@ -278,7 +278,7 @@ password_digest(Username, Password, Resource, ID) ->
 %% --------------------------------------------------------------------
 
 %% @spec (Fields_IQ) -> Fields
-%%     Fields_IQ = exml:xmlel()
+%%     Fields_IQ = exxml:xmlel()
 %%     Fields = [binary()]
 %% @throws {legacy_auth, get_fields, invalid_iq, Fields_IQ} |
 %%         {legacy_auth, get_fields, invalid_field, Field}
@@ -304,7 +304,7 @@ get_fields2([], Fields) ->
     lists:reverse(Fields).
 
 %% @spec (Fields_IQ) -> Auth
-%%     Fields_IQ = exml:xmlel()
+%%     Fields_IQ = exxml:xmlel()
 %%     Auth = <<"digest">> | <<"password">>
 %% @doc Return the prefered authentication method.
 
@@ -315,7 +315,7 @@ get_prefered_auth(IQ) when ?IS_IQ(IQ) ->
     end.
 
 %% @spec (IQ) -> bool()
-%%     IQ = exml:xmlel()
+%%     IQ = exxml:xmlel()
 %% @doc Tell if the authentication succeeded.
 
 is_success(IQ) when ?IS_IQ(IQ) ->

@@ -43,7 +43,7 @@
 %% --------------------------------------------------------------------
 
 %% @spec () -> Feature
-%%     Feature = exml:xmlel()
+%%     Feature = exxml:xmlel()
 %% @doc Make a feature announcement child.
 %%
 %% TLS is announced as not required.
@@ -57,7 +57,7 @@ feature() ->
 
 %% @spec (Is_Required) -> Feature
 %%     Is_Required = boolean()
-%%     Feature = exml:xmlel()
+%%     Feature = exxml:xmlel()
 %% @doc Make a feature announcement child.
 %%
 %% The result should then be passed to {@link exmpp_stream:features/1}.
@@ -71,7 +71,7 @@ feature(Is_Required) ->
 %% --------------------------------------------------------------------
 
 %% @spec () -> Proceed
-%%     Proceed = exml:xmlel()
+%%     Proceed = exxml:xmlel()
 %% @doc Make an XML element to tell the initiating entity it can proceed
 %% with the TLS handshake.
 
@@ -79,7 +79,7 @@ proceed() ->
 	{xmlel, <<"proceed">>, [{<<"xmlns">>, ?NS_TLS}], []}.
 
 %% @spec () -> Failure
-%%     Failure = exml:xmlel()
+%%     Failure = exxml:xmlel()
 %% @doc Make an XML element to tell the initiating entity that the TLS
 %% handshake failed.
 

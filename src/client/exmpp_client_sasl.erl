@@ -44,7 +44,7 @@
 %% --------------------------------------------------------------------
 
 %% @spec (Features_Announcement) -> Mechanisms
-%%     Features_Announcement = exml:xmlel()
+%%     Features_Announcement = exxml:xmlel()
 %%     Mechanisms = [binary()]
 %% @throws {sasl, announced_mechanisms, invalid_feature, Feature} |
 %%         {sasl, announced_mechanisms, invalid_mechanism, El}
@@ -52,7 +52,7 @@
 
 announced_mechanisms({xmlel, F, _Attrs, _Children} = El) 
 	when F == <<"features">> orelse F == <<"stream:features">> ->
-    case exml:get_element(El, <<"mechanisms">>) of
+    case exxml:get_element(El, <<"mechanisms">>) of
         undefined  -> [];
         Mechanisms -> announced_mechanisms2(Mechanisms)
     end.
@@ -60,11 +60,11 @@ announced_mechanisms({xmlel, F, _Attrs, _Children} = El)
 announced_mechanisms2({xmlel, _N, _Attr, []} = Feature) ->
     throw({sasl, announced_mechanisms, invalid_feature, Feature});
 announced_mechanisms2(M) ->
-    announced_mechanisms3(exml:get_elements(M), []).
+    announced_mechanisms3(exxml:get_elements(M), []).
 
 announced_mechanisms3(
   [{xmlel,<<"mechanism">>, _Attrs, _Children} = El | Rest], Result) ->
-    case exml:get_cdata(El) of
+    case exxml:get_cdata(El) of
         <<>> ->
             throw({sasl, announced_mechanisms, invalid_mechanism, El});
         Mechanism ->
@@ -81,7 +81,7 @@ announced_mechanisms3([], Result) ->
 
 %% @spec (Mechanism) -> Auth
 %%     Mechanism = binary()
-%%     Auth = exml:xmlel()
+%%     Auth = exxml:xmlel()
 %% @doc Prepare an `<auth/>' element with the selected mechanism.
 
 selected_mechanism(Mechanism) ->
@@ -90,21 +90,21 @@ selected_mechanism(Mechanism) ->
 %% @spec (Mechanism, Initial_Response) -> Auth
 %%     Mechanism = binary()
 %%     Initial_Response = binary()
-%%     Auth = exml:xmlel()
+%%     Auth = exxml:xmlel()
 %% @doc Prepare an `<auth/>' element with the selected mechanism.
 %%
 %% The initial response will be Base64-encoded before inclusion.
 
 selected_mechanism(Mechanism, <<>>) ->
     El = selected_mechanism(Mechanism),
-    exml:append_child(El, {cdata, <<"=">>});
+    exxml:append_child(El, {cdata, <<"=">>});
 selected_mechanism(Mechanism, Initial_Response) ->
     El = selected_mechanism(Mechanism),
-    exml:append_child(El, {cdata, base64:encode(Initial_Response)}).
+    exxml:append_child(El, {cdata, base64:encode(Initial_Response)}).
 
 %% @spec (Response_Data) -> Response
 %%     Response_Data = binary()
-%%     Response = exml:xmlel()
+%%     Response = exxml:xmlel()
 %% @doc Prepare a `<response/>' element to send the challenge's response.
 %%
 %% `Response_Data' will be Base64-encoded.
@@ -114,14 +114,14 @@ response(Response_Data) ->
 	    [{cdata, base64:encode(Response_Data)}]}.
 
 %% @spec () -> Abort
-%%     Abort = exml:xmlel()
+%%     Abort = exxml:xmlel()
 %% @doc Make a `<abort/>' element.
 
 abort() ->
 	{xmlel, <<"abort">>, [{<<"xmlns">>, ?NS_SASL}], []}.
 
 %% @spec (El) -> Type
-%%     El = exml:xmlel()
+%%     El = exxml:xmlel()
 %%     Type = Challenge | Success | Failure
 %%     Challenge = {challenge, binary()}
 %%     Success = {success, binary()}
@@ -133,13 +133,13 @@ abort() ->
 %% Any challenge or success data is Base64-decoded.
 
 next_step({xmlel, <<"challenge">>, _Attrs, _Children} = El) ->
-	{challenge, base64:decode(exml:get_cdata(El))};
+	{challenge, base64:decode(exxml:get_cdata(El))};
 next_step({xmlel, <<"failure">>, _Attrs, _Children} = El) ->
-	case exml:get_elements(El) of
+	case exxml:get_elements(El) of
 		[{xmlel, Condition, _, _}] ->
 			{failure, Condition};
 		_ ->
 			{failure, undefined}
 	end;
 next_step({xmlel, <<"success">>, _Attrs, _Children} = El) ->
-    {success, base64:decode(exml:get_cdata(El))}.
+    {success, base64:decode(exxml:get_cdata(El))}.

@@ -48,7 +48,7 @@
 
 %% @spec (Mechanisms) -> Feature
 %%     Mechanisms = [binary() ]
-%%     Feature = exml:xmlel()
+%%     Feature = exxml:xmlel()
 %% @throws {sasl, feature_announcement, invalid_mechanisms_list, []} |
 %%         {sasl, feature_announcement, invalid_mechanism, Mechanism}
 %% @doc Make a feature announcement child.
@@ -86,7 +86,7 @@ standard_conditions() ->
 
 %% @spec (Challenge) -> Challenge_El
 %%     Challenge = binary() | none
-%%     Challenge_El = exml:xmlel()
+%%     Challenge_El = exxml:xmlel()
 %% @doc Prepare a `<challenge/>' element with the given challenge.
 %%
 %% `Challenge' will be Base64-encoded by this function.
@@ -97,7 +97,7 @@ challenge(Challenge) ->
 	{xmlel, <<"challenge">>, [{<<"xmlns">>, ?NS_SASL}], [{cdata, base64:encode(Challenge)}]}.
 
 %% @spec () -> Success_El
-%%     Success_El = exml:xmlel()
+%%     Success_El = exxml:xmlel()
 %% @doc Prepare a `<success/>' element.
 
 success() ->
@@ -105,7 +105,7 @@ success() ->
 
 %% @spec (Data) -> Success_El
 %%     Data = binary() | none
-%%     Success_El = exml:xmlel()
+%%     Success_El = exxml:xmlel()
 %% @doc Prepare a `<success/>' element with supplied XML character data.
 %% `Data' will be Base64-encoded by this function.
 
@@ -115,7 +115,7 @@ success(Data) ->
 	{xmlel, <<"success">>, [{<<"xmlns">>, ?NS_SASL}], [{cdata, base64:encode(Data)}]}.
 
 %% @spec () -> Failure
-%%     Failure = exml:xmlel()
+%%     Failure = exxml:xmlel()
 %% @doc Prepare a `<failure/>' element.
 
 failure() ->
@@ -123,7 +123,7 @@ failure() ->
 
 %% @spec (Condition) -> Failure
 %%     Condition = binary()
-%%     Failure = exml:xmlel()
+%%     Failure = exxml:xmlel()
 %% @doc Prepare a `<failure/>' element with a defined condition.
 
 failure(Condition) ->
@@ -131,21 +131,21 @@ failure(Condition) ->
         true  -> ok;
         false -> throw({sasl, failure, invalid_condition, Condition})
     end,
-    exml:append_child(failure(), {xmlel,Condition, [], []}).
+    exxml:append_child(failure(), {xmlel,Condition, [], []}).
 
 %% @spec (Condition, Text) -> Failure
 %%     Condition = binary()
 %%     Text = binary()
-%%     Failure = exml:xmlel()
+%%     Failure = exxml:xmlel()
 %% @doc Prepare a `<failure/>' element with a defined condition and text.
 
 failure(Condition, <<>>) ->
     failure(Condition);
 failure(Condition, Text) ->
-	exml:append_child(failure(Condition), {xmlel, <<"text">>, [], [{cdata, Text}]}).
+	exxml:append_child(failure(Condition), {xmlel, <<"text">>, [], [{cdata, Text}]}).
 
 %% @spec (El) -> Type
-%%     El = exml:xmlel()
+%%     El = exxml:xmlel()
 %%     Type = Auth | Response | Abort
 %%     Auth = {auth, Mechanism, none | binary()}
 %%     Mechanism = binary()
@@ -157,14 +157,14 @@ failure(Condition, Text) ->
 %% Any response data is Base64-decoded.
 
 next_step({xmlel, <<"auth">>, _, _} = El) ->
-    Mechanism = exml:get_attribute(El, <<"mechanism">>),
-    case exmpp_utils:strip(exml:get_cdata(El)) of
+    Mechanism = exxml:get_attribute(El, <<"mechanism">>),
+    case exmpp_utils:strip(exxml:get_cdata(El)) of
         <<>>      -> {auth, Mechanism, none};
         <<"=">>     -> {auth, Mechanism, <<>>};
         Encoded -> {auth, Mechanism, base64:decode(Encoded)}
     end;
 next_step({xmlel, <<"response">>, _, _} = El) ->
-    Encoded = exml:get_cdata(El),
+    Encoded = exxml:get_cdata(El),
     {response, base64:decode(Encoded)};
 next_step({xmlel, <<"abort">>, _, _}) ->
     abort;

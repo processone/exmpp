@@ -18,8 +18,8 @@ announced_support_test() ->
 bind_test() ->
 	R = exmpp_client_binding:bind(<<"a">>),
 	io:format("~p\n", [R]),
-	?assertEqual(?NS_BIND, exml:get_path(R, [{element, <<"bind">>}, {attribute, <<"xmlns">>}])),
-	?assertEqual(<<"a">>, exml:get_path(R, [{element, <<"bind">>}, {element, <<"resource">>}, cdata])),
+	?assertEqual(?NS_BIND, exxml:get_path(R, [{element, <<"bind">>}, {attribute, <<"xmlns">>}])),
+	?assertEqual(<<"a">>, exxml:get_path(R, [{element, <<"bind">>}, {element, <<"resource">>}, cdata])),
 	ok.
 
 bounded_jid_test_disabled() ->
@@ -28,7 +28,7 @@ bounded_jid_test_disabled() ->
 	B = <<"<iq type='result' id='bind_2'>", 
 	   "<bind xmlns='urn:ietf:params:xml:ns:xmpp-bind'>",
 	  " <jid>somenode@example.com/someresource</jid> </bind> </iq>">>,
-       {ok, [R]} = exml:parse_document(B),
+       {ok, [R]} = exxml:parse_document(B),
        ?assertMatch(<<"somenode@example.com/someresource">>, exmpp_jid:to_binary(exmpp_client_binding:bounded_jid(R))),
        ok.
 

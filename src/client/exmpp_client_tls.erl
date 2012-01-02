@@ -41,19 +41,19 @@
 %% --------------------------------------------------------------------
 
 %% @spec (Features_Announcement) -> Support
-%%     Features_Announcement = exml:xmlel()
+%%     Features_Announcement = exxml:xmlel()
 %%     Support = none | optional | required
 %% @throws {tls, announced_support, invalid_announcement, El}
 %% @doc Return the kind of TLS negotiation the receiving entity asks for.
 
 announced_support({xmlel, F, _, _} = El) when F == <<"features">> orelse F == <<"stream:features">> ->
-    case exml:get_element(El, <<"starttls">>) of
+    case exxml:get_element(El, <<"starttls">>) of
         undefined -> none;
         Child     -> announced_support2(Child)
     end.
 
 announced_support2(El) ->
-	case exml:get_elements(El) of
+	case exxml:get_elements(El) of
 		[] ->   optional;
 		[{xmlel, <<"required">>, _, _}] -> required;
 		_ -> throw({tls, announced_support, invalid_announcement, El})
@@ -64,7 +64,7 @@ announced_support2(El) ->
 %% --------------------------------------------------------------------
 
 %% @spec () -> STARTTLS
-%%     STARTTLS = exml:xmlel()
+%%     STARTTLS = exxml:xmlel()
 %% @doc Make an XML element to tell the receiving entity that we want to
 %% use TLS.
 
