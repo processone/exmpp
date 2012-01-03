@@ -23,78 +23,154 @@
 
 %% Creating elements.
 -export([
-	 key/3,
-	 verify_request/4,
-	 verify_response/2,
-	 validate/1,
-	 validate/2
-	]).
+    key/3,
+    verify_request/4,
+    verify_response/2,
+    validate/1,
+    validate/2
+]).
+
+-define(Xmlel(Name, Attrs, Children),
+(
+    exxml:element(undefined, <<?NS_DIALBACK_pfx/binary, ":", Name/binary>>, Attrs,
+        Children)
+)).
+
+-export_type([
+  from/0,
+  to/0,
+  id/0,
+  key/0
+]).
+
+-type(from() :: binary()).
+-type(to()   :: binary()).
+-type(key()  :: binary()).
+-type(id()   :: binary()).
+
+-export_type([
+  type/0,
+  type_valid/0,
+  type_invalid/0,
+  type_error/0
+]).
+
+-type(type_valid()   :: <<_:40>>).
+-type(type_invalid() :: <<_:56>>).
+-type(type_error()   :: <<_:40>>).
+
+-type(type() :: exmpp_dialback:type_valid()
+              | exmpp_dialback:type_invalid()
+              | exmpp_dialback:type_error()
+).
+
+-export_type([
+  xmlel_db_verify/0
+]).
+
+-type(xmlel_db_verify()
+  :: #xmlel{
+         name     :: <<_:48>>,
+         attrs    :: [
+             {From :: <<_:32>>, exmpp_dialback:from()} |
+             {To   :: <<_:16>>, exmpp_dialback:to()}   |
+             {Id   :: <<_:16>>, exmpp_dialback:id()}   ,...
+         ],
+         children :: [exxml:cdata()]
+     }
+).
+
+-type(xmlel_db_result()
+  :: #xmlel{
+         name     :: <<_:48>>,
+         attrs    :: [
+             {From :: <<_:32>>, exmpp_dialback:from()} |
+             {To   :: <<_:16>>, exmpp_dialback:to()}   |
+             {Id   :: <<_:16>>, exmpp_dialback:id()}   |
+             {Type :: <<_:32>>, exmpp_dialback:type()} ,...
+         ],
+         children :: [exxml:cdata()]
+     }
+).
 
 %% --------------------------------------------------------------------
 %% Creating elements.
 %% --------------------------------------------------------------------
 
-%% @spec (From, To, Key) -> Result
-%%     From =  binary()
-%%     To =  binary()
-%%     Key = binary() 
-%%     Result = exxml:xmlel()
 %% @doc Prepare a `<db:result/>' element to send the key to the
 %% Receiving Server.
+-spec(key/3 ::
+(
+  From :: exmpp_dialback:from(),
+  To   :: exmpp_dialback:to(),
+  Key  :: exmpp_dialback:key())
+    -> Xmlel_Db_Result::exmpp_dialback:xmlel_db_result()
+).
 
 key(From, To, Key) ->
-	{xmlel, <<?NS_DIALBACK_pfx/binary,":result">>, 
-		[{<<"from">>, From}, {<<"to">>, To}],
-		[{cdata, Key}]}.
+    ?Xmlel(<<"result">>,
+        [exxml:attribute(<<"from">>, From),
+         exxml:attribute(<<"to">>, To)],
+        [exxml:cdata(Key)]).
 
-%% @spec (From, To, ID, Key) -> Request
-%%     From = binary()
-%%     To = binary()
-%%     ID = binary() | random
-%%     Key = binary() 
-%%     Request = exxml:xmlel()
-%% @doc Prepare a `<db:verify/>' element to send to the Authoritative
-%% Server.
+%% @doc Prepare a `<db:verify/>' element to send to the Authoritative Server.
+-spec(verify_request/4 ::
+(
+  From :: exmpp_dialback:from(),
+  To   :: exmpp_dialback:to(),
+  Id   :: exmpp_dialback:id(),
+  Key  :: exmpp_dialback:key() | 'random')
+    -> Xmlel_Db_Verify::exmpp_dialback:xmlel_db_verify()
+).
 
-verify_request(From, To, ID, random) ->
-	verify_request(From, To, ID, exmpp_utils:random_id(<<"verify">>));
-verify_request(From, To, ID, Key) ->
-	{xmlel, <<?NS_DIALBACK_pfx/binary, ":verify">>, 
-		[{<<"from">>, From}, {<<"to">>, To}, {<<"id">>, ID}], 
-		[{cdata, Key}]}.
+verify_request(From, To, Id, 'random') ->
+    verify_request(From, To, Id, exmpp_utils:random_id(<<"verify">>));
+verify_request(From, To, Id, Key) ->
+    ?Xmlel(<<"verify">>,
+        [exxml:attribute(<<"from">>, From),
+         exxml:attribute(<<"to">>, To),
+         exxml:attribute(<<"id">>, Id)],
+        [exxml:cdata(Key)]).
 
+%% @doc Prepare a `<db:verify/>' element to answer to the Receiving Server.
+-spec(verify_response/2 ::
+(
+  Request  :: exmpp_dialback:xmlel_db_verify(),
+  Is_Valid :: boolean())
+    -> Xmlel_Db_Verify::exmpp_dialback:xmlel_db_verify()
+).
 
-%% @spec (Request, Is_Valid) -> Response
-%%     Request = exxml:xmlel()
-%%     Is_Valid = boolean()
-%%     Response = exxml:xmlel()
-%% @doc Prepare a `<db:verify/>' element to answer to the Receiving
-%% Server.
+verify_response(Request, true = _Is_Valid) ->
+    exxml:set_attribute(exmpp_stanza:reply_without_content(Request),
+        <<"type">>, <<"valid">>);
+verify_response(Request, false = _Is_Valid) ->
+    exxml:set_attribute(exmpp_stanza:reply_without_content(Request),
+        <<"type">>, <<"invalid">>).
 
-verify_response(Request, Is_Valid) ->
-    Response = exmpp_stanza:reply_without_content(Request),
-    case Is_Valid of
-        true  -> exxml:set_attribute(Response, <<"type">>, <<"valid">>);
-        false -> exxml:set_attribute(Response,<<"type">>, <<"invalid">>)
-    end.
-
-%% @spec (Result) -> Response
-%%     Result = exxml:xmlel()
-%%     Response = exxml:xmlel()
 %% @doc Prepare a `<db:result/>' element to answer to the Originating
 %% Server.
+-spec(validate/1 ::
+(
+  Result::exmpp_dialback:xmlel_db_result())
+    -> Xmlel_Db_Result::exmpp_dialback:xmlel_db_result()
+).
 
 validate(Result) ->
-    Response = exmpp_stanza:reply_without_content(Result),
-    exxml:set_attribute(Response,<<"type">>, <<"valid">>).
+    exxml:set_attribute(exmpp_stanza:reply_without_content(Result),
+        <<"type">>, <<"valid">>).
 
-%% @spec (From, To) -> Response
-%%     From = binary()
-%%     To =  binary()
-%%     Response = exxml:xmlel()
-%% @doc Prepare a `<db:result/>' element to answer to the Originating
-%% Server.
+%% @doc Prepare a `<db:result/>' element to answer to the Originating Server.
+-spec(validate/2 ::
+(
+  From :: exmpp_dialback:from(),
+  To   :: exmpp_dialback:to())
+    -> Xmlel_Db_Result::exmpp_dialback:xmlel_db_result()
+).
 
 validate(From, To) ->
-	{xmlel, <<?NS_DIALBACK_pfx/binary, ":result">>, 
-		[{<<"from">>, From}, {<<"to">>, To}, {<<"type">>, <<"valid">>}], []}.
+    ?Xmlel(<<"result">>,
+        [exxml:attribute(<<"from">>, From),
+         exxml:attribute(<<"to">>, To),
+         exxml:attribute(<<"type">>, <<"valid">>)],
+        []).
+

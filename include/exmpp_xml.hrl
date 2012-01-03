@@ -59,11 +59,9 @@
 
 % Elements.
 -record(xmlel, {
-  ns = undefined   :: xmlname() | undefined,
-  declared_ns = [] :: [{xmlname(), string() | none}],
-  name             :: xmlname(),
-  attrs = []       :: [xmlattr()],
-  children = []    :: [#xmlel{} | xmlcdata()] | undefined
+		name,
+		attrs,
+		children
 }).
 -type(xmlel() :: #xmlel{}).
 
