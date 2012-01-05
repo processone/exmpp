@@ -34,17 +34,17 @@
 -include("exmpp.hrl").
 
 -export([
-	 start/2,
-	 reset/1,
-	 get_parser/1,
-	 stop/1,
-	 parse/2,
-	 send_events/2,
-	 change_callback/2,
-	 parse_element/1,
-	 parse_element/2,
-	 set_wrapper_tagnames/2 %% Used to unwrap BOSH enclosing body
-	]).
+     start/2,
+     reset/1,
+     get_parser/1,
+     stop/1,
+     parse/2,
+     send_events/2,
+     change_callback/2,
+     parse_element/1,
+     parse_element/2,
+     set_wrapper_tagnames/2 %% Used to unwrap BOSH enclosing body
+    ]).
 
 -type(process()  :: pid() | atom()).
 -type(callback() ::
@@ -57,15 +57,15 @@
      ).
 
 -record(xml_stream, {
-	  callback             :: callback(),
-	  parser,
-	  opened = false       :: boolean(),
-	  wrapper_tagnames = undefined :: undefined | [binary() ]
-	 }).
+      callback             :: callback(),
+      parser,
+      opened = false       :: boolean(),
+      wrapper_tagnames = undefined :: undefined | [binary() ]
+     }).
 -type(xmlstream() :: #xml_stream{}).
 
 -type(xmlstreamevent() ::
-	{xmlstreamstart, binary(), [exxml:xmlattr()]} |
+    {xmlstreamstart, binary(), [exxml:attr()]} |
       #xmlstreamstart{} |
       #xmlstreamelement{} |
       #xmlstreamend{}
@@ -78,7 +78,7 @@
 %% @spec (Callback, Parser) -> Stream
 %%     Callback = callback()
 %%     Stream = xmlstream()
-%%     Parser = exxml:xmlparser()
+%%     Parser = exxml:parser()
 %% @doc Start a new stream handler.
 %%
 %% The XML parser is reset and option `{root_depth, 1}' is set 
@@ -88,38 +88,47 @@
 %% @see exxml:reset_parser/2.
 
 -spec(start/2 ::
-      (callback(), exxml:xmlparser()) -> xmlstream()).
-
+(
+  Callback :: callback(),
+  Parser   :: exxml:parser())
+    -> Stream::xmlstream()
+).
 
 start(Callback, Parser) ->
-    Callback2 = case Callback of
-		    Pid when is_pid(Pid) -> {process, Pid};
-		    _                    -> Callback
-		end,
-    ok = exxml:reset_parser(Parser,
-					[{root_depth, 1} ]),
+    ok = exxml:reset_parser(Parser, [{root_depth, 1}]),
     #xml_stream{
-		     callback = Callback2,
-		     parser = Parser
-		    }.
+        callback = case is_pid(Callback) of
+            true -> {process, Callback};
+            _    -> Callback
+        end,
+        parser   = Parser
+    }.
 
 %% @spec (Stream) -> New_Stream
 %%     Stream = xmlstream()
 %%     New_Stream = xmlstream()
 %% @doc Reset stream and the underlying XML parser.
 
--spec(reset/1 :: (xmlstream()) -> xmlstream()).
+-spec(reset/1 ::
+(
+  Stream::xmlstream())
+    -> Stream::xmlstream()
+).
 
-reset(#xml_stream{parser = Parser} = Stream) ->
-    ok = exxml:reset_parser(Parser),
+reset(Stream) ->
+    ok = exxml:reset_parser(Stream#xml_stream.parser),
     Stream#xml_stream{opened = false}.
 
 %% @spec (Stream) -> Parser
 %%     Stream = xmlstream()
-%%     Parser = exxml:xmlparser()
+%%     Parser = exxml:parser()
 %% @doc Return the XML parser used.
 
--spec(get_parser/1 :: (xmlstream()) -> exxml:xmlparser()).
+-spec(get_parser/1 ::
+(
+  Stream::xmlstream())
+    -> Parser::exxml:parser()
+).
 
 get_parser(#xml_stream{parser = Parser}) ->
     Parser.
@@ -137,7 +146,11 @@ get_parser(#xml_stream{parser = Parser}) ->
 %%
 %% @see get_parser/1.
 
--spec(stop/1 :: (xmlstream()) -> ok).
+-spec(stop/1 ::
+(
+  Stream::xmlstream())
+    -> ok
+).
 
 stop(_Stream) ->
     ok.
@@ -156,87 +169,89 @@ stop(_Stream) ->
 %% Potential events are described by the {@link xmlstreamevent()} type.
 
 -spec(parse/2 ::
-      (xmlstream(), binary() ) ->
-	     {ok, xmlstream()} | {ok, xmlstream(), [xmlstreamevent()]} |
-		 {error, any()}).
+(
+  Stream :: xmlstream(),
+  Data   :: binary())
+    -> {ok, xmlstream()}
+     | {ok, xmlstream(), [xmlstreamevent()]}
+     | {error, any()}
+).
 
-parse(#xml_stream{parser = Parser} = Stream, Data) ->
-    try exxml:parse(Parser, Data) of
-	    {ok, XML_Elements} ->
-		    {ok, New_Stream, Events} = process_elements(Stream, XML_Elements),
-		    send_events(New_Stream, Events)
+parse(Stream, Data) ->
+    try exxml:parse(Stream#xml_stream.parser, Data) of
+        {ok, Xmlels} ->
+            {ok, New_Stream, Events} = process_elements(Stream, Xmlels),
+            send_events(New_Stream, Events)
     catch
         throw:{xml_parser, parsing, Error, Reason} ->
             send_events(Stream, [{xmlstreamerror, {Error, Reason}}]);
-	  throw:Exception ->
+        throw:Exception ->
             throw(Exception)
     end.
 
 %% No wrapper tag defined:
-process_elements(#xml_stream{wrapper_tagnames=undefined} = Stream, XML_Elements) ->
-    process_elements2(Stream, XML_Elements, []);
+process_elements(#xml_stream{wrapper_tagnames=undefined} = Stream, Xmlels) ->
+    process_elements2(Stream, Xmlels, []);
 %% Wrapper tags defined:
 %% Remove level 1 wrapper tags.
 %% Known use case: Remove enclosing body for BOSH support
-process_elements(#xml_stream{wrapper_tagnames=TagNames} = Stream, XML_Elements)
-  when TagNames /= undefined ->
-    New_XML_Elements =
-	lists:map(
-	  fun({xmlel, Name, _Attrs, Children} = XML_Element) ->
-		  case lists:member(Name, TagNames) of
-		      true -> case Children of
-				      undefined -> [];
-				      _ -> Children
-				end;
-		      false -> XML_Element
-		  end;
-	      ({xmlelend, Name} = XML_Element)->
-		  case lists:member(Name, TagNames) of
-		      true -> [];
-		      false -> XML_Element
-		  end
-	  end, XML_Elements),
+process_elements(Stream, Xmlels)
+  when Stream#xml_stream.wrapper_tagnames /= undefined ->
+    New_Xmlels = lists:map(fun
+        (Xmlel) when is_record(Xmlel, 'xmlel') ->
+            case
+                lists:member(Xmlel#xmlel.name, Stream#xml_stream.wrapper_tagnames)
+            of
+                true ->
+                    case Xmlel#xmlel.children of
+                        undefined -> [];
+                        _         -> Xmlel#xmlel.children
+                    end;
+                false ->
+                    Xmlel
+            end;
+        ({xmlelend, Name})->
+            case lists:member(Name, Stream#xml_stream.wrapper_tagnames) of
+                true  -> [];
+                false -> {xmlelend, Name}
+            end
+    end, Xmlels),
     %%horrible hack, fixme
-    Filtered = lists:flatten(New_XML_Elements),
-    Opened = Stream#xml_stream.opened orelse length(Filtered) /= length(XML_Elements),
+    Filtered = lists:flatten(New_Xmlels),
+    Opened = Stream#xml_stream.opened orelse length(Filtered) /= length(Xmlels),
     process_elements2(Stream#xml_stream{opened = Opened}, Filtered, []);
 %% All other cases (for example endtag)
-process_elements(Stream, XML_Elements) ->
-    process_elements2(Stream, XML_Elements, []).
+process_elements(Stream, Xmlels) ->
+    process_elements2(Stream, Xmlels, []).
 
-process_elements2(Stream, [XML_Element | Rest], Events) ->
-	io:format("~p|~p \n", [XML_Element, Rest]),
-    case XML_Element of
-	{xmlel, _Name, _Attrs, _} when Stream#xml_stream.opened == false ->
-	    %% Stream is freshly opened.
+process_elements2(Stream, [Xmlel | Rest], Events) ->
+    io:format("~p|~p \n", [Xmlel, Rest]),
+    case Xmlel of
+        #xmlel{} when Stream#xml_stream.opened == false ->
+            %% Stream is freshly opened.
             New_Stream = Stream#xml_stream{opened = true},
-            New_Events =  [#xmlstreamstart{element = XML_Element} | Events],
+            New_Events =  [#xmlstreamstart{element = Xmlel} | Events],
             process_elements2(New_Stream, Rest, New_Events);
-    	{xmlel, _, _,_} ->
-	    %% An "depth 1" element and its children.
-            New_Events = [#xmlstreamelement{element = XML_Element} |
-			  Events],
+        #xmlel{} ->
+            %% An "depth 1" element and its children.
+            New_Events = [#xmlstreamelement{element = Xmlel} | Events],
             process_elements2(Stream, Rest, New_Events);
-
-
-	%% Common.
-	{xmlelend, _Name} ->
-	    %% Stream is closed.
+        %% Common.
+        {xmlelend, _} ->
+            %% Stream is closed.
             New_Stream = Stream#xml_stream{opened = false},
-            New_Events = [#xmlstreamend{endtag = XML_Element} |
-			  Events],
+            New_Events = [#xmlstreamend{endtag = Xmlel} | Events],
             process_elements2(New_Stream, Rest, New_Events);
-
-	%% Character data as <stream> child, ignore.
-	%% This is probably a keep-alive whitespace.
-	{cdata, _} ->
+        %% Character data as <stream> child, ignore.
+        %% This is probably a keep-alive whitespace.
+        {cdata, _} ->
             process_elements2(Stream, Rest, Events)
     end;
 process_elements2(Stream, [], Events) ->
     {ok, Stream, lists:reverse(Events)}.
 
 send_events(#xml_stream{callback = {gen_fsm, Pid}} = Stream,
-	    [Event | Rest]) ->
+        [Event | Rest]) ->
     case catch gen_fsm:send_event(Pid, Event) of
         {'EXIT', Reason} ->
             {error, {'EXIT', Reason}};
@@ -244,7 +259,7 @@ send_events(#xml_stream{callback = {gen_fsm, Pid}} = Stream,
             send_events(Stream, Rest)
     end;
 send_events(#xml_stream{callback = {process, Pid}} = Stream,
-	    [Event | Rest]) ->
+        [Event | Rest]) ->
     case catch Pid ! Event of
         {'EXIT', Reason} ->
             {error, {'EXIT', Reason}};
@@ -252,7 +267,7 @@ send_events(#xml_stream{callback = {process, Pid}} = Stream,
             send_events(Stream, Rest)
     end;
 send_events(#xml_stream{callback = {apply, {M, F, Extra}}} = Stream,
-	    [Event | Rest]) ->
+        [Event | Rest]) ->
     case catch M:F(Event, Extra) of
         {error, Reason} ->
             {error, Reason};
@@ -275,23 +290,28 @@ send_events(Stream, []) ->
 %%     NewStream = xmlstream()
 %% @doc Change callback of the stream.
 
--spec(change_callback/2 :: (xmlstream(), callback()) -> xmlstream()).
+-spec(change_callback/2 ::
+(
+  Stream   :: xmlstream(),
+  Callback :: callback())
+    -> Stream::xmlstream()
+).
 
-change_callback(Stream, CallBack) ->
-    NewCallBack = if is_pid(CallBack) ->
-			  {process, CallBack};
-		     true ->
-			  CallBack
-		  end,
-    Stream#xml_stream{callback = NewCallBack}.
+change_callback(Stream, Callback) ->
+    Stream#xml_stream{
+        callback = case is_pid(Callback) of
+            true  -> {process, Callback};
+            false -> Callback
+        end
+    }.
 
 %% --------------------------------------------------------------------
 %% Document parsing.
 %% --------------------------------------------------------------------
 
-%% @spec (Data) -> [XML_Element]
+%% @spec (Data) -> [Xmlel]
 %%     Data =  binary()
-%%     XML_Element = exxml:xmlel() 
+%%     Xmlel = exxml:el() 
 %% @doc Parse the given data.
 %%
 %% The XML parser is created with default options.
@@ -300,16 +320,18 @@ change_callback(Stream, CallBack) ->
 %% @see exxml:parse_document/1.
 
 -spec(parse_element/1 ::
-      (binary() ) ->
-	     [exxml:xmlnode() | emxl:xmlendtag()]).
+(
+  Data::binary())
+    -> [exxml:el() | exxml:cdata() | exxml:endtag()]
+).
 
 parse_element(Data) ->
     parse_element(Data, []).
 
-%% @spec (Data, Parser_Options) -> [XML_Element]
+%% @spec (Data, Parser_Options) -> [Xmlel]
 %%     Data = binary()
-%%     Parser_Options = [exxml:xmlparseroption()]
-%%     XML_Element = exxml:xmlel() | exxml:xmlcdata()
+%%     Parser_Options = [exxml:parseroption()]
+%%     Xmlel = exxml:el() | exxml:cdata()
 %% @doc Parse the given data.
 %%
 %% The XML parser is created with given `Parser_Options' options.
@@ -318,15 +340,18 @@ parse_element(Data) ->
 %% @see exxml:parse_document/2.
 
 -spec(parse_element/2 ::
-      (binary() , [exxml:xmlparseroption()]) ->
-	     [exxml:xmlnode() | exxml:xmlendtag()]).
+(
+  Data           :: binary(),
+  Parser_Options :: [exxml:parseroption()])
+    -> [exxml:el() | exxml:cdata() | exxml:endtag()]
+).
 
 parse_element(Data, Parser_Options) ->
     case exxml:parse_document(Data, Parser_Options) of
        {ok, []} ->
             throw({xmlstream, parse_element, parse_error, []});
-       {ok, [XML_Element]} ->
-            XML_Element
+       {ok, [Xmlel]} ->
+            Xmlel
     end.
 
 %% @spec (Stream, TagNames) -> New_Stream
@@ -336,7 +361,12 @@ parse_element(Data, Parser_Options) ->
 %% @doc Reset stream and the underlying XML parser.
 %% TODO: Support wrapper tag match on both namespace and name ?
 
--spec(set_wrapper_tagnames/2 :: (xmlstream(), [binary()]) -> xmlstream()).
+-spec(set_wrapper_tagnames/2 ::
+(
+  Stream   :: xmlstream(),
+  TagNames :: [binary()])
+    -> Stream::xmlstream()
+).
 
 set_wrapper_tagnames(Stream, TagNames) when is_list(TagNames) ->
     Stream#xml_stream{wrapper_tagnames = TagNames}.
@@ -386,12 +416,12 @@ set_wrapper_tagnames(Stream, TagNames) when is_list(TagNames) ->
 %% start/0} or {@link start/1}.
 
 %% @type xmlstreamevent() = Stream_Start | Stream_Element | Stream_End | Error
-%%     Stream_Start = {xmlstreamstart, XML_Element} | {xmlstreamstart, Name, Attrs}
-%%     Stream_Element = {xmlstreamelement, XML_Element}
+%%     Stream_Start = {xmlstreamstart, Xmlel} | {xmlstreamstart, Name, Attrs}
+%%     Stream_Element = {xmlstreamelement, Xmlel}
 %%     Stream_End = {xmlstreamend, XML_End_Tag}
-%%       XML_Element = exxml:xmlel() 
-%%       XML_End_Tag = exxml:xmlendtag()
+%%       Xmlel = exxml:el() 
+%%       XML_End_Tag = exxml:endtag()
 %%       Name = binary()
-%%       Attrs = [exxml:xmlattr()]
+%%       Attrs = [exxml:attr()]
 %%     Stream_Error = {xmlstreamerror, Reason}.
 %% Records representing an event sent by the {@link parse/2} function.
