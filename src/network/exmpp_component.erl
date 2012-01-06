@@ -264,13 +264,12 @@ wait_for_stream(_Event, _From, State) ->
     {reply, {error, busy_connecting_to_server}, wait_for_stream, State}.
 %% TODO: Check that we receive a client stream. Need change in the
 %% parsing library.
-wait_for_stream(Start = #xmlstreamstart{element={xmlel, Stream, _, _}},
-  State = #state{connection = _Module, connection_ref = _ConnRef, auth_method = _Auth,
-  from_pid = From})
-  when Stream == <<"stream">> ; Stream == <<"stream:stream">> ->
+wait_for_stream(#xmlstreamstart{element = Xmlel_Stream}, State)
+  when Xmlel_Stream#xmlel.name == <<"stream">> ;
+       Xmlel_Stream#xmlel.name == <<"stream:stream">> ->
     %% Get StreamID
-    StreamId = exxml:get_attribute(Start#xmlstreamstart.element, <<"id">>, <<>>),
-    gen_fsm:reply(From, StreamId),
+    StreamId = exxml:get_attribute(Xmlel_Stream, <<"id">>, <<>>),
+    gen_fsm:reply(State#state.from_pid, StreamId),
     {next_state,
      stream_opened,
      State#state{from_pid = undefined, stream_id = StreamId}}.
@@ -283,16 +282,15 @@ wait_for_stream(Start = #xmlstreamstart{element={xmlel, Stream, _, _}},
 stream_opened({handshake}, _From,State=#state{auth_method=undefined}) ->
     {reply, {error, auth_method_undefined}, stream_opened, State};
 stream_opened({handshake}, From,
-  State=#state{connection = Module, connection_ref = ConnRef, stream_id = StreamId,
-  auth_method = {_Domain, Password}}) ->
+  State=#state{connection = Module, auth_method = {_Domain, Password}}) ->
     %% Retrieve supported authentication methods:
     %% TODO: Do different thing if we use basic or SASL auth
     %% For now, we consider everything is legacy (basic)
     Digest = exmpp_client_legacy_auth:hex(
-        exmpp_client_legacy_auth:digest(StreamId, Password)),
-    Handshake = {xmlel, <<"handshake">>, [], [{cdata, Digest}]},
-    Module:send(ConnRef, Handshake),
-    {next_state, wait_for_handshake_result, State#state{from_pid=From}};
+        exmpp_client_legacy_auth:digest(State#state.stream_id, Password)),
+    Handshake = #xmlel{name = <<"handshake">>, children = [{cdata, Digest}]},
+    Module:send(State#state.connection_ref, Handshake),
+    {next_state, wait_for_handshake_result, State#state{from_pid = From}};
 
 %% We can define update handshake informations after we are connected to
 %% the XMPP server:
@@ -306,27 +304,28 @@ stream_opened({presence, _Status, _Show}, _From, State) ->
 %% code.
 %% If the packet is an iq set or get:
 %% We check that there is a valid id and return it to match the reply
-stream_opened({send_packet, Packet}, _From,
-  State = #state{connection = Module, connection_ref = ConnRef}) ->
-    Id = send_packet(Packet, Module, ConnRef),
+stream_opened({send_packet, Packet}, _From, State = #state{connection = Module}) ->
+    Id = send_packet(Packet, Module, State#state.connection_ref),
     {reply, Id, stream_opened, State}.
 
 %% Process incoming
 %% Dispatch incoming messages
-stream_opened(#xmlstreamelement{element={xmlel, <<"message">>, _, _}=MessageElement}, State = #state{connection = _Module, connection_ref = _ConnRef}) ->
-    process_message(State#state.client_pid, MessageElement),
+stream_opened(#xmlstreamelement{element = Xmlel_Message}, State)
+  when Xmlel_Message#xmlel.name == <<"message">> ->
+    process_message(State#state.client_pid, Xmlel_Message),
     {next_state, stream_opened, State};
 %% Dispach IQs from server
-stream_opened(#xmlstreamelement{element={xmlel, <<"iq">>, _, _}=IQElement}, State) ->
-    process_iq(State#state.client_pid, IQElement),
+stream_opened(#xmlstreamelement{element = Xmlel_IQ}, State)
+  when Xmlel_IQ#xmlel.name == <<"iq">> ->
+    process_iq(State#state.client_pid, Xmlel_IQ),
     {next_state, stream_opened, State};
 %% Handle stream error: We keep the process alive to be able
 %%                      return errors
-stream_opened(
-  #xmlstreamelement{element={xmlel, Error, _, [{xmlel, Reason, _, _} | _More]}},
+stream_opened(#xmlstreamelement{
+  element = #xmlel{name = Name, children = [#xmlel{name = Reason} | _]}},
   State)
-  when Error == <<"error">>; Error == <<"stream:error">> ->
-    {next_state, stream_error, State#state{stream_error=Reason}};
+  when Name == <<"error">>; Name == <<"stream:error">> ->
+    {next_state, stream_error, State#state{stream_error = Reason}};
 %% Handle end of stream
 stream_opened(#xmlstreamend{}, State) ->
     {next_state, stream_closed, State}.
@@ -346,19 +345,18 @@ stream_closed(_Signal, State) ->
     {next_state, stream_closed, State}.
 
 wait_for_handshake_result(
-  #xmlstreamelement{element={xmlel, <<"handshake">>, _, _}},
-  State = #state{from_pid = From}) ->
-    case From of
+  #xmlstreamelement{element = #xmlel{name = <<"handshake">>}}, State) ->
+    case State#state.from_pid of
         undefined -> ok;
-        From      -> gen_fsm:reply(From, ok)
+        _         -> gen_fsm:reply(State#state.from_pid, ok)
     end,
     {next_state, session_established, State};
 
 %% Reason comes from streamerror macro
-wait_for_handshake_result(
-  #xmlstreamelement{element={xmlel, Error, _, [{xmlel, Reason, _, _} | _More]}},
+wait_for_handshake_result(#xmlstreamelement{
+  element = #xmlel{name = Name, children = [#xmlel{name = Reason} | _]}},
   State)
-  when Error == <<"error">>; Error == <<"stream:error">> ->
+  when Name == <<"error">>; Name == <<"stream:error">> ->
     {stop, {error, Reason}, State}.
 
 %% ---
@@ -366,29 +364,27 @@ wait_for_handshake_result(
 %% If the packet is an iq set or get:
 %% We check that there is a valid id and return it to match the reply
 session_established({send_packet, Packet}, _From,
-  State = #state{connection = Module, connection_ref = ConnRef}) ->
-    Id = send_packet(Packet, Module, ConnRef),
+  State = #state{connection = Module}) ->
+    Id = send_packet(Packet, Module, State#state.connection_ref),
     {reply, Id, session_established, State}.
 
 %% ---
 %% Receive packets
 %% When logged in we dispatch the event we receive
 %% Dispatch incoming presence packets
-session_established(
-  #xmlstreamelement{element={xmlel, <<"presence">>, _, _}=PresenceElement},
-  State = #state{connection = _Module, connection_ref = _ConnRef}) ->
-    process_presence(State#state.client_pid,  PresenceElement),
+session_established(#xmlstreamelement{element = Xmlel_Presence}, State)
+  when Xmlel_Presence#xmlel.name == <<"presence">> ->
+    process_presence(State#state.client_pid, Xmlel_Presence),
     {next_state, session_established, State};
 %% Dispatch incoming messages
-session_established(
-  #xmlstreamelement{element={xmlel,<<"message">>, _, _}=MessageElement},
-  State = #state{connection = _Module, connection_ref = _ConnRef}) ->
-    process_message(State#state.client_pid, MessageElement),
+session_established(#xmlstreamelement{element = Xmlel_Message}, State)
+  when Xmlel_Message#xmlel.name == <<"message">> ->
+    process_message(State#state.client_pid, Xmlel_Message),
     {next_state, session_established, State};
 %% Dispach IQs from server
-session_established(
-  #xmlstreamelement{element={xmlel, <<"iq">>, _, _}=IQElement}, State) ->
-    process_iq(State#state.client_pid, IQElement),
+session_established(#xmlstreamelement{element = Xmlel_IQ}, State)
+  when Xmlel_IQ#xmlel.name == <<"iq">> ->
+    process_iq(State#state.client_pid, Xmlel_IQ),
     {next_state, session_established, State};
 %% Process unexpected packet
 session_established(_Packet, State) ->
@@ -407,7 +403,7 @@ session_established(_Packet, State) ->
 %% Connect to server
 connect(Module, Params, From, State=#state{auth_method = {Domain, _P}}) ->
     connect(Module, Params, Domain, From, State).
-connect(Module, Params, Domain, From, #state{client_pid=_ClientPid} = State) ->
+connect(Module, Params, Domain, From, State) ->
     try start_parser() of
         StreamRef ->
             try Module:connect(self(), StreamRef, Params) of
@@ -471,36 +467,45 @@ process_iq(ClientPid, Packet) ->
     parse_and_deliver(ClientPid, Packet, fun do_process_iq/2).
 
 do_process_presence(ClientPid, Packet) ->
-    Type = exmpp_presence:get_type(Packet),
-    Who = exmpp_jid:to_lower(exxml:get_attribute(Packet, <<"from">>, <<>>)),
-    Id = exxml:get_attribute(Packet, <<"id">>, <<>>),
-    ClientPid ! #received_packet{packet_type = <<"presence">>,
-                                 type_attr = Type,
-                                 from = Who,
-                                 id = Id,
-                                 raw_packet = Packet}.
+%    Type = exmpp_presence:get_type(Packet),
+%    Who = exmpp_jid:to_lower(exxml:get_attribute(Packet, <<"from">>, <<>>)),
+%    Id = exxml:get_attribute(Packet, <<"id">>, <<>>),
+    ClientPid !
+        #received_packet{
+            packet_type = <<"presence">>,
+            type_attr   = exmpp_presence:get_type(Packet),
+            from        = exmpp_jid:to_lower(
+                              exxml:get_attribute(Packet, <<"from">>, <<>>)),
+            id          = exxml:get_attribute(Packet, <<"id">>, <<>>),
+            raw_packet  = Packet}.
 
 do_process_message(ClientPid, Packet) ->
-    Type = exmpp_message:get_type(Packet),
-    Who = exmpp_jid:to_lower(exxml:get_attribute(Packet, <<"from">>, <<>>)),
-    Id = exxml:get_attribute(Packet, <<"id">>, <<>>),
-    ClientPid ! #received_packet{packet_type = <<"message">>,
-                                 type_attr = Type,
-                                 from = Who,
-                                 id = Id,
-                                 raw_packet = Packet}.
+%    Type = exmpp_message:get_type(Packet),
+%    Who = exmpp_jid:to_lower(exxml:get_attribute(Packet, <<"from">>, <<>>)),
+%    Id = exxml:get_attribute(Packet, <<"id">>, <<>>),
+    ClientPid !
+        #received_packet{
+            packet_type = <<"message">>,
+            type_attr   = exmpp_message:get_type(Packet),
+            from        = exmpp_jid:to_lower(
+                              exxml:get_attribute(Packet, <<"from">>, <<>>)),
+            id          = exxml:get_attribute(Packet, <<"id">>, <<>>),
+            raw_packet  = Packet}.
 
 do_process_iq(ClientPid, Packet) ->
-    Type = exmpp_iq:get_type(Packet),
-    Who = exmpp_jid:to_lower(exxml:get_attribute(Packet, <<"from">>, <<>>)),
-    Id = exxml:get_attribute(Packet, <<"id">>, <<>>),
-    NS = exmpp_iq:get_payload_ns(Packet),
-    ClientPid ! #received_packet{packet_type = <<"iq">>,
-                                 type_attr = Type,
-                                 from = Who,
-                                 id = Id,
-                                 queryns = NS,
-                                 raw_packet = Packet}.
+%    Type = exmpp_iq:get_type(Packet),
+%    Who = exmpp_jid:to_lower(exxml:get_attribute(Packet, <<"from">>, <<>>)),
+%    Id = exxml:get_attribute(Packet, <<"id">>, <<>>),
+%    NS = exmpp_iq:get_payload_ns(Packet),
+    ClientPid !
+        #received_packet{
+            packet_type = <<"iq">>,
+            type_attr   = exmpp_iq:get_type(Packet),
+            from        = exmpp_jid:to_lower(
+                              exxml:get_attribute(Packet, <<"from">>, <<>>)),
+            id          = exxml:get_attribute(Packet, <<"id">>, <<>>),
+            queryns     = exmpp_iq:get_payload_ns(Packet),
+            raw_packet  = Packet}.
 
 %% Add a packet ID is needed:
 %% Check that the attribute list has defined an ID.
@@ -519,12 +524,13 @@ check_id(Packet) ->
 
 %% Internal operations
 %% send_packet: actually format and send the packet:
-send_packet({xmlel, <<"iq">>, _, _}=IQElement, Module, ConnRef) ->
-    {Packet2, PacketId} = check_id(IQElement),
+send_packet(Xmlel_IQ, Module, ConnRef)
+  when Xmlel_IQ#xmlel.name == <<"iq">> ->
+    {Packet2, PacketId} = check_id(Xmlel_IQ),
     Module:send(ConnRef, Packet2),
     PacketId;
-send_packet({xmlel, _, _, _}=Element, Module, ConnRef) ->
-    {Packet2, Id} = check_id(Element),
+send_packet(Xmlel, Module, ConnRef) ->
+    {Packet2, Id} = check_id(Xmlel),
     Module:send(ConnRef, Packet2),
     Id.
 
