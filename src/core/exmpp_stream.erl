@@ -120,58 +120,162 @@
 
 %% Creating elements.
 -export([
-	 opening/3,
-	 opening/4,
-	 opening_reply/4,
-	 opening_reply/5,
-	 opening_reply/2,
-	 opening_reply/3,
-	 closing/0,
-	 closing/1
-	]).
+    opening/3,
+    opening/4,
+    opening_reply/4,
+    opening_reply/5,
+    opening_reply/2,
+    opening_reply/3,
+    closing/0,
+    closing/1
+]).
 
 %% Attributes handling.
 -export([
-	 get_receiving_entity/1,
-	 set_receiving_entity/2,
-	 get_initiating_entity/1,
-	 set_initiating_entity/2,
-	 get_default_ns/1,
-	 get_version/1,
-	 set_version/2,
-	 get_id/1,
-	 set_id/2,
-	 get_lang/1,
-	 set_lang/2
-	]).
+    get_receiving_entity/1,
+    set_receiving_entity/2,
+    get_initiating_entity/1,
+    set_initiating_entity/2,
+    get_default_ns/1,
+    get_version/1,
+    set_version/2,
+    get_id/1,
+    set_id/2,
+    get_lang/1,
+    set_lang/2
+]).
 
 %% Version handling.
 -export([
-	 parse_version/1,
-	 serialize_version/1
-	]).
+    parse_version/1,
+    serialize_version/1
+]).
 
 %% Features announcement.
 -export([
-	 set_dialback_support/1,
-	 features/1
-	]).
+    set_dialback_support/1,
+    features/1
+]).
 
 %% Error handling.
 -export([
-	 error/1,
-	 error/2,
-	 is_error/1,
-	 get_condition/1,
-	 get_text/1
-	]).
+    error/1,
+    error/2,
+    is_error/1,
+    get_condition/1,
+    get_text/1
+]).
 
 
 %% --------------------------------------------------------------------
 %% Type definitions.
 %% --------------------------------------------------------------------
 
+%%
+-export_type([
+  id/0,
+  to/0,
+  from/0,
+  lang/0,
+  version/0,
+  streamversion/0
+]).
+
+-type(id()      :: binary()).
+-type(from()    :: binary()).
+-type(to()      :: binary()).
+-type(lang()    :: binary()).
+-type(version() :: binary()).
 -type(streamversion() :: {non_neg_integer(), non_neg_integer()}).
+
+-export_type([
+  xmlel_stream/0,
+  xmlel_features/0,
+  xmlel_error/0
+]).
+
+-type(xmlel_stream()
+  :: #xmlel{
+         name     :: <<_:104>>,
+         attrs    :: [
+            {From    :: <<_:32>>, exmpp_stream:from()}    |
+            {To      :: <<_:16>>, exmpp_stream:to()}      |
+            {Id      :: <<_:16>>, exmpp_stream:id()}      |
+            {Version :: <<_:48>>, exmpp_stream:version()} ,...
+         ],
+         children :: [] | [Xmlel_Error::exmpp_stream:xmlel_error(),...]
+     }
+).
+
+-type(xmlel_features()
+  :: #xmlel{
+         name     :: <<_:120>>,
+         attrs    :: [],
+         children :: [exxml:el()]
+     }
+).
+
+-type(xmlel_error()
+  :: #xmlel{
+         name     :: <<_:96>>,
+         attrs    :: [],
+         children :: [
+             #xmlel{
+                 name     :: exmpp_stream:error_condition(),
+                 attrs    :: [
+                     {XmlNS :: <<_:40>>, <<_:280>>}
+                 ],
+                 children :: []
+             },...
+         ]
+     }
+).
+
+%%
+
+-export_type([
+  standard_condition/0,
+  standard_conditions/0,
+  error_condition/0,
+  error_type/0,
+  error_text/0,
+  error_lang/0
+]).
+
+-type(error_condition() :: binary()).
+-type(error_type()      :: binary()).
+-type(error_lang()      :: binary()).
+-type(error_text()      :: binary()).
+
+-type(standard_condition()
+  :: {Error_Condition :: exmpp_stanza:error_condition()}
+
+).
+
+-type(standard_conditions()
+  :: [Standard_Condition::exmpp_stanza:standard_condition(),...]
+).
+
+%%
+
+-define(Xmlel@Stream(Name, Attrs, Children),
+(
+    #xmlel{
+        name     = <<?NS_XMPP_pfx/binary, <<":">>/binary, Name/binary>>,
+        attrs    = Attrs,
+        children = Children
+    }
+)).
+
+-define(Xmlel_Stream@Stream(Attrs, Children),
+(
+    ?Xmlel@Stream(<<"stream">>, Attrs, Children)
+)).
+
+-define(Xmlel_Features@Stream(Attrs, Children),
+(
+    ?Xmlel@Stream(<<"features">>, Attrs, Children)
+)).
 
 %% --------------------------------------------------------------------
 %% Stream opening/closing.
@@ -188,8 +292,13 @@
 %%
 %% @see opening/4.
 
--spec opening
-(binary() | undefined, binary(), binary() | streamversion()) -> exxml:xmlel().
+-spec(opening/3 ::
+(
+  To         :: exmpp_stream:to() | undefined,
+  Default_NS :: binary(),
+  Version    :: exmpp_stream:version() | exmpp_stream:streamversion())
+    -> Xmlel_Stream::exmpp_stream:xmlel_stream()
+).
 
 opening(To, Default_NS, Version) ->
     opening(To, Default_NS, Version, undefined).
@@ -208,19 +317,27 @@ opening(To, Default_NS, Version) ->
 %% to the receiving entity (for the other way around, see {@link
 %% opening_reply/1}).
 
--spec opening
-(binary() | undefined, binary(), binary() | streamversion(), binary() | undefined) ->
-    xmlel().
+-spec(opening/4 ::
+(
+  To         :: exmpp_stream:to() | undefined,
+  Default_NS :: binary(),
+  Version    :: exmpp_stream:version() | exmpp_stream:streamversion(),
+  Lang       :: exmpp_stream:lang() | undefined)
+    -> Xmlel_Stream::exmpp_stream:xmlel_stream()
+).
 
 opening(To, Default_NS, Version, Lang) ->
-    %% Prepare attributes.
-    S1 = set_receiving_entity({xmlel, <<?NS_XMPP_pfx/binary,":stream">>, [{<<"xmlns">>, Default_NS}, {<<"xmlns:", ?NS_XMPP_pfx/binary>>, ?NS_XMPP}], undefined}, To),
-    S2 = set_version(S1, Version),
-    case Lang of 
-	    undefined -> S2;
-	    _ -> set_lang(S2, Lang)
+    Xmlel_Stream = set_version(
+        set_receiving_entity(
+            ?Xmlel_Stream@Stream(
+                [{<<"xmlns">>, Default_NS},
+                 {<<"xmlns:", ?NS_XMPP_pfx/binary>>, ?NS_XMPP}], undefined),
+            To),
+        Version),
+    case Lang of
+        undefined -> Xmlel_Stream;
+        _         -> set_lang(Xmlel_Stream, Lang)
     end.
-
 
 %% @spec (From, Default_NS, Version, ID) -> Opening_Reply
 %%     From = binary() | undefined
@@ -234,13 +351,17 @@ opening(To, Default_NS, Version, Lang) ->
 %%
 %% @see opening_reply/5.
 
--spec opening_reply
-(binary() | undefined, binary(),
- binary() |  streamversion(), binary() | random) ->
-    exxml:xmlel().
+-spec(opening_reply/4 ::
+(
+  From       :: exmpp_stream:from() | undefined,
+  Default_NS :: binary(),
+  Version    :: exmpp_stream:streamversion() | exmpp_stream:version(),
+  Id         :: exmpp_stream:id() | 'random')
+    -> Xmlel_Stream::exmpp_stream:xmlel_stream()
+).
 
-opening_reply(From, Default_NS, Version, ID) ->
-    opening_reply(From, Default_NS, Version, ID, undefined).
+opening_reply(From, Default_NS, Version, Id) ->
+    opening_reply(From, Default_NS, Version, Id, undefined).
 
 %% @spec (From, Default_NS, Version, ID, Lang) -> Opening_Reply
 %%     From = binary() | undefined
@@ -259,21 +380,29 @@ opening_reply(From, Default_NS, Version, ID) ->
 %%
 %% If `ID' is `random', one will be generated automatically.
 
--spec opening_reply
-(binary() |  undefined, binary(),
- binary() |  streamversion(), binary() | random,
- binary() |  undefined) ->
-    exxml:xmlel().
+-spec(opening_reply/5 ::
+(
+  From       :: exmpp_stream:from() | undefined,
+  Default_NS :: binary(),
+  Version    :: exmpp_stream:streamversion() | exmpp_stream:version(),
+  Id         :: exmpp_stream:id() | 'random',
+  Lang       :: exmpp_stream:lang() | undefined)
+    -> Xmlel_Stream::exmpp_stream:xmlel_stream()
+).
 
-opening_reply(From, Default_NS, Version, ID, Lang) ->
-    %% Prepare attributes.
-    %% Prepare attributes.
-    S1 = set_initiating_entity({xmlel, <<?NS_XMPP_pfx/binary,":stream">>, 
-		    [{<<"xmlns">>, Default_NS}, {<<"xmlns:",?NS_XMPP_pfx/binary>>, ?NS_XMPP}], undefined}, From),
-    S2 = set_id(set_version(S1, Version), ID),
-    case Lang of 
-	    undefined -> S2;
-	    _ -> set_lang(S2, Lang)
+opening_reply(From, Default_NS, Version, Id, Lang) ->
+    Xmlel_Stream = set_id(
+        set_version(
+            set_initiating_entity(
+                ?Xmlel_Stream@Stream(
+                    [{<<"xmlns">>, Default_NS},
+                     {<<"xmlns:", ?NS_XMPP_pfx/binary>>, ?NS_XMPP}], undefined),
+                From),
+            Version),
+        Id),
+    case Lang of
+        undefined -> Xmlel_Stream;
+        _         -> set_lang(Xmlel_Stream, Lang)
     end.
 
 %% @spec (Opening, ID) -> Opening_Reply
@@ -288,11 +417,15 @@ opening_reply(From, Default_NS, Version, ID, Lang) ->
 %%
 %% If `ID' is `random', one will be generated automatically.
 
--spec opening_reply
-(exxml:xmlel(), binary() | random) -> exxml:xmlel().
+-spec(opening_reply/2 ::
+(
+  Xmlel_Stream :: exmpp_stream:xmlel_stream(),
+  Id           :: exmpp_stream:id() | 'random')
+    -> Xmlel_Stream::exmpp_stream:xmlel_stream()
+).
 
-opening_reply(Opening, ID) ->
-	set_id(exmpp_stanza:reply(Opening), ID).
+opening_reply(Opening, Id) ->
+    set_id(exmpp_stanza:reply(Opening), Id).
 
 %% @spec (Opening, ID, Lang) -> Opening_Reply
 %%     Opening = exxml:xmlel()
@@ -307,37 +440,41 @@ opening_reply(Opening, ID) ->
 %%
 %% If `ID' is `random', one will be generated automatically.
 
--spec opening_reply
-(exxml:xmlel(), binary() | random, binary() | undefined) ->
-    exxml:xmlel().
+-spec(opening_reply/3 ::
+(
+  Xmlel_Stream :: exmpp_stream:xmlel_stream(),
+  Id           :: exmpp_stream:id() | 'random',
+  Lang         :: exmpp_stream:lang() | undefined)
+    -> Xmlel_Stream::exmpp_stream:xmlel_stream()
+).
 
-opening_reply(Opening, ID, Lang) ->
-	R = opening_reply(Opening, ID),
-    	case Lang of
-		 undefined -> R;
-		 _         -> set_lang(R, Lang)
-	     end.
+opening_reply(Xmlel_Stream, Id, undefined = _Lang) ->
+    opening_reply(Xmlel_Stream, Id);
+opening_reply(Xmlel_Stream, Id, Lang) ->
+    set_lang(opening_reply(Xmlel_Stream, Id), Lang).
 
 %% @spec () -> Closing
 %%     Closing = exxml:xmlendtag()
 %% @doc Make a `</stream>' closing tag.
 
--spec closing
-() -> exxml:xmlendtag().
+-spec(closing/0 :: () -> Xml_End_Tag::exxml:endtag()).
 
 closing() ->
-	{xmlelend, <<?NS_XMPP_pfx/binary, ":stream">>}.
+    {xmlelend, <<?NS_XMPP_pfx/binary, ":stream">>}.
 
 %% @spec (Opening) -> Closing
 %%     Opening = exxml:xmlel()
 %%     Closing = exxml:xmlendtag()
 %% @doc Make a `</stream>' closing tag for the given `Opening' tag.
 
--spec closing
-(exxml:xmlel()) -> exxml:xmlendtag().
+-spec(closing/1 ::
+(
+  Xmlel_Stream::exmpp_stream:xmlel_stream())
+    -> Xml_End_Tag::exxml:endtag()
+).
 
-closing({xmlel, Name, _, _}) ->
-	{xmlelend, Name}.
+closing(#xmlel{name = Name}) ->
+    {xmlelend, Name}.
 
 %% --------------------------------------------------------------------
 %% Stream standard attributes.
@@ -348,11 +485,14 @@ closing({xmlel, Name, _, _}) ->
 %%     Hostname = binary()
 %% @doc Return the receiving entity hostname.
 
--spec get_receiving_entity
-(exxml:xmlel()) -> binary() | undefined.
+-spec(get_receiving_entity/1 ::
+(
+  Xmlel_Stream::exmpp_stream:xmlel_stream())
+    -> Hostname::exmpp_stream:to() | undefined
+).
 
-get_receiving_entity(Opening) ->
-    exmpp_stanza:get_recipient(Opening).
+get_receiving_entity(Xmlel_Stream) ->
+    exmpp_stanza:get_recipient(Xmlel_Stream).
 
 %% @spec (Opening, Hostname) -> New_Opening
 %%     Opening = exxml:xmlel()
@@ -360,24 +500,31 @@ get_receiving_entity(Opening) ->
 %%     New_Opening = exxml:xmlel()
 %% @doc Set the receiving entity in the `to' attribute.
 
--spec set_receiving_entity
-(exxml:xmlel(), binary() ) -> exxml:xmlel().
+-spec(set_receiving_entity/2 ::
+(
+  Xmlel_Stream :: exmpp_stream:xmlel_stream(),
+  Hostname     :: exmpp_stream:to() | undefined)
+    -> Xmlel_Stream :: exmpp_stream:xmlel_stream()
+).
 
-set_receiving_entity(Opening, undefined) ->
-	Opening;
-set_receiving_entity(Opening, Hostname) ->
- 	exmpp_stanza:set_recipient(Opening, Hostname).
+set_receiving_entity(Xmlel_Stream, undefined) ->
+    Xmlel_Stream;
+set_receiving_entity(Xmlel_Stream, Hostname) ->
+    exmpp_stanza:set_recipient(Xmlel_Stream, Hostname).
 
 %% @spec (Opening) -> Hostname | undefined
 %%     Opening = exxml:xmlel()
 %%     Hostname = binary()
 %% @doc Return the initiating entity hostname.
 
--spec get_initiating_entity
-(exxml:xmlel()) -> binary() | undefined.
+-spec(get_initiating_entity/1 ::
+(
+  Xmlel_Stream::exmpp_stream:xmlel_stream())
+    -> Hostname::exmpp_stream:from() | undefined
+).
 
-get_initiating_entity(Opening) ->
-    exmpp_stanza:get_sender(Opening).
+get_initiating_entity(Xmlel_Stream) ->
+    exmpp_stanza:get_sender(Xmlel_Stream).
 
 %% @spec (Opening, Hostname) -> New_Opening
 %%     Opening = exxml:xmlel()
@@ -385,13 +532,17 @@ get_initiating_entity(Opening) ->
 %%     New_Opening = exxml:xmlel()
 %% @doc Set the initiating entity in the `from' attribute.
 
--spec set_initiating_entity
-(exxml:xmlel(), binary() ) -> exxml:xmlel().
+-spec(set_initiating_entity/2 ::
+(
+  Xmlel_Stream :: exmpp_stream:xmlel_stream(),
+  Hostname     :: exmpp_stream:from() | undefined)
+    -> Xmlel_Stream :: exmpp_stream:xmlel_stream()
+).
 
-set_initiating_entity(El, undefined) ->
-	El;
-set_initiating_entity(El, Hostname) ->
-	exmpp_stanza:set_sender(El, Hostname).
+set_initiating_entity(Xmlel_Stream, undefined) ->
+    Xmlel_Stream;
+set_initiating_entity(Xmlel_Stream, Hostname) ->
+    exmpp_stanza:set_sender(Xmlel_Stream, Hostname).
 
 %% @spec (Opening) -> Default_NS | undefined
 %%     Opening = exxml:xmlel()
@@ -400,11 +551,14 @@ set_initiating_entity(El, Hostname) ->
 %%
 %% XMPP-IM defines `jabber:client' and `jabber:server'.
 
--spec get_default_ns
-(exxml:xmlel()) -> binary() | undefined.
+-spec(get_default_ns/1 ::
+(
+  Xmlel_Stream::exmpp_stream:xmlel_stream())
+    -> Default_NS :: binary() | undefined
+).
 
-get_default_ns(Opening) ->
-	exxml:get_attribute(Opening, <<"xmlns">>).
+get_default_ns(Xmlel_Stream) ->
+    exxml:get_attribute(Xmlel_Stream, <<"xmlns">>).
 
 
 %% @spec (Opening) -> Version
@@ -414,11 +568,14 @@ get_default_ns(Opening) ->
 %%     Minor = integer()
 %% @doc Return the version of the stream.
 
--spec get_version
-(exxml:xmlel()) -> streamversion().
+-spec(get_version/1 ::
+(
+  Xmlel_Stream::exmpp_stream:xmlel_stream())
+    -> Stream_Version::exmpp_stream:streamversion()
+).
 
-get_version(Opening) ->
-    parse_version(exxml:get_attribute(Opening, <<"version">>)).
+get_version(Xmlel_Stream) ->
+    parse_version(exxml:get_attribute(Xmlel_Stream, <<"version">>)).
 
 %% @spec (Opening, Version) -> New_Opening
 %%     Opening = exxml:xmlel()
@@ -428,15 +585,22 @@ get_version(Opening) ->
 %%     New_Opening = exxml:xmlel()
 %% @doc Set the protocol version.
 
--spec set_version
-(xmlel(), binary() | string() | streamversion()) -> xmlel().
+-spec(set_version/2 ::
+(
+  Xmlel_Stream :: exmpp_stream:xmlel_stream(),
+  Version      :: exmpp_stream:streamversion()
+                | exmpp_stream:version()
+                | undefined)
+    -> Xmlel_Stream::exmpp_stream:xmlel_stream()
+).
 
-set_version(El, V) when V == undefined; V == <<>>; V == {0,0} ->
-	exxml:remove_attribute(El, <<"version">>);
-set_version(El, {_,_} = V) ->
-	set_version(El, serialize_version(V));
-set_version(El, V) when is_binary(V)->
-	exxml:set_attribute(El, <<"version">>, V).
+set_version(Xmlel_Stream, Version)
+  when Version == undefined; Version == <<>>; Version == {0,0} ->
+    exxml:remove_attribute(Xmlel_Stream, <<"version">>);
+set_version(Xmlel_Stream, {_,_} = Version) ->
+    set_version(Xmlel_Stream, serialize_version(Version));
+set_version(Xmlel_Stream, Version) when is_binary(Version)->
+    exxml:set_attribute(Xmlel_Stream, <<"version">>, Version).
 
 
 %% @spec (Opening) -> ID | undefined
@@ -444,11 +608,14 @@ set_version(El, V) when is_binary(V)->
 %%     ID = binary()
 %% @doc Return the stream ID.
 
--spec get_id
-(exxml:xmlel()) -> binary() | undefined.
+-spec(get_id/1 ::
+(
+  Xmlel_Stream::exmpp_stream:xmlel_stream())
+    -> Id :: exmpp_stream:id() | undefined
+).
 
-get_id(Opening) ->
-    exmpp_stanza:get_id(Opening).
+get_id(Xmlel_Stream) ->
+    exmpp_stanza:get_id(Xmlel_Stream).
 
 %% @spec (Opening, ID) -> New_Opening
 %%     Opening = exxml:xmlel()
@@ -456,22 +623,29 @@ get_id(Opening) ->
 %%     New_Opening = exxml:xmlel()
 %% @doc Set the stream ID.
 
--spec set_id
-(xmlel(), binary() | string() | random) -> xmlel().
+-spec(set_id/2 ::
+(
+  Xmlel_Stream :: exmpp_stream:xmlel_stream(),
+  Id           :: exmpp_stream:id() | 'random')
+    -> Xmlel_Stream::exmpp_stream:xmlel_stream()
+).
 
-set_id(El, ID) ->
-   exmpp_stanza:set_id(El, ID). 
+set_id(Xmlel_Stream, Id) ->
+   exmpp_stanza:set_id(Xmlel_Stream, Id).
 
 %% @spec (Opening) -> Lang | undefined
 %%     Opening = exxml:xmlel()
 %%     Lang = binary()
 %% @doc Return the language of the stream.
 
--spec get_lang
-(xmlel()) -> binary() | undefined.
+-spec(get_lang/1 ::
+(
+  Xmlel_Stream::exmpp_stream:xmlel_stream())
+    -> Lang :: exmpp_stream:lang() | undefined
+).
 
-get_lang(Opening) ->
-    exmpp_stanza:get_lang(Opening).
+get_lang(Xmlel_Stream) ->
+    exmpp_stanza:get_lang(Xmlel_Stream).
 
 %% @spec (Opening, Lang) -> New_Opening
 %%     Opening = exxml:xmlel()
@@ -479,11 +653,15 @@ get_lang(Opening) ->
 %%     New_Opening = exxml:xmlel()
 %% @doc Set the default language.
 
--spec set_lang
-(xmlel(), binary() | string()) -> xmlel().
+-spec(set_lang/2 ::
+(
+  Xmlel_Stream :: exmpp_stream:xmlel_stream(),
+  Lang         :: exmpp_stream:lang())
+    -> Xmlel_Stream::exmpp_stream:xmlel_stream()
+).
 
-set_lang(El, Lang) ->
-	exmpp_stanza:set_lang(El, Lang).
+set_lang(Xmlel_Stream, Lang) ->
+    exmpp_stanza:set_lang(Xmlel_Stream, Lang).
 
 %% --------------------------------------------------------------------
 %% Version handling.
@@ -496,17 +674,20 @@ set_lang(El, Lang) ->
 %%     Minor = integer()
 %% @doc Parse the stream version in `String'.
 
--spec parse_version
-(binary() | undefined) -> streamversion().
+-spec(parse_version/1 ::
+(
+  Version :: exmpp_stream:version() | undefined)
+    -> Stream_Version::exmpp_stream:streamversion()
+).
 
 parse_version(undefined) ->
     {0, 0};
 parse_version(<<>>) ->
     {0, 0};
-parse_version(String) when is_binary(String) ->
-    parse_version(binary_to_list(String));
-parse_version(String) ->
-    case string:to_integer(String) of
+parse_version(Version) when is_binary(Version) ->
+    parse_version(binary_to_list(Version));
+parse_version(Version) ->
+    case string:to_integer(Version) of
         {Major, [$. | Rest]} ->
             case string:to_integer(Rest) of
                 {Minor, []} -> {Major, Minor};
@@ -523,8 +704,11 @@ parse_version(String) ->
 %%     Binary = binary()
 %% @doc Make a binary() for the `version' attribute of a stream element.
 
--spec serialize_version
-(streamversion() | undefined) -> binary().
+-spec(serialize_version/1 ::
+(
+  Stream_Version :: exmpp_stream:streamversion() | undefined)
+    -> Version :: exmpp_stream:version()
+).
 
 serialize_version(undefined) ->
     <<>>;
@@ -542,26 +726,38 @@ serialize_version({Major, Minor}) ->
 %%     New_Opening = exxml:xmlel()
 %% @doc Declare server diablack support.
 
--spec set_dialback_support
-(exxml:xmlel()) -> exxml:xmlel().
+-spec(set_dialback_support/1 ::
+(
+  Xmlel_Stream::exmpp_stream:xmlel_stream())
+    -> Xmlel_Stream::exmpp_stream:xmlel_stream()
+).
 
-set_dialback_support(Opening) ->
-	exxml:set_attribute(Opening, <<"xmlns:", ?NS_DIALBACK_pfx/binary>>, ?NS_DIALBACK).
+set_dialback_support(Xmlel_Stream) ->
+    exxml:set_attribute(Xmlel_Stream,
+        <<"xmlns:", ?NS_DIALBACK_pfx/binary>>, ?NS_DIALBACK).
 
 %% @spec (Features) -> Features_Announcement
 %%     Features = [exxml:xmlel()]
 %%     Features_Announcement = exxml:xmlel()
 %% @doc Make the features annoucement element.
 
--spec features
-([exxml:xmlel()]) -> exxml:xmlel().
+-spec(features/1 ::
+(
+  Features :: [Feature::exxml:el()])
+    -> Xmlel_Features::exmpp_stream:xmlel_features()
+).
 
 features(Features) ->
-	{xmlel, <<?NS_XMPP_pfx/binary, ":features">>, [{<<"xmlns:", ?NS_XMPP_pfx/binary>>, ?NS_XMPP}], Features}.
+    ?Xmlel_Features@Stream([{<<"xmlns:", ?NS_XMPP_pfx/binary>>, ?NS_XMPP}],
+        Features).
 
 %% --------------------------------------------------------------------
 %% Stream-level errors.
 %% --------------------------------------------------------------------
+
+-spec(standard_conditions/0
+  :: () -> Standard_Conditions::exmpp_stream:standard_conditions()
+).
 
 standard_conditions() ->
     [
@@ -600,11 +796,14 @@ standard_conditions() ->
 %% @doc Make a standard `<stream:error>' element based on the given
 %% `Condition'.
 
--spec error
-(binary()) -> exxml:xmlel().
+-spec(error/1 ::
+(
+  Error_Condition :: exmpp_stream:error_condition())
+    -> Xmlel_Error::exmpp_stream:xmlel_error()
+).
 
-error(Condition) ->
-    error(Condition, {undefined, undefined}).
+error(Error_Condition) ->
+    error(Error_Condition, {undefined, undefined}).
 
 %% @spec (Condition, {Lang, Text}) -> Stream_Error
 %%     Condition = binary()
@@ -614,40 +813,54 @@ error(Condition) ->
 %% @doc Make a standard `<stream:error>' element based on the given
 %% `Condition' with Text child element.
 
--spec error
-(binary(), {binary() | undefined, binary()| undefined}) ->
-    exxml:xmlel().
+-spec(error/2 ::
+(
+  Error_Condition :: exmpp_stream:error_condition(),
+  {Error_Lang :: exmpp_stream:error_lang() | undefined,
+   Error_Text :: exmpp_stream:error_text() | undefined})
+    -> Xmlel_Error::exmpp_stream:xmlel_error()
+).
 
-error(Condition, {Lang, Text}) ->
-    case lists:keymember(Condition, 1, standard_conditions()) of
-        true  -> ok;
-        false -> throw({stream_error, condition, invalid, Condition})
+error(Error_Condition, {_Error_Lang, undefined = _Error_Text}) ->
+    case lists:keymember(Error_Condition, 1, standard_conditions()) of
+         true  -> ok;
+         false -> throw({stream_error, condition, invalid, Error_Condition})
     end,
-    Condition_El = {xmlel, Condition, [{<<"xmlns">>, ?NS_STREAM_ERRORS}], []},
-    Error_El0 = {xmlel, <<?NS_XMPP_pfx/binary,":error">>, [],[Condition_El]},
-
-    case Text of
-        undefined ->
-            Error_El0;
-        _ ->
-	    Text_El0 = {xmlel, <<"text">>, [{<<"xmlns">>, ?NS_STREAM_ERRORS}],[{cdata, Text}]},
-            Text_El = case Lang of
-			  undefined ->
-			      Text_El0;
-			  _ ->
-			      exxml:set_attribute(Text_El0, <<"lang">>, Lang)
-		      end,
-            exxml:append_child(Error_El0, Text_El)
-    end.
+    exxml:element(undefined, <<?NS_XMPP_pfx/binary,":error">>, [], [
+        exxml:element(undefined, Error_Condition,
+            [{<<"xmlns">>, ?NS_STREAM_ERRORS}], [])
+    ]);
+error(Error_Condition, {Error_Lang, Error_Text}) ->
+    case lists:keymember(Error_Condition, 1, standard_conditions()) of
+         true  -> ok;
+         false -> throw({stream_error, condition, invalid, Error_Condition})
+    end,
+    exxml:element(undefined, <<?NS_XMPP_pfx/binary,":error">>, [], [
+        exxml:element(undefined, Error_Condition,
+            [exxml:attribute(<<"xmlns">>, ?NS_STREAM_ERRORS)], []),
+        exxml:element(undefined, <<"text">>,
+            case Error_Lang of
+                undefined ->
+                    [{<<"xmlns">>, ?NS_STREAM_ERRORS}];
+                _ ->
+                    [exxml:attribute(<<"lang">>, Error_Lang),
+                     {<<"xmlns">>, ?NS_STREAM_ERRORS}]
+            end,
+            [exxml:cdata(Error_Text)])
+    ]).
 
 %% @spec (XML_El) -> bool()
 %%     XML_El = exxml:xmlel()
 %% @doc Tell if this element is a stream error.
 
--spec is_error
-(exxml:xmlel()) -> boolean().
+-spec(is_error/1 ::
+(
+  Xmlel_Error :: exmpp_stream:xmlel_error() | any())
+    -> Is_Error::boolean()
+).
 
-is_error({xmlel, Name, _, _}) when Name == <<"error">> ; Name == <<"stream:error">> ->
+is_error(#xmlel{name = Name})
+  when Name == <<"error">> ; Name == <<"stream:error">> ->
     true;
 is_error(_) ->
     false.
@@ -658,32 +871,40 @@ is_error(_) ->
 %% @doc Return the child element name corresponding to the stanza error
 %% condition.
 
--spec get_condition
-(exxml:xmlel()) -> binary() | undefined.
+-spec(get_condition/1 ::
+(
+  Xmlel_Error::exmpp_stream:xmlel_error())
+    -> Error_Condition :: exmpp_stream:error_condition() | undefined
+).
 
-get_condition({xmlel, Name, _, _} = El) 
-	when Name == <<"error">> ; Name == <<"stream:error">> -> 
-    case exxml:get_elements(El) of
-	    [{xmlel, Condition, _, _} | _] ->
-		    Condition;
-	    _ ->
-	    %% This <stream:error/> element is invalid because the
-	    %% condition must be present (and first).
-		    undefined
-	end.
+get_condition(Xmlel_Error) 
+  when Xmlel_Error#xmlel.name == <<"error">> ;
+       Xmlel_Error#xmlel.name == <<"stream:error">> -> 
+    case exxml:get_elements(Xmlel_Error) of
+        [#xmlel{name = Error_Condition} | _] ->
+            Error_Condition;
+        _ ->
+        %% This <stream:error/> element is invalid because the
+        %% condition must be present (and first).
+            undefined
+    end.
 
 %% @spec (Stream_Error) -> Text | undefined
 %%     Stream_Error = exxml:xmlel()
 %%     Text = binary()
 %% @doc Return the text that describes the error.
 
--spec get_text
-(exxml:xmlel()) -> binary() | undefined.
+-spec(get_text/1 ::
+(
+  Xmlel_Error::exmpp_stream:xmlel_error())
+    -> Error_Text :: exmpp_stream:error_text() | undefined
+).
 
-get_text({xmlel, Name, _, _} = El) 
-	when Name == <<"error">> ; Name == <<"stream:error">> -> 
-    case exxml:get_element(El,  <<"text">>) of
-        undefined -> undefined;
-        Text      -> exxml:get_cdata(Text)
+get_text(Xmlel_Error)
+  when Xmlel_Error#xmlel.name == <<"error">> ;
+       Xmlel_Error#xmlel.name == <<"stream:error">> ->
+    case exxml:get_element(Xmlel_Error,  <<"text">>) of
+        undefined  -> undefined;
+        Xmlel_Text -> exxml:get_cdata(Xmlel_Text)
     end.
 
