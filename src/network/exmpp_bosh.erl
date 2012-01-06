@@ -32,9 +32,22 @@
 -include("exmpp.hrl").
 
 %% Behaviour exmpp_gen_transport ?
--export([connect/3,  send/2, close/2, reset_parser/1, get_property/2, wping/1]).
+-export([
+    connect/3,
+    send/2, close/2,
+    reset_parser/1,
+    get_property/2,
+    wping/1
+]).
 
--export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
+-export([
+    init/1,
+    handle_call/3,
+    handle_cast/2,
+    handle_info/2,
+    terminate/2,
+    code_change/3
+]).
 
 
 -define(CONTENT_TYPE, "text/xml; charset=utf-8").
@@ -93,20 +106,20 @@ wping(_Pid) ->
 init([ClientPid, StreamRef, URL, Domain, Options]) ->
     {A,B,C} = now(),
     random:seed(A,B,C),
-    Rid = 1000 + random:uniform(100000),
-    ParsedUrl = parse_url(URL),
-    IP = proplists:get_value(local_ip, Options, undefined),
-    Port= proplists:get_value(local_port, Options, undefined),
+%    Rid = 1000 + random:uniform(100000),
+%    ParsedUrl = parse_url(URL),
+%    IP = proplists:get_value(local_ip, Options, undefined),
+%    Port= proplists:get_value(local_port, Options, undefined),
     State = #state{
-        parsed_bosh_url = ParsedUrl,
+        parsed_bosh_url = parse_url(URL),
         domain = Domain,
-        rid = Rid,
+        rid = 1000 + random:uniform(100000),
         open = 0,
         client_pid = ClientPid,
         queue = [],
         free = [],
-        local_ip = IP,
-        local_port = Port,
+        local_ip = proplists:get_value(local_ip, Options, undefined),
+        local_port = proplists:get_value(local_port, Options, undefined),
         stream_ref = exmpp_xmlstream:set_wrapper_tagnames(StreamRef, [body])
     },
     {ok, State}.
@@ -118,38 +131,34 @@ handle_call({get_property, sid}, _From, State) ->
 
 %% reset the connection. We send here a fake stream response to the client to.
 %% TODO: check if it is not best to do this in do_send/2
-handle_call(reset_parser, _From, State) ->
-    #state{stream_ref = Stream,
-           sid = Sid,
-           rid = Rid,
-           auth_id = AuthID,
-           parsed_bosh_url = {Host, _Port, Path ,_},
-           domain = Domain} =  State,
+handle_call(reset_parser, _From,
+  #state{parsed_bosh_url = {Host, _Port, Path ,_}} = State) ->
     {NewState, Socket} = new_socket(State, once),
-    ok = make_raw_request(Socket, Host, Path, restart_stream_msg(Sid, Rid, Domain)),
+    ok = make_raw_request(Socket, Host, Path,
+        restart_stream_msg(State#state.sid, State#state.rid, State#state.domain)),
     StreamStart = [
         "<?xml version='1.0'?><stream:stream xmlns='jabber:client'"
         " xmlns:stream='http://etherx.jabber.org/streams' version='1.0'"
-        " from='" , Domain , "' id='" , AuthID , "'>"
+        " from='" , State#state.domain , "' id='" , State#state.auth_id , "'>"
     ],
-    NewStreamRef = exmpp_xmlstream:reset(Stream),
+    NewStreamRef = exmpp_xmlstream:reset(State#state.stream_ref),
     {ok, NewStreamRef2} = exmpp_xmlstream:parse(NewStreamRef, StreamStart),
     {reply,
      ok,
      NewState#state{
          new = false,
-         rid = Rid +1,
-         open = [{Socket, Rid}|State#state.open],
+         rid = State#state.rid + 1,
+         open = [{Socket, State#state.rid}|State#state.open],
          stream_ref = NewStreamRef2
      },
      hibernate};
 
 
 
-handle_call(stop, _From, State = #state{parsed_bosh_url = URL, sid = Sid, rid = Rid}) ->
-    {Host, _Port, Path ,_} = URL,
+handle_call(stop, _From, State = #state{parsed_bosh_url = {Host, _Port, Path ,_}}) ->
     {NewState, Socket} = new_socket(State, false),
-    ok = make_raw_request(Socket, Host, Path, close_stream_msg(Sid, Rid)),
+    ok = make_raw_request(Socket, Host, Path,
+        close_stream_msg(State#state.sid, State#state.rid)),
     {stop, normal, ok, NewState};
 handle_call(_Call, _From, State) ->
     {reply, ok, State}.
@@ -159,24 +168,24 @@ handle_cast({send, Packet}, State) ->
 handle_cast(_Cast, State) ->
     {noreply, State}.
 %{http_response, NewVsn, StatusCode, Reason}
-handle_info({http, Socket, {http_response, Vsn, 200, <<"OK">>}}, State) ->
-    #state{stream_ref = Stream,
-           open = Open,
-           sid = Sid,
-           queue = Queue,
-           parsed_bosh_url = {Host, _, Path, _},
-           rid = Rid} = State,
+handle_info({http, Socket, {http_response, Vsn, 200, <<"OK">>}},
+  #state{parsed_bosh_url = {Host, _, Path, _}} = State) ->
     {ok, {{200, <<"OK">>}, _Hdrs, Resp}} =
         read_response(Socket, Vsn, {200, <<"OK">>}, [], <<>>),
-    {ok, NewStream} = exmpp_xmlstream:parse(Stream, Resp),
+    {ok, NewStream} = exmpp_xmlstream:parse(State#state.stream_ref, Resp),
     %io:format("Got: ~s \n", [Resp]),
-    NewOpen = lists:keydelete(Socket, 1, Open),
+    NewOpen = lists:keydelete(Socket, 1, State#state.open),
     NewState2  = if
         NewOpen == [] andalso State#state.new =:= false ->
             %io:format("Making empty request\n"),
-            ok = make_empty_request(Socket,Sid, Rid, Queue, Host, Path),
+            ok = make_empty_request(Socket, State#state.sid, State#state.rid,
+                State#state.queue, Host, Path),
             inet:setopts(Socket, [{packet, http_bin}, {active, once}]),
-            State#state{open = [{Socket, Rid}], rid = Rid +1, queue = []};
+            State#state{
+                open = [{Socket, State#state.rid}],
+                rid = State#state.rid +1,
+                queue = []
+            };
         true ->
             %io:format("Closing the socket\n"),
             NewState = return_socket(State, Socket),
@@ -184,10 +193,12 @@ handle_info({http, Socket, {http_response, Vsn, 200, <<"OK">>}}, State) ->
         end, 
         {noreply, NewState2#state{stream_ref = NewStream}, hibernate};
 
-handle_info({tcp_closed, Socket}, State = #state{open = Open, free = Free}) ->
-    case lists:keymember(Socket, 1, Open) of
-        true  -> {stop, {error, tcp_closed}, State};
-        false -> {noreply, State#state{free = lists:delete(Socket,Free)}}
+handle_info({tcp_closed, Socket}, State) ->
+    case lists:keymember(Socket, 1, State#state.open) of
+        true ->
+            {stop, {error, tcp_closed}, State};
+        false ->
+            {noreply, State#state{free = lists:delete(Socket, State#state.free)}}
     end;
 
 handle_info(_Info, State) ->
@@ -223,61 +234,54 @@ make_request(Socket,Host, Path, Body) ->
 
 
 %% after stream restart, we must not sent this to the connection manager. The response is got in reset call
-do_send({xmlel, Stream, _, _}, #state{new = false} = State) 
-  when Stream == <<"stream">> ; Stream == <<"stream:stream">>->
+do_send(#xmlel{name = Name}, #state{new = false} = State) 
+  when Name == <<"stream">> ; Name == <<"stream:stream">>->
     {noreply, State};
 % we start the session with the connection manager here.
-do_send({xmlel, Stream, _, _}, State) 
-  when Stream == <<"stream">> ; Stream == <<"stream:stream">>->
-    #state{parsed_bosh_url = ParsedURL,
-           domain = Domain,
-           stream_ref = StreamRef,
-           rid = Rid} = State,
+do_send(#xmlel{name = Name}, State) 
+  when Name == <<"stream">> ; Name == <<"stream:stream">>->
+    #state{parsed_bosh_url = ParsedURL} = State,
     {Host, _Port, Path, _Ssl} = ParsedURL,
     {NewState, Socket} = new_socket(State, false),
     ok = make_raw_request(Socket, Host, Path,
-        create_session_msg(Rid, Domain, ?WAIT, ?HOLD)),
+        create_session_msg(State#state.rid, State#state.domain, ?WAIT, ?HOLD)),
     {ok, {{200, <<"OK">>}, _Hdrs, Resp}} =
         read_response(Socket, nil, nil, [], <<>>),
     NewState2 = return_socket(NewState, Socket),
     %%TODO: this can be improved.. don't close the socket and reuse it for latter
-    {ok, [{xmlel, <<"body">>, _, _} = BodyEl]} = exxml:parse_document(Resp),
-    SID = exxml:get_attribute(BodyEl, <<"sid">>, undefined),
-    AuthID = exxml:get_attribute(BodyEl,<<"authid">>,undefined),
+    {ok, [#xmlel{name = <<"body">>} = Xmlel_Body]} = exxml:parse_document(Resp),
+    SID = exxml:get_attribute(Xmlel_Body, <<"sid">>, undefined),
+    AuthID = exxml:get_attribute(Xmlel_Body, <<"authid">>, undefined),
     Requests = list_to_integer(binary_to_list(
-        exxml:get_attribute(BodyEl,<<"requests">>,undefined))),
-    Events = [{xmlstreamelement, El} || El <- exxml:get_elements(BodyEl)],
-    % first return a fake stream response, then anything found inside the <body/> element (possibly nothing)
+        exxml:get_attribute(Xmlel_Body, <<"requests">>, undefined))),
+    Events = [{xmlstreamelement, Xmlel} || Xmlel <- exxml:get_elements(Xmlel_Body)],
+    % first return a fake stream response, then anything found inside the <body/>
+    % element (possibly nothing)
     StreamStart = [
         "<?xml version='1.0'?><stream:stream xmlns='jabber:client'"
         " xmlns:stream='http://etherx.jabber.org/streams' version='1.0'"
-        " from='" , Domain , "' id='" , AuthID , "'>"
+        " from='" , State#state.domain , "' id='" , AuthID , "'>"
     ],
-    {ok, NewStreamRef} = exmpp_xmlstream:parse(StreamRef, StreamStart),
-    exmpp_xmlstream:send_events(StreamRef, Events),
+    {ok, NewStreamRef} = exmpp_xmlstream:parse(State#state.stream_ref, StreamStart),
+    exmpp_xmlstream:send_events(State#state.stream_ref, Events),
     {noreply,
      NewState2#state{
          stream_ref = NewStreamRef,
-         rid = Rid +1,
+         rid = State#state.rid + 1,
          open = [],
          sid = SID,
          max_requests = Requests,
          auth_id = AuthID}
     };
 
-do_send(Packet, State) ->
-    #state{open = Open,
-           rid = Rid,
-           sid = Sid,
-           parsed_bosh_url = {Host, _Port, Path, _},
-           queue = Queue} = State,
+do_send(Packet, #state{parsed_bosh_url = {Host, _Port, Path, _}} = State) ->
     Result = if
-        Open == [] ->
+        State#state.open == [] ->
             send;
         true ->
-            Min = lists:min(lists:map(fun({_S,R}) -> R end, Open)),
+            Min = lists:min(lists:map(fun({_S,R}) -> R end, State#state.open)),
             if
-                (Rid -Min) =< 1 ->
+                (State#state.rid - Min) =< 1 ->
                     send;
                 true ->
                     queue
@@ -286,9 +290,13 @@ do_send(Packet, State) ->
     case Result of
         send ->
             {NewState, Socket} = new_socket(State, once),
-            ok = make_request(Socket, Sid, Rid, Queue, Host, Path, Packet), 
+            ok = make_request(Socket, State#state.sid, State#state.rid,
+                State#state.queue, Host, Path, Packet), 
             {noreply,
-             NewState#state{rid = Rid +1, open = [{Socket, Rid}|Open]},
+             NewState#state{
+                 rid = State#state.rid + 1,
+                 open = [{Socket, State#state.rid} | State#state.open]
+             },
              hibernate};
         queue -> 
             %io:format("Queuing request.    Open = ~p    Rid= ~p \n", [Open, Rid]),
@@ -302,17 +310,22 @@ do_send(Packet, State) ->
 new_socket(State = #state{free = [Socket | Rest]}, Active) ->
     inet:setopts(Socket, [{active, Active}, {packet, http_bin}]),
     {State#state{free = Rest}, Socket};
-new_socket(State = #state{parsed_bosh_url = {Host, Port, _, _},
-  local_ip = LocalIp, local_port = LocalPort}, Active) ->
-    Options = case LocalIp of
+new_socket(State = #state{parsed_bosh_url = {Host, Port, _, _}, local_port = LocalPort},
+  Active) ->
+    Options = case State#state.local_ip of
         undefined ->
             [{active, Active}, {packet, http_bin}];
         _ ->
             case LocalPort of
                 undefined ->
-                    [{active, Active}, {packet, http_bin},{ip, LocalIp}];
-                _ -> [{active, Active}, {packet, http_bin},{ip, LocalIp},
-                      {port, LocalPort()}]
+                    [{active, Active},
+                     {packet, http_bin},
+                     {ip, State#state.local_ip}];
+                _ ->
+                    [{active, Active},
+                     {packet, http_bin},
+                     {ip, State#state.local_ip},
+                     {port, LocalPort()}]
             end
     end,
     {ok, Socket} = gen_tcp:connect(Host, Port,  Options, ?CONNECT_TIMEOUT),
