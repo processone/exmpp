@@ -28,13 +28,34 @@
 
 %% Feature announcement.
 -export([
-	 announced_support/1
-	]).
+    announced_support/1
+]).
 
 %% TLS negotiation.
 -export([
-	 starttls/0
-	]).
+    starttls/0
+]).
+
+-export_type([
+  xmlel_starttls/0,
+  xmlel_required/0
+]).
+
+-type(xmlel_required()
+  :: #xmlel{
+         name     :: <<_:64>>,
+         attrs    :: [{XmlNS :: <<_:40>>, NS_TLS :: <<_:248>>},...],
+         children :: []
+     }
+).
+
+-type(xmlel_starttls()
+  :: #xmlel{
+         name     :: <<_:64>>,
+         attrs    :: [{XmlNS :: <<_:40>>, NS_TLS :: <<_:248>>},...],
+         children :: [Xmlel_Required::exmpp_client_tls:xmlel_required()]
+     }
+).
 
 %% --------------------------------------------------------------------
 %% Feature announcement.
@@ -46,18 +67,35 @@
 %% @throws {tls, announced_support, invalid_announcement, El}
 %% @doc Return the kind of TLS negotiation the receiving entity asks for.
 
-announced_support({xmlel, F, _, _} = El) when F == <<"features">> orelse F == <<"stream:features">> ->
-    case exxml:get_element(El, <<"starttls">>) of
-        undefined -> none;
-        Child     -> announced_support2(Child)
+-spec(announced_support/1 ::
+(
+  Xmlel_Features :: exmpp_stream:xmlel_features())
+    -> Support :: none | 'optional' | 'required'
+).
+
+announced_support(Xmlel_Features)
+  when   Xmlel_Features#xmlel.name == <<"features">>
+  orelse Xmlel_Features#xmlel.name == <<"stream:features">> ->
+    case exxml:get_element(Xmlel_Features, <<"starttls">>) of
+        undefined      -> none;
+        Xmlel_Starttls -> announced_support2(Xmlel_Starttls)
     end.
 
-announced_support2(El) ->
-	case exxml:get_elements(El) of
-		[] ->   optional;
-		[{xmlel, <<"required">>, _, _}] -> required;
-		_ -> throw({tls, announced_support, invalid_announcement, El})
-	end.
+-spec(announced_support2/1 ::
+(
+  Xmlel_Starttls :: exmpp_client_tls:xmlel_starttls())
+    -> Support :: 'optional' | 'required'
+).
+
+announced_support2(Xmlel_Starttls) ->
+    case exxml:get_elements(Xmlel_Starttls) of
+        [] ->
+            'optional';
+        [#xmlel{name = <<"required">>, children = []}] ->
+            'required';
+        _ ->
+            throw({tls, announced_support, 'invalid_announcement', Xmlel_Starttls})
+    end.
 
 %% --------------------------------------------------------------------
 %% TLS negotiation.
@@ -68,5 +106,11 @@ announced_support2(El) ->
 %% @doc Make an XML element to tell the receiving entity that we want to
 %% use TLS.
 
+-spec(starttls/0 :: () -> Xmlel_Starttls::exmpp_client_tls:xmlel_starttls()).
+
 starttls() ->
-	{xmlel, <<"starttls">>, [{<<"xmlns">>, ?NS_TLS}], []}.
+    #xmlel{
+        name     = <<"starttls">>,
+        attrs    = [{<<"xmlns">>, ?NS_TLS}],
+        children = []
+    }.
