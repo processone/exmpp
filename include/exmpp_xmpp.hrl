@@ -63,7 +63,13 @@
 -define(IQ(Type, From, To, Id, Children),
 (
     exxml:element(undefined, <<"iq">>,
-        [{<<"type">>, Type}, {<<"id">>, Id} |
+        [{<<"type">>, Type},
+         {<<"id">>,
+          case Id of
+            undefined -> exmpp_utils:random_id(<<"iq-">>);
+            _         -> Id
+          end}
+        |
         case {From, To} of
             {undefined, undefined} ->
                 [];
