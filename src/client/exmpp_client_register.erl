@@ -26,10 +26,35 @@
 
 -include("exmpp.hrl").
 
--export([get_registration_fields/0,
-	 get_registration_fields/1,
-	 register_account/1, register_account/2,
-	 remove_account/0, remove_account/1]).
+-export([
+    get_registration_fields/0,
+    get_registration_fields/1,
+    register_account/1,
+    register_account/2,
+    remove_account/0,
+    remove_account/1
+]).
+
+%%
+-export_type([
+    field1/0,
+    fields/0
+]).
+
+-type(field1() :: {Name :: binary(), Value :: binary()}).
+-type(fields() :: [Field::exmpp_client_register:field1()]).
+
+%%
+-define(Xmlel(Name, Attrs, Children),
+(
+    exxml:element(undefined, Name, Attrs, Children)
+)).
+
+%%
+-define(Xmlel@InBand_Register(Name, Attrs, Children),
+(
+    exxml:element(?NS_INBAND_REGISTER, Name, Attrs, Children)
+)).
 
 %% @spec () -> Register_Iq
 %%     Register_Iq = exxml:xmlel()
@@ -37,6 +62,8 @@
 %% of registration fields.
 %%
 %% The stanza `id' is generated automatically.
+
+-spec(get_registration_fields/0 :: () -> Stanza_IQ_Get::exmpp_stanza:iq_get()).
 
 get_registration_fields() ->
     get_registration_fields(register_id()).
@@ -47,42 +74,48 @@ get_registration_fields() ->
 %% @doc Make an `<iq>' to get the instruction to register and the list
 %% of registration fields.
 
+-spec(get_registration_fields/1 ::
+(
+  Id::exmpp_stanza:id())
+    -> Stanza_IQ_Get::exmpp_stanza:iq_get()
+).
+
 get_registration_fields(Id) ->
     %% Make empty query
-    Query = {xmlel, <<"query">>, [{<<"xmlns">>, ?NS_INBAND_REGISTER}], []},
-    {xmlel, <<"iq">>, [{<<"type">>, <<"get">>}, {<<"id">>, Id}], [Query]}.
+    ?IQ_GET(undefined, undefined, Id,
+        ?Xmlel@InBand_Register(<<"query">>, [], [])).
 
-%% @spec (Fields) -> Register_Iq
-%%     Fields = [Field]
-%%     Field = {Fieldname, Value}
-%%     Fieldname = binary()
-%%     Value = binary()
-%%     Register_Iq = exxml:xmlel()
 %% @doc Make an `<iq>' that prepare a registration packet for the user.
+-spec(register_account/1 ::
+(
+  Fields::exmpp_client_register:fields())
+    -> Stanza_IQ_Set::exmpp_stanza:iq_set()
+).
+
 register_account(Fields) ->
     register_account(register_id(), Fields).
 
-%% @spec (Id, Fields) -> Register_Iq
-%%     Id = binary()
-%%     Fields = [Field]
-%%     Field = {Fieldname, Value}
-%%     Fieldname = binary()
-%%     Value = binary()
-%%     Register_Iq = exxml:xmlel()
 %% @doc Make an `<iq>' that prepare a registration packet for the user.
+-spec(register_account/2 ::
+(
+  Id     :: exmpp_stanza:id(),
+  Fields :: exmpp_client_register:fields())
+    -> Stanza_IQ_Set::exmpp_stanza:iq_set()
+).
+
 register_account(Id, Fields) ->
-    %% Make query tag
-    Query =  {xmlel, <<"query">>, [{<<"xmlns">>, ?NS_INBAND_REGISTER}], []},
-    %% Add fields to the query tag
-    PreparedQuery = append_fields(Query, Fields),
-    %% Put the prepared query in IQ
-    {xmlel, <<"iq">>, [{<<"type">>, <<"set">>}, {<<"id">>, Id}],
-	    [PreparedQuery]}.
+    ?IQ_SET(undefined, undefined, Id,
+        ?Xmlel@InBand_Register(<<"query">>, [],
+            [?Xmlel(Name, [], [exxml:cdata(Value)]) || {Name, Value} <- Fields])
+        ).
 
 %% @spec () -> RemoveRegister_Iq
 %%     RemoveRegister_Iq = exxml:xmlel()
 %% @doc Make an `<iq>' that delete user account on the server. The
 %% user is supposed to be already logged in.
+
+-spec(remove_account/0 :: () -> Stanza_IQ_Set::exmpp_stanza:iq_set()).
+
 remove_account() ->
     remove_account(register_id()).
 
@@ -91,33 +124,29 @@ remove_account() ->
 %%     RemoveRegister_Iq = exxml:xmlel()
 %% @doc Make an `<iq>' that delete user account on the server. The
 %% user is supposed to be already logged in.
-remove_account(Id) ->
-    %% Make query tag
-    Remove = {xmlel, <<"remove">>, [], []},
-    Query  = {xmlel, <<"query">>, [{<<"xmlns">>, ?NS_INBAND_REGISTER}], [Remove]},
-    %% Put the prepared query in IQ
-    {xmlel, <<"iq">>, [{<<"type">>, <<"set">>}, {<<"id">>, Id}], [Query]}.
 
-%% @hidden
-%% @doc Append each register request field to the query and return the
-%% prepared query
-append_fields(PreparedQuery, []) ->
-    PreparedQuery;
-append_fields(Query, [{Field, Value}|Fields]) ->
-	FieldElement = {xmlel, Field, [], [{cdata, Value}]},
-    	UpdatedQuery = exxml:append_child(Query, FieldElement),
-	append_fields(UpdatedQuery, Fields).
+-spec(remove_account/1 ::
+(
+  Id::exmpp_stanza:id())
+    -> Stanza_IQ_Set::exmpp_stanza:iq_set()
+).
+
+remove_account(Id) ->
+    ?IQ_SET(undefined, undefined, Id,
+        ?Xmlel@InBand_Register(<<"query">>, [], [
+            ?Xmlel(<<"remove">>, [], [])
+        ])).
 
 %% TODO: register_form
 
 
 
-%% @spec () -> Register_ID
-%%     Register_ID = binary()
 %% @doc Generate a random register iq ID.
 %%
 %% This function uses {@link random:uniform/1}. It's up to the caller to
 %% seed the generator.
 
+-spec(register_id/0 :: () -> Id::exmpp_stanza:id()).
+
 register_id() ->
-	exmpp_utils:random_id(<<"reg-">>).
+    exmpp_utils:random_id(<<"reg-">>).
