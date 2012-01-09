@@ -24,18 +24,19 @@
 
 %% Session establishment.
 -export([
-	 establish/0
-	]).
+    establish/0
+]).
 
 %% --------------------------------------------------------------------
 %% Session establishment.
 %% --------------------------------------------------------------------
 
-%% @spec () -> Session
-%%     Session = exxml:xmlel()
-%% @doc Make a `<session/>' element to create a session.
+%% @doc Make an IQ element with `<session/>' element to create a session.
+
+-spec(establish/0 :: () -> Stanza_IQ_Set::exmpp_stanza:stanza_set()).
 
 establish() ->
-	exmpp_iq:set({xmlel, <<"session">>, [{<<"xmlns">>, ?NS_SESSION}], []}, 
-		exmpp_utils:random_id(<<"session">>)).
+    ?IQ_SET(undefined, undefined, undefined,
+        exxml:element(?NS_SESSION, <<"session">>, [], [])
+    ).
 
