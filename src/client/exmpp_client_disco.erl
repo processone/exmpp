@@ -17,70 +17,169 @@
 
 -include("exmpp.hrl").
 
--define(QUERY_INFO,
-	{xmlel, <<"query">>, [{<<"xmlns">>, ?NS_DISCO_INFO}], []}
-).
+-define(Xmlel@Disco_Info(Name, Attrs, Children),
+(
+    exxml:element(?NS_DISCO_INFO, Name, Attrs, Children)
+)).
 
--define(QUERY_ITEMS,
-	{xmlel, <<"query">>, [{<<"xmlns">>, ?NS_DISCO_ITEMS}], []}
-).
+-define(Xmlel@Disco_Items(Name, Attrs, Children),
+(
+    exxml:element(?NS_DISCO_ITEMS, Name, Attrs, Children)
+)).
 
 %% Creation.
 -export([
-	 info/1,
-	 info/2,
-	 items/1,
-	 items/2
-	]).
+    info/0,
+    info/1,
+    info/2,
+    info/3,
+    info/4,
+    %%
+    items/0,
+    items/1,
+    items/2,
+    items/3,
+    items/4
+]).
 
-%% @spec (To) -> Iq
-%%     To = binary()
-%%     Iq = exxml:xmlel()
+-export_type([
+    node_id/0
+]).
+
+-type(node_id() :: binary()).
+
+%%
+
 %% @doc Make an <iq/> for a disco#info
+-spec(info/0 :: () -> Stanza_IQ_Get::exmpp_stanza:iq_get()).
+
+info() ->
+    info(undefined, undefined, iq_id(), undefined).
+
+%% @doc Make an <iq/> for a disco#info
+-spec(info/1 ::
+(
+  To :: exmpp_stanza:to() | undefined)
+    -> Stanza_IQ_Get::exmpp_stanza:iq_get()
+).
 
 info(To) ->
-  Query = ?QUERY_INFO,
-  Iq = ?IQ_GET(To, iq_id()),
-  exxml:append_child(Iq, Query).
+    info(undefined, To, iq_id(), undefined).
 
-%% @spec (To, Node) -> Iq
-%%     To   = binary()
-%%     Node = binary()
-%%     Iq   = exxml:xmlel()
-%% @doc Make an <iq/> for a disco#info to a node
+%% @doc Make an <iq/> for a disco#info
+-spec(info/2 ::
+(
+  To     :: exmpp_stanza:to()            | undefined,
+  NodeId :: exmpp_client_disco:node_id() | undefined)
+    -> Stanza_IQ_Get::exmpp_stanza:iq_get()
+).
 
-info(To, Node) ->
-  Query = exxml:set_attribute(?QUERY_INFO, <<"node">>, Node),
-  Iq = ?IQ_GET(To, iq_id()),
-  exxml:append_child(Iq, Query).
+info(To, NodeId) ->
+    info(undefined, To, iq_id(), NodeId).
 
-%% @spec (To) -> Iq
-%%     To = binary()
-%%     Iq = exxml:xmlel()
+%% @doc Make an <iq/> for a disco#info
+-spec(info/3 ::
+(
+  From   :: exmpp_stanza:from()          | undefined,
+  To     :: exmpp_stanza:to()            | undefined,
+  NodeId :: exmpp_client_disco:node_id() | undefined)
+    -> Stanza_IQ_Get::exmpp_stanza:iq_get()
+).
+
+info(From, To, NodeId) ->
+    info(From, To, iq_id(), NodeId).
+
+%% @doc Make an <iq/> for a disco#info
+-spec(info/4 ::
+(
+  From   :: exmpp_stanza:from()          | undefined,
+  To     :: exmpp_stanza:to()            | undefined,
+  Id     :: exmpp_stanza:id()            | undefined,
+  NodeId :: exmpp_client_disco:node_id() | undefined)
+    -> Stanza_IQ_Get::exmpp_stanza:iq_get()
+).
+
+info(From, To, Id, NodeId) ->
+    ?IQ_GET(From, To,
+        case Id of
+            undefined -> iq_id();
+            _         -> Id
+        end,
+        ?Xmlel@Disco_Info(<<"query">>,
+        case NodeId of
+            undefined -> [];
+            _         -> [exxml:attribute(<<"node">>, NodeId)]
+        end,
+        [])).
+
 %% @doc Make an <iq/> for a disco#items
+-spec(items/0 :: () -> Stanza_IQ_Get::exmpp_stanza:iq_get()).
+
+items() ->
+    items(undefined, undefined, iq_id(), undefined).
+
+%% @doc Make an <iq/> for a disco#items
+-spec(items/1 ::
+(
+  To     :: exmpp_stanza:to() | undefined)
+    -> Stanza_IQ_Get::exmpp_stanza:iq_get()
+).
 
 items(To) ->
-  Query = ?QUERY_ITEMS,
-  Iq = ?IQ_GET(To, iq_id()),
-  exxml:append_child(Iq, Query).
+    items(undefined, To, iq_id(), undefined).
 
-%% @spec (To, Node) -> Iq
-%%     To   = binary()
-%%     Node = binary()
-%%     Iq   = exxml:xmlel()
-%% @doc Make an <iq/> for a disco#items to a node 
+%% @doc Make an <iq/> for a disco#items
+-spec(items/2 ::
+(
+  To     :: exmpp_stanza:to()            | undefined,
+  NodeId :: exmpp_client_disco:node_id() | undefined)
+    -> Stanza_IQ_Get::exmpp_stanza:iq_get()
+).
 
-items(To, Node) ->
-  Query = exxml:set_attribute(?QUERY_ITEMS, <<"node">>, Node),
-  Iq = ?IQ_GET(To, iq_id()),
-  exxml:append_child(Iq, Query).
+items(To, NodeId) ->
+    items(undefined, To, iq_id(), NodeId).
 
-%% @spec () -> Iq_ID
-%%     Iq_ID = binary()
+%% @doc Make an <iq/> for a disco#items
+-spec(items/3 ::
+(
+  From   :: exmpp_stanza:from()          | undefined,
+  To     :: exmpp_stanza:to()            | undefined,
+  NodeId :: exmpp_client_disco:node_id() | undefined)
+    -> Stanza_IQ_Get::exmpp_stanza:iq_get()
+).
+
+items(From, To, NodeId) ->
+    items(From, To, iq_id(), NodeId).
+
+%% @doc Make an <iq/> for a disco#items
+-spec(items/4 ::
+(
+  From   :: exmpp_stanza:from()          | undefined,
+  To     :: exmpp_stanza:to()            | undefined,
+  Id     :: exmpp_stanza:id()            | undefined,
+  NodeId :: exmpp_client_disco:node_id() | undefined)
+    -> Stanza_IQ_Get::exmpp_stanza:iq_get()
+).
+
+items(From, To, Id, NodeId) ->
+    ?IQ_GET(From, To,
+        case Id of
+            undefined -> iq_id();
+            _         -> Id
+        end,
+        ?Xmlel@Disco_Items(<<"query">>,
+        case NodeId of
+            undefined -> [];
+            _         -> [exxml:attribute(<<"node">>, NodeId)]
+        end,
+        [])).
+
 %% @doc Generate a random iq ID.
 %%
 %% This function uses {@link random:uniform/1}. It's up to the caller to
 %% seed the generator.
 
+-spec(iq_id/0 :: () -> Id::exmpp_stanza:id()).
+
 iq_id() ->
-	exmpp_utils:random_id(<<"iq-">>).
+    exmpp_utils:random_id(<<"iq-">>).
