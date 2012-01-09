@@ -34,6 +34,45 @@
 	 selected_method/1
 	]).
 
+-export_type([
+    method/0,
+    methods/0
+]).
+
+-type(method() :: binary()).
+-type(methods() :: [Method::exmpp_client_compression:method(),...]).
+
+-export_type([
+    xmlel_compress/0,
+    xmlel_compression/0,
+    xmlel_method/0
+]).
+
+-type(xmlel_method()
+  :: #xmlel{
+         name     :: <<_:48>>,
+         attrs    :: [],
+         children :: [{'cdata', Method::exmpp_client_compression:method()},...]
+     }
+).
+
+
+-type(xmlel_compression()
+  :: #xmlel{
+         name     :: <<_:88>>,
+         attrs    :: [{XmlNS :: <<_:40>>, NS_COMPRESS:: <<_:280>>},...],
+         children :: [Xmlel_Method::exmpp_client_compression:xmlel_method(),...]
+     }
+).
+
+-type(xmlel_compress()
+  :: #xmlel{
+         name     :: <<_:64>>,
+         attrs    :: [{XmlNS :: <<_:40>>, NS_COMPRESS:: <<_:280>>},...],
+         children :: [{'cdata', Method::exmpp_client_compression:method()},...]
+     }
+).
+
 %% --------------------------------------------------------------------
 %% Feature announcement.
 %% --------------------------------------------------------------------
@@ -45,29 +84,56 @@
 %%         {stream_compression, announced_methods, invalid_method, El}
 %% @doc Return the list of supported compression methods.
 
-announced_methods({xmlel, F, _Attrs, _Children} = El) 
-	when F == <<"features">> orelse F == <<"stream:features">> ->
-    case exxml:get_element(El,<<"compression">>) of
-        undefined -> [];
-        Methods   -> announced_methods2(Methods)
+%-spec(announced_methods/1 ::
+%(
+%  Xmlel_Stream::exmpp_stream:xmlel_stream()
+%))
+
+-spec(announced_methods/1 ::
+(
+  Xmlels_Features::exmpp_stream:xmlel_stream())
+    -> Methods::exmpp_client_compression:methods()
+).
+
+announced_methods(Xmlel_Features)
+  when   Xmlel_Features#xmlel.name == <<"features">>
+  orelse Xmlel_Features#xmlel.name == <<"stream:features">> ->
+    case exxml:get_element(Xmlel_Features, <<"compression">>) of
+        undefined         -> [];
+        Xmlel_Compression -> announced_methods2(Xmlel_Compression)
     end.
 
-announced_methods2({xmlel, _, _, []} = Feature) ->
-    throw({stream_compression, announced_methods, invalid_feature, Feature});
-announced_methods2({xmlel, _, _, Children}) ->
+-spec(announced_methods2/1 ::
+(
+  Xmlels_Compression::exmpp_client_compression:xmlel_compression())
+    -> Methods::exmpp_client_compression:methods()
+).
+
+announced_methods2(Xmlel_Compression)
+  when Xmlel_Compression#xmlel.children == [] ->
+    throw({stream_compression, announced_methods, invalid_feature, Xmlel_Compression});
+announced_methods2(#xmlel{children = Children}) ->
     announced_methods3(Children, []).
 
-announced_methods3( [{xmlel, <<"method">>, _, _} = El | Rest], Result) ->
-    case exxml:get_cdata(El) of
+-spec(announced_methods3/2 ::
+(
+  Xmlels_Method :: [Xmlel_Method::exmpp_client_compression:xmlel_method()],
+  Methods       :: exmpp_client_compression:methods())
+    -> Methods::exmpp_client_compression:methods()
+).
+
+announced_methods3([Xmlel_Method | Xmlels], Methods)
+  when Xmlel_Method#xmlel.name == <<"method">> ->
+    case exxml:get_cdata(Xmlel_Method) of
         <<>> ->
-            throw({stream_compression, announced_methods, invalid_method, El});
+            throw({stream_compression, announced_methods, invalid_method, Xmlel_Method});
         Method ->
-            announced_methods3(Rest, [Method | Result])
+            announced_methods3(Xmlels, [Method | Methods])
     end;
-announced_methods3([El | _Rest], _Result) ->
-    throw({stream_compression, announced_methods, invalid_method, El});
-announced_methods3([], Result) ->
-    lists:reverse(Result).
+announced_methods3([Xmlel | _Xmlels], _Methods) ->
+    throw({stream_compression, announced_methods, invalid_method, Xmlel});
+announced_methods3([], Methods) ->
+    lists:reverse(Methods).
 
 %% --------------------------------------------------------------------
 %% Compression negotiation.
@@ -78,6 +144,13 @@ announced_methods3([], Result) ->
 %%     Compress = exxml:xmlel()
 %% @doc Prepare an request to select prefered compression method.
 
+-spec(selected_method/1 ::
+(
+  Method::exmpp_client_compression:method())
+    -> Xmlel_Compress::exmpp_client_compression:xmlel_compress()
+).
+
 selected_method(Method) ->
-	{xmlel, <<"compress">>, [{<<"xmlns">>, ?NS_COMPRESS}], 
-		[{xmlel, <<"method">>, [], [{cdata, Method}]}]}.
+    exxml:element(?NS_COMPRESS, <<"compress">>, [], [
+        exxml:element(undefined, <<"method">>, [], [exxml:cdata(Method)])
+    ]).
