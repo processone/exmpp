@@ -60,14 +60,30 @@
 % Macros to represent <iq/>
 % --------------------------------------------------------------------
 
--define(IQ(Type, To, Id), (
-		{xmlel, <<"iq">>, [{<<"type">>, Type}, {<<"to">>, To}, {<<"id">>, Id}], []}
+-define(IQ(Type, From, To, Id, Children),
+(
+    exxml:element(undefined, <<"iq">>,
+        [{<<"type">>, Type}, {<<"id">>, Id} |
+        case {From, To} of
+            {undefined, undefined} ->
+                [];
+            {_,         undefined} ->
+                [exxml:attribute(<<"from">>, From)];
+            {undefined, _} ->
+                [exxml:attribute(<<"to">>, To)];
+            {_,         _} ->
+                [exxml:attribute(<<"to">>, To),
+                 exxml:attribute(<<"from">>, From)]
+        end],
+        Children)
 )).
 
--define(IQ_GET(To, Id), (
-  ?IQ(<<"get">>, To, Id)
+-define(IQ_GET(From, To, Id, Xmlel),
+(
+    ?IQ(<<"get">>, From, To, Id, [Xmlel])
 )).
 
--define(IQ_SET(To, Id), (
-  ?IQ(<<"set">>, To, Id)
+-define(IQ_SET(From, To, Id, Xmlel),
+(
+    ?IQ(<<"set">>, From, To, Id, [Xmlel])
 )).
