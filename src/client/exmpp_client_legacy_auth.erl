@@ -109,30 +109,69 @@
 
 %% Creating stanza.
 -export([
-	 request/1,
-	 request/2,
-	 request_with_user/2,
-	 request_with_user/3,
-	 password/4,
-	 password/5,
-	 password_plain/3,
-	 password_plain/4,
-	 password_digest/3,
-	 password_digest/4
-	]).
+    request/1,
+    request/2,
+    request_with_user/2,
+    request_with_user/3,
+    password/4,
+    password/5,
+    password_plain/3,
+    password_plain/4,
+    password_digest/3,
+    password_digest/4
+]).
 
 %% Accessing informations.
 -export([
-	 get_fields/1,
-	 get_prefered_auth/1,
-	 is_success/1
-	]).
+    get_fields/1,
+    get_prefered_auth/1,
+    is_success/1
+]).
 
 %% Tools.
 -export([
 	 digest/2,
 	 hex/1
 	]).
+
+-export_type([
+    username/0,
+    password/0,
+    resource/0,
+    digest/0
+]).
+
+-type(username() :: binary()).
+-type(password() :: binary()).
+-type(resource() :: binary()).
+-type(digest()   :: binary()).
+
+-export_type([
+    auth/0,
+    auth_digest/0,
+    auth_plain/0
+]).
+
+%% <<"digest">>
+-type(auth_digest() :: <<_:48>>).
+%% <<"plain">>
+-type(auth_plain() :: <<_:40>>).
+
+-type(auth() :: exmpp_client_legacy_auth:auth_digest()
+              | exmpp_client_legacy_auth:auth_plain()
+).
+
+
+%%
+-define(Xmlel@LEGACY_AUTH(Name, Attrs, Children),
+(
+    exxml:element(?NS_LEGACY_AUTH, Name, Attrs, Children)
+%    #xmlel{
+%        name     = Name,
+%        attrs    = [{<<"xmlns">>, ?NS_LEGACY_AUTH} | Attrs],
+%        children = Children
+%    }
+)).
 
 %% --------------------------------------------------------------------
 %% Creating stanza.
@@ -145,6 +184,12 @@
 %%
 %% The stanza ID is generated automatically.
 
+-spec(request/1 ::
+(
+  To::exmpp_stanza:to())
+    -> Stanza_IQ_Get::exmpp_stanza:stanza_get()
+).
+
 request(To) ->
     request(To, auth_id()).
 
@@ -154,10 +199,17 @@ request(To) ->
 %%     Request_IQ = exxml:xmlel()
 %% @doc Make an `<iq>' for requesting legacy authentication.
 
-request(To, ID) ->
-    Query = {xmlel, <<"query">>, [{<<"xmlns">>, ?NS_LEGACY_AUTH}], []},
-    IQ = exmpp_iq:get(Query, ID),
-    exmpp_stanza:set_recipient(IQ, To).
+-spec(request/2 ::
+(
+  To::exmpp_stanza:to(),
+  Id::exmpp_stanza:id())
+    -> Stanza_IQ_Get::exmpp_stanza:stanza_get()
+).
+
+request(To, Id) ->
+    exmpp_stanza:set_recipient(
+        exmpp_iq:get(?Xmlel@LEGACY_AUTH(<<"query">>, [], []), Id),
+        To).
 
 %% @spec (To, Username) -> Request_IQ
 %%     To = binary()
@@ -166,6 +218,13 @@ request(To, ID) ->
 %% @doc Make an `<iq>' for requesting legacy authentication.
 %%
 %% The stanza ID is generated automatically.
+
+-spec(request_with_user/2 ::
+(
+  To       :: exmpp_stanza:to(),
+  Username :: exmpp_client_legacy_auth:username())
+    -> Stanza_IQ_Get::exmpp_stanza:iq_get()
+).
 
 request_with_user(To, Username) ->
     request_with_user(To, Username, auth_id()).
@@ -177,11 +236,22 @@ request_with_user(To, Username) ->
 %%     Response_IQ = exxml:xmlel()
 %% @doc Make an `<iq>' for requesting legacy authentication.
 
-request_with_user(To, Username, ID) ->
-	Username_El = {xmlel, <<"username">>, [], [{cdata, Username}]},
-	Query = {xmlel, <<"query">>, [{<<"xmlns">>, ?NS_LEGACY_AUTH}], [Username_El]},
-    	IQ = exmpp_iq:get(Query, ID),
-    	exmpp_stanza:set_recipient(IQ, To).
+-spec(request_with_user/3 ::
+(
+  To       :: exmpp_stanza:to(),
+  Username :: exmpp_client_legacy_auth:username(),
+  Id       :: exmpp_stanza:id())
+    -> Stanza_IQ_Get::exmpp_stanza:iq_get()
+).
+
+request_with_user(To, Username, Id) ->
+    exmpp_stanza:set_recipient(
+        exmpp_iq:get(
+            ?Xmlel@LEGACY_AUTH(<<"query">>, [], [
+                ?Xmlel@LEGACY_AUTH(<<"username">>, [], [exxml:cdata(Username)])
+                ]),
+            Id),
+        To).
 
 %% @spec (Fields_IQ, Username, Password, Resource) -> Password_IQ
 %%     Fields_IQ = exxml:xmlel()
@@ -193,8 +263,17 @@ request_with_user(To, Username, ID) ->
 %%
 %% The stanza ID is generated automatically.
 
-password(Fields_IQ, Username, Password, Resource) ->
-    password(Fields_IQ, Username, Password, Resource, auth_id()).
+-spec(password/4 ::
+(
+  Stanza_IQ_Result :: exmpp_stanza:iq_result(),
+  Username         :: exmpp_client_legacy_auth:username(),
+  Password         :: exmpp_client_legacy_auth:password(),
+  Resource         :: exmpp_client_legacy_auth:resource())
+    -> Stanza_IQ_Set::exmpp_stanza:iq_set()
+).
+
+password(Stanza_IQ_Result, Username, Password, Resource) ->
+    password(Stanza_IQ_Result, Username, Password, Resource, auth_id()).
 
 %% @spec (Fields_IQ, Username, Password, Resource, ID) -> Password_IQ
 %%     Fields_IQ = exxml:xmlel()
@@ -205,10 +284,20 @@ password(Fields_IQ, Username, Password, Resource) ->
 %%     Password_IQ = exxml:xmlel()
 %% @doc Make an `<iq/>' to send authentication informations.
 
-password(Fields_IQ, Username, Password, Resource, ID) ->
-    case get_prefered_auth(Fields_IQ) of
-        <<"plain">>  -> password_plain(Username, Password, Resource, ID);
-        <<"digest">> -> password_digest(Username, Password, Resource, ID)
+-spec(password/5 ::
+(
+  Stanza_IQ_Result :: exmpp_stanza:iq_result(),
+  Username         :: exmpp_client_legacy_auth:username(),
+  Password         :: exmpp_client_legacy_auth:password(),
+  Resource         :: exmpp_client_legacy_auth:resource(),
+  Id               :: exmpp_stanza:id())
+    -> Stanza_IQ_Set::exmpp_stanza:iq_set()
+).
+
+password(Stanza_IQ_Result, Username, Password, Resource, Id) ->
+    case get_prefered_auth(Stanza_IQ_Result) of
+        <<"plain">>  -> password_plain(Username, Password, Resource, Id);
+        <<"digest">> -> password_digest(Username, Password, Resource, Id)
     end.
 
 %% @spec (Username, Password, Resource) -> Password_IQ
@@ -219,6 +308,14 @@ password(Fields_IQ, Username, Password, Resource, ID) ->
 %% @doc Make an `<iq>' to send authentication informations.
 %%
 %% The stanza ID is generated automatically.
+
+-spec(password_plain/3 ::
+(
+  Username :: exmpp_client_legacy_auth:username(),
+  Password :: exmpp_client_legacy_auth:password(),
+  Resource :: exmpp_client_legacy_auth:resource())
+    -> Stanza_IQ_Set::exmpp_stanza:iq_set()
+).
 
 password_plain(Username, Password, Resource) ->
     password_plain(Username, Password, Resource, auth_id()).
@@ -235,13 +332,23 @@ password_plain(Username, Password, Resource) ->
 %%
 %% For an anonymous authentication, `Password' may be the empty string.
 
-password_plain(Username, Password, Resource, ID) ->
-	Username_El = {xmlel, <<"username">>, [], [{cdata, Username}]},
-	Password_El = {xmlel, <<"password">>, [], [{cdata, Password}]},
-	Resource_El = {xmlel, <<"resource">>, [], [{cdata, Resource}]},
-	Query = {xmlel, <<"query">>, [{<<"xmlns">>, ?NS_LEGACY_AUTH}], 
-			[Username_El, Password_El, Resource_El]},
-    	exmpp_iq:set(Query, ID).
+-spec(password_plain/4 ::
+(
+  Username :: exmpp_client_legacy_auth:username(),
+  Password :: exmpp_client_legacy_auth:password(),
+  Resource :: exmpp_client_legacy_auth:resource(),
+  Id       :: exmpp_stanza:id())
+    -> Stanza_IQ_Set::exmpp_stanza:iq_set()
+).
+
+password_plain(Username, Password, Resource, Id) ->
+    exmpp_iq:set(
+        ?Xmlel@LEGACY_AUTH(<<"query">>, [], [
+            ?Xmlel@LEGACY_AUTH(<<"username">>, [], [exxml:cdata(Username)]),
+            ?Xmlel@LEGACY_AUTH(<<"password">>, [], [exxml:cdata(Password)]),
+            ?Xmlel@LEGACY_AUTH(<<"resource">>, [], [exxml:cdata(Resource)])
+        ]),
+        Id).
 
 %% @spec (Username, Password, Resource) -> Password_IQ
 %%     Username = binary()
@@ -251,6 +358,14 @@ password_plain(Username, Password, Resource, ID) ->
 %% @doc Make an `<iq>' to send authentication informations.
 %%
 %% The stanza ID is generated automatically.
+
+-spec(password_digest/3 ::
+(
+  Username :: exmpp_client_legacy_auth:username(),
+  Password :: exmpp_client_legacy_auth:password(),
+  Resource :: exmpp_client_legacy_auth:resource())
+    -> Stanza_IQ_Set::exmpp_stanza:iq_set()
+).
 
 password_digest(Username, Password, Resource) ->
     password_digest(Username, Password, Resource, auth_id()).
@@ -265,13 +380,24 @@ password_digest(Username, Password, Resource) ->
 %%
 %% `Password' is encoded as specified in XEP-0078.
 
-password_digest(Username, Password, Resource, ID) ->
-	Username_El = {xmlel, <<"username">>, [], [{cdata, Username}]},
-	Digest_El = {xmlel, <<"digest">>, [], [{cdata, hex(digest(ID, Password))}]},
-	Resource_El = {xmlel, <<"resource">>, [], [{cdata, Resource}]},
-	Query = {xmlel, <<"query">>, [{<<"xmlns">>, ?NS_LEGACY_AUTH}], 
-			[Username_El, Digest_El, Resource_El]},
-    	exmpp_iq:set(Query, ID).
+-spec(password_digest/4 ::
+(
+  Username :: exmpp_client_legacy_auth:username(),
+  Password :: exmpp_client_legacy_auth:password(),
+  Resource :: exmpp_client_legacy_auth:resource(),
+  Id       :: exmpp_stanza:id())
+    -> Stanza_IQ_Set::exmpp_stanza:iq_set()
+).
+
+password_digest(Username, Password, Resource, Id) ->
+    exmpp_iq:set(
+        ?Xmlel@LEGACY_AUTH(<<"query">>, [], [
+            ?Xmlel@LEGACY_AUTH(<<"username">>, [], [exxml:cdata(Username)]),
+            ?Xmlel@LEGACY_AUTH(<<"digest">>, [],
+                [exxml:cdata(hex(digest(Id, Password)))]),
+            ?Xmlel@LEGACY_AUTH(<<"resource">>, [], [exxml:cdata(Resource)])
+        ]),
+        Id).
 
 %% --------------------------------------------------------------------
 %% Accessing informations.
@@ -284,22 +410,35 @@ password_digest(Username, Password, Resource, ID) ->
 %%         {legacy_auth, get_fields, invalid_field, Field}
 %% @doc Return the list of fields supported by the server.
 
-get_fields(Fields_IQ) when ?IS_IQ(Fields_IQ) ->
-    case exmpp_iq:get_result(Fields_IQ) of
+-spec(get_fields/1 ::
+(
+  Stanza_IQ_Result :: exmpp_stanza:iq_result())
+    -> Fields :: [Field::binary()]
+).
+
+get_fields(Stanza_IQ_Result) when ?IS_IQ(Stanza_IQ_Result) ->
+    case exmpp_iq:get_result(Stanza_IQ_Result) of
         undefined ->
-            throw({legacy_auth, get_fields, invalid_iq, Fields_IQ});
-    	{xmlel, <<"query">>, _Attrs, Children} 
-	when length(Children) == 3 orelse length(Children) == 4 ->
+            throw({legacy_auth, get_fields, invalid_iq, Stanza_IQ_Result});
+        #xmlel{name = <<"query">>, children = Children}
+          when length(Children) == 3 orelse length(Children) == 4 ->
             get_fields2(Children, []);
         _ ->
-            throw({legacy_auth, get_fields, invalid_iq, Fields_IQ})
+            throw({legacy_auth, get_fields, invalid_iq, Stanza_IQ_Result})
     end.
 
-get_fields2([{xmlel,Field, _, _} | Rest],
-	    Fields) ->
-    get_fields2(Rest, [Field | Fields]);
-get_fields2([Field | _Rest], _Fields) ->
-    throw({legacy_auth, get_fields, invalid_field, Field});
+%%
+-spec(get_fields2/2 ::
+(
+  Xmlels :: exxml:els(),
+  Fields :: [Field::binary()])
+    -> Fields :: [Field::binary()]
+).
+
+get_fields2([#xmlel{name = Field} | Xmlels], Fields) ->
+    get_fields2(Xmlels, [Field | Fields]);
+get_fields2([Xmlel | _Xmlels], _Fields) ->
+    throw({legacy_auth, get_fields, invalid_field, Xmlel});
 get_fields2([], Fields) ->
     lists:reverse(Fields).
 
@@ -308,8 +447,14 @@ get_fields2([], Fields) ->
 %%     Auth = <<"digest">> | <<"password">>
 %% @doc Return the prefered authentication method.
 
-get_prefered_auth(IQ) when ?IS_IQ(IQ) ->
-    case lists:member(<<"digest">>, get_fields(IQ)) of
+-spec(get_prefered_auth/1 ::
+(
+  Stanza_IQ_Result :: exmpp_stanza:iq_result())
+    -> Auth::exmpp_client_legacy_auth:auth()
+).
+
+get_prefered_auth(Stanza_IQ_Result) when ?IS_IQ(Stanza_IQ_Result) ->
+    case lists:member(<<"digest">>, get_fields(Stanza_IQ_Result)) of
         true -> <<"digest">>;
         _    -> <<"plain">>
     end.
@@ -318,11 +463,17 @@ get_prefered_auth(IQ) when ?IS_IQ(IQ) ->
 %%     IQ = exxml:xmlel()
 %% @doc Tell if the authentication succeeded.
 
-is_success(IQ) when ?IS_IQ(IQ) ->
-    case exmpp_iq:get_type(IQ) of
+-spec(is_success/1 ::
+(
+  Stanza_IQ :: exmpp_stanza:iq_result() | exmpp_stanza:iq_error())
+    -> Is_Success::boolean()
+).
+
+is_success(Stanza_IQ) when ?IS_IQ(Stanza_IQ) ->
+    case exmpp_iq:get_type(Stanza_IQ) of
         <<"result">> -> true;
         <<"error">>  -> false;
-        _        -> throw({legacy_auth, is_success, unexpected_iq, IQ})
+        _        -> throw({legacy_auth, is_success, unexpected_iq, Stanza_IQ})
     end.
 
 %% --------------------------------------------------------------------
@@ -335,8 +486,15 @@ is_success(IQ) when ?IS_IQ(IQ) ->
 %%     Digest = binary()
 %% @doc Produce a password digest for legacy auth, according to XEP-0078.
 
-digest(ID, Passwd) ->
-    Token = <<ID/binary, Passwd/binary>>,
+-spec(digest/2 ::
+(
+  Id       :: exmpp_stanza:id(),
+  Password :: exmpp_client_legacy_auth:password())
+    -> Digest::exmpp_client_legacy_auth:digest()
+).
+
+digest(Id, Password) ->
+    Token = <<Id/binary, Password/binary>>,
     crypto:start(),
     crypto:sha(Token).
 
@@ -370,6 +528,8 @@ int_to_hexchar(I)  -> $0 + I.
 %% @doc Generate a random authentication iq ID.
 %%
 %% @see exmpp_utils:random_id/1.
+
+-spec(auth_id/0 :: () -> Id::exmpp_stanza:id()).
 
 auth_id() ->
     exmpp_utils:random_id(<<"auth-">>).
