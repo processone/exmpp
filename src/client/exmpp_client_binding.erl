@@ -33,17 +33,6 @@
     bounded_jid/1
 ]).
 
--export_type([
-    xmlel_bind/0
-]).
-
--type(xmlel_bind()
-  :: #xmlel{
-         name     :: <<_:40>>,
-         attrs    :: [{XmlNS :: <<_:40>>, NS_BIND :: <<_:256>>}],
-         children :: []
-     }
-).
 
 -define(Xmlel(Name, Attrs, Children),
 (
@@ -85,7 +74,7 @@ announced_support(Xmlel_Features)
 
 -spec(announced_support2/1 ::
 (
-  Xmlel_Bind :: exmpp_client_binding:xmlel_bind())
+  Xmlel_Bind :: exmpp_server_binding:xmlel_bind())
     -> true
 ).
 
