@@ -22,55 +22,103 @@
 
 -include("exmpp.hrl").
 
--export([get_roster/0, get_roster/1,
-	 set_item/3, set_item/4]).
+-export([
+    get_roster/0,
+    get_roster/1,
+    set_item/3,
+    set_item/4
+]).
 
-%% @spec () -> Roster_Iq
-%%     Roster_Iq = exxml:xmlel()
+%%
+-export_type([
+    group/0,
+    groups/0,
+    nick/0,
+    jid/0
+]).
+
+-type(group() :: binary()).
+-type(groups() :: [Group::exmpp_client_roster:group()]).
+-type(nick() :: binary()).
+-type(jid() :: binary()).
+
+%%
+-define(Xmlel(Name, Attrs, Children),
+(
+    exxml:element(undefined, Name, Attrs, Children)
+)).
+
+-define(Xmlel@Roster(Name, Attrs, Children),
+(
+    exxml:element(?NS_ROSTER, Name, Attrs, Children)
+)).
+
+
 %% @doc Make an `<iq>' to retrieve user roster.
 %%
 %% The stanza `id' is generated automatically.
+
+-spec(get_roster/0 :: () -> Stanza_IQ_Get::exmpp_stanza:iq_get()).
+
 get_roster() ->
     get_roster(roster_id()).
 
-%% @spec (Id) -> Roster_Iq
-%%     Id = binary()
-%%     Roster_Iq = exxml:xmlel()
 %% @doc Make an `<iq>' to retrieve user roster.
+
+-spec(get_roster/1 ::
+(
+  Id::exmpp_stanza:id())
+    -> Stanza_IQ_Get::exmpp_stanza:iq_get()
+).
+
 get_roster(Id) ->
-   Query = {xmlel, <<"query">>, [{<<"xmlns">>, ?NS_ROSTER}], []},
-   {xmlel, <<"iq">>, [{<<"type">>, <<"get">>}, {<<"id">>, Id}], [Query]}.
+    ?IQ_GET(undefined, undefined, Id,
+        ?Xmlel@Roster(<<"query">>, [], [])).
 
-%% @spec (ContactJID, Groups, Nick) -> Roster_Iq
-%%     ContactJID = binary()
-%%     Groups = [binary()]
-%%     Nick = binary()
-%%     Roster_Iq = exxml:xmlel()
 %% @doc Make an `<iq>' to update a roster item. This function is used
 %% both to create a roster item and to update an roster entry
-set_item(ContactJID, Groups, Nick) ->
-    set_item(roster_id(), ContactJID, Groups, Nick).
 
-%% @spec (Id, ContactJID, Groups, Nick) -> Roster_Iq
-%%     Id = binary()
-%%     ContactJID = binary()
-%%     Groups = [binary()]
-%%     Nick = binary()
-%%     Roster_Iq = exxml:xmlel()
+-spec(set_item/3 ::
+(
+  Contact :: exmpp_client_roster:jid(),
+  Groups  :: exmpp_client_roster:groups(),
+  Nick    :: exmpp_client_roster:nick() | undefined)
+    -> Stanza_IQ_Set::exmpp_stanza:iq_set()
+).
+
+set_item(Contact, Groups, Nick) ->
+    set_item(roster_id(), Contact, Groups, Nick).
+
 %% @doc Make an `<iq>' to update a roster item. This function is used
 %% both to create a roster item and to update an roster entry
-set_item(Id, ContactJID, Groups, Nick) ->
-    Item = {xmlel, <<"item">>, [{<<"name">>, Nick}, {<<"jid">>, ContactJID}],
-		[{xmlel, <<"group">>, [], [{cdata, Gr}]} || Gr <- Groups]},
-    Query = {xmlel, <<"query">>, [{<<"xmlns">>, ?NS_ROSTER}], [Item]},
-    {xmlel, <<"iq">>, [{<<"type">>, <<"set">>}, {<<"id">>, Id}], [Query]}.
 
-%% @spec () -> Roster_ID
-%%     Roster_ID = binary()
+-spec(set_item/4 ::
+(
+  Id      :: exmpp_stanza:id(),
+  Contact :: exmpp_client_roster:jid(),
+  Groups  :: exmpp_client_roster:groups(),
+  Nick    :: exmpp_client_roster:nick() | undefined)
+    -> Stanza_IQ_Set::exmpp_stanza:iq_set()
+).
+
+set_item(Id, Contact, Groups, Nick) ->
+    ?IQ_SET(undefined, undefined, Id,
+        ?Xmlel@Roster(<<"query">>, [], [
+            ?Xmlel(<<"item">>,
+                [exxml:attribute(<<"jid">>, Contact) |
+                 case Nick of
+                    undefined -> [];
+                    _         -> [exxml:attribute(<<"name">>, Nick)]
+                 end],
+                [?Xmlel(<<"group">>, [], [exxml:cdata(Group)]) || Group <- Groups])
+        ])).
+
 %% @doc Generate a random roster iq ID.
 %%
 %% This function uses {@link random:uniform/1}. It's up to the caller to
 %% seed the generator.
 
+-spec(roster_id/0 :: () -> Id::exmpp_stanza:id()).
+
 roster_id() ->
-	exmpp_utils:random_id(<<"rost-">>).
+    exmpp_utils:random_id(<<"rost-">>).
