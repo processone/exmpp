@@ -23,79 +23,107 @@
 
 %% Feature annoucement.
 -export([
-	 feature/0
-	]).
+    feature/0
+]).
 
 %% Resource binding.
 -export([
-	 wished_resource/1,
-	 bind/2,
-	 error/2
-	]).
+    wished_resource/1,
+    bind/2,
+    error/2
+]).
+
+
+%%
+-export_type([
+    xmlel_bind/0
+]).
+
+-type(xmlel_bind()
+  :: #xmlel{
+         name     :: <<_:40>>,
+         attrs    :: [{XmlNS :: <<_:40>>, NS_BIND :: <<_:256>>}],
+         children :: []
+     }
+).
+
+%%
+-define(Xmlel(Name, Attrs, Children),
+(
+    exxml:element(undefined, Name, Attrs, Children)
+)).
+
+-define(Xmlel@Bind(Name, Attrs, Children),
+(
+    exxml:element(?NS_BIND, Name, Attrs, Children)
+)).
 
 %% --------------------------------------------------------------------
 %% Feature announcement.
 %% --------------------------------------------------------------------
 
-%% @spec () -> Feature
-%%     Feature = exxml:xmlel()
 %% @doc Make a feature announcement child.
 %%
 %% The result should then be passed to {@link exmpp_stream:features/1}.
 
+-spec(feature/0 :: () -> Xmlel_Bind::exmpp_server_binding:xmlel_bind()).
+
 feature() ->
-	{xmlel, <<"bind">>, [{<<"xmlns">>, ?NS_BIND}], []}.
+    ?Xmlel@Bind(<<"bind">>, [], []).
 
 %% --------------------------------------------------------------------
 %% Resource binding.
 %% --------------------------------------------------------------------
 
-%% @spec (IQ) -> Resource | undefined
-%%     IQ = exxml:xmlel()
-%%     Resource = binary()
 %% @throws {resource_binding, wished_resource, invalid_bind, IQ}
 %% @doc Return the resource the client wants or `undefined' if he
 %% doesn't ask for any.
+-spec(wished_resource/1 ::
+(
+  Stanza_IQ :: exmpp_stanza:iq_set() | exmpp_stanza:iq())
+    -> Resource :: binary() | undefined
+).
 
-wished_resource(IQ) when ?IS_IQ(IQ) ->
-    case exmpp_iq:get_type(IQ) of
+wished_resource(Stanza_IQ) when ?IS_IQ(Stanza_IQ) ->
+    case exmpp_iq:get_type(Stanza_IQ) of
         <<"set">> ->
-            case exmpp_iq:get_request(IQ) of
-		    {xmlel, <<"bind">>, _, _} = Bind ->
-                    case exxml:get_element(Bind, <<"resource">>) of
-			undefined ->
-				undefined;
-                        Resource ->
-                            exxml:get_cdata(Resource)
+            case exmpp_iq:get_request(Stanza_IQ) of
+                Xmlel_Bind when Xmlel_Bind#xmlel.name == <<"bind">> ->
+                    case exxml:get_element(Xmlel_Bind, <<"resource">>) of
+                        undefined -> undefined;
+                        Resource  -> exxml:get_cdata(Resource)
                     end;
                 _ ->
-                    throw({resource_binding, wished_resource,
-			   invalid_bind, IQ})
+                    throw({resource_binding, wished_resource, invalid_bind, Stanza_IQ})
             end;
         _ ->
-            throw({resource_binding, wished_resource, invalid_bind, IQ})
+            throw({resource_binding, wished_resource, invalid_bind, Stanza_IQ})
     end;
 wished_resource(Stanza) ->
     throw({resource_binding, wished_resource, invalid_bind, Stanza}).
 
-%% @spec (IQ, Jid) -> Reply
-%%     IQ = exxml:xmlel()
-%%     Jid = exmpp_jid:jid()
-%%     Reply = exxml:xmlel()
 %% @doc Prepare a reply to `IQ' to inform the client of its final JID.
+-spec(bind/2 ::
+(
+  Stanza_IQ :: exmpp_stanza:iq_set(),
+  Jid       :: exmpp_jid:jid())
+    -> Stanza_IQ_Result::exmpp_stanza:iq_result()
+).
 
-bind(IQ, Jid) when ?IS_IQ(IQ) ->
-    Jid_B = exmpp_jid:to_binary(Jid),
-    Bind = {xmlel, <<"bind">>, [{<<"xmlns">>, ?NS_BIND}],
-	    [{xmlel, <<"jid">>, [], [{cdata, Jid_B}]}]},
-    exmpp_iq:result(IQ, Bind).
+bind(Stanza_IQ, Jid) when ?IS_IQ(Stanza_IQ) ->
+    exmpp_iq:result(Stanza_IQ,
+        ?Xmlel@Bind(<<"bind">>, [], [
+            ?Xmlel(<<"jid">>, [], [exxml:cdata(exmpp_jid:to_binary(Jid))])
+        ])
+    ).
 
-%% @spec (IQ, Condition) -> Error_IQ
-%%     IQ = exxml:xmlel()
-%%     Condition = binary()
-%%     Error_IQ = exxml:xmlel()
 %% @doc Prepare an error reply to `IQ'.
+-spec(error/2 ::
+(
+  Stanza_IQ       :: exmpp_stanza:iq(),
+  Error_Condition :: exmpp_stanza:error_condition())
+    -> Stanza_IQ_Error::exmpp_stanza:iq_error()
+).
 
-error(IQ, Condition) when ?IS_IQ(IQ) ->
-    Error = exmpp_stanza:error(Condition),
-    exmpp_iq:error(IQ, Error).
+error(Stanza_IQ, Error_Condition) when ?IS_IQ(Stanza_IQ) ->
+    exmpp_iq:error(Stanza_IQ, exmpp_stanza:error(Error_Condition)).
