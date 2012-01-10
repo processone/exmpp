@@ -163,6 +163,11 @@
 
 
 %%
+-define(Xmlel(Name, Attrs, Children),
+(
+    exxml:element(undefined, Name, Attrs, Children)
+)).
+
 -define(Xmlel@LEGACY_AUTH(Name, Attrs, Children),
 (
     exxml:element(?NS_LEGACY_AUTH, Name, Attrs, Children)
@@ -248,7 +253,7 @@ request_with_user(To, Username, Id) ->
     exmpp_stanza:set_recipient(
         exmpp_iq:get(
             ?Xmlel@LEGACY_AUTH(<<"query">>, [], [
-                ?Xmlel@LEGACY_AUTH(<<"username">>, [], [exxml:cdata(Username)])
+                ?Xmlel(<<"username">>, [], [exxml:cdata(Username)])
                 ]),
             Id),
         To).
@@ -344,9 +349,9 @@ password_plain(Username, Password, Resource) ->
 password_plain(Username, Password, Resource, Id) ->
     exmpp_iq:set(
         ?Xmlel@LEGACY_AUTH(<<"query">>, [], [
-            ?Xmlel@LEGACY_AUTH(<<"username">>, [], [exxml:cdata(Username)]),
-            ?Xmlel@LEGACY_AUTH(<<"password">>, [], [exxml:cdata(Password)]),
-            ?Xmlel@LEGACY_AUTH(<<"resource">>, [], [exxml:cdata(Resource)])
+            ?Xmlel(<<"username">>, [], [exxml:cdata(Username)]),
+            ?Xmlel(<<"password">>, [], [exxml:cdata(Password)]),
+            ?Xmlel(<<"resource">>, [], [exxml:cdata(Resource)])
         ]),
         Id).
 
@@ -392,10 +397,9 @@ password_digest(Username, Password, Resource) ->
 password_digest(Username, Password, Resource, Id) ->
     exmpp_iq:set(
         ?Xmlel@LEGACY_AUTH(<<"query">>, [], [
-            ?Xmlel@LEGACY_AUTH(<<"username">>, [], [exxml:cdata(Username)]),
-            ?Xmlel@LEGACY_AUTH(<<"digest">>, [],
-                [exxml:cdata(hex(digest(Id, Password)))]),
-            ?Xmlel@LEGACY_AUTH(<<"resource">>, [], [exxml:cdata(Resource)])
+            ?Xmlel(<<"username">>, [], [exxml:cdata(Username)]),
+            ?Xmlel(<<"digest">>, [], [exxml:cdata(hex(digest(Id, Password)))]),
+            ?Xmlel(<<"resource">>, [], [exxml:cdata(Resource)])
         ]),
         Id).
 
