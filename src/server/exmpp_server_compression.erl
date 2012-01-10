@@ -26,23 +26,99 @@
 
 %% Feature announcement.
 -export([
-	 feature/1
-	]).
+    feature/1
+]).
 
 %% Compression negotiation.
 -export([
-	 selected_method/1,
-	 compressed/0,
-	 failure/1
-	]).
+    selected_method/1,
+    compressed/0,
+    failure/1
+]).
+
+
+%%
+-export_type([
+    method/0,
+    methods/0
+]).
+
+-type(method() :: binary()).
+-type(methods() :: [Method::exmpp_client_compression:method(),...]).
+
+-export_type([
+    error_condition/0,
+    standard_condition/0,
+    standard_conditions/0
+]).
+
+-type(error_condition() :: binary()).
+-type(standard_condition()
+  :: {Error_Condition::exmpp_server_compression:error_condition()}
+).
+
+-type(standard_conditions() :: [exmpp_server_compression:standard_condition(),...]).
+
+-export_type([
+    xmlel_compression/0,
+    xmlel_method/0,
+    xmlel_compressed/0,
+    xmlel_failure/0
+]).
+
+-type(xmlel_compression()
+  :: #xmlel{
+         name     :: <<_:88>>,
+         attrs    :: [],
+         children :: [Xmlel_Method::exmpp_server_compression:xmlel_method(),...]
+     }
+).
+
+-type(xmlel_method()
+  :: #xmlel{
+         name     :: <<_:48>>,
+         attrs    :: [],
+         children :: [{'cdata', Method::exmpp_client_compression:method()},...]
+     }
+).
+
+-type(xmlel_compressed()
+  :: #xmlel{
+         name     :: <<_:80>>,
+         attrs    :: [{XmlNS :: <<_:40>>, NS_COMPRESS:: <<_:280>>},...],
+         children :: []
+     }
+).
+
+-type(xmlel_failure()
+  :: #xmlel{
+         name     :: <<_:56>>,
+         attrs    :: [{XmlNS :: <<_:40>>, NS_COMPRESS:: <<_:280>>},...],
+         children :: []
+     }
+).
+
+
+%%
+-define(Xmlel(Name, Attrs, Children),
+(
+    exxml:element(undefined, Name, Attrs, Children)
+)).
+
+-define(Xmlel@Compress(Name, Attrs, Children),
+(
+    exxml:element(?NS_COMPRESS, Name, Attrs, Children)
+)).
+
+-define(Xmlel@Compress_Feat(Name, Attrs, Children),
+(
+    exxml:element(?NS_COMPRESS_FEAT, Name, Attrs, Children)
+)).
 
 %% --------------------------------------------------------------------
 %% Feature announcement.
 %% --------------------------------------------------------------------
 
-%% @spec (Methods) -> Feature
-%%     Methods = [binary()]
-%%     Feature = exxml:xmlel()
 %% @throws {stream_compression, feature_announcement, invalid_methods_list,
 %%           []} |
 %%         {stream_compression, feature_announcement, invalid_method, Method}
@@ -58,23 +134,37 @@
 %%
 %% The result should then be passed to {@link exmpp_stream:features/1}.
 
+-spec(feature/1 ::
+(
+  Methods::exmpp_server_compression:methods())
+    -> Xmlel_Compression::exmpp_server_compression:xmlel_compression()
+).
+
 feature(Methods) ->
-	{xmlel, <<"compression">>, [{<<"xmlns">>, ?NS_COMPRESS_FEAT}], methods_list(Methods)}.
+    ?Xmlel@Compress_Feat(<<"compression">>, [], methods_list(Methods)).
+
+%%
+-spec(methods_list/1 ::
+(
+  Methods::exmpp_server_compression:methods())
+    -> Xmlels_Method :: [Xmlel_Method::exmpp_server_compression:xmlel_method(),...]
+).
 
 methods_list([]) ->
-    throw({stream_compression, feature_announcement,
-	   invalid_methods_list, []});
+    throw({stream_compression, feature_announcement, invalid_methods_list, []});
 methods_list(Methods) ->
     methods_list2(Methods, []).
 
-methods_list2([Method | Rest], Children) ->
-	methods_list2(Rest, [{xmlel, <<"method">>, [], [{cdata, Method}]}|Children]);
-methods_list2([], Children) ->
-    Children.
+methods_list2([Method | Methods], Xmlels_Method) ->
+    methods_list2(Methods,
+        [?Xmlel(<<"method">>, [], [exxml:cdata(Method)]) | Xmlels_Method]);
+methods_list2([], Xmlels_Method) ->
+    Xmlels_Method.
 
 %% --------------------------------------------------------------------
 %% Compression negotiation.
 %% --------------------------------------------------------------------
+-spec(standard_conditions/0 :: () -> exmpp_server_compression:standard_conditions()).
 
 standard_conditions() ->
     [
@@ -82,39 +172,44 @@ standard_conditions() ->
      {<<"setup-failed">>}
     ].
 
-%% @spec (El) -> Method
-%%     El = exxml:xmlel()
-%%     Method = binary()
 %% @doc Extract the method chosen by the initiating entity.
+-spec(selected_method/1 ::
+(
+  Xmlel_Compress::exmpp_client_compression:xmlel_compress())
+    -> Method :: exmpp_client_compression:method() | undefined
+).
 
-selected_method({xmlel, <<"compress">>, _, _} = El) ->
-    case exxml:get_element(El, <<"method">>) of
-        undefined ->
-            undefined;
-        Sub_El ->
-            exxml:get_cdata(Sub_El)
+selected_method(Xmlel_Compress) when Xmlel_Compress#xmlel.name == <<"compress">> ->
+    case exxml:get_element(Xmlel_Compress, <<"method">>) of
+        undefined    -> undefined;
+        Xmlel_Method -> exxml:get_cdata(Xmlel_Method)
     end;
-selected_method(El) ->
-    throw({stream_compression, selected_method, unexpected_element, El}).
+selected_method(Xmlel) ->
+    throw({stream_compression, selected_method, unexpected_element, Xmlel}).
 
-%% @spec () -> Compressed
-%%     Compressed = exxml:xmlel()
+
 %% @doc Prepare a `<compressed/>' element.
+-spec(compressed/0
+  :: () -> Xmlel_Compressed::exmpp_server_compression:xmlel_compressed()
+).
 
 compressed() ->
-	{xmlel, <<"compressed">>, [{<<"xmlns">>, ?NS_COMPRESS}], []}.
+    ?Xmlel@Compress(<<"compressed">>, [], []).
 
-%% @spec (Condition) -> Failure
-%%     Condition = binary()
-%%     Failure = exxml:xmlel()
 %% @throws {stream_compression, failure, invalid_condition, Condition}
 %% @doc Prepare a `<failure/>' element.
+-spec(failure/1 ::
+(
+  Error_Condition::exmpp_server_compression:error_condition())
+    -> Xmlel_Failure::exmpp_server_compression:xmlel_failure()
+).
 
-failure(Condition) ->
-    case lists:keysearch(Condition, 1, standard_conditions()) of
-        {value, _} ->
-		{xmlel, <<"failure">>, [{<<"xmlns">>, ?NS_COMPRESS}], 
-			[{xmlel, Condition, [], []}]}; 
-        _ ->
-            throw({stream_compression, failure, invalid_condition, Condition})
+failure(Error_Condition) ->
+    case lists:keymember(Error_Condition, 1, standard_conditions()) of
+        true ->
+            ?Xmlel@Compress(<<"failure">>, [], [
+                ?Xmlel(Error_Condition, [], [])
+            ]);
+        false ->
+            throw({stream_compression, failure, invalid_condition, Error_Condition})
     end.
