@@ -106,11 +106,11 @@ info(From, To, Id, NodeId) ->
             _         -> Id
         end,
         ?Xmlel@Disco_Info(<<"query">>,
-        case NodeId of
-            undefined -> [];
-            _         -> [exxml:attribute(<<"node">>, NodeId)]
-        end,
-        [])).
+            case NodeId of
+                undefined -> [];
+                _         -> [exxml:attribute(<<"node">>, NodeId)]
+            end,
+            [])).
 
 %% @doc Make an <iq/> for a disco#items
 -spec(items/0 :: () -> Stanza_IQ_Get::exmpp_stanza:iq_get()).
@@ -168,11 +168,11 @@ items(From, To, Id, NodeId) ->
             _         -> Id
         end,
         ?Xmlel@Disco_Items(<<"query">>,
-        case NodeId of
-            undefined -> [];
-            _         -> [exxml:attribute(<<"node">>, NodeId)]
-        end,
-        [])).
+            case NodeId of
+                undefined -> [];
+                _         -> [exxml:attribute(<<"node">>, NodeId)]
+            end,
+            [])).
 
 %% @doc Generate a random iq ID.
 %%
