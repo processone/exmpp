@@ -26,50 +26,25 @@
 
 %% Feature announcement.
 -export([
-	 announced_methods/1
-	]).
+    announced_methods/1
+]).
 
 %% Compression negotiation.
 -export([
-	 selected_method/1
-	]).
-
--export_type([
-    method/0,
-    methods/0
+    selected_method/1
 ]).
 
--type(method() :: binary()).
--type(methods() :: [Method::exmpp_client_compression:method(),...]).
-
+%%
 -export_type([
-    xmlel_compress/0,
-    xmlel_compression/0,
-    xmlel_method/0
+    xmlel_compress/0
 ]).
 
--type(xmlel_method()
-  :: #xmlel{
-         name     :: <<_:48>>,
-         attrs    :: [],
-         children :: [{'cdata', Method::exmpp_client_compression:method()},...]
-     }
-).
-
-
--type(xmlel_compression()
-  :: #xmlel{
-         name     :: <<_:88>>,
-         attrs    :: [{XmlNS :: <<_:40>>, NS_COMPRESS:: <<_:280>>},...],
-         children :: [Xmlel_Method::exmpp_client_compression:xmlel_method(),...]
-     }
-).
 
 -type(xmlel_compress()
   :: #xmlel{
          name     :: <<_:64>>,
          attrs    :: [{XmlNS :: <<_:40>>, NS_COMPRESS:: <<_:280>>},...],
-         children :: [{'cdata', Method::exmpp_client_compression:method()},...]
+         children :: [{'cdata', Method::exmpp_server_compression:method()},...]
      }
 ).
 
@@ -92,7 +67,7 @@
 -spec(announced_methods/1 ::
 (
   Xmlels_Features::exmpp_stream:xmlel_stream())
-    -> Methods::exmpp_client_compression:methods()
+    -> Methods::exmpp_server_compression:methods()
 ).
 
 announced_methods(Xmlel_Features)
@@ -105,8 +80,8 @@ announced_methods(Xmlel_Features)
 
 -spec(announced_methods2/1 ::
 (
-  Xmlels_Compression::exmpp_client_compression:xmlel_compression())
-    -> Methods::exmpp_client_compression:methods()
+  Xmlels_Compression::exmpp_server_compression:xmlel_compression())
+    -> Methods::exmpp_server_compression:methods()
 ).
 
 announced_methods2(Xmlel_Compression)
@@ -117,9 +92,9 @@ announced_methods2(#xmlel{children = Children}) ->
 
 -spec(announced_methods3/2 ::
 (
-  Xmlels_Method :: [Xmlel_Method::exmpp_client_compression:xmlel_method()],
-  Methods       :: exmpp_client_compression:methods())
-    -> Methods::exmpp_client_compression:methods()
+  Xmlels_Method :: [Xmlel_Method::exmpp_server_compression:xmlel_method()],
+  Methods       :: exmpp_server_compression:methods())
+    -> Methods::exmpp_server_compression:methods()
 ).
 
 announced_methods3([Xmlel_Method | Xmlels], Methods)
@@ -146,7 +121,7 @@ announced_methods3([], Methods) ->
 
 -spec(selected_method/1 ::
 (
-  Method::exmpp_client_compression:method())
+  Method::exmpp_server_compression:method())
     -> Xmlel_Compress::exmpp_client_compression:xmlel_compress()
 ).
 
