@@ -45,6 +45,10 @@
      }
 ).
 
+-define(Xmlel(Name, Attrs, Children),
+(
+    exxml:element(undefined, Name, Attrs, Children)
+)).
 
 -define(Xmlel@Bind(Name, Attrs, Children),
 (
@@ -120,7 +124,7 @@ bind(Resource) ->
                 undefined ->
                     [];
                 _ ->
-                    [?Xmlel@Bind(<<"resource">>, [], [exxml:cdata(Resource)])]
+                    [?Xmlel(<<"resource">>, [], [exxml:cdata(Resource)])]
             end),
         exmpp_utils:random_id(<<"bind">>)).
 
