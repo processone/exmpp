@@ -37,11 +37,10 @@
 ]).
 
 -export_type([
-  xmlel_starttls/0,
-  xmlel_required/0
+  xmlel_starttls/0
 ]).
 
--type(xmlel_required()
+-type(xmlel_starttls()
   :: #xmlel{
          name     :: <<_:64>>,
          attrs    :: [{XmlNS :: <<_:40>>, NS_TLS :: <<_:248>>},...],
@@ -49,24 +48,18 @@
      }
 ).
 
--type(xmlel_starttls()
-  :: #xmlel{
-         name     :: <<_:64>>,
-         attrs    :: [{XmlNS :: <<_:40>>, NS_TLS :: <<_:248>>},...],
-         children :: [Xmlel_Required::exmpp_client_tls:xmlel_required()]
-     }
-).
+%%
+-define(Xmlel@TLS(Name, Attrs, Children),
+(
+    exxml:element(?NS_TLS, Name, Attrs, Children)
+)).
 
 %% --------------------------------------------------------------------
 %% Feature announcement.
 %% --------------------------------------------------------------------
 
-%% @spec (Features_Announcement) -> Support
-%%     Features_Announcement = exxml:xmlel()
-%%     Support = none | optional | required
 %% @throws {tls, announced_support, invalid_announcement, El}
 %% @doc Return the kind of TLS negotiation the receiving entity asks for.
-
 -spec(announced_support/1 ::
 (
   Xmlel_Features :: exmpp_stream:xmlel_features())
@@ -81,9 +74,10 @@ announced_support(Xmlel_Features)
         Xmlel_Starttls -> announced_support2(Xmlel_Starttls)
     end.
 
+%%
 -spec(announced_support2/1 ::
 (
-  Xmlel_Starttls :: exmpp_client_tls:xmlel_starttls())
+  Xmlel_Starttls :: exmpp_server_tls:xmlel_starttls())
     -> Support :: 'optional' | 'required'
 ).
 
@@ -101,16 +95,9 @@ announced_support2(Xmlel_Starttls) ->
 %% TLS negotiation.
 %% --------------------------------------------------------------------
 
-%% @spec () -> STARTTLS
-%%     STARTTLS = exxml:xmlel()
 %% @doc Make an XML element to tell the receiving entity that we want to
 %% use TLS.
-
 -spec(starttls/0 :: () -> Xmlel_Starttls::exmpp_client_tls:xmlel_starttls()).
 
 starttls() ->
-    #xmlel{
-        name     = <<"starttls">>,
-        attrs    = [{<<"xmlns">>, ?NS_TLS}],
-        children = []
-    }.
+    ?Xmlel@TLS(<<"starttls">>, [], []).
