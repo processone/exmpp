@@ -69,7 +69,6 @@
 %% @doc Make an `<iq>' for advertising fields.
 %%
 %% Both authentication methods are proposed.
-
 -spec(fields/1 ::
 (
   Stanza_IQ_Set::exmpp_stanza:iq_set())
@@ -79,12 +78,7 @@
 fields(Request_IQ) ->
     fields(Request_IQ, 'both').
 
-%% @spec (Request_IQ, Auth) -> Fields_IQ
-%%     Request_IQ = exlm:xmlel()
-%%     Auth = plain | digest | both
-%%     Fields_IQ = exlm:xmlel()
 %% @doc Make an `<iq>' for advertising fields.
-
 -spec(fields/2 ::
 (
   Stanza_IQ_Set :: exmpp_stanza:iq_set(),
@@ -163,7 +157,6 @@ success(Stanza_IQ_Set) when ?IS_IQ(Stanza_IQ_Set) ->
 %%     Condition = <<"not_authorized">> | <<"conflict">> | <<"not_acceptable">>
 %%     Failure_IQ = exxml:xmlel()
 %% @doc Make an `<iq>' to notify a successfull authentication.
-
 -spec(failure/2 ::
 (
   Stanza_IQ_Set :: exmpp_stanza:iq_set(),
@@ -181,15 +174,6 @@ failure(Stanza_IQ_Set, Error_Condition) when ?IS_IQ(Stanza_IQ_Set) ->
                 <<"not-acceptable">> -> <<"406">>
             end)
     ).
-%    Code = case Condition of
-%	       <<"not-authorized">> -> <<"401">>;
-%	       <<"conflict">>       -> <<"409">>;
-%	       <<"not-acceptable">> -> <<"406">>
-%	   end,
-%    Error = exxml:set_attribute(
-%	      exmpp_stanza:error(Condition),
-%	      <<"code">>, Code),
-%    exmpp_iq:error_without_original(Password_IQ, Error).
 
 %% --------------------------------------------------------------------
 %% Accessing informations.
@@ -218,7 +202,6 @@ want_fields(_Stanza) ->
 %% @doc Extract credentials from the `Password_IQ'.
 %%
 %% For digest, hexadecimal content is decoded.
-
 -spec(get_credentials/1 ::
 (
   Stanza_IQ_Set::exmpp_stanza:iq_set())
@@ -286,37 +269,6 @@ get_credentials2([], {_Username, _Password, undefined}) ->
     throw({legacy_auth, get_credentials, missing_field, 'resource'});
 get_credentials2([], Credentials) ->
     Credentials.
-
-%get_credentials2(
-% [{xmlel, <<"username">>, _, _} = Field | Rest],
-%  {_Username, Password, Resource}) ->
-%    Username = exxml:get_cdata(Field),
-%    get_credentials2(Rest, {Username, Password, Resource});
-%get_credentials2(
-%  [{xmlel,<<"password">>, _, _} = Field | Rest],
-%  {Username, _Password, Resource}) ->
-%    Password = exxml:get_cdata(Field),
-%    get_credentials2(Rest, {Username, {plain, Password}, Resource});
-%get_credentials2(
-%  [{xmlel, <<"digest">>, _, _} = Field | Rest],
-%  {Username, _Password, Resource}) ->
-%    Password = list_to_binary(unhex(binary_to_list(exxml:get_cdata(Field)))),
-%    get_credentials2(Rest, {Username, {digest, Password}, Resource});
-%get_credentials2(
-%  [{xmlel, <<"resource">>, _, _} = Field | Rest],
-%  {Username, Password, _Resource}) ->
-%    Resource = exxml:get_cdata(Field),
-%    get_credentials2(Rest, {Username, Password, Resource});
-%get_credentials2([Field | _Rest], _Credentials) ->
-%    throw({legacy_auth, get_credentials, invalid_field, Field});
-%get_credentials2([], {undefined, _Password, _Resource}) ->
-%    throw({legacy_auth, get_credentials, missing_field, 'username'});
-%get_credentials2([], {_Username, undefined, _Resource}) ->
-%    throw({legacy_auth, get_credentials, missing_field, 'password'});
-%get_credentials2([], {_Username, _Password, undefined}) ->
-%    throw({legacy_auth, get_credentials, missing_field, 'resource'});
-%get_credentials2([], Credentials) ->
-%    Credentials.
 
 %% --------------------------------------------------------------------
 %% Tools.
