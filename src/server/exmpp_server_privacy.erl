@@ -23,22 +23,44 @@
 
 %% Creating stanza.
 -export([
-	 list_push/2
-	]).
+    list_push/2
+]).
+
+%%
+-export_type([
+    list_name/0
+]).
+
+-type(list_name() :: binary()).
+
+%%
+-define(Xmlel(Name, Attrs, Children),
+(
+    exxml:element(undefined, Name, Attrs, Children)
+)).
+
+-define(Xmlel@Privacy(Name, Attrs, Children),
+(
+    exxml:element(?NS_PRIVACY, Name, Attrs, Children)
+)).
+
 
 %% --------------------------------------------------------------------
 %% Creating stanza.
 %% --------------------------------------------------------------------
 
-%% @spec (To, List_Name) -> Push_IQ
-%%     To =  binary()
-%%     List_Name = binary()
-%%     Push_IQ = exxml:xmlel()
 %% @doc Create an `<iq/>' to notify `To' that the privacy list
 %% `List_Name' has been created or has changed.
+%-spec(list_push/2 ::
+%(
+%  To        :: exmpp_stanza:to(),
+%  List_Name :: exmpp_server_privacy:list_name())
+%    -> Stanza_IQ_Set::exmpp_stanza:iq_set()
+%).
 
 list_push(To, List_Name) ->
-    Query = {xmlel, <<"query">>, [{<<"xmlns">>, ?NS_PRIVACY}], 
-		[{xmlel, <<"list">>,  [{<<"name">>, List_Name}], []}]},
-    IQ = exmpp_iq:set(Query, exmpp_utils:random_id(<<"push">>)),
-    exmpp_stanza:set_recipient(IQ, To).
+    ?IQ_SET(undefined, To, exmpp_utils:random_id(<<"push-">>),
+        ?Xmlel@Privacy(<<"query">>, [], [
+            ?Xmlel(<<"list">>, [exxml:attribute(<<"name">>, List_Name)], [])
+        ])
+    ).
