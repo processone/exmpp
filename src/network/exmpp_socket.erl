@@ -23,12 +23,21 @@
 
 -module(exmpp_socket).
 
--export([connect/3, send/2, close/2, reset_parser/1, get_property/2,
-        compress/1, starttls/2, wping/1
-    ]).
+-export([
+    connect/3,
+    send/2,
+    close/2,
+    reset_parser/1,
+    get_property/2,
+    compress/1,
+    starttls/2,
+    wping/1
+]).
 
 %% Internal export
--export([receiver/3]).
+-export([
+    receiver/3
+]).
 
 
 % None implemented so far.
@@ -44,28 +53,29 @@ reset_parser(ReceiverPid) when is_pid(ReceiverPid) ->
 %% Ref or throw error
 %% Ref is a socket
 connect(ClientPid, StreamRef, {Host, Port, Options}) ->
-    LocalIP = proplists:get_value(local_ip, Options, undefined),                     
-    LocalPort= proplists:get_value(local_port, Options, undefined),                  
-    SckType = proplists:get_value(socket_type, Options, gen_tcp),                  
-    IPOptions = case LocalIP of                                                                                          
-                        undefined -> [];                                           
-                        _ ->  case LocalPort of                                                                        
-                                undefined -> [{ip, LocalIP}];                     
-                                _ -> [{ip, LocalIP}, {port, LocalPort()}]         
-                              end                                                                                      
-                end,                                                                                                   
+    LocalIP = proplists:get_value('local_ip', Options, undefined),
+    LocalPort= proplists:get_value('local_port', Options, undefined),
+    SckType = proplists:get_value('socket_type', Options, gen_tcp),
+    IPOptions = case LocalIP of
+        undefined ->
+            [];
+        _ ->
+            case LocalPort of
+                undefined -> [{ip, LocalIP}];
+                _         -> [{ip, LocalIP}, {port, LocalPort()}]
+            end
+    end,
     DefaultOptions = [{packet,0}, binary, {active, false}] ++ IPOptions,
     Opts = [{reuseaddr,true}|DefaultOptions],
     case SckType:connect(Host, Port, Opts, 30000) of
-	{ok, Socket} ->
+        {ok, Socket} ->
             ESocket = {SckType, Socket},
-	    %% TODO: Hide receiver failures in API
-	    ReceiverPid = spawn_link(?MODULE, receiver,
-				     [ClientPid, ESocket, StreamRef]),
-	    SckType:controlling_process(Socket, ReceiverPid),
+            %% TODO: Hide receiver failures in API
+            ReceiverPid = spawn_link(?MODULE, receiver, [ClientPid, ESocket, StreamRef]),
+            SckType:controlling_process(Socket, ReceiverPid),
             {ESocket, ReceiverPid};
-	{error, Reason} ->
-	    erlang:throw({socket_error, Reason})
+        {error, Reason} ->
+            erlang:throw({socket_error, Reason})
     end.
 
 % we do a synchronous shutdown of the receiver process, 
@@ -84,7 +94,7 @@ send(Socket, XMLPacket) when is_tuple(XMLPacket) ->
     exmpp_internals:gen_send(Socket, Bin).
 
 wping(Socket) ->
-	exmpp_internals:gen_send(Socket, <<"\n">>).
+    exmpp_internals:gen_send(Socket, <<"\n">>).
 
 compress(ReceiverPid) ->
     Ref = erlang:make_ref(),
@@ -115,35 +125,36 @@ receiver_loop(ClientPid, ESocket, StreamRef) ->
     Socket = get_socket(ESocket),
     exmpp_internals:gen_setopts(ESocket, [{active, once}]),
     receive
-	stop -> 
+        stop -> 
             exmpp_internals:gen_close(ESocket),
-	    ok;
-	{compress, From, Ref} -> 
+            ok;
+        {compress, From, Ref} -> 
             ZSocket = {exmpp_compress, exmpp_compress:enable_compression(ESocket, [])},
             From ! {ok, Ref, ZSocket},
-	    receiver_loop(ClientPid, ZSocket, StreamRef);
-	{starttls, From, Ref, Mode} -> 
+            receiver_loop(ClientPid, ZSocket, StreamRef);
+        {starttls, From, Ref, Mode} -> 
             exmpp_internals:gen_setopts(ESocket, [{active, false}]),
-            TSocket = {exmpp_tls, exmpp_tls:handshake(Mode, ESocket, undefined, false, [])},
+            TSocket = {exmpp_tls,
+                exmpp_tls:handshake(Mode, ESocket, undefined, false, [])},
             From ! {ok, Ref, TSocket},
-	    receiver_loop(ClientPid, TSocket, StreamRef);
+            receiver_loop(ClientPid, TSocket, StreamRef);
         {tcp, Socket, Data} ->
             {ok, Str} = recv_data(ESocket, Data),
  %             io:format("- RECEIVING:~n~s~n", [Str]),
-	    {ok, NewStreamRef} = exmpp_xmlstream:parse(StreamRef, Str),
-	    receiver_loop(ClientPid, ESocket, NewStreamRef);
-	{ssl, Socket, Data} ->
+            {ok, NewStreamRef} = exmpp_xmlstream:parse(StreamRef, Str),
+            receiver_loop(ClientPid, ESocket, NewStreamRef);
+        {ssl, Socket, Data} ->
             {ok, Str} = recv_data(ESocket, Data),
  %             io:format("- RECEIVING:~n~s~n", [Str]),
-	    {ok, NewStreamRef} = exmpp_xmlstream:parse(StreamRef, Str),
-	    receiver_loop(ClientPid, ESocket, NewStreamRef);
-	{tcp_closed, Socket} ->
-	    gen_fsm:send_all_state_event(ClientPid, tcp_closed);
-	{ssl_closed, Socket} ->
-	    gen_fsm:send_all_state_event(ClientPid, tcp_closed);
-	{ssl_error,Socket,Reason} ->
-	    error_logger:warning_msg([ssl_error,{ssl_socket,Socket},Reason]),
-	    gen_fsm:send_all_state_event(ClientPid, tcp_closed);
+            {ok, NewStreamRef} = exmpp_xmlstream:parse(StreamRef, Str),
+            receiver_loop(ClientPid, ESocket, NewStreamRef);
+        {tcp_closed, Socket} ->
+            gen_fsm:send_all_state_event(ClientPid, tcp_closed);
+        {ssl_closed, Socket} ->
+            gen_fsm:send_all_state_event(ClientPid, tcp_closed);
+        {ssl_error,Socket,Reason} ->
+            error_logger:warning_msg([ssl_error,{ssl_socket,Socket},Reason]),
+            gen_fsm:send_all_state_event(ClientPid, tcp_closed);
         reset_parser ->
             receiver_loop(ClientPid, ESocket, exmpp_xmlstream:reset(StreamRef))
     end.
