@@ -130,9 +130,9 @@
 
 %% Tools.
 -export([
-	 digest/2,
-	 hex/1
-	]).
+    digest/2,
+    hex/1
+]).
 
 -export_type([
     username/0,
@@ -142,7 +142,7 @@
 ]).
 
 -type(username() :: binary()).
--type(password() :: binary()).
+-type(password() :: <<>> | binary()).
 -type(resource() :: binary()).
 -type(digest()   :: binary()).
 
@@ -161,6 +161,45 @@
               | exmpp_client_legacy_auth:auth_plain()
 ).
 
+-export_type([
+    xmlel_username/0,
+    xmlel_password/0,
+    xmlel_digest/0,
+    xmlel_resource/0
+]).
+
+-type(xmlel_username()
+  :: #xmlel{
+         name  :: <<_:64>>,
+         attrs :: [],
+         children :: [{'cdata', Username::exmpp_client_legacy_auth:username()},...]
+     }
+).
+
+-type(xmlel_password()
+  :: #xmlel{
+         name  :: <<_:64>>,
+         attrs :: [],
+         children :: [{'cdata', Username::exmpp_client_legacy_auth:password()},...]
+     }
+).
+
+-type(xmlel_digest()
+  :: #xmlel{
+         name  :: <<_:48>>,
+         attrs :: [],
+         children :: [{'cdata', Username::exmpp_client_legacy_auth:digest()},...]
+     }
+).
+
+-type(xmlel_resource()
+  :: #xmlel{
+         name  :: <<_:64>>,
+         attrs :: [],
+         children :: [{'cdata', Username::exmpp_client_legacy_auth:resource()},...]
+     }
+).
+
 
 %%
 -define(Xmlel(Name, Attrs, Children),
@@ -171,24 +210,15 @@
 -define(Xmlel@LEGACY_AUTH(Name, Attrs, Children),
 (
     exxml:element(?NS_LEGACY_AUTH, Name, Attrs, Children)
-%    #xmlel{
-%        name     = Name,
-%        attrs    = [{<<"xmlns">>, ?NS_LEGACY_AUTH} | Attrs],
-%        children = Children
-%    }
 )).
 
 %% --------------------------------------------------------------------
 %% Creating stanza.
 %% --------------------------------------------------------------------
 
-%% @spec (To) -> Request_IQ
-%%     To = binary()
-%%     Request_IQ = exxml:xmlel()
 %% @doc Make an `<iq>' for requesting legacy authentication.
 %%
 %% The stanza ID is generated automatically.
-
 -spec(request/1 ::
 (
   To::exmpp_stanza:to())
@@ -198,12 +228,7 @@
 request(To) ->
     request(To, auth_id()).
 
-%% @spec (To, ID) -> Request_IQ
-%%     To = binary()
-%%     ID = binary()
-%%     Request_IQ = exxml:xmlel()
 %% @doc Make an `<iq>' for requesting legacy authentication.
-
 -spec(request/2 ::
 (
   To::exmpp_stanza:to(),
@@ -216,14 +241,9 @@ request(To, Id) ->
         exmpp_iq:get(?Xmlel@LEGACY_AUTH(<<"query">>, [], []), Id),
         To).
 
-%% @spec (To, Username) -> Request_IQ
-%%     To = binary()
-%%     Username = binary()
-%%     Request_IQ = exxml:xmlel()
 %% @doc Make an `<iq>' for requesting legacy authentication.
 %%
 %% The stanza ID is generated automatically.
-
 -spec(request_with_user/2 ::
 (
   To       :: exmpp_stanza:to(),
@@ -234,13 +254,7 @@ request(To, Id) ->
 request_with_user(To, Username) ->
     request_with_user(To, Username, auth_id()).
 
-%% @spec (To, Username, ID) -> Request_IQ
-%%     To = binary()
-%%     Username = binary()
-%%     ID = binary()
-%%     Response_IQ = exxml:xmlel()
 %% @doc Make an `<iq>' for requesting legacy authentication.
-
 -spec(request_with_user/3 ::
 (
   To       :: exmpp_stanza:to(),
@@ -258,16 +272,9 @@ request_with_user(To, Username, Id) ->
             Id),
         To).
 
-%% @spec (Fields_IQ, Username, Password, Resource) -> Password_IQ
-%%     Fields_IQ = exxml:xmlel()
-%%     Username = binary()
-%%     Password = binary() | nil()
-%%     Resource = binary()
-%%     Password_IQ = exxml:xmlel()
 %% @doc Make an `<iq/>' to send authentication informations.
 %%
 %% The stanza ID is generated automatically.
-
 -spec(password/4 ::
 (
   Stanza_IQ_Result :: exmpp_stanza:iq_result(),
@@ -280,15 +287,7 @@ request_with_user(To, Username, Id) ->
 password(Stanza_IQ_Result, Username, Password, Resource) ->
     password(Stanza_IQ_Result, Username, Password, Resource, auth_id()).
 
-%% @spec (Fields_IQ, Username, Password, Resource, ID) -> Password_IQ
-%%     Fields_IQ = exxml:xmlel()
-%%     Username = binary()
-%%     Password = binary() | nil()
-%%     Resource = binary()
-%%     ID = binary()
-%%     Password_IQ = exxml:xmlel()
 %% @doc Make an `<iq/>' to send authentication informations.
-
 -spec(password/5 ::
 (
   Stanza_IQ_Result :: exmpp_stanza:iq_result(),
@@ -305,15 +304,9 @@ password(Stanza_IQ_Result, Username, Password, Resource, Id) ->
         <<"digest">> -> password_digest(Username, Password, Resource, Id)
     end.
 
-%% @spec (Username, Password, Resource) -> Password_IQ
-%%     Username = binary()
-%%     Password = binary() | nil()
-%%     Resource = binary()
-%%     Password_IQ = exxml:xmlel()
 %% @doc Make an `<iq>' to send authentication informations.
 %%
 %% The stanza ID is generated automatically.
-
 -spec(password_plain/3 ::
 (
   Username :: exmpp_client_legacy_auth:username(),
@@ -325,18 +318,11 @@ password(Stanza_IQ_Result, Username, Password, Resource, Id) ->
 password_plain(Username, Password, Resource) ->
     password_plain(Username, Password, Resource, auth_id()).
 
-%% @spec (Username, Password, Resource, ID) -> Password_IQ
-%%     Username = binary()
-%%     Password = binary() | nil()
-%%     Resource = binary()
-%%     ID = binary()
-%%     Password_IQ = exxml:xmlel()
 %% @doc Make an `<iq>' to send authentication informations.
 %%
 %% `Password' is in clear plain text in the stanza.
 %%
 %% For an anonymous authentication, `Password' may be the empty string.
-
 -spec(password_plain/4 ::
 (
   Username :: exmpp_client_legacy_auth:username(),
@@ -355,15 +341,9 @@ password_plain(Username, Password, Resource, Id) ->
         ]),
         Id).
 
-%% @spec (Username, Password, Resource) -> Password_IQ
-%%     Username = binary()
-%%     Password = binary()
-%%     Resource = binary()
-%%     Password_IQ = exxml:xmlel()
 %% @doc Make an `<iq>' to send authentication informations.
 %%
 %% The stanza ID is generated automatically.
-
 -spec(password_digest/3 ::
 (
   Username :: exmpp_client_legacy_auth:username(),
@@ -375,16 +355,9 @@ password_plain(Username, Password, Resource, Id) ->
 password_digest(Username, Password, Resource) ->
     password_digest(Username, Password, Resource, auth_id()).
 
-%% @spec (Username, Password, Resource, ID) -> Password_IQ
-%%     Username = binary()
-%%     Password = binary()
-%%     Resource = binary()
-%%     ID = binary()
-%%     Password_IQ = exxml:xmlel()
 %% @doc Make an `<iq>' to send authentication informations.
 %%
 %% `Password' is encoded as specified in XEP-0078.
-
 -spec(password_digest/4 ::
 (
   Username :: exmpp_client_legacy_auth:username(),
@@ -434,9 +407,17 @@ get_fields(Stanza_IQ_Result) when ?IS_IQ(Stanza_IQ_Result) ->
 %%
 -spec(get_fields2/2 ::
 (
-  Xmlels :: exxml:els(),
-  Fields :: [Field::binary()])
-    -> Fields :: [Field::binary()]
+  Xmlels :: [exmpp_client_legacy_auth:xmlel_username() |
+             exmpp_client_legacy_auth:xmlel_password() |
+             exmpp_client_legacy_auth:xmlel_resource() ,...]
+          | [exmpp_client_legacy_auth:xmlel_username() |
+             exmpp_client_legacy_auth:xmlel_password() |
+             exmpp_client_legacy_auth:xmlel_digest()   |
+             exmpp_client_legacy_auth:xmlel_resource() ,...],
+  Fields :: [binary() | binary() | binary(),...]
+          | [binary() | binary() | binary() | binary(),...])
+    -> Fields :: [binary() | binary() | binary(),...]
+               | [binary() | binary() | binary() | binary(),...]
 ).
 
 get_fields2([#xmlel{name = Field} | Xmlels], Fields) ->
@@ -446,15 +427,11 @@ get_fields2([Xmlel | _Xmlels], _Fields) ->
 get_fields2([], Fields) ->
     lists:reverse(Fields).
 
-%% @spec (Fields_IQ) -> Auth
-%%     Fields_IQ = exxml:xmlel()
-%%     Auth = <<"digest">> | <<"password">>
 %% @doc Return the prefered authentication method.
-
 -spec(get_prefered_auth/1 ::
 (
   Stanza_IQ_Result :: exmpp_stanza:iq_result())
-    -> Auth::exmpp_client_legacy_auth:auth()
+    -> Auth_Method::exmpp_client_legacy_auth:auth()
 ).
 
 get_prefered_auth(Stanza_IQ_Result) when ?IS_IQ(Stanza_IQ_Result) ->
@@ -463,10 +440,7 @@ get_prefered_auth(Stanza_IQ_Result) when ?IS_IQ(Stanza_IQ_Result) ->
         _    -> <<"plain">>
     end.
 
-%% @spec (IQ) -> bool()
-%%     IQ = exxml:xmlel()
 %% @doc Tell if the authentication succeeded.
-
 -spec(is_success/1 ::
 (
   Stanza_IQ :: exmpp_stanza:iq_result() | exmpp_stanza:iq_error())
@@ -484,12 +458,7 @@ is_success(Stanza_IQ) when ?IS_IQ(Stanza_IQ) ->
 %% Tools.
 %% --------------------------------------------------------------------
 
-%% @spec (ID, Passwd) -> Digest
-%%     ID = binary()
-%%     Passwd = binary()
-%%     Digest = binary()
 %% @doc Produce a password digest for legacy auth, according to XEP-0078.
-
 -spec(digest/2 ::
 (
   Id       :: exmpp_stanza:id(),
@@ -527,12 +496,9 @@ int_to_hexchar(I)  -> $0 + I.
 %% Internal functions.
 %% --------------------------------------------------------------------
 
-%% @spec () -> Auth_ID
-%%     Auth_ID = string()
 %% @doc Generate a random authentication iq ID.
 %%
 %% @see exmpp_utils:random_id/1.
-
 -spec(auth_id/0 :: () -> Id::exmpp_stanza:id()).
 
 auth_id() ->
