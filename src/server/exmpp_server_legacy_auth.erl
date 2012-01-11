@@ -27,36 +27,57 @@
 
 %% Creating stanza.
 -export([
-	 fields/1,
-	 fields/2,
-	 success/1,
-	 failure/2
-	]).
+    fields/1,
+    fields/2,
+    success/1,
+    failure/2
+]).
 
 %% Accessing informations.
 -export([
-	 want_fields/1,
-	 get_credentials/1
-	]).
+    want_fields/1,
+    get_credentials/1
+]).
 
 %% Tools.
 -export([
-	 unhex/1
-	]).
+    unhex/1
+]).
+
+%%
+-export_type([
+    error_condition/0
+]).
+
+-type(error_condition() :: binary()).
+
+%%
+-define(Xmlel(Name, Attrs, Children),
+(
+    exxml:element(undefined, Name, Attrs, Children)
+)).
+
+-define(Xmlel@Legacy_Auth(Name, Attrs, Children),
+(
+    exxml:element(?NS_LEGACY_AUTH, Name, Attrs, Children)
+)).
 
 %% --------------------------------------------------------------------
 %% Creating stanza.
 %% --------------------------------------------------------------------
 
-%% @spec (Request_IQ) -> Fields_IQ
-%%     Request_IQ = exxml:xmlel()
-%%     Fields_IQ = exxml:xmlel()
 %% @doc Make an `<iq>' for advertising fields.
 %%
 %% Both authentication methods are proposed.
 
+-spec(fields/1 ::
+(
+  Stanza_IQ_Set::exmpp_stanza:iq_set())
+    -> Stanza_IQ_Result::exmpp_stanza:iq_result()
+).
+
 fields(Request_IQ) ->
-    fields(Request_IQ, both).
+    fields(Request_IQ, 'both').
 
 %% @spec (Request_IQ, Auth) -> Fields_IQ
 %%     Request_IQ = exlm:xmlel()
@@ -64,32 +85,78 @@ fields(Request_IQ) ->
 %%     Fields_IQ = exlm:xmlel()
 %% @doc Make an `<iq>' for advertising fields.
 
-fields(Request_IQ, Auth) when ?IS_IQ(Request_IQ) ->
-    Path = [ {element, <<"query">> }, {element, <<"username">>}, cdata ],
-    Username_Children = case exxml:get_path(Request_IQ, Path) of
-                   <<>> -> [];
-                   Username -> [{cdata, Username}]
-                end,
-    
-    Username_El = {xmlel, <<"username">>, [], Username_Children},
-    Digest_El = {xmlel, <<"digest">>, [], []},
-    Resource_El = {xmlel, <<"resource">>, [], []},
-    Password_El = {xmlel, <<"password">>, [], []},
-    Children = case Auth of
-		   plain  -> [Username_El, Password_El, Resource_El];
-		   digest -> [Username_El, Digest_El, Resource_El];
-		   both   -> [Username_El, Password_El, Digest_El, Resource_El]
-	       end,
-    Query = {xmlel, <<"query">>, [{<<"xmlns">>, ?NS_LEGACY_AUTH}], Children},
-    exmpp_iq:result(Request_IQ, Query).
+-spec(fields/2 ::
+(
+  Stanza_IQ_Set :: exmpp_stanza:iq_set(),
+  Auth_Method   :: 'plain' | 'digest' | 'both')
+    -> Stanza_IQ_Result::exmpp_stanza:iq_result()
+).
 
-%% @spec (Password_IQ) -> Success_IQ
-%%     Password_IQ = exxml:xmlel()
-%%     Success_IQ = exxml:xmlel()
+fields(Stanza_IQ_Set, 'plain' = _Auth_Method) when ?IS_IQ(Stanza_IQ_Set) ->
+    exmpp_iq:result(Stanza_IQ_Set,
+        ?Xmlel@Legacy_Auth(<<"query">>, [], [
+            ?Xmlel(<<"username">>, [],
+                case
+                    exxml:get_path(Stanza_IQ_Set,
+                        [{'element', <<"query">> },
+                         {'element', <<"username">>},
+                         'cdata'
+                        ])
+                of
+                    <<>>     -> [];
+                    Username -> [exxml:cdata(Username)]
+                end),
+            ?Xmlel(<<"password">>, [], []),
+            ?Xmlel(<<"resource">>, [], [])
+        ])
+    );
+fields(Stanza_IQ_Set, 'digest' = _Auth_Method) when ?IS_IQ(Stanza_IQ_Set) ->
+    exmpp_iq:result(Stanza_IQ_Set,
+        ?Xmlel@Legacy_Auth(<<"query">>, [], [
+            ?Xmlel(<<"username">>, [],
+                case
+                    exxml:get_path(Stanza_IQ_Set,
+                        [{'element', <<"query">> },
+                         {'element', <<"username">>},
+                         'cdata'
+                        ])
+                of
+                    <<>>     -> [];
+                    Username -> [exxml:cdata(Username)]
+                end),
+            ?Xmlel(<<"digest">>, [], []),
+            ?Xmlel(<<"resource">>, [], [])
+        ])
+    );
+fields(Stanza_IQ_Set, 'both' = _Auth_Method) when ?IS_IQ(Stanza_IQ_Set) ->
+    exmpp_iq:result(Stanza_IQ_Set,
+        ?Xmlel@Legacy_Auth(<<"query">>, [], [
+            ?Xmlel(<<"username">>, [],
+                case
+                    exxml:get_path(Stanza_IQ_Set,
+                        [{'element', <<"query">> },
+                         {'element', <<"username">>},
+                         'cdata'
+                        ])
+                of
+                    <<>>     -> [];
+                    Username -> [exxml:cdata(Username)]
+                end),
+            ?Xmlel(<<"password">>, [], []),
+            ?Xmlel(<<"digest">>, [], []),
+            ?Xmlel(<<"resource">>, [], [])
+        ])
+    ).
+
 %% @doc Make an `<iq>' to notify a successfull authentication.
+-spec(success/1 ::
+(
+  Stanza_IQ_Set::exmpp_stanza:iq_set())
+    -> Stanza_IQ_Result::exmpp_stanza:iq_result()
+).
 
-success(Password_IQ) when ?IS_IQ(Password_IQ) ->
-    exmpp_iq:result(Password_IQ).
+success(Stanza_IQ_Set) when ?IS_IQ(Stanza_IQ_Set) ->
+    exmpp_iq:result(Stanza_IQ_Set).
 
 %% @spec (Password_IQ, Condition) -> Failure_IQ
 %%     Password_IQ = exxml:xmlel()
@@ -97,31 +164,50 @@ success(Password_IQ) when ?IS_IQ(Password_IQ) ->
 %%     Failure_IQ = exxml:xmlel()
 %% @doc Make an `<iq>' to notify a successfull authentication.
 
-failure(Password_IQ, Condition) when ?IS_IQ(Password_IQ) ->
-    Code = case Condition of
-	       <<"not-authorized">> -> <<"401">>;
-	       <<"conflict">>       -> <<"409">>;
-	       <<"not-acceptable">> -> <<"406">>
-	   end,
-    Error = exxml:set_attribute(
-	      exmpp_stanza:error(Condition),
-	      <<"code">>, Code),
-    exmpp_iq:error_without_original(Password_IQ, Error).
+-spec(failure/2 ::
+(
+  Stanza_IQ_Set :: exmpp_stanza:iq_set(),
+  Error_Condition :: exmpp_server_legacy_auth:error_condition())
+    -> Stanza_IQ_Error::exmpp_stanza:iq_error()
+).
+
+failure(Stanza_IQ_Set, Error_Condition) when ?IS_IQ(Stanza_IQ_Set) ->
+    exmpp_iq:error_without_original(Stanza_IQ_Set,
+        exxml:set_attribute(exmpp_stanza:error(Error_Condition),
+            <<"code">>,
+            case Error_Condition of
+                <<"not-authorized">> -> <<"401">>;
+                <<"conflict">>       -> <<"409">>;
+                <<"not-acceptable">> -> <<"406">>
+            end)
+    ).
+%    Code = case Condition of
+%	       <<"not-authorized">> -> <<"401">>;
+%	       <<"conflict">>       -> <<"409">>;
+%	       <<"not-acceptable">> -> <<"406">>
+%	   end,
+%    Error = exxml:set_attribute(
+%	      exmpp_stanza:error(Condition),
+%	      <<"code">>, Code),
+%    exmpp_iq:error_without_original(Password_IQ, Error).
 
 %% --------------------------------------------------------------------
 %% Accessing informations.
 %% --------------------------------------------------------------------
 
-%% @spec (Request_IQ) -> bool()
-%%     Request_IQ = exxml:xmlel()
 %% @doc Tell if the initiating entity asks for the authentication fields.
+-spec(want_fields/1 ::
+(
+  Stanza_IQ_Get::exmpp_stanza:iq_get())
+    -> Want_Fields::boolean()
+).
 
-want_fields(Request_IQ) when ?IS_IQ(Request_IQ) ->
-    case exmpp_iq:get_type(Request_IQ) of
+want_fields(Stanza_IQ_Get) when ?IS_IQ(Stanza_IQ_Get) ->
+    case exmpp_iq:get_type(Stanza_IQ_Get) of
         <<"get">> ->
-            case exmpp_iq:get_request(Request_IQ) of
-		    {xmlel, <<"query">>, _, _} -> true;
-                _                                            -> false
+            case exmpp_iq:get_request(Stanza_IQ_Get) of
+                #xmlel{name = <<"query">>} -> true;
+                _                          -> false
             end;
         _ ->
             false
@@ -129,48 +215,69 @@ want_fields(Request_IQ) when ?IS_IQ(Request_IQ) ->
 want_fields(_Stanza) ->
     false.
 
-%% @spec (Password_IQ) -> Credentials
-%%     Password_IQ = exxml:xmlel()
-%%     Credentials = {Username, Password, Resource}
-%%     Username = binary()
-%%     Password = {plain, binary()} | {digest, binary()}
-%%     Resource = binary()
 %% @doc Extract credentials from the `Password_IQ'.
 %%
 %% For digest, hexadecimal content is decoded.
 
-get_credentials(Password_IQ) when ?IS_IQ(Password_IQ) ->
-    Request = exmpp_iq:get_request(Password_IQ),
-    Children = exxml:get_elements(Request),
-    case length(Children) of
-	3 ->
-            get_credentials2(Children, {undefined, undefined, undefined});
+-spec(get_credentials/1 ::
+(
+  Stanza_IQ_Set::exmpp_stanza:iq_set())
+    -> Credentials :: {
+         Username :: exmpp_client_legacy_auth:username(),
+         Password :: {'plain' | 'digest', exmpp_client_legacy_auth:password()},
+         Resource :: exmpp_client_legacy_auth:resource()
+       }
+).
+
+get_credentials(Stanza_IQ_Set) when ?IS_IQ(Stanza_IQ_Set) ->
+    case exxml:get_elements(exmpp_iq:get_request(Stanza_IQ_Set)) of
+        Xmlels when length(Xmlels) == 3 ->
+            get_credentials2(Xmlels, {undefined, undefined, undefined});
         _ ->
-            throw({legacy_auth, get_credentials, invalid_iq, Password_IQ})
+            throw({legacy_auth, get_credentials, invalid_iq, Stanza_IQ_Set})
     end.
 
-get_credentials2(
-  [{xmlel, <<"username">>, _, _} = Field | Rest],
-  {_Username, Password, Resource}) ->
-    Username = exxml:get_cdata(Field),
-    get_credentials2(Rest, {Username, Password, Resource});
-get_credentials2(
-  [{xmlel,<<"password">>, _, _} = Field | Rest],
-  {Username, _Password, Resource}) ->
-    Password = exxml:get_cdata(Field),
-    get_credentials2(Rest, {Username, {plain, Password}, Resource});
-get_credentials2(
-  [{xmlel, <<"digest">>, _, _} = Field | Rest],
-  {Username, _Password, Resource}) ->
-    Password = list_to_binary(unhex(binary_to_list(exxml:get_cdata(Field)))),
-    get_credentials2(Rest, {Username, {digest, Password}, Resource});
-get_credentials2(
-  [{xmlel, <<"resource">>, _, _} = Field | Rest],
-  {Username, Password, _Resource}) ->
-    Resource = exxml:get_cdata(Field),
-    get_credentials2(Rest, {Username, Password, Resource});
-get_credentials2([Field | _Rest], _Credentials) ->
-    throw({legacy_auth, get_credentials, invalid_field, Field});
+%%
+-spec(get_credentials2/2 ::
+(
+  Xmlels      :: [exmpp_client_legacy_auth:xmlel_username() |
+                  exmpp_client_legacy_auth:xmlel_password() |
+                  exmpp_client_legacy_auth:xmlel_resource() ,...]
+               | [exmpp_client_legacy_auth:xmlel_username() |
+                  exmpp_client_legacy_auth:xmlel_digest()   |
+                  exmpp_client_legacy_auth:xmlel_resource() ,...],
+  Credentials :: {
+    Username :: exmpp_client_legacy_auth:username() | undefined,
+    Password :: {'plain' | 'digest', exmpp_client_legacy_auth:password()} | undefined,
+    Resource :: exmpp_client_legacy_auth:resource() | undefined
+  })
+    -> Credentials :: {
+         Username :: exmpp_client_legacy_auth:username(),
+         Password :: {'plain' | 'digest', exmpp_client_legacy_auth:password()},
+         Resource :: exmpp_client_legacy_auth:resource()
+       }
+).
+
+get_credentials2([Xmlel_Username | Xmlels], {_Username, Password, Resource})
+  when Xmlel_Username#xmlel.name == <<"username">> ->
+    get_credentials2(Xmlels,
+        {exxml:get_cdata(Xmlel_Username), Password, Resource});
+get_credentials2([Xmlel_Password | Xmlels], {Username, _Password, Resource})
+  when Xmlel_Password#xmlel.name == <<"password">> ->
+    get_credentials2(Xmlels,
+        {Username, {'plain', exxml:get_cdata(Xmlel_Password)}, Resource});
+get_credentials2([Xmlel_Digest | Xmlels], {Username, _Password, Resource})
+  when Xmlel_Digest#xmlel.name == <<"digest">> ->
+    get_credentials2(Xmlels,
+        {Username,
+         {'digest', list_to_binary(unhex(binary_to_list(exxml:get_cdata(Xmlel_Digest))))},
+         Resource});
+get_credentials2([Xmlel_Resource | Xmlels], {Username, Password, _Resource})
+  when Xmlel_Resource#xmlel.name == <<"resource">> ->
+    get_credentials2(Xmlels,
+        {Username, Password, exxml:get_cdata(Xmlel_Resource)});
+get_credentials2([Xmlel | _Xmlels], _Credentials) ->
+    throw({legacy_auth, get_credentials, invalid_field, Xmlel});
 get_credentials2([], {undefined, _Password, _Resource}) ->
     throw({legacy_auth, get_credentials, missing_field, 'username'});
 get_credentials2([], {_Username, undefined, _Resource}) ->
@@ -179,6 +286,37 @@ get_credentials2([], {_Username, _Password, undefined}) ->
     throw({legacy_auth, get_credentials, missing_field, 'resource'});
 get_credentials2([], Credentials) ->
     Credentials.
+
+%get_credentials2(
+% [{xmlel, <<"username">>, _, _} = Field | Rest],
+%  {_Username, Password, Resource}) ->
+%    Username = exxml:get_cdata(Field),
+%    get_credentials2(Rest, {Username, Password, Resource});
+%get_credentials2(
+%  [{xmlel,<<"password">>, _, _} = Field | Rest],
+%  {Username, _Password, Resource}) ->
+%    Password = exxml:get_cdata(Field),
+%    get_credentials2(Rest, {Username, {plain, Password}, Resource});
+%get_credentials2(
+%  [{xmlel, <<"digest">>, _, _} = Field | Rest],
+%  {Username, _Password, Resource}) ->
+%    Password = list_to_binary(unhex(binary_to_list(exxml:get_cdata(Field)))),
+%    get_credentials2(Rest, {Username, {digest, Password}, Resource});
+%get_credentials2(
+%  [{xmlel, <<"resource">>, _, _} = Field | Rest],
+%  {Username, Password, _Resource}) ->
+%    Resource = exxml:get_cdata(Field),
+%    get_credentials2(Rest, {Username, Password, Resource});
+%get_credentials2([Field | _Rest], _Credentials) ->
+%    throw({legacy_auth, get_credentials, invalid_field, Field});
+%get_credentials2([], {undefined, _Password, _Resource}) ->
+%    throw({legacy_auth, get_credentials, missing_field, 'username'});
+%get_credentials2([], {_Username, undefined, _Resource}) ->
+%    throw({legacy_auth, get_credentials, missing_field, 'password'});
+%get_credentials2([], {_Username, _Password, undefined}) ->
+%    throw({legacy_auth, get_credentials, missing_field, 'resource'});
+%get_credentials2([], Credentials) ->
+%    Credentials.
 
 %% --------------------------------------------------------------------
 %% Tools.
