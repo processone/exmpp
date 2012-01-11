@@ -28,44 +28,152 @@
 
 %% Feature announcement.
 -export([
-	 feature/1
-	]).
+    feature/1
+]).
 
 %% SASL exchange.
 -export([
-	 challenge/1,
-	 success/0,
-	 success/1,
-	 failure/0,
-	 failure/1,
-	 failure/2,
-	 next_step/1
-	]).
+    challenge/1,
+    success/0,
+    success/1,
+    failure/0,
+    failure/1,
+    failure/2,
+    next_step/1
+]).
+
+%%
+-export_type([
+  mechanism/0,
+  mechanisms/0,
+  challenge/0,
+  additional_data/0
+]).
+
+-type(mechanism() :: binary()).
+-type(mechanisms() :: [Mechanism::exmpp_server_sasl:mechanism(),...]).
+-type(challenge() :: <<>> | binary()).
+-type(additional_data() :: binary()).
+
+-export_type([
+    error_condition/0,
+    standard_condition/0,
+    standard_conditions/0
+]).
+
+-type(error_condition() :: binary()).
+-type(standard_condition() :: {Error_Condition::exmpp_server_sasl:error_condition()}).
+-type(standard_conditions()
+  :: [Standard_Condtion::exmpp_server_sasl:standard_condition(),...]
+).
+
+-export_type([
+  xmlel_mechanism/0,
+  xmlel_mechanisms/0,
+  xmlel_challenge/0,
+  xmlel_failure/0,
+  xmlel_success/0
+]).
+
+
+-type(xmlel_mechanisms()
+  :: #xmlel{
+         name     :: <<_:80>>,
+         attrs    :: [],
+         children :: [Xmlel_Mechanism::exmpp_server_sasl:xmlel_mechanism()]
+     }
+).
+
+-type(xmlel_mechanism()
+  :: #xmlel{
+         name     :: exmpp_server_sasl:mechanism(),
+         attrs    :: [],
+         children :: [{'cdata', Mechanism::exmpp_server_sasl:mechanism()},...]
+     }
+).
+
+-type(xmlel_challenge()
+  :: #xmlel{
+         name     :: <<_:72>>,
+         attrs    :: [{XmlNS :: <<_:40>>, NS_SASL::<<_:256>>},...],
+         children :: []
+                   | [{'cdata', Challenge::exmpp_server_sasl:challenge()},...]
+     }
+).
+
+-type(xmlel_failure()
+  :: #xmlel{
+         name     :: <<_:56>>,
+         attrs    :: [{XmlNS :: <<_:40>>, NS_SASL::<<_:256>>},...],
+         children :: [
+            #xmlel{
+                name     :: exmpp_server_sasl:error_condition(),
+                attrs    :: [],
+                children :: []
+                          | [{'cdata', Error_Text::exmpp_stream:error_text()},...]
+            }
+         ,...]
+                     | []
+     }
+).
+
+-type(xmlel_success()
+  :: #xmlel{
+         name     :: <<_:56>>,
+         attrs    :: [{XmlNS :: <<_:40>>, NS_SASL::<<_:256>>},...],
+         children :: []
+                   | [{'cdata', exmpp_server_sasl:additional_data()},...]
+     }
+).
+
+%%
+-define(Xmlel(Name, Attrs, Children),
+(
+    exxml:element(undefined, Name, Attrs, Children)
+)).
+
+-define(Xmlel@SASL(Name, Attrs, Children),
+(
+    exxml:element(?NS_SASL, Name, Attrs, Children)
+)).
 
 %% --------------------------------------------------------------------
 %% Feature announcement.
 %% --------------------------------------------------------------------
 
-%% @spec (Mechanisms) -> Feature
-%%     Mechanisms = [binary() ]
-%%     Feature = exxml:xmlel()
 %% @throws {sasl, feature_announcement, invalid_mechanisms_list, []} |
 %%         {sasl, feature_announcement, invalid_mechanism, Mechanism}
 %% @doc Make a feature announcement child.
 %%
 %% The result should then be passed to {@link exmpp_stream:features/1}.
+-spec(feature/1 ::
+(
+  Mechanisms::exmpp_server_sasl:mechanisms())
+    -> Xmlel_Mechanisms::exmpp_server_sasl:xmlel_mechanisms()
+).
 
 feature(Mechanisms) ->
-    {xmlel, <<"mechanisms">>, [{<<"xmlns">>, ?NS_SASL}], mechanisms_list(Mechanisms)}.
+    ?Xmlel@SASL(<<"mechanisms">>, [], mechanisms_list(Mechanisms)).
+
+%%
+-spec(mechanisms_list/1 ::
+(
+  Mechanisms::exmpp_server_sasl:mechanisms())
+    -> Xmlels_Mechanism :: [Xmlel_Mechanism::exmpp_server_sasl:xmlel_mechanism(),...]
+).
 
 mechanisms_list([]) ->
     throw({sasl, feature_announcement, invalid_mechanisms_list, []});
 mechanisms_list(Mechanisms) ->
-	[{xmlel, <<"mechanism">>, [], [{cdata, Mechanism}]} || Mechanism <- Mechanisms].
+    [?Xmlel(<<"mechanism">>, [], [exxml:cdata(Mechanism)]) || Mechanism <- Mechanisms].
 
 %% --------------------------------------------------------------------
 %% SASL exchange.
 %% --------------------------------------------------------------------
+
+-spec(standard_conditions/0
+  :: () -> Standard_Conditions::exmpp_server_sasl:standard_conditions()
+).
 
 standard_conditions() ->
     [
@@ -84,89 +192,103 @@ standard_conditions() ->
      {<<"undefined-condition">>}
     ].
 
-%% @spec (Challenge) -> Challenge_El
-%%     Challenge = binary() | none
-%%     Challenge_El = exxml:xmlel()
 %% @doc Prepare a `<challenge/>' element with the given challenge.
 %%
 %% `Challenge' will be Base64-encoded by this function.
+-spec(challenge/1 ::
+(
+  Challenge :: exmpp_server_sasl:challenge() | none)
+    -> Xmlel_Challenge::exmpp_server_sasl:xmlel_challenge()
+).
 
 challenge(none) ->
-	{xmlel, <<"challenge">>, [{<<"xmlns">>, ?NS_SASL}], []};
+    ?Xmlel@SASL(<<"challenge">>, [], []);
 challenge(Challenge) ->
-	{xmlel, <<"challenge">>, [{<<"xmlns">>, ?NS_SASL}], [{cdata, base64:encode(Challenge)}]}.
+    ?Xmlel@SASL(<<"challenge">>, [], [exxml:cdata(base64:encode(Challenge))]).
 
-%% @spec () -> Success_El
-%%     Success_El = exxml:xmlel()
 %% @doc Prepare a `<success/>' element.
+-spec(success/0 :: () -> Xmlel_Sucess::exmpp_server_sasl:xmlel_success()).
 
 success() ->
     success(none).
 
-%% @spec (Data) -> Success_El
-%%     Data = binary() | none
-%%     Success_El = exxml:xmlel()
 %% @doc Prepare a `<success/>' element with supplied XML character data.
 %% `Data' will be Base64-encoded by this function.
+-spec(success/1 ::
+(
+  Additional_Data :: exmpp_server_sasl:additional_data() | none)
+    -> Xmlel_Sucess::exmpp_server_sasl:xmlel_success()
+).
 
 success(none) ->
-	{xmlel, <<"success">>, [{<<"xmlns">>, ?NS_SASL}], []};
-success(Data) ->
-	{xmlel, <<"success">>, [{<<"xmlns">>, ?NS_SASL}], [{cdata, base64:encode(Data)}]}.
+    ?Xmlel@SASL(<<"success">>, [], []);
+success(Additional_Data) ->
+    ?Xmlel@SASL(<<"success">>, [], [exxml:cdata(base64:encode(Additional_Data))]).
 
-%% @spec () -> Failure
-%%     Failure = exxml:xmlel()
 %% @doc Prepare a `<failure/>' element.
+-spec(failure/0 :: () -> Xmlel_Failure::exmpp_server_sasl:xmlel_failure()).
 
 failure() ->
-	{xmlel, <<"failure">>, [{<<"xmlns">>, ?NS_SASL}],[]}.
+    ?Xmlel@SASL(<<"failure">>, [], []).
 
-%% @spec (Condition) -> Failure
-%%     Condition = binary()
-%%     Failure = exxml:xmlel()
 %% @doc Prepare a `<failure/>' element with a defined condition.
+-spec(failure/1 ::
+(
+  Error_Condition::exmpp_server_sasl:error_condition())
+    -> Xmlel_Failure::exmpp_server_sasl:xmlel_failure()
+).
 
-failure(Condition) ->
-    case lists:keymember(Condition, 1, standard_conditions()) of
+failure(Error_Condition) ->
+    case lists:keymember(Error_Condition, 1, standard_conditions()) of
         true  -> ok;
-        false -> throw({sasl, failure, invalid_condition, Condition})
+        false -> throw({sasl, failure, invalid_condition, Error_Condition})
     end,
-    exxml:append_child(failure(), {xmlel,Condition, [], []}).
+    exxml:append_child(failure(), ?Xmlel(Error_Condition, [], [])).
 
-%% @spec (Condition, Text) -> Failure
-%%     Condition = binary()
-%%     Text = binary()
-%%     Failure = exxml:xmlel()
 %% @doc Prepare a `<failure/>' element with a defined condition and text.
+-spec(failure/2 ::
+(
+  Error_Condition :: exmpp_server_sasl:error_condition(),
+  Error_Text      :: <<>> | exmpp_stream:error_text())
+    -> Xmlel_Failure::exmpp_server_sasl:xmlel_failure()
+).
 
-failure(Condition, <<>>) ->
-    failure(Condition);
-failure(Condition, Text) ->
-	exxml:append_child(failure(Condition), {xmlel, <<"text">>, [], [{cdata, Text}]}).
+failure(Error_Condition, <<>> = _Error_Text) ->
+    failure(Error_Condition);
+failure(Error_Condition, Error_Text) ->
+    exxml:append_child(failure(Error_Condition),
+        ?Xmlel(<<"text">>, [], [exxml:cdata(Error_Text)])).
 
-%% @spec (El) -> Type
-%%     El = exxml:xmlel()
-%%     Type = Auth | Response | Abort
-%%     Auth = {auth, Mechanism, none | binary()}
-%%     Mechanism = binary()
-%%     Response = {response, binary()}
-%%     Abort = abort
 %% @throws {sasl, next_step, unexpected_element, El}
 %% @doc Extract the response that the initiating entity sent.
 %%
 %% Any response data is Base64-decoded.
+-spec(next_step/1 ::
+(
+  Xmlel_Auth::exmpp_client_sasl:xmlel_auth())
+    -> {'auth',
+        Mechanism        :: exmpp_server_sasl:mechanism() | undefined,
+        Initial_Response :: exmpp_client_sasl:initial_response() | none} ;
+(
+  Xmlel_Response::exmpp_client_sasl:xmlel_response())
+    -> {'response',
+        Challenge::exmpp_client_sasl:challenge()} ;
+(
+  Xmlel_Abort::exmpp_client_sasl:xmlel_abort())
+    -> 'abort'
+).
 
-next_step({xmlel, <<"auth">>, _, _} = El) ->
-    Mechanism = exxml:get_attribute(El, <<"mechanism">>),
-    case exmpp_utils:strip(exxml:get_cdata(El)) of
-        <<>>      -> {auth, Mechanism, none};
-        <<"=">>     -> {auth, Mechanism, <<>>};
-        Encoded -> {auth, Mechanism, base64:decode(Encoded)}
-    end;
-next_step({xmlel, <<"response">>, _, _} = El) ->
-    Encoded = exxml:get_cdata(El),
-    {response, base64:decode(Encoded)};
-next_step({xmlel, <<"abort">>, _, _}) ->
-    abort;
-next_step(El) ->
-    throw({sasl, next_step, unexpected_element, El}).
+next_step(Xmlel_Auth) when Xmlel_Auth#xmlel.name == <<"auth">> ->
+    {'auth',
+     exxml:get_attribute(Xmlel_Auth, <<"mechanism">>),
+     case exmpp_utils:strip(exxml:get_cdata(Xmlel_Auth)) of
+         <<>>    -> none;
+         <<"=">> -> <<>>;
+         CData   -> base64:decode(CData)
+     end};
+next_step(Xmlel_Response) when Xmlel_Response#xmlel.name == <<"response">> ->
+    {'response', base64:decode(exxml:get_cdata(Xmlel_Response))};
+next_step(#xmlel{name = <<"abort">>}) ->
+    'abort';
+next_step(Xmlel) ->
+    throw({sasl, next_step, unexpected_element, Xmlel}).
