@@ -260,15 +260,11 @@
 
 -define(Xmlel@Stream(Name, Attrs, Children),
 (
-    exxml:element(undefined,
-        <<?NS_XMPP_pfx/binary, <<":">>/binary, Name/binary>>,
-        Attrs,
-        Children)
-%    #xmlel{
-%        name     = <<?NS_XMPP_pfx/binary, <<":">>/binary, Name/binary>>,
-%        attrs    = Attrs,
-%        children = Children
-%    }
+    #xmlel{
+        name     = <<?NS_XMPP_pfx/binary, <<":">>/binary, Name/binary>>,
+        attrs    = Attrs,
+        children = Children
+    }
 )).
 
 -define(Xmlel_Stream@Stream(Attrs, Children),
