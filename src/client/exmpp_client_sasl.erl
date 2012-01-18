@@ -128,8 +128,8 @@ announced_mechanisms2(Xmlel_Mechanisms) ->
 %%
 -spec(announced_mechanisms3/2 ::
 (
-  Xmlel_Mechanisms :: exmpp_server_sasl:xmlel_mechanisms(),
-  Mechanisms       :: exmpp_server_sasl:mechanisms())
+  Xmlels_Mechanism :: [Xmlel_Mechanism::exmpp_server_sasl:xmlel_mechanism(),...],
+  Mechanisms       :: [] | exmpp_server_sasl:mechanisms())
     -> Mechanisms::exmpp_server_sasl:mechanisms()
 ).
 
@@ -182,7 +182,7 @@ selected_mechanism(Mechanism, Initial_Response) ->
 %% `Response_Data' will be Base64-encoded.
 -spec(response/1 ::
 (
-  Response_Data::exmpp_client_sasl:challenge())
+  Response_Data::exmpp_client_sasl:challenge() | string())
     -> Xmlel_Response::exmpp_client_sasl:xmlel_response()
 ).
 
@@ -199,17 +199,27 @@ abort() ->
 %% entity sent.
 %%
 %% Any challenge or success data is Base64-decoded.
+%-spec(next_step/1 ::
+%(
+%  Xmlel_Challenge :: exmpp_server_sasl:xmlel_challenge())
+%    -> {'challenge', Challenge::exmpp_server_sasl:challenge()} ;
+%(
+%  Xmlel_Failure :: exmpp_server_sasl:xmlel_failure())
+%    -> {'failure', Error_Condition :: exmpp_server_sasl:error_condition() | undefined} ;
+%(
+%  Xmlel_Success :: exmpp_server_sasl:xmlel_success())
+%    -> {'success', exmpp_server_sasl:additional_data()}
+%).
 -spec(next_step/1 ::
 (
-  Xmlel_Challenge :: exmpp_server_sasl:xmlel_challenge())
-    -> {'challenge', Challenge::exmpp_server_sasl:challenge()} ;
-(
-  Xmlel_Failure :: exmpp_server_sasl:xmlel_failure())
-    -> {'failure', Error_Condition :: exmpp_server_sasl:error_condition() | undefined} ;
-(
-  Xmlel_Success :: exmpp_server_sasl:xmlel_success())
-    -> {'success', exmpp_server_sasl:additional_data()}
+  Xmlel :: exmpp_server_sasl:xmlel_challenge()
+         | exmpp_server_sasl:xmlel_failure()
+         | exmpp_server_sasl:xmlel_success())
+    -> {'challenge', Challenge::exmpp_server_sasl:challenge()}
+     | {'failure',   Error_Condition :: exmpp_server_sasl:error_condition() | undefined}
+     | {'success',   exmpp_server_sasl:additional_data()}
 ).
+
 
 next_step(Xmlel_Challenge) when Xmlel_Challenge#xmlel.name == <<"challenge">> ->
     {'challenge', base64:decode(exxml:get_cdata(Xmlel_Challenge))};

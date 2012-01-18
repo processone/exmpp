@@ -280,7 +280,7 @@ set_status(Presence, Status) when ?IS_PRESENCE(Presence) ->
 -spec(get_priority/1 ::
 (
   Presence::exmpp_stanza:presence())
-    -> Priority :: exmpp_presence:priority() | undefined
+    -> Priority::exmpp_presence:priority()
 ).
 
 get_priority(Presence) when ?IS_PRESENCE(Presence) ->

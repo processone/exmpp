@@ -51,12 +51,12 @@
 
 %% @doc Create an `<iq/>' to notify `To' that the privacy list
 %% `List_Name' has been created or has changed.
-%-spec(list_push/2 ::
-%(
-%  To        :: exmpp_stanza:to(),
-%  List_Name :: exmpp_server_privacy:list_name())
-%    -> Stanza_IQ_Set::exmpp_stanza:iq_set()
-%).
+-spec(list_push/2 ::
+(
+  To        :: exmpp_stanza:to(),
+  List_Name :: exmpp_server_privacy:list_name())
+    -> Stanza_IQ_Set::exmpp_stanza:iq_set()
+).
 
 list_push(To, List_Name) ->
     ?IQ_SET(undefined, To, exmpp_utils:random_id(<<"push-">>),

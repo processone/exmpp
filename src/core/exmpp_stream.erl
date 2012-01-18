@@ -196,7 +196,7 @@
 
 -type(xmlel_stream()
   :: #xmlel{
-         name     :: <<_:104>>,
+         name     :: <<_:48>> | <<_:104>>,
          attrs    :: [
             {From    :: <<_:32>>, exmpp_stream:from()}    |
             {To      :: <<_:16>>, exmpp_stream:to()}      |
@@ -209,7 +209,7 @@
 
 -type(xmlel_features()
   :: #xmlel{
-         name     :: <<_:120>>,
+         name     :: <<_:64>> | <<_:120>>,
          attrs    :: [],
          children :: [exxml:el()]
      }
@@ -217,7 +217,7 @@
 
 -type(xmlel_error()
   :: #xmlel{
-         name     :: <<_:96>>,
+         name     :: <<_:40>> | <<_:96>>,
          attrs    :: [],
          children :: [
              #xmlel{
@@ -248,23 +248,27 @@
 -type(error_text()      :: binary()).
 
 -type(standard_condition()
-  :: {Error_Condition :: exmpp_stanza:error_condition()}
+  :: {Error_Condition :: exmpp_stream:error_condition()}
 
 ).
 
 -type(standard_conditions()
-  :: [Standard_Condition::exmpp_stanza:standard_condition(),...]
+  :: [Standard_Condition::exmpp_stream:standard_condition(),...]
 ).
 
 %%
 
 -define(Xmlel@Stream(Name, Attrs, Children),
 (
-    #xmlel{
-        name     = <<?NS_XMPP_pfx/binary, <<":">>/binary, Name/binary>>,
-        attrs    = Attrs,
-        children = Children
-    }
+    exxml:element(undefined,
+        <<?NS_XMPP_pfx/binary, <<":">>/binary, Name/binary>>,
+        Attrs,
+        Children)
+%    #xmlel{
+%        name     = <<?NS_XMPP_pfx/binary, <<":">>/binary, Name/binary>>,
+%        attrs    = Attrs,
+%        children = Children
+%    }
 )).
 
 -define(Xmlel_Stream@Stream(Attrs, Children),
@@ -676,7 +680,7 @@ set_lang(Xmlel_Stream, Lang) ->
 
 -spec(parse_version/1 ::
 (
-  Version :: exmpp_stream:version() | undefined)
+  Version :: exmpp_stream:version() | string() | undefined)
     -> Stream_Version::exmpp_stream:streamversion()
 ).
 

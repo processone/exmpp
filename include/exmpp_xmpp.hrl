@@ -17,13 +17,13 @@
 
 % IQ stanza.
 -record(iq, {
-  kind    :: request | response,
-  type    :: binary(),  %<<"get">> | <<"set">> | <<"result">> | <<"error">>,
-  id      :: binary() | undefined,
-  ns      :: binary() | undefined,
-  payload :: exxml:xmlel() | undefined,
-  error   :: exxml:xmlel() | undefined,
-  lang    :: binary() | undefined
+  kind    ,%:: request | response,
+  type    ,%:: binary(),  %<<"get">> | <<"set">> | <<"result">> | <<"error">>,
+  id      ,%:: binary() | undefined,
+  ns      ,%:: binary() | undefined,
+  payload ,%:: exxml:xmlel() | undefined,
+  error   ,%:: exxml:xmlel() | undefined,
+  lang    %:: binary() | undefined
 }).
 
 % --------------------------------------------------------------------

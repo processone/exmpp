@@ -414,7 +414,8 @@ get_fields(Stanza_IQ_Result) when ?IS_IQ(Stanza_IQ_Result) ->
              exmpp_client_legacy_auth:xmlel_password() |
              exmpp_client_legacy_auth:xmlel_digest()   |
              exmpp_client_legacy_auth:xmlel_resource() ,...],
-  Fields :: [binary() | binary() | binary(),...]
+  Fields :: []
+          | [binary() | binary() | binary() ,...]
           | [binary() | binary() | binary() | binary(),...])
     -> Fields :: [binary() | binary() | binary(),...]
                | [binary() | binary() | binary() | binary(),...]

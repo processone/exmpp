@@ -660,7 +660,7 @@ wait_for_stream_features(#xmlstreamelement{element = Xmlel_Features},
                     %% Compression supported. Compress stream using default 'zlib'
                     %% method.
                     Module:send(State#state.connection_ref,
-                        exmpp_client_compression:selected_method("zlib")),
+                        exmpp_client_compression:selected_method(<<"zlib">>)),
                     {next_state, wait_for_compression_result, State};
                 _ -> 
                     %% Already compressed or compression not supported/enabled
@@ -883,7 +883,7 @@ wait_for_sasl_response(#xmlstreamelement{element = Xmlel_Challenge},
              {next_state, wait_for_sasl_response,
               State#state{sasl_state= NewSASL_State} };
          ok ->
-            Module:send(State#state.connection_ref, exmpp_client_sasl:response("")),
+            Module:send(State#state.connection_ref, exmpp_client_sasl:response(<<>>)),
             {next_state, wait_for_sasl_response, State }
     end.
 
@@ -1193,7 +1193,7 @@ send_whitespace_ping(ConnRef, Module) ->
 
 register_account(ConnRef, Module, Username, Password) ->
     Module:send(ConnRef,
-        exmpp_client_register:register_account([{username, Username},
-            {password, Password}])).
+        exmpp_client_register:register_account([{<<"username">>, Username},
+            {<<"password">>, Password}])).
 
 

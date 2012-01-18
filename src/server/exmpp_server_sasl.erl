@@ -80,7 +80,7 @@
   :: #xmlel{
          name     :: <<_:80>>,
          attrs    :: [],
-         children :: [Xmlel_Mechanism::exmpp_server_sasl:xmlel_mechanism()]
+         children :: [Xmlel_Mechanism::exmpp_server_sasl:xmlel_mechanism(),...]
      }
 ).
 

@@ -41,7 +41,7 @@
 
 -type(xmlel_bind()
   :: #xmlel{
-         name     :: <<_:40>>,
+         name     :: <<_:32>>,
          attrs    :: [{XmlNS :: <<_:40>>, NS_BIND :: <<_:256>>}],
          children :: []
      }

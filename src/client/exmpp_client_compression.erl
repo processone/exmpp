@@ -52,22 +52,13 @@
 %% Feature announcement.
 %% --------------------------------------------------------------------
 
-%% @spec (Features_Announcement) -> Methods
-%%     Features_Announcement = exxml:xmlel()
-%%     Methods = [binary()]
 %% @throws {stream_compression, announced_methods, invalid_feature, Feature} |
 %%         {stream_compression, announced_methods, invalid_method, El}
 %% @doc Return the list of supported compression methods.
-
-%-spec(announced_methods/1 ::
-%(
-%  Xmlel_Stream::exmpp_stream:xmlel_stream()
-%))
-
 -spec(announced_methods/1 ::
 (
-  Xmlels_Features::exmpp_stream:xmlel_stream())
-    -> Methods::exmpp_server_compression:methods()
+  Xmlels_Features::exmpp_stream:xmlel_features())
+    -> Methods::exmpp_server_compression:methods() | []
 ).
 
 announced_methods(Xmlel_Features)
@@ -92,8 +83,9 @@ announced_methods2(#xmlel{children = Children}) ->
 
 -spec(announced_methods3/2 ::
 (
-  Xmlels_Method :: [Xmlel_Method::exmpp_server_compression:xmlel_method()],
-  Methods       :: exmpp_server_compression:methods())
+  Xmlels_Method :: [Xmlel_Method::exmpp_server_compression:xmlel_method(),...]
+                 | [],
+  Methods       :: [] | exmpp_server_compression:methods())
     -> Methods::exmpp_server_compression:methods()
 ).
 
@@ -114,11 +106,7 @@ announced_methods3([], Methods) ->
 %% Compression negotiation.
 %% --------------------------------------------------------------------
 
-%% @spec (Method) -> Compress
-%%     Method = binary()
-%%     Compress = exxml:xmlel()
 %% @doc Prepare an request to select prefered compression method.
-
 -spec(selected_method/1 ::
 (
   Method::exmpp_server_compression:method())

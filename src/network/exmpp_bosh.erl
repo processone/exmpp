@@ -120,7 +120,7 @@ init([ClientPid, StreamRef, URL, Domain, Options]) ->
         free = [],
         local_ip = proplists:get_value(local_ip, Options, undefined),
         local_port = proplists:get_value(local_port, Options, undefined),
-        stream_ref = exmpp_xmlstream:set_wrapper_tagnames(StreamRef, [body])
+        stream_ref = exmpp_xmlstream:set_wrapper_tagnames(StreamRef, [<<"body">>])
     },
     {ok, State}.
 

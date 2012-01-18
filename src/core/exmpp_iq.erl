@@ -410,7 +410,8 @@ iq_to_xmlel(IQ, Sender, Recipient) when ?IS_IQ_RECORD(IQ) ->
 (
   IQ        :: exmpp_iq:iq(),
   Attrs     :: [{From :: <<_:32>>, exmpp_stanza:from()}  |
-                {To   :: <<_:16>>, exmpp_stanza:to()},...])
+                {To   :: <<_:16>>, exmpp_stanza:to()},...]
+             | [])
     -> Stanza_IQ::exmpp_stanza:iq()
 ).
 
