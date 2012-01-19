@@ -46,8 +46,7 @@ stop(EchoClientPid) ->
 
 init(JID, Password) ->
     application:start(exmpp),
-    %% Start XMPP session: Needed to start service (Like
-    %% exmpp_stringprep):
+    %% Start XMPP session: Needed to start service 
     %MySession = exmpp_session:start(),
     MySession = exmpp_session:start({1,0}),
     %% Create XMPP ID (Session Key):

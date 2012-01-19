@@ -247,7 +247,7 @@ parse4([], Key, Val, Ts) ->
 %% In that case, ejabberd only checks the service name, not the host.
 
 is_digesturi_valid(DigestURICase, JabberHost) ->
-    DigestURI = exmpp_stringprep:to_lower(DigestURICase),
+    DigestURI = estringprep:to_lower(DigestURICase),
     case catch string:tokens(DigestURI, "/") of
 	["xmpp", Host] when Host == JabberHost ->
 	    true;

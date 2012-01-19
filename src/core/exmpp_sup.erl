@@ -20,7 +20,6 @@
 %% It will start the following services:
 %% </p>
 %% <ol>
-%%   <li>{@link exmpp_stringprep}</li>
 %%   <li>{@link exmpp_tls}</li>
 %% </ol>
 %%
@@ -64,14 +63,6 @@ start_link() ->
 %% @hidden
 
 init(_Args) ->
-    %% Stringprep.
-    Stringprep = {stringprep,
-		  {exmpp_stringprep, start_link, []},
-		  transient,
-		  2000,
-		  worker,
-		  [exmpp_stringprep]
-		 },
     %% TLS.
     TLS = {tls,
 	   {exmpp_tls, start_link, []},
@@ -89,7 +80,6 @@ init(_Args) ->
 		[exmpp_compress]
 	       },
     {ok, {{one_for_one, 10, 1}, [
-				 Stringprep,
 				 TLS,
 				 Compress
 				]

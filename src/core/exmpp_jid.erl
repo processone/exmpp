@@ -195,7 +195,7 @@ make(<<>>, Domain) ->
     make(undefined, Domain);
 make(undefined, Domain) ->
     try
-        LDomain = exmpp_stringprep:nameprep(Domain),
+        LDomain = estringprep:name(Domain),
         #jid{raw = storbi2bi(Domain),
 	     node = undefined,
 	     domain = storbi2bi(LDomain),
@@ -215,8 +215,8 @@ make(Node, _Domain)
     throw({jid, make, too_long, {node, Node}});
 make(Node, Domain) ->
     try
-        LNode = exmpp_stringprep:nodeprep(Node),
-        LDomain = exmpp_stringprep:nameprep(Domain),
+        LNode = estringprep:node(Node),
+        LDomain = estringprep:name(Domain),
         #jid{raw =
 	     <<(storbi2bi(Node))/binary, $@, (storbi2bi(Domain))/binary >>,
 	     node = storbi2bi(LNode),
@@ -279,12 +279,12 @@ make(Orig, Node, Domain, Resource) ->
     try
         LNode = case Node of
 		    undefined -> undefined;
-		    _         -> storbi2bi(exmpp_stringprep:nodeprep(Node))
+		    _         -> storbi2bi(estringprep:node(Node))
 		end,
-        LDomain = storbi2bi(exmpp_stringprep:nameprep(Domain)),
+        LDomain = storbi2bi(estringprep:name(Domain)),
         LResource = case Resource of
 			undefined -> undefined;
-			_         -> storbi2bi(exmpp_stringprep:resourceprep(Resource))
+			_         -> storbi2bi(estringprep:resource(Resource))
 		    end,
         #jid{raw = Orig,
 	     node = LNode,
@@ -348,7 +348,7 @@ full(_Jid, Resource)
     throw({jid, convert, too_long, {resource, Resource}});
 full(#jid{raw = Orig_Jid} = Jid, Resource) ->
     try
-        LResource = exmpp_stringprep:resourceprep(Resource),
+        LResource = estringprep:resource(Resource),
         Resource_B = storbi2bi(Resource),
         New_Orig_Jid =
 	case binary_split(Orig_Jid, $/) of
