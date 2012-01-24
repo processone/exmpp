@@ -13,6 +13,13 @@ make1_test() ->
 	?assertMatch(<<"c">>, exmpp_jid:resource(exmpp_jid:make({<<"a">>, <<"b">>, <<"c">>}))),
 	ok.
 
+full_test() ->
+	?assertMatch(<<"a">>, exmpp_jid:node(exmpp_jid:full(exmpp_jid:make({<<"a">>, <<"b">>, <<"c">>}), random))),
+	?assertMatch(<<"b">>, exmpp_jid:domain(exmpp_jid:full(exmpp_jid:make({<<"a">>, <<"b">>, <<"c">>}), random))),
+	?assertMatch(<<"exmpp#", _/binary>>, exmpp_jid:resource(exmpp_jid:full(exmpp_jid:make({<<"a">>, <<"b">>, <<"c">>}), random))),
+	ok.
+
+
 to_binary_test() ->
 	?assertMatch(<<"a@b/c">>, exmpp_jid:to_binary(exmpp_jid:parse(<<"a@b/c">>))),
 	?assertMatch(<<"a@b">>, exmpp_jid:bare_to_binary(exmpp_jid:parse(<<"a@b/c">>))),

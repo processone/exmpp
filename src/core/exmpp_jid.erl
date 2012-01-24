@@ -854,11 +854,11 @@ as_binary(V) when is_list(V) ->
 %% We do not use random generator to avoid having to decide when and how
 %% to seed the Erlang random number generator.
 
--spec(generate_resource/0 :: () -> string()).
+-spec(generate_resource/0 :: () -> binary()).
 
 generate_resource() ->
     {A, B, C} = erlang:now(),
-    lists:flatten(["exmpp#",
+    iolist_to_binary(["exmpp#",
 		   integer_to_list(A),
 		   integer_to_list(B),
 		   integer_to_list(C)]
