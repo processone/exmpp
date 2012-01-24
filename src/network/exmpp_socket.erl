@@ -90,15 +90,15 @@ close(_Socket, ReceiverPid) ->
 
 send(Socket, XMLPacket) when is_tuple(XMLPacket) ->
     Bin = exxml:document_to_iolist(XMLPacket),
- %     io:format("- SENDING:~n~s~n", [Bin]),
     exmpp_internals:gen_send(Socket, Bin).
 
 wping(Socket) ->
     exmpp_internals:gen_send(Socket, <<"\n">>).
 
+%% see comment on exmpp_compress:enable_deflate/0
 compress(ReceiverPid) ->
     Ref = erlang:make_ref(),
-    ReceiverPid ! {compress, self(), Ref},
+    ReceiverPid ! {compress, self(), Ref, exmpp_compress:enable_deflate()},
     receive
         {ok, Ref, Socket} -> {ok, Socket}
     after
@@ -128,8 +128,8 @@ receiver_loop(ClientPid, ESocket, StreamRef) ->
         stop -> 
             exmpp_internals:gen_close(ESocket),
             ok;
-        {compress, From, Ref} -> 
-            ZSocket = {exmpp_compress, exmpp_compress:enable_compression(ESocket, [])},
+        {compress, From, Ref, Deflate} -> 
+            ZSocket = {exmpp_compress, exmpp_compress:enable_inflate(ESocket, Deflate)},
             From ! {ok, Ref, ZSocket},
             receiver_loop(ClientPid, ZSocket, StreamRef);
         {starttls, From, Ref, Mode} -> 

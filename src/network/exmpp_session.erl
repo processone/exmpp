@@ -457,7 +457,6 @@ init([Pid]) ->
     {ok, setup, #state{client_pid=Pid, stream_version = {0,0}}}; %%if not specified, do not use version 1.0
 init([Pid, Version]) ->
     inets:start(),
-    exmpp_compress:start(),
     {A1,A2,A3} = now(),
     random:seed(A1, A2, A3),
     {ok, setup, #state{client_pid=Pid, stream_version = Version}}.
