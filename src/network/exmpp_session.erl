@@ -253,7 +253,7 @@ connect_TCP(Session, Server, Port) ->
 %% Initiate standard TCP XMPP server connection
 %% Returns {ok,StreamId::String} | {ok, StreamId::string(), Features :: xmlel{}}
 %%  Option() = {local_ip, IP} | {local_port, fun() -> integer()}   bind sockets to this local ip / port.
-%%      | {domain, Domain} | {starttls, Value} | {compression, Value}  | {whitespace_ping, Timeout}
+%%      | {domain, Domain} | {starttls, Value} | {compression, Value}  | {whitespace_ping, Timeout} | {timeout, Timeout}
 %% Value() = enabled | disabled
 %% If the domain is not passed we expect to find it in the authentication
 %% info. It should thus be set before.
@@ -263,9 +263,15 @@ connect_TCP(Session, Server, Port, Options)
        is_list(Server),
        is_integer(Port),
        is_list(Options) ->
+    {Timeout, Opts} = case lists:ketytake(timeout, 1, Options) of
+	    {value, {timeout, T}, Options2} ->
+		    {T, Options2};
+	    false ->
+		    {?TIMEOUT, Options}
+    end,
     case gen_fsm:sync_send_event(Session,
-				 {connect_socket, Server, Port, Options},
-				 ?TIMEOUT) of
+				 {connect_socket, Server, Port, Opts},
+				 Timeout) of
 	{ok, StreamId} -> {ok, StreamId};
     {ok, StreamId, Features} -> {ok, StreamId, Features};
 	Error when is_tuple(Error) -> erlang:throw(Error)
@@ -277,13 +283,20 @@ connect_TCP(Session, Server, Port, Options)
 %% Returns {ok,StreamId::String} | {ok, StreamId::string(), Features :: xmlel{}}
 %%  Options = [option()]
 %%  Option() = {local_ip, IP} | {local_port, fun() -> integer()}  bind sockets to this local ip / port.
+%%             {timeout, Timeout}
 
 connect_BOSH(Session, URL, Server, Options)
   when is_pid(Session),
        is_list(Server),
        is_list(Options) ->
-    case gen_fsm:sync_send_event(Session, {connect_bosh, URL, Server, Options},
-                                 ?TIMEOUT) of
+    {Timeout, Opts} = case lists:ketytake(timeout, 1, Options) of
+	    {value, {timeout, T}, Options2} ->
+		    {T, Options2};
+	    false ->
+		    {?TIMEOUT, Options}
+    end,
+    case gen_fsm:sync_send_event(Session, {connect_bosh, URL, Server, Opts},
+                                 Timeout) of
 	{ok, StreamId} -> {ok, StreamId};
     {ok, StreamId, Features} -> {ok, StreamId, Features};
 	Error when is_tuple(Error) -> erlang:throw(Error)
@@ -309,7 +322,7 @@ connect_SSL(Session, Server, Port) ->
 %% Returns {ok,StreamId::String} | {ok, StreamId::string(), Features :: xmlel{}}
 %%  Options = [option()]
 %%  Option() = {local_ip, IP} | {local_port, fun() -> integer()}  bind sockets to this local ip / port.
-%%             | {whitespace_ping, TimeoutInSecs}
+%%             | {whitespace_ping, TimeoutInSecs} | {timeout, Timeout}
 connect_SSL(Session, Server, Port, Options) ->
     connect_TCP(Session, Server, Port, [{socket_type, ssl} | Options]).
 
@@ -335,22 +348,31 @@ register_account(Session, Username, Password) ->
 
 %% Login session user
 %% Returns {ok, JID}
-login(Session) when is_pid(Session) ->
-    case gen_fsm:sync_send_event(Session, {login}) of
+
+login(Session) ->
+	login(Session, ?TIMEOUT).
+
+%%  Options = [option()]
+%%  Option() = {timeout, Timeout}
+login(Session, Timeout) when is_pid(Session) , is_integer(Timeout) ->
+    case gen_fsm:sync_send_event(Session, {login}, Timeout) of
 	{ok, JID} -> {ok, JID};
 	Error when is_tuple(Error) -> erlang:throw(Error)
-    end.
+    end;
+
+login(Session, M) when is_pid(Session) ->
+	login(Session, M, ?TIMEOUT).
 
 %% Login using chosen SASL Mechanism
-login(Session, Mechanism) when is_pid(Session), is_list(Mechanism) ->
-    case gen_fsm:sync_send_event(Session, {login, sasl, Mechanism}) of
+login(Session, Mechanism, Timeout) when is_pid(Session), is_list(Mechanism) ->
+    case gen_fsm:sync_send_event(Session, {login, sasl, Mechanism}, Timeout) of
 	{ok, JID} -> {ok, JID};
 	Error when is_tuple(Error) -> erlang:throw(Error)
     end;
 
 %% Login using chosen legacy method
-login(Session, Method) when is_pid(Session), is_atom(Method) ->
-    case gen_fsm:sync_send_event(Session, {login, basic, Method}) of
+login(Session, Method, Timeout) when is_pid(Session), is_atom(Method) ->
+    case gen_fsm:sync_send_event(Session, {login, basic, Method}, Timeout) of
 	{ok, JID} -> {ok, JID};
 	Error when is_tuple(Error) -> erlang:throw(Error)
     end.
