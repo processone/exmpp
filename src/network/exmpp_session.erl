@@ -65,7 +65,7 @@
 	 connect_TCP/2, connect_TCP/3, connect_TCP/4,
 	 connect_BOSH/4,
 	 register_account/2, register_account/3,
-	 login/1, login/2,
+	 login/1, login/2, login/3,
 	 send_packet/2,
 	 set_controlling_process/2,
      get_connection_property/2]).
@@ -263,7 +263,7 @@ connect_TCP(Session, Server, Port, Options)
        is_list(Server),
        is_integer(Port),
        is_list(Options) ->
-    {Timeout, Opts} = case lists:ketytake(timeout, 1, Options) of
+    {Timeout, Opts} = case lists:keytake(timeout, 1, Options) of
 	    {value, {timeout, T}, Options2} ->
 		    {T, Options2};
 	    false ->
