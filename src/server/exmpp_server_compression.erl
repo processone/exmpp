@@ -180,7 +180,7 @@ standard_conditions() ->
 ).
 
 selected_method(Xmlel_Compress) when Xmlel_Compress#xmlel.name == <<"compress">> ->
-    case exxml:get_element(Xmlel_Compress, <<"method">>) of
+    case exxml:get_el(Xmlel_Compress, <<"method">>) of
         undefined    -> undefined;
         Xmlel_Method -> exxml:get_cdata(Xmlel_Method)
     end;

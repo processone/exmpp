@@ -64,7 +64,7 @@
 announced_methods(Xmlel_Features)
   when   Xmlel_Features#xmlel.name == <<"features">>
   orelse Xmlel_Features#xmlel.name == <<"stream:features">> ->
-    case exxml:get_element(Xmlel_Features, <<"compression">>) of
+    case exxml:get_el(Xmlel_Features, <<"compression">>) of
         undefined         -> [];
         Xmlel_Compression -> announced_methods2(Xmlel_Compression)
     end.

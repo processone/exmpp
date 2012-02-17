@@ -11,11 +11,11 @@ fields_test() ->
 		</iq>">>,
 	{ok, [Req]} = exxml:parse_document(S),
 	?assertMatch([{xmlel, <<"username">>, _, _}, {xmlel, <<"password">>, _, _}, {xmlel, <<"resource">>, _, _}],
-		exxml:get_elements(exxml:get_element(exmpp_server_legacy_auth:fields(Req, plain),<<"query">>))),
+		exxml:get_els(exxml:get_el(exmpp_server_legacy_auth:fields(Req, plain),<<"query">>))),
 	?assertMatch([{xmlel, <<"username">>, _, _}, {xmlel, <<"digest">>, _, _}, {xmlel, <<"resource">>, _, _}],
-		exxml:get_elements(exxml:get_element(exmpp_server_legacy_auth:fields(Req, digest),<<"query">>))),
+		exxml:get_els(exxml:get_el(exmpp_server_legacy_auth:fields(Req, digest),<<"query">>))),
 	?assertMatch([{xmlel, <<"username">>, _, _}, {xmlel, <<"password">>, _, _},{xmlel, <<"digest">>, _, _}, {xmlel, <<"resource">>, _, _}],
-		exxml:get_elements(exxml:get_element(exmpp_server_legacy_auth:fields(Req, both),<<"query">>))),
+		exxml:get_els(exxml:get_el(exmpp_server_legacy_auth:fields(Req, both),<<"query">>))),
 	ok.
    
 success_test() ->
@@ -25,8 +25,8 @@ success_test() ->
     	{ok, [Req]} = exxml:parse_document(S),
 	Sucess = exmpp_server_legacy_auth:success(Req),
 	?assertMatch({xmlel, <<"iq">>, _, []}, Sucess),
-	?assertEqual(<<"result">>, exxml:get_attribute(Sucess, <<"type">>)),
-	?assertEqual(<<"auth2">>, exxml:get_attribute(Sucess, <<"id">>)),
+	?assertEqual(<<"result">>, exxml:get_attr(Sucess, <<"type">>)),
+	?assertEqual(<<"auth2">>, exxml:get_attr(Sucess, <<"id">>)),
 	ok.
 
 failure_test() ->

@@ -6,14 +6,14 @@
 
 get_roster_test() ->
 	R = exmpp_client_roster:get_roster(),
-	?assertEqual(<<"get">>, exxml:get_attribute(R, <<"type">>, undefined)),
+	?assertEqual(<<"get">>, exxml:get_attr(R, <<"type">>, undefined)),
 	?assertEqual(?NS_ROSTER, exxml:get_path(R, [{element, <<"query">>}, {attribute, <<"xmlns">>}])),
 	ok.
 
 
 set_item_test() ->
 	R = exmpp_client_roster:set_item(<<"user@domain.com">>, [<<"g1">>, <<"g2">>], <<"nick">>),
-	?assertEqual(<<"set">>, exxml:get_attribute(R, <<"type">>, undefined)),
+	?assertEqual(<<"set">>, exxml:get_attr(R, <<"type">>, undefined)),
 	?assertEqual(?NS_ROSTER, exxml:get_path(R, [{element, <<"query">>}, {attribute, <<"xmlns">>}])),
 	?assertEqual(<<"user@domain.com">>, 
 		exxml:get_path(R, [{element, <<"query">>}, {element, <<"item">>}, {attribute, <<"jid">>}])),

@@ -222,7 +222,7 @@ set(Request, Id) when is_record(Request, 'xmlel') andalso is_binary(Id) ->
 ).
 
 result(Stanza_IQ) when ?IS_IQ(Stanza_IQ) ->
-    exxml:set_attribute(
+    exxml:set_attr(
         exmpp_stanza:reply_without_content(Stanza_IQ), <<"type">>, <<"result">>);
 result(IQ) when ?IS_IQ_RECORD(IQ) ->
     IQ#iq{
@@ -250,7 +250,7 @@ result(IQ, Result) when ?IS_IQ_RECORD(IQ) ->
     IQ#iq{
         kind    = 'response',
         type    = <<"result">>,
-        ns      = exxml:get_attribute(Result, <<"xmlns">>, undefined),
+        ns      = exxml:get_attr(Result, <<"xmlns">>, undefined),
         payload = Result
     }.
 
@@ -362,12 +362,12 @@ xmlel_to_iq(Stanza_IQ) when ?IS_IQ(Stanza_IQ) ->
                 undefined ->
                     {undefined, undefined, _Xmlel_Error};
                 Request ->
-                    {exxml:get_attribute(_Xmlel_Error, <<"xmlns">>),
+                    {exxml:get_attr(_Xmlel_Error, <<"xmlns">>),
                      Request,
                      _Xmlel_Error}
             end;
         _Payload ->
-            {exxml:get_attribute(_Payload, <<"xmlns">>), _Payload, undefined}
+            {exxml:get_attr(_Payload, <<"xmlns">>), _Payload, undefined}
     end,
     #iq{
         kind    = get_kind(Stanza_IQ),
@@ -402,7 +402,7 @@ iq_to_xmlel(IQ) when ?IS_IQ_RECORD(IQ) ->
 
 iq_to_xmlel(IQ, Sender, Recipient) when ?IS_IQ_RECORD(IQ) ->
     iq_to_xmlel2(IQ,
-        [exxml:attribute(<<"from">>, Sender), exxml:attribute(<<"to">>, Recipient)]
+        [exxml:attr(<<"from">>, Sender), exxml:attr(<<"to">>, Recipient)]
     ).
 
 %%
@@ -419,9 +419,9 @@ iq_to_xmlel2(
   #iq{type = Type, id = Id, lang = Lang, payload = Payload, error = Xmlel_Error},
   Attrs) ->
     exxml:element(undefined, <<"iq">>,
-        [exxml:attribute(<<"type">>, Type), exxml:attribute(<<"id">>, Id) | Attrs]
+        [exxml:attr(<<"type">>, Type), exxml:attr(<<"id">>, Id) | Attrs]
         ++
-        [exxml:attribute(<<"lang">>, Lang) || Lang /= undefined, Lang /= <<>>],
+        [exxml:attr(<<"lang">>, Lang) || Lang /= undefined, Lang /= <<>>],
         case Payload of
             undefined ->
                 case (Type == <<"error">> andalso Xmlel_Error /= undefined) of
@@ -571,12 +571,12 @@ get_request(Stanza_IQ) when ?IS_IQ(Stanza_IQ) ->
         %% We take the first child element. Note that the RFC says
         %% that this child element MUST be the only one! This doesn't
         %% take into account text nodes.
-            [Request | _] = exxml:get_elements(Stanza_IQ),
+            [Request | _] = exxml:get_els(Stanza_IQ),
             Request;
         <<"result">> ->
             throw({iq, get_request, 'unexpected_iq', Stanza_IQ});
         <<"error">> ->
-            case exxml:get_elements(Stanza_IQ) of
+            case exxml:get_els(Stanza_IQ) of
                 [Xmlel_Error | Xmlels] when ?Is_Xmlel_Error(Xmlel_Error) ->
                     case Xmlels of
                         []            -> undefined;
@@ -607,7 +607,7 @@ get_result(Stanza_IQ) when ?IS_IQ(Stanza_IQ) ->
         undefined ->
             throw({iq, get_result, 'invalid_iq', Stanza_IQ});
         <<"result">> ->
-            case exxml:get_elements(Stanza_IQ) of
+            case exxml:get_els(Stanza_IQ) of
                 []           -> undefined;
                 [Result | _] -> Result
             end;
@@ -644,5 +644,5 @@ get_payload(IQ) ->
 ).
 
 get_payload_ns(Stanza_IQ) ->
-    exxml:get_attribute(get_payload(Stanza_IQ), <<"xmlns">>).
+    exxml:get_attr(get_payload(Stanza_IQ), <<"xmlns">>).
 

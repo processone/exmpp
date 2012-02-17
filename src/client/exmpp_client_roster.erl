@@ -105,10 +105,10 @@ set_item(Id, Contact, Groups, Nick) ->
     ?IQ_SET(undefined, undefined, Id,
         ?Xmlel@Roster(<<"query">>, [], [
             ?Xmlel(<<"item">>,
-                [exxml:attribute(<<"jid">>, Contact) |
+                [exxml:attr(<<"jid">>, Contact) |
                  case Nick of
                     undefined -> [];
-                    _         -> [exxml:attribute(<<"name">>, Nick)]
+                    _         -> [exxml:attr(<<"name">>, Nick)]
                  end],
                 [?Xmlel(<<"group">>, [], [exxml:cdata(Group)]) || Group <- Groups])
         ])).

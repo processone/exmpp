@@ -9,7 +9,7 @@
 feature_test() ->
 	B = exmpp_server_binding:feature(),
 	?assertMatch({xmlel, <<"bind">>, _, _}, B),
-	?assertEqual(<<"urn:ietf:params:xml:ns:xmpp-bind">>, exxml:get_attribute(B, <<"xmlns">>)),
+	?assertEqual(<<"urn:ietf:params:xml:ns:xmpp-bind">>, exxml:get_attr(B, <<"xmlns">>)),
 	ok.
 
 wished_resource_test() ->

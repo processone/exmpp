@@ -61,6 +61,6 @@
 list_push(To, List_Name) ->
     ?IQ_SET(undefined, To, exmpp_utils:random_id(<<"push-">>),
         ?Xmlel@Privacy(<<"query">>, [], [
-            ?Xmlel(<<"list">>, [exxml:attribute(<<"name">>, List_Name)], [])
+            ?Xmlel(<<"list">>, [exxml:attr(<<"name">>, List_Name)], [])
         ])
     ).

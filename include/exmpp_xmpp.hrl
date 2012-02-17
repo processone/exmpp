@@ -74,12 +74,12 @@
             {undefined, undefined} ->
                 [];
             {_,         undefined} ->
-                [exxml:attribute(<<"from">>, From)];
+                [exxml:attr(<<"from">>, From)];
             {undefined, _} ->
-                [exxml:attribute(<<"to">>, To)];
+                [exxml:attr(<<"to">>, To)];
             {_,         _} ->
-                [exxml:attribute(<<"to">>, To),
-                 exxml:attribute(<<"from">>, From)]
+                [exxml:attr(<<"to">>, To),
+                 exxml:attr(<<"from">>, From)]
         end],
         Children)
 )).

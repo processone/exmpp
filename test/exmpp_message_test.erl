@@ -8,18 +8,18 @@
 normal_test() ->
 	M = exmpp_message:normal(),
 	?assertMatch({xmlel, <<"message">>, _ ,_}, M),
-	?assertEqual(<<"normal">>, exxml:get_attribute(M, <<"type">>)),
+	?assertEqual(<<"normal">>, exxml:get_attr(M, <<"type">>)),
 	ok.
 normal1_test() ->
 	M = exmpp_message:normal(<<"hello">>),
 	?assertMatch({xmlel, <<"message">>, _ ,[_|_]}, M),
-	?assertEqual(<<"normal">>, exxml:get_attribute(M, <<"type">>)),
+	?assertEqual(<<"normal">>, exxml:get_attr(M, <<"type">>)),
 	?assertEqual(<<"hello">>, exxml:get_path(M, [{element, <<"body">>}, cdata])),
 	ok.
 normal2_test() ->
 	M = exmpp_message:normal(<<"subject">>,<<"hello">>),
 	?assertMatch({xmlel, <<"message">>, _ ,[_|_]}, M),
-	?assertEqual(<<"normal">>, exxml:get_attribute(M, <<"type">>)),
+	?assertEqual(<<"normal">>, exxml:get_attr(M, <<"type">>)),
 	?assertEqual(<<"hello">>, exxml:get_path(M, [{element, <<"body">>}, cdata])),
 	?assertEqual(<<"subject">>, exxml:get_path(M, [{element, <<"subject">>}, cdata])),
 	ok.
@@ -27,54 +27,54 @@ normal2_test() ->
 chat_test() ->
 	M = exmpp_message:chat(),
 	?assertMatch({xmlel, <<"message">>, _ ,_}, M),
-	?assertEqual(<<"chat">>, exxml:get_attribute(M, <<"type">>)),
+	?assertEqual(<<"chat">>, exxml:get_attr(M, <<"type">>)),
 	ok.
 chat1_test() ->
 	M = exmpp_message:chat(<<"hello">>),
 	?assertMatch({xmlel, <<"message">>, _ ,[_|_]}, M),
-	?assertEqual(<<"chat">>, exxml:get_attribute(M, <<"type">>)),
+	?assertEqual(<<"chat">>, exxml:get_attr(M, <<"type">>)),
 	?assertEqual(<<"hello">>, exxml:get_path(M, [{element, <<"body">>}, cdata])),
 	ok.
 chat2_test() ->
 	M = exmpp_message:chat(<<"subject">>,<<"hello">>),
 	?assertMatch({xmlel, <<"message">>, _ ,[_|_]}, M),
-	?assertEqual(<<"chat">>, exxml:get_attribute(M, <<"type">>)),
+	?assertEqual(<<"chat">>, exxml:get_attr(M, <<"type">>)),
 	?assertEqual(<<"hello">>, exxml:get_path(M, [{element, <<"body">>}, cdata])),
 	?assertEqual(<<"subject">>, exxml:get_path(M, [{element, <<"subject">>}, cdata])),
 	ok.
 groupchat_test() ->
 	M = exmpp_message:groupchat(),
 	?assertMatch({xmlel, <<"message">>, _ ,_}, M),
-	?assertEqual(<<"groupchat">>, exxml:get_attribute(M, <<"type">>)),
+	?assertEqual(<<"groupchat">>, exxml:get_attr(M, <<"type">>)),
 	ok.
 groupchat1_test() ->
 	M = exmpp_message:groupchat(<<"hello">>),
 	?assertMatch({xmlel, <<"message">>, _ ,[_|_]}, M),
-	?assertEqual(<<"groupchat">>, exxml:get_attribute(M, <<"type">>)),
+	?assertEqual(<<"groupchat">>, exxml:get_attr(M, <<"type">>)),
 	?assertEqual(<<"hello">>, exxml:get_path(M, [{element, <<"body">>}, cdata])),
 	ok.
 groupchat2_test() ->
 	M = exmpp_message:groupchat(<<"subject">>,<<"hello">>),
 	?assertMatch({xmlel, <<"message">>, _ ,[_|_]}, M),
-	?assertEqual(<<"groupchat">>, exxml:get_attribute(M, <<"type">>)),
+	?assertEqual(<<"groupchat">>, exxml:get_attr(M, <<"type">>)),
 	?assertEqual(<<"hello">>, exxml:get_path(M, [{element, <<"body">>}, cdata])),
 	?assertEqual(<<"subject">>, exxml:get_path(M, [{element, <<"subject">>}, cdata])),
 	ok.
 headline_test() ->
 	M = exmpp_message:headline(),
 	?assertMatch({xmlel, <<"message">>, _ ,_}, M),
-	?assertEqual(<<"headline">>, exxml:get_attribute(M, <<"type">>)),
+	?assertEqual(<<"headline">>, exxml:get_attr(M, <<"type">>)),
 	ok.
 headline1_test() ->
 	M = exmpp_message:headline(<<"hello">>),
 	?assertMatch({xmlel, <<"message">>, _ ,[_|_]}, M),
-	?assertEqual(<<"headline">>, exxml:get_attribute(M, <<"type">>)),
+	?assertEqual(<<"headline">>, exxml:get_attr(M, <<"type">>)),
 	?assertEqual(<<"hello">>, exxml:get_path(M, [{element, <<"body">>}, cdata])),
 	ok.
 headline2_test() ->
 	M = exmpp_message:headline(<<"subject">>,<<"hello">>),
 	?assertMatch({xmlel, <<"message">>, _ ,[_|_]}, M),
-	?assertEqual(<<"headline">>, exxml:get_attribute(M, <<"type">>)),
+	?assertEqual(<<"headline">>, exxml:get_attr(M, <<"type">>)),
 	?assertEqual(<<"hello">>, exxml:get_path(M, [{element, <<"body">>}, cdata])),
 	?assertEqual(<<"subject">>, exxml:get_path(M, [{element, <<"subject">>}, cdata])),
 	ok.
@@ -82,7 +82,7 @@ headline2_test() ->
 
 error_test() ->
 	E = exmpp_message:error(exmpp_message:chat(<<"hello">>), <<"forbidden">>),
-	?assertEqual(<<"error">>, exxml:get_attribute(E, <<"type">>)),
+	?assertEqual(<<"error">>, exxml:get_attr(E, <<"type">>)),
 	?assertMatch({xmlel, <<"message">>, _, _}, E),
 	?assertEqual(<<"urn:ietf:params:xml:ns:xmpp-stanzas">>, 
 		exxml:get_path(E, [{element, <<"error">>}, {element, <<"forbidden">>}, {attribute, <<"xmlns">>}])),

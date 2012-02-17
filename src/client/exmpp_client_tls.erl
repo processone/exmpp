@@ -69,7 +69,7 @@
 announced_support(Xmlel_Features)
   when   Xmlel_Features#xmlel.name == <<"features">>
   orelse Xmlel_Features#xmlel.name == <<"stream:features">> ->
-    case exxml:get_element(Xmlel_Features, <<"starttls">>) of
+    case exxml:get_el(Xmlel_Features, <<"starttls">>) of
         undefined      -> none;
         Xmlel_Starttls -> announced_support2(Xmlel_Starttls)
     end.
@@ -82,7 +82,7 @@ announced_support(Xmlel_Features)
 ).
 
 announced_support2(Xmlel_Starttls) ->
-    case exxml:get_elements(Xmlel_Starttls) of
+    case exxml:get_els(Xmlel_Starttls) of
         [] ->
             'optional';
         [#xmlel{name = <<"required">>, children = []}] ->

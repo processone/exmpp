@@ -108,7 +108,7 @@ info(From, To, Id, NodeId) ->
         ?Xmlel@Disco_Info(<<"query">>,
             case NodeId of
                 undefined -> [];
-                _         -> [exxml:attribute(<<"node">>, NodeId)]
+                _         -> [exxml:attr(<<"node">>, NodeId)]
             end,
             [])).
 
@@ -170,7 +170,7 @@ items(From, To, Id, NodeId) ->
         ?Xmlel@Disco_Items(<<"query">>,
             case NodeId of
                 undefined -> [];
-                _         -> [exxml:attribute(<<"node">>, NodeId)]
+                _         -> [exxml:attr(<<"node">>, NodeId)]
             end,
             [])).
 

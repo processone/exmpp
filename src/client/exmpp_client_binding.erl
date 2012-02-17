@@ -67,7 +67,7 @@
 
 announced_support(Xmlel_Features)
   when Xmlel_Features#xmlel.name == <<"features">> ->
-    case exxml:get_element(Xmlel_Features, <<"bind">>) of
+    case exxml:get_el(Xmlel_Features, <<"bind">>) of
         undefined  -> false;
         Xmlel_Bind -> announced_support2(Xmlel_Bind)
     end.
@@ -136,7 +136,7 @@ bounded_jid(Stanza_IQ) when ?IS_IQ(Stanza_IQ) ->
         <<"result">> ->
             case exmpp_iq:get_result(Stanza_IQ) of
                 Xmlel_Bind when Xmlel_Bind#xmlel.name == <<"bind">> ->
-                    case exxml:get_element(Xmlel_Bind, <<"jid">>) of
+                    case exxml:get_el(Xmlel_Bind, <<"jid">>) of
                         undefined ->
                             throw({resource_binding, bounded_jid, no_jid, Stanza_IQ});
                         Xmlel_Jid ->

@@ -109,8 +109,8 @@
 
 key(From, To, Key) ->
     ?Xmlel(<<"result">>,
-        [exxml:attribute(<<"from">>, From),
-         exxml:attribute(<<"to">>, To)],
+        [exxml:attr(<<"from">>, From),
+         exxml:attr(<<"to">>, To)],
         [exxml:cdata(Key)]).
 
 %% @doc Prepare a `<db:verify/>' element to send to the Authoritative Server.
@@ -127,9 +127,9 @@ verify_request(From, To, Id, 'random') ->
     verify_request(From, To, Id, exmpp_utils:random_id(<<"verify">>));
 verify_request(From, To, Id, Key) ->
     ?Xmlel(<<"verify">>,
-        [exxml:attribute(<<"from">>, From),
-         exxml:attribute(<<"to">>, To),
-         exxml:attribute(<<"id">>, Id)],
+        [exxml:attr(<<"from">>, From),
+         exxml:attr(<<"to">>, To),
+         exxml:attr(<<"id">>, Id)],
         [exxml:cdata(Key)]).
 
 %% @doc Prepare a `<db:verify/>' element to answer to the Receiving Server.
@@ -141,10 +141,10 @@ verify_request(From, To, Id, Key) ->
 ).
 
 verify_response(Request, true = _Is_Valid) ->
-    exxml:set_attribute(exmpp_stanza:reply_without_content(Request),
+    exxml:set_attr(exmpp_stanza:reply_without_content(Request),
         <<"type">>, <<"valid">>);
 verify_response(Request, false = _Is_Valid) ->
-    exxml:set_attribute(exmpp_stanza:reply_without_content(Request),
+    exxml:set_attr(exmpp_stanza:reply_without_content(Request),
         <<"type">>, <<"invalid">>).
 
 %% @doc Prepare a `<db:result/>' element to answer to the Originating
@@ -156,7 +156,7 @@ verify_response(Request, false = _Is_Valid) ->
 ).
 
 validate(Result) ->
-    exxml:set_attribute(exmpp_stanza:reply_without_content(Result),
+    exxml:set_attr(exmpp_stanza:reply_without_content(Result),
         <<"type">>, <<"valid">>).
 
 %% @doc Prepare a `<db:result/>' element to answer to the Originating Server.
@@ -169,8 +169,8 @@ validate(Result) ->
 
 validate(From, To) ->
     ?Xmlel(<<"result">>,
-        [exxml:attribute(<<"from">>, From),
-         exxml:attribute(<<"to">>, To),
-         exxml:attribute(<<"type">>, <<"valid">>)],
+        [exxml:attr(<<"from">>, From),
+         exxml:attr(<<"to">>, To),
+         exxml:attr(<<"type">>, <<"valid">>)],
         []).
 

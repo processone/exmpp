@@ -949,7 +949,7 @@ wait_for_legacy_auth_method(#xmlstreamelement{element = Xmlel_Error},
 %% TODO: We should be able to match on iq type directly on the first
 %% level record
 wait_for_auth_result(?iq, State) ->
-    case exxml:get_attribute(Xmlel_IQ, <<"type">>, undefined) of
+    case exxml:get_attr(Xmlel_IQ, <<"type">>, undefined) of
         <<"result">> ->
             gen_fsm:reply(State#state.from_pid,
                 {ok, get_jid(State#state.auth_info)}),
@@ -966,7 +966,7 @@ wait_for_auth_result(?iq, State) ->
 %% requirements. Check that a client can get the list of fields and
 %% override this simple method of registration.
 wait_for_register_result(?iq, State) ->
-    case exxml:get_attribute(Xmlel_IQ, <<"type">>, undefined) of
+    case exxml:get_attr(Xmlel_IQ, <<"type">>, undefined) of
         <<"result">> ->
             gen_fsm:reply(State#state.from_pid, ok),
             {next_state, stream_opened, State#state{from_pid=undefined}};
@@ -1120,14 +1120,14 @@ start_parser() ->
 check_auth_method(Method, Xmlel_IQ) ->
     io:format("check_auth_method ~p ~p \n", [Method, Xmlel_IQ]),
     %% Check auth method if we have the IQ result
-    case exxml:get_attribute(Xmlel_IQ, <<"type">>, undefined) of
+    case exxml:get_attr(Xmlel_IQ, <<"type">>, undefined) of
         <<"result">> ->
             check_auth_method2(Method, Xmlel_IQ);
         _ ->
             {error, not_auth_method_result}
     end.
 check_auth_method2(Method, Xmlel_IQ) ->
-    case exxml:get_element(exxml:get_element(Xmlel_IQ, <<"query">>),  Method) of
+    case exxml:get_el(exxml:get_el(Xmlel_IQ, <<"query">>),  Method) of
         undefined ->
             {error, no_supported_auth_method};
         _ ->
@@ -1137,12 +1137,12 @@ check_auth_method2(Method, Xmlel_IQ) ->
 %% Packet processing functions
 process_presence(ClientPid, Packet) ->
     Type = exmpp_presence:get_type(Packet),
-    Who = case exxml:get_attribute(Packet, <<"from">>, undefined) of
+    Who = case exxml:get_attr(Packet, <<"from">>, undefined) of
                 undefined -> undefined;
                 <<>> -> undefined;
                 Value -> exmpp_jid:to_lower(Value)
           end,
-    Id = exxml:get_attribute(Packet, <<"id">>, <<>>),
+    Id = exxml:get_attr(Packet, <<"id">>, <<>>),
     ClientPid ! #received_packet{packet_type = <<"presence">>,
                                  type_attr = Type,
                                  from = Who,
@@ -1151,12 +1151,12 @@ process_presence(ClientPid, Packet) ->
 
 process_message(ClientPid, Packet) ->
     Type = exmpp_message:get_type(Packet),
-    Who = case exxml:get_attribute(Packet, <<"from">>, undefined) of
+    Who = case exxml:get_attr(Packet, <<"from">>, undefined) of
                 undefined -> undefined;
                 <<>> -> undefined;
                 Value -> exmpp_jid:to_lower(Value)
           end,
-    Id = exxml:get_attribute(Packet, <<"id">>, ""),
+    Id = exxml:get_attr(Packet, <<"id">>, ""),
     ClientPid ! #received_packet{packet_type = <<"message">>,
                                  type_attr = Type,
                                  from = Who,
@@ -1165,12 +1165,12 @@ process_message(ClientPid, Packet) ->
 
 process_iq(ClientPid, Packet) ->
     Type = exmpp_iq:get_type(Packet),
-    Who = case exxml:get_attribute(Packet, <<"from">>, undefined) of
+    Who = case exxml:get_attr(Packet, <<"from">>, undefined) of
                 undefined -> undefined;
                 <<>> -> undefined;
                 Value -> exmpp_jid:to_lower(Value)
           end,
-    Id = exxml:get_attribute(Packet, <<"id">>, <<>>),
+    Id = exxml:get_attr(Packet, <<"id">>, <<>>),
     NS = exmpp_iq:get_payload_ns(Packet),
     ClientPid ! #received_packet{packet_type = <<"iq">>,
                                  queryns = NS,
@@ -1187,10 +1187,10 @@ process_stream_error(ClientPid, Reason) ->
 %% This function uses {@link random:uniform/1}. It's up to the caller to
 %% seed the generator.
 check_id(Packet) ->
-    case exxml:get_attribute(Packet, <<"id">>, <<>>) of
+    case exxml:get_attr(Packet, <<"id">>, <<>>) of
         <<>> ->
             Id = exmpp_utils:random_id(<<"session">>),
-            {exxml:set_attribute(Packet, <<"id">>, Id), Id};
+            {exxml:set_attr(Packet, <<"id">>, Id), Id};
         Id ->
             {Packet, Id}
     end.

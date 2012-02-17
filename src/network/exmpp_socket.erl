@@ -89,7 +89,7 @@ close(_Socket, ReceiverPid) ->
     ReceiverPid ! stop.
 
 send(Socket, XMLPacket) when is_tuple(XMLPacket) ->
-    Bin = exxml:document_to_iolist(XMLPacket),
+    Bin = exxml:doc_to_iolist(XMLPacket),
     exmpp_internals:gen_send(Socket, Bin).
 
 wping(Socket) ->

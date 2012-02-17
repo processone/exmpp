@@ -20,17 +20,17 @@ announced_mechanism_test() ->
 
 selected_mechanism1_test() ->
 	R = exmpp_client_sasl:selected_mechanism(<<"PLAIN">>),
-	?assertEqual(?NS_SASL, exxml:get_attribute(R, <<"xmlns">>)),
-	?assertEqual(<<"PLAIN">>, exxml:get_attribute(R, <<"mechanism">>)),
+	?assertEqual(?NS_SASL, exxml:get_attr(R, <<"xmlns">>)),
+	?assertEqual(<<"PLAIN">>, exxml:get_attr(R, <<"mechanism">>)),
 	ok.
 
 selected_mechanism2_test() ->
 	R = exmpp_client_sasl:selected_mechanism(<<"PLAIN">>, <<>>),
-	?assertEqual(?NS_SASL, exxml:get_attribute(R, <<"xmlns">>)),
-	?assertEqual(<<"PLAIN">>, exxml:get_attribute(R, <<"mechanism">>)),
+	?assertEqual(?NS_SASL, exxml:get_attr(R, <<"xmlns">>)),
+	?assertEqual(<<"PLAIN">>, exxml:get_attr(R, <<"mechanism">>)),
 	?assertEqual(<<"=">>, exxml:get_cdata(R)),
-	?assertEqual(?NS_SASL, exxml:get_attribute(R, <<"xmlns">>)),
-	?assertEqual(<<"PLAIN">>, exxml:get_attribute(R, <<"mechanism">>)),
+	?assertEqual(?NS_SASL, exxml:get_attr(R, <<"xmlns">>)),
+	?assertEqual(<<"PLAIN">>, exxml:get_attr(R, <<"mechanism">>)),
 	?assertEqual(base64:encode(<<"test">>), 
 		exxml:get_cdata(exmpp_client_sasl:selected_mechanism(<<"PLAIN">>, <<"test">>))),
 	ok.
@@ -38,7 +38,7 @@ selected_mechanism2_test() ->
 
 response_test() ->
 	R = exmpp_client_sasl:response(<<"aa">>),
-	?assertEqual(?NS_SASL, exxml:get_attribute(R, <<"xmlns">>)),
+	?assertEqual(?NS_SASL, exxml:get_attr(R, <<"xmlns">>)),
 	?assertEqual(<<"aa">>, base64:decode(exxml:get_cdata(R))),
 	ok.
 

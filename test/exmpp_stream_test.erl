@@ -9,9 +9,9 @@ opening_test() ->
 	?assertEqual(<<"domain.com">>, exmpp_stream:get_receiving_entity(O)),
 	?assertEqual(<<"jabber:client">>, exmpp_stream:get_default_ns(O)),
 	?assertEqual({1,0}, exmpp_stream:get_version(O)),
-	?assertEqual(<<"http://etherx.jabber.org/streams">>, exxml:get_attribute(O,<<"xmlns:stream">>)),
+	?assertEqual(<<"http://etherx.jabber.org/streams">>, exxml:get_attr(O,<<"xmlns:stream">>)),
 	?assertMatch({xmlel, <<"stream:stream">>, _,undefined}, O),
-	S = exxml:document_to_iolist(O),
+	S = exxml:doc_to_iolist(O),
 	{ok, P} = exxml:start_parser([{root_depth, 1}]),
 	{ok, [O2]} = exxml:parse(P,iolist_to_binary(S)),
 	?assertEqual(<<"domain.com">>, exmpp_stream:get_receiving_entity(O2)),
@@ -34,7 +34,7 @@ opening_reply_test() ->
 	?assertEqual(<<"id">>, exmpp_stream:get_id(O)),
 	?assertMatch({xmlel, <<"stream:stream">>, _,undefined}, O),
 	?assertEqual(<<"EN">>, exmpp_stream:get_lang(O)),
-	?assertEqual(<<"http://etherx.jabber.org/streams">>, exxml:get_attribute(O,<<"xmlns:stream">>)),
+	?assertEqual(<<"http://etherx.jabber.org/streams">>, exxml:get_attr(O,<<"xmlns:stream">>)),
 	ok.
 
 opening_reply_from_opening_test() ->
@@ -56,8 +56,8 @@ closing_test() ->
 features_test() ->
 	F = exmpp_stream:features([{xmlel, <<"a">>, [], []}, {xmlel, <<"b">>, [], []}]),
 	?assertMatch({xmlel, <<"stream:features">>, _, _} , F),
-	?assertMatch(?NS_XMPP, exxml:get_attribute(F, <<"xmlns:stream">>)),
-	?assertEqual(2, length(exxml:get_elements(F))),
+	?assertMatch(?NS_XMPP, exxml:get_attr(F, <<"xmlns:stream">>)),
+	?assertEqual(2, length(exxml:get_els(F))),
 	ok.
 
 error_test() ->
@@ -81,5 +81,5 @@ error_test() ->
 dialback_support_test() ->
 	E = exmpp_stream:set_dialback_support(
 		exmpp_stream:opening(<<"domain.com">>, <<"jabber:server">>, undefined)),
-	?assertEqual(<<"jabber:server:dialback">>, exxml:get_attribute(E, <<"xmlns:db">>)),
+	?assertEqual(<<"jabber:server:dialback">>, exxml:get_attr(E, <<"xmlns:db">>)),
 	ok.

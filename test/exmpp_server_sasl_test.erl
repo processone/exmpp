@@ -8,35 +8,35 @@
 feature_test() ->
 	F = exmpp_server_sasl:feature([<<"EXTERNAL">>, <<"PLAIN">>]),
 	?assertMatch({xmlel, <<"mechanisms">>, _, _}, F),
-	?assertEqual(<<"urn:ietf:params:xml:ns:xmpp-sasl">>, exxml:get_attribute(F, <<"xmlns">>)),
+	?assertEqual(<<"urn:ietf:params:xml:ns:xmpp-sasl">>, exxml:get_attr(F, <<"xmlns">>)),
 	?assertEqual([<<"EXTERNAL">>, <<"PLAIN">>],
-		[ exxml:get_cdata(M) ||{xmlel, <<"mechanism">>, _, _} =M <- exxml:get_elements(F)]),
+		[ exxml:get_cdata(M) ||{xmlel, <<"mechanism">>, _, _} =M <- exxml:get_els(F)]),
 	ok.
 
 
 challenge_test() ->
 	?assertMatch({xmlel, <<"challenge">>, _, []} , exmpp_server_sasl:challenge(none)),
 	C = exmpp_server_sasl:challenge(<<"aaa">>),
-	?assertEqual(<<"urn:ietf:params:xml:ns:xmpp-sasl">>, exxml:get_attribute(C, <<"xmlns">>)),
+	?assertEqual(<<"urn:ietf:params:xml:ns:xmpp-sasl">>, exxml:get_attr(C, <<"xmlns">>)),
 	?assertEqual(base64:encode(<<"aaa">>), exxml:get_cdata(C)),
 	ok.
 
 success_test() ->
 	?assertMatch({xmlel, <<"success">>, _, []} , exmpp_server_sasl:success(none)),
 	C = exmpp_server_sasl:success(<<"aaa">>),
-	?assertEqual(<<"urn:ietf:params:xml:ns:xmpp-sasl">>, exxml:get_attribute(C, <<"xmlns">>)),
+	?assertEqual(<<"urn:ietf:params:xml:ns:xmpp-sasl">>, exxml:get_attr(C, <<"xmlns">>)),
 	?assertEqual(base64:encode(<<"aaa">>), exxml:get_cdata(C)),
 	ok.
 
 failure_test() ->
 	?assertMatch({xmlel, <<"failure">>, _, _}, exmpp_server_sasl:failure()),
 	?assertEqual(<<"urn:ietf:params:xml:ns:xmpp-sasl">>, 
-		exxml:get_attribute(exmpp_server_sasl:failure(), <<"xmlns">>)),
+		exxml:get_attr(exmpp_server_sasl:failure(), <<"xmlns">>)),
 	?assertMatch({xmlel, <<"failure">>, _, _}, exmpp_server_sasl:failure(<<"not-authorized">>)),
 	?assertEqual(<<"urn:ietf:params:xml:ns:xmpp-sasl">>, 
-		exxml:get_attribute(exmpp_server_sasl:failure(<<"not-authorized">>), <<"xmlns">>)),
+		exxml:get_attr(exmpp_server_sasl:failure(<<"not-authorized">>), <<"xmlns">>)),
 	?assertMatch([{xmlel, <<"not-authorized">>, [], []}],
-		exxml:get_elements(exmpp_server_sasl:failure(<<"not-authorized">>))),
+		exxml:get_els(exmpp_server_sasl:failure(<<"not-authorized">>))),
 
 	?assertMatch(<<"hey">>,
 		exxml:get_path(exmpp_server_sasl:failure(<<"not-authorized">>, <<"hey">>), [{element, <<"text">>},cdata])),

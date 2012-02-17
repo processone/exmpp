@@ -193,9 +193,9 @@ get_type(Presence) when ?IS_PRESENCE(Presence) ->
 ).
 
 set_type(Presence, <<>>) when ?IS_PRESENCE(Presence) ->
-    exxml:remove_attribute(Presence, <<"type">>);
+    exxml:remove_attr(Presence, <<"type">>);
 set_type(Presence, <<"available">>) when ?IS_PRESENCE(Presence) ->
-    exxml:remove_attribute(Presence, <<"type">>);
+    exxml:remove_attr(Presence, <<"type">>);
 set_type(Presence, Type)->
     exmpp_stanza:set_type(Presence, Type).
 
@@ -207,7 +207,7 @@ set_type(Presence, Type)->
 ).
 
 get_show(Presence) when ?IS_PRESENCE(Presence) ->
-    case exxml:get_element(Presence, <<"show">>) of
+    case exxml:get_el(Presence, <<"show">>) of
         undefined ->
             <<"online">>;
         Xmlel_Show ->
@@ -250,7 +250,7 @@ set_show(Presence, Show) when is_binary(Show) ->
 ).
 
 get_status(Presence) when ?IS_PRESENCE(Presence) ->
-    case exxml:get_element(Presence, <<"status">>) of
+    case exxml:get_el(Presence, <<"status">>) of
         undefined    -> undefined;
         Xmlel_Status -> exxml:get_cdata(Xmlel_Status)
     end.
@@ -284,7 +284,7 @@ set_status(Presence, Status) when ?IS_PRESENCE(Presence) ->
 ).
 
 get_priority(Presence) when ?IS_PRESENCE(Presence) ->
-    case exxml:get_element(Presence, <<"priority">>) of
+    case exxml:get_el(Presence, <<"priority">>) of
         undefined ->
             0;
         Xmlel_Priority ->

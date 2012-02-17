@@ -89,7 +89,7 @@ wished_resource(Stanza_IQ) when ?IS_IQ(Stanza_IQ) ->
         <<"set">> ->
             case exmpp_iq:get_request(Stanza_IQ) of
                 Xmlel_Bind when Xmlel_Bind#xmlel.name == <<"bind">> ->
-                    case exxml:get_element(Xmlel_Bind, <<"resource">>) of
+                    case exxml:get_el(Xmlel_Bind, <<"resource">>) of
                         undefined -> undefined;
                         Resource  -> exxml:get_cdata(Resource)
                     end;

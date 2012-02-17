@@ -166,7 +166,7 @@ success(Stanza_IQ_Set) when ?IS_IQ(Stanza_IQ_Set) ->
 
 failure(Stanza_IQ_Set, Error_Condition) when ?IS_IQ(Stanza_IQ_Set) ->
     exmpp_iq:error_without_original(Stanza_IQ_Set,
-        exxml:set_attribute(exmpp_stanza:error(Error_Condition),
+        exxml:set_attr(exmpp_stanza:error(Error_Condition),
             <<"code">>,
             case Error_Condition of
                 <<"not-authorized">> -> <<"401">>;
@@ -213,7 +213,7 @@ want_fields(_Stanza) ->
 ).
 
 get_credentials(Stanza_IQ_Set) when ?IS_IQ(Stanza_IQ_Set) ->
-    case exxml:get_elements(exmpp_iq:get_request(Stanza_IQ_Set)) of
+    case exxml:get_els(exmpp_iq:get_request(Stanza_IQ_Set)) of
         Xmlels when length(Xmlels) == 3 ->
             get_credentials2(Xmlels, {undefined, undefined, undefined});
         _ ->

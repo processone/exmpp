@@ -26,7 +26,7 @@ start_test() ->
 	receive
 		#xmlstreamelement{element = E3} -> 
 			?assertMatch({xmlel,<<"b">>, _,[]}, E3),
-			?assertEqual(<<"b">>, exxml:get_attribute(E3, <<"b">>))
+			?assertEqual(<<"b">>, exxml:get_attr(E3, <<"b">>))
 	after 0 ->
 			?assert(false)
 	end,
@@ -49,7 +49,7 @@ start_test() ->
 	receive
 		#xmlstreamelement{element = E23} -> 
 			?assertMatch({xmlel,<<"b">>, _,[]}, E23),
-			?assertEqual(<<"b">>, exxml:get_attribute(E23, <<"b">>))
+			?assertEqual(<<"b">>, exxml:get_attr(E23, <<"b">>))
 	after 0 ->
 			?assert(false)
 	end.

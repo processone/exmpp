@@ -240,7 +240,7 @@ is_message(_)                                 -> false.
 ).
 
 get_type(Message) when ?IS_MESSAGE(Message) ->
-    exxml:get_attribute(Message, <<"type">>, <<"normal">>).
+    exxml:get_attr(Message, <<"type">>, <<"normal">>).
 
 %% @doc Set the type of the given `<message/>'.
 -spec(set_type/2 ::
@@ -261,7 +261,7 @@ set_type(Message, Type) when ?Is_Message_Type(Type) ->
 ).
 
 get_subject(Message) when ?IS_MESSAGE(Message) ->
-    case exxml:get_element(Message, <<"subject">>) of
+    case exxml:get_el(Message, <<"subject">>) of
         undefined     -> undefined;
         Xmlel_Subject -> exxml:get_cdata(Xmlel_Subject)
     end.
@@ -287,7 +287,7 @@ set_subject(Message, Subject) when ?IS_MESSAGE(Message) ->
 ).
 
 get_body(Message) when ?IS_MESSAGE(Message) ->
-    case exxml:get_element(Message, <<"body">>) of
+    case exxml:get_el(Message, <<"body">>) of
         undefined  -> undefined;
         Xmlel_Body -> exxml:get_cdata(Xmlel_Body)
     end.
@@ -313,7 +313,7 @@ set_body(Message, Body) when ?IS_MESSAGE(Message) ->
 ).
 
 get_thread(Message) when ?IS_MESSAGE(Message) ->
-    case exxml:get_element(Message, <<"thread">>) of
+    case exxml:get_el(Message, <<"thread">>) of
         undefined    -> undefined;
         Xmlel_Thread -> exxml:get_cdata(Xmlel_Thread)
     end.

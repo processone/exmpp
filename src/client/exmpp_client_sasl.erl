@@ -107,7 +107,7 @@
 announced_mechanisms(Xmlel_Features) 
   when   Xmlel_Features#xmlel.name == <<"features">>
   orelse Xmlel_Features#xmlel.name == <<"stream:features">> ->
-    case exxml:get_element(Xmlel_Features, <<"mechanisms">>) of
+    case exxml:get_el(Xmlel_Features, <<"mechanisms">>) of
         undefined        -> [];
         Xmlel_Mechanisms -> announced_mechanisms2(Xmlel_Mechanisms)
     end.
@@ -123,7 +123,7 @@ announced_mechanisms2(Xmlel_Mechanisms)
   when Xmlel_Mechanisms#xmlel.children == [] ->
     throw({sasl, announced_mechanisms, 'invalid_feature', Xmlel_Mechanisms});
 announced_mechanisms2(Xmlel_Mechanisms) ->
-    announced_mechanisms3(exxml:get_elements(Xmlel_Mechanisms), []).
+    announced_mechanisms3(exxml:get_els(Xmlel_Mechanisms), []).
 
 %%
 -spec(announced_mechanisms3/2 ::
@@ -224,7 +224,7 @@ abort() ->
 next_step(Xmlel_Challenge) when Xmlel_Challenge#xmlel.name == <<"challenge">> ->
     {'challenge', base64:decode(exxml:get_cdata(Xmlel_Challenge))};
 next_step(Xmlel_Failure) when Xmlel_Failure#xmlel.name == <<"failure">> ->
-    case exxml:get_elements(Xmlel_Failure) of
+    case exxml:get_els(Xmlel_Failure) of
         [#xmlel{name = Error_Condition}] ->
             {'failure', Error_Condition};
         _ ->

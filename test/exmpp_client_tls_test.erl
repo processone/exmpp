@@ -26,5 +26,5 @@ announced_support_none_test() ->
 starttls_test() ->
 	R = exmpp_client_tls:starttls(),
 	?assertMatch({xmlel, <<"starttls">>, _ ,_}, R),
-	?assertEqual(?NS_TLS, exxml:get_attribute(R, <<"xmlns">>)),
+	?assertEqual(?NS_TLS, exxml:get_attr(R, <<"xmlns">>)),
 	ok.

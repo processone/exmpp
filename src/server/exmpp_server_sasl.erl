@@ -280,7 +280,7 @@ failure(Error_Condition, Error_Text) ->
 
 next_step(Xmlel_Auth) when Xmlel_Auth#xmlel.name == <<"auth">> ->
     {'auth',
-     exxml:get_attribute(Xmlel_Auth, <<"mechanism">>),
+     exxml:get_attr(Xmlel_Auth, <<"mechanism">>),
      case exmpp_utils:strip(exxml:get_cdata(Xmlel_Auth)) of
          <<>>    -> none;
          <<"=">> -> <<>>;

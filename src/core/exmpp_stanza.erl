@@ -559,7 +559,7 @@
 ).
 
 get_error(Stanza = #xmlel{}) ->
-    exxml:get_element(Stanza, <<"error">>);
+    exxml:get_el(Stanza, <<"error">>);
 get_error(#iq{type = <<"error">>, error = Xmlel_Error}) ->
     Xmlel_Error;
 get_error(#iq{}) ->
@@ -580,7 +580,7 @@ get_error(#iq{}) ->
 ).
 
 get_sender(Stanza) ->
-    exxml:get_attribute(Stanza, <<"from">>, undefined).
+    exxml:get_attr(Stanza, <<"from">>, undefined).
 
 %% @doc Set the sender.
 -spec(set_sender/2 ::
@@ -591,7 +591,7 @@ get_sender(Stanza) ->
 ).
 
 set_sender(Stanza, Sender) ->
-    exxml:set_attribute(Stanza, <<"from">>, Sender).
+    exxml:set_attr(Stanza, <<"from">>, Sender).
 
 %% @doc Remove the sender.
 -spec(remove_sender/1 ::
@@ -601,7 +601,7 @@ set_sender(Stanza, Sender) ->
 ).
 
 remove_sender(Stanza)  ->
-    exxml:remove_attribute(Stanza, <<"from">>).
+    exxml:remove_attr(Stanza, <<"from">>).
 
 %% @doc Return the recipient.
 %%
@@ -614,7 +614,7 @@ remove_sender(Stanza)  ->
 ).
 
 get_recipient(Stanza) ->
-    exxml:get_attribute(Stanza, <<"to">>, undefined).
+    exxml:get_attr(Stanza, <<"to">>, undefined).
 
 %% @doc Set the recipient.
 -spec(set_recipient/2 ::
@@ -625,7 +625,7 @@ get_recipient(Stanza) ->
 ).
 
 set_recipient(Stanza, Recipient) ->
-    exxml:set_attribute(Stanza, <<"to">>, Recipient).
+    exxml:set_attr(Stanza, <<"to">>, Recipient).
 
 %% @doc Remove the recipient.
 -spec(remove_recipient/1 ::
@@ -635,7 +635,7 @@ set_recipient(Stanza, Recipient) ->
 ).
 
 remove_recipient(Stanza)  ->
-    exxml:remove_attribute(Stanza, <<"to">>).
+    exxml:remove_attr(Stanza, <<"to">>).
 
 %% @doc Set the sender and the recipient at the same time.
 -spec(set_jids/3 ::
@@ -659,7 +659,7 @@ set_jids(Stanza, From, To)  ->
 get_id(#iq{id = Id}) ->
     Id;
 get_id(Stanza)  ->
-    exxml:get_attribute(Stanza, <<"id">>, undefined).
+    exxml:get_attr(Stanza, <<"id">>, undefined).
 
 %% @doc Set the ID.
 -spec(set_id/2 ::
@@ -672,7 +672,7 @@ get_id(Stanza)  ->
 set_id(Stanza, 'random') ->
     set_id(Stanza, exmpp_utils:random_id(Stanza#xmlel.name));
 set_id(Stanza = #xmlel{}, Id)  ->
-    exxml:set_attribute(Stanza, <<"id">>, Id);
+    exxml:set_attr(Stanza, <<"id">>, Id);
 set_id(IQ, 'random') when is_record(IQ, 'iq')->
     set_id(IQ, exmpp_utils:random_id(<<"iq">>));
 set_id(IQ, Id) when is_record(IQ, 'iq') andalso is_binary(Id)->
@@ -686,7 +686,7 @@ set_id(IQ, Id) when is_record(IQ, 'iq') andalso is_binary(Id)->
 ).
 
 get_type(Stanza=#xmlel{})  ->
-    exxml:get_attribute(Stanza, <<"type">>, undefined);
+    exxml:get_attr(Stanza, <<"type">>, undefined);
 get_type(#iq{type = Type}) ->
     Type.
 
@@ -699,7 +699,7 @@ get_type(#iq{type = Type}) ->
 ).
 
 set_type(Stanza, Type) when ?Is_Type(Type) ->
-    exxml:set_attribute(Stanza, <<"type">>, Type);
+    exxml:set_attr(Stanza, <<"type">>, Type);
 set_type(IQ, Type) when is_record(IQ, 'iq') andalso ?Is_IQ_Type_Request(Type) ->
     IQ#iq{type = Type, kind = 'request'};
 set_type(IQ, Type) when is_record(IQ, 'iq') andalso ?Is_IQ_Type_Response(Type) ->
@@ -713,8 +713,8 @@ set_type(IQ, Type) when is_record(IQ, 'iq') andalso ?Is_IQ_Type_Response(Type) -
 ).
 
 get_lang(Stanza = #xmlel{})  ->
-    case exxml:get_attribute(Stanza, <<"lang">>, undefined) of
-        undefined -> exxml:get_attribute(Stanza, <<"xml:lang">>);
+    case exxml:get_attr(Stanza, <<"lang">>, undefined) of
+        undefined -> exxml:get_attr(Stanza, <<"xml:lang">>);
         Lang      -> Lang
     end;
 get_lang(#iq{lang = Lang}) ->
@@ -731,9 +731,9 @@ get_lang(#iq{lang = Lang}) ->
 ).
 
 set_lang(Stanza=#xmlel{}, undefined)  ->
-    exxml:remove_attribute(exxml:remove_attribute(Stanza, <<"lang">>), <<"xml:lang">>);
+    exxml:remove_attr(exxml:remove_attr(Stanza, <<"lang">>), <<"xml:lang">>);
 set_lang(Stanza=#xmlel{}, Lang)  ->
-    exxml:set_attribute(Stanza, <<"lang">>, Lang);
+    exxml:set_attr(Stanza, <<"lang">>, Lang);
 set_lang(IQ, Lang) when is_record(IQ, 'iq') andalso is_binary(Lang)->
     IQ#iq{lang = Lang}.
 
@@ -756,13 +756,13 @@ reply(Stanza)  ->
         {undefined, undefined} ->
             Stanza;
         {From, undefined} ->
-            exxml:remove_attribute(exxml:set_attribute(Stanza, <<"to">>, From),
+            exxml:remove_attr(exxml:set_attr(Stanza, <<"to">>, From),
                 <<"from">>);
         {undefined, To} ->
-            exxml:remove_attribute(exxml:set_attribute(Stanza, <<"from">>, To),
+            exxml:remove_attr(exxml:set_attr(Stanza, <<"from">>, To),
                 <<"to">>);
         {From, To} ->
-            exxml:set_attribute(exxml:set_attribute(Stanza, <<"from">>, To),
+            exxml:set_attr(exxml:set_attr(Stanza, <<"from">>, To),
                 <<"to">>, From)
     end.
 
@@ -871,7 +871,7 @@ error(Error_Condition, {Error_Lang, Error_Text})
         exxml:element(undefined, <<"error">>, [], [
             exxml:element(?NS_STANZA_ERRORS, Error_Condition, [], []),
             exxml:element(?NS_STANZA_ERRORS, <<"text">>,
-                [exxml:attribute(<<"xml:lang">>, Error_Lang)],
+                [exxml:attr(<<"xml:lang">>, Error_Lang)],
                     [exxml:cdata(Error_Text)])
         ]),
         Error_Condition);
@@ -949,7 +949,7 @@ get_error_type(Stanza) ->
 ).
 
 get_error_type_from_error(Xmlel_Error) ->
-    exxml:get_attribute(Xmlel_Error, <<"type">>, undefined).
+    exxml:get_attr(Xmlel_Error, <<"type">>, undefined).
 
 %% @throws {stanza_error, error_type, no_error_element_found, Stanza}
 %% @doc Set the type of the error element.
@@ -978,7 +978,7 @@ set_error_type(Stanza, Error_Type) ->
 ).
 
 set_error_type_in_error(Xmlel_Error, Error_Type) when ?Is_Xmlel_Error(Xmlel_Error) ->
-    exxml:set_attribute(Xmlel_Error, <<"type">>, Error_Type).
+    exxml:set_attr(Xmlel_Error, <<"type">>, Error_Type).
 
 %% @throws {stanza_error, error_type, no_error_element_found, Stanza} |
 %%         {stanza_error, error_type, invalid_condition, {NS, Condition}}
@@ -1046,7 +1046,7 @@ get_condition(Stanza) ->
 ).
 
 get_condition_in_error(Xmlel_Error) when ?Is_Xmlel_Error(Xmlel_Error) ->
-    case exxml:get_elements(Xmlel_Error) of
+    case exxml:get_els(Xmlel_Error) of
         [#xmlel{name = Error_Condition} | _] when Error_Condition /= <<"text">> ->
             Error_Condition;
         _ ->
@@ -1097,5 +1097,5 @@ get_text_in_error(Xmlel_Error) when ?Is_Xmlel_Error(Xmlel_Error) ->
 to_iolist(IQ) when is_record(IQ, 'iq') ->
     to_iolist(exmpp_iq:iq_to_xmlel(IQ));
 to_iolist(Stanza)  ->
-    exxml:document_to_iolist(Stanza).
+    exxml:doc_to_iolist(Stanza).
 

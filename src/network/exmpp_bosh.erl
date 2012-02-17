@@ -214,7 +214,7 @@ code_change(_Old, State, _Extra) ->
 
 
 make_empty_request(Socket, Sid, Rid, Queue, Host, Path) ->
-    StanzasText = [exxml:document_to_iolist(I) || I <- lists:reverse(Queue)],
+    StanzasText = [exxml:doc_to_iolist(I) || I <- lists:reverse(Queue)],
     Body = stanzas_msg(Sid, Rid, StanzasText),
     make_request(Socket, Host, Path, Body).
 
@@ -222,7 +222,7 @@ make_raw_request(Socket, Host, Path, Body) ->
     make_request(Socket, Host, Path, Body).  
 
 make_request(Socket, Sid, Rid, Queue, Host, Path, Packet) when is_record(Packet, xmlel) ->
-    StanzasText = [exxml:document_to_iolist(I) || I <- lists:reverse([Packet|Queue])],
+    StanzasText = [exxml:doc_to_iolist(I) || I <- lists:reverse([Packet|Queue])],
     Body = stanzas_msg(Sid, Rid, StanzasText),
     make_request(Socket, Host, Path, Body).
 
@@ -250,11 +250,11 @@ do_send(#xmlel{name = Name}, State)
     NewState2 = return_socket(NewState, Socket),
     %%TODO: this can be improved.. don't close the socket and reuse it for latter
     {ok, [#xmlel{name = <<"body">>} = Xmlel_Body]} = exxml:parse_document(Resp),
-    SID = exxml:get_attribute(Xmlel_Body, <<"sid">>, undefined),
-    AuthID = exxml:get_attribute(Xmlel_Body, <<"authid">>, undefined),
+    SID = exxml:get_attr(Xmlel_Body, <<"sid">>, undefined),
+    AuthID = exxml:get_attr(Xmlel_Body, <<"authid">>, undefined),
     Requests = list_to_integer(binary_to_list(
-        exxml:get_attribute(Xmlel_Body, <<"requests">>, undefined))),
-    Events = [{xmlstreamelement, Xmlel} || Xmlel <- exxml:get_elements(Xmlel_Body)],
+        exxml:get_attr(Xmlel_Body, <<"requests">>, undefined))),
+    Events = [{xmlstreamelement, Xmlel} || Xmlel <- exxml:get_els(Xmlel_Body)],
     % first return a fake stream response, then anything found inside the <body/>
     % element (possibly nothing)
     StreamStart = [

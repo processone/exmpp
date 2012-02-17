@@ -8,7 +8,7 @@
 feature_test() ->
 	B = exmpp_server_session:feature(),
 	?assertMatch({xmlel, <<"session">>, _, _}, B),
-	?assertEqual(<<"urn:ietf:params:xml:ns:xmpp-session">>, exxml:get_attribute(B, <<"xmlns">>)),
+	?assertEqual(<<"urn:ietf:params:xml:ns:xmpp-session">>, exxml:get_attr(B, <<"xmlns">>)),
 	ok.
 
 want_establishment_test() ->

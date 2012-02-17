@@ -558,7 +558,7 @@ set_initiating_entity(Xmlel_Stream, Hostname) ->
 ).
 
 get_default_ns(Xmlel_Stream) ->
-    exxml:get_attribute(Xmlel_Stream, <<"xmlns">>).
+    exxml:get_attr(Xmlel_Stream, <<"xmlns">>).
 
 
 %% @spec (Opening) -> Version
@@ -575,7 +575,7 @@ get_default_ns(Xmlel_Stream) ->
 ).
 
 get_version(Xmlel_Stream) ->
-    parse_version(exxml:get_attribute(Xmlel_Stream, <<"version">>)).
+    parse_version(exxml:get_attr(Xmlel_Stream, <<"version">>)).
 
 %% @spec (Opening, Version) -> New_Opening
 %%     Opening = exxml:xmlel()
@@ -596,11 +596,11 @@ get_version(Xmlel_Stream) ->
 
 set_version(Xmlel_Stream, Version)
   when Version == undefined; Version == <<>>; Version == {0,0} ->
-    exxml:remove_attribute(Xmlel_Stream, <<"version">>);
+    exxml:remove_attr(Xmlel_Stream, <<"version">>);
 set_version(Xmlel_Stream, {_,_} = Version) ->
     set_version(Xmlel_Stream, serialize_version(Version));
 set_version(Xmlel_Stream, Version) when is_binary(Version)->
-    exxml:set_attribute(Xmlel_Stream, <<"version">>, Version).
+    exxml:set_attr(Xmlel_Stream, <<"version">>, Version).
 
 
 %% @spec (Opening) -> ID | undefined
@@ -733,7 +733,7 @@ serialize_version({Major, Minor}) ->
 ).
 
 set_dialback_support(Xmlel_Stream) ->
-    exxml:set_attribute(Xmlel_Stream,
+    exxml:set_attr(Xmlel_Stream,
         <<"xmlns:", ?NS_DIALBACK_pfx/binary>>, ?NS_DIALBACK).
 
 %% @spec (Features) -> Features_Announcement
@@ -837,13 +837,13 @@ error(Error_Condition, {Error_Lang, Error_Text}) ->
     end,
     exxml:element(undefined, <<?NS_XMPP_pfx/binary,":error">>, [], [
         exxml:element(undefined, Error_Condition,
-            [exxml:attribute(<<"xmlns">>, ?NS_STREAM_ERRORS)], []),
+            [exxml:attr(<<"xmlns">>, ?NS_STREAM_ERRORS)], []),
         exxml:element(undefined, <<"text">>,
             case Error_Lang of
                 undefined ->
                     [{<<"xmlns">>, ?NS_STREAM_ERRORS}];
                 _ ->
-                    [exxml:attribute(<<"lang">>, Error_Lang),
+                    [exxml:attr(<<"lang">>, Error_Lang),
                      {<<"xmlns">>, ?NS_STREAM_ERRORS}]
             end,
             [exxml:cdata(Error_Text)])
@@ -880,7 +880,7 @@ is_error(_) ->
 get_condition(Xmlel_Error) 
   when Xmlel_Error#xmlel.name == <<"error">> ;
        Xmlel_Error#xmlel.name == <<"stream:error">> -> 
-    case exxml:get_elements(Xmlel_Error) of
+    case exxml:get_els(Xmlel_Error) of
         [#xmlel{name = Error_Condition} | _] ->
             Error_Condition;
         _ ->
@@ -903,7 +903,7 @@ get_condition(Xmlel_Error)
 get_text(Xmlel_Error)
   when Xmlel_Error#xmlel.name == <<"error">> ;
        Xmlel_Error#xmlel.name == <<"stream:error">> ->
-    case exxml:get_element(Xmlel_Error,  <<"text">>) of
+    case exxml:get_el(Xmlel_Error,  <<"text">>) of
         undefined  -> undefined;
         Xmlel_Text -> exxml:get_cdata(Xmlel_Text)
     end.
