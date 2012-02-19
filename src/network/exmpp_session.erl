@@ -701,10 +701,10 @@ wait_for_stream_features(X, State) ->
    
 
 wait_for_compression_result(#xmlstreamelement{element = #xmlel{name = <<"compressed">>}},
-  #state{connection = Module} = State) ->
+  #state{connection = Module, domain = Domain} = State) ->
     case Module:compress(State#state.receiver_ref) of
         {ok, NewSocket} ->
-            Domain = get_domain(State#state.auth_info),
+            %%Domain = get_domain(State#state.auth_info),
             Module:reset_parser(State#state.receiver_ref),
             ok = Module:send(NewSocket,
                 exmpp_stream:opening(Domain, ?NS_JABBER_CLIENT, {1,0})),
@@ -715,10 +715,10 @@ wait_for_compression_result(#xmlstreamelement{element = #xmlel{name = <<"compres
     end.
 
 wait_for_starttls_result(#xmlstreamelement{element = #xmlel{name = <<"proceed">>}},
-  #state{connection = Module} = State) ->
+  #state{connection = Module, domain = Domain} = State) ->
     case Module:starttls(State#state.receiver_ref, client) of
         {ok, NewSocket} ->
-            Domain = get_domain(State#state.auth_info),
+            %%Domain = get_domain(State#state.auth_info),
             Module:reset_parser(State#state.receiver_ref),
             ok = Module:send(NewSocket,
                 exmpp_stream:opening(Domain, ?NS_JABBER_CLIENT, {1,0})),
