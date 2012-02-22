@@ -324,7 +324,7 @@ connect_TCP(Session, Server, Port, Options)
        is_list(Server),
        is_integer(Port),
        is_list(Options) ->
-    {Timeout, Opts} = case lists:ketytake(timeout, 1, Options) of
+    {Timeout, Opts} = case lists:keytake(timeout, 1, Options) of
 	    {value, {timeout, T}, Options2} ->
 		    {T, Options2};
 	    false ->
@@ -350,7 +350,7 @@ connect_BOSH(Session, URL, Server, Options)
   when is_pid(Session),
        is_list(Server),
        is_list(Options) ->
-    {Timeout, Opts} = case lists:ketytake(timeout, 1, Options) of
+    {Timeout, Opts} = case lists:keytake(timeout, 1, Options) of
 	    {value, {timeout, T}, Options2} ->
 		    {T, Options2};
 	    false ->
