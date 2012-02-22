@@ -660,7 +660,7 @@ wait_for_stream_features(X, State) ->
 
 wait_for_compression_result(#xmlstreamelement{element=#xmlel{name='compressed'}}, State=#state{domain=Domain}) ->
     #state{connection = Module,
-           receiver_ref = ReceiverRef,
+           receiver_ref = ReceiverRef
            %%auth_info = Auth
            } = State,
     case Module:compress(ReceiverRef) of
@@ -675,7 +675,7 @@ wait_for_compression_result(#xmlstreamelement{element=#xmlel{name='compressed'}}
 
 wait_for_starttls_result(#xmlstreamelement{element=#xmlel{name='proceed'}}, State=#state{domain=Domain}) ->
     #state{connection = Module,
-           receiver_ref = ReceiverRef,
+           receiver_ref = ReceiverRef
            %%auth_info = Auth
            } = State,
     case Module:starttls(ReceiverRef, client) of
