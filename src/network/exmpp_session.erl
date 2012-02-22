@@ -84,6 +84,7 @@
     register_account/3,
     login/1,
     login/2,
+    login/3,
     send_packet/2,
     set_controlling_process/2,
     get_connection_property/2
