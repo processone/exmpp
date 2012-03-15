@@ -3690,7 +3690,7 @@ attrs_to_iolist(Attrs) ->
     [attr_to_iolist(A) || A <- Attrs].
 
 attr_to_iolist({Name, Value}) ->
-    [$\s, Name, $=, $", escape_using_entities(Value), $"].
+    [$\s, Name, $=, $", escape_attr_using_entities(Value), $"].
 
 %% @spec (XML_Element) -> XML_Text
 %%     XML_Element = xmlel() | xmlel_old() | list()
@@ -3856,6 +3856,43 @@ escape_using_entities2(<<C:8, Rest/binary>>, New_CData) ->
     escape_using_entities2(Rest, [New_C | New_CData]);
 escape_using_entities2(<<>>, New_CData) ->
     list_to_binary(lists:reverse(New_CData)).
+
+
+
+-spec(escape_attr_using_entities/1 :: (binary() | string()) -> binary() | string()).
+
+escape_attr_using_entities(CData) when is_list(CData) ->
+    lists:flatten([case C of
+		       $& -> "&amp;";
+		       $< -> "&lt;";
+		       $> -> "&gt;";
+		       $" -> "&quot;";
+		       $' -> "&apos;";
+            	       $\n  -> "&#xA;";
+            	       $\t  -> "&#x9;";
+            	       $\r  -> "&#xD;";
+		       _  -> C
+		   end || C <- CData]);
+
+escape_attr_using_entities(CData) when is_binary(CData) ->
+    escape_attr_using_entities2(CData, []).
+
+escape_attr_using_entities2(<<C:8, Rest/binary>>, New_CData) ->
+    New_C = case C of
+		$& -> <<"&amp;">>;
+		$< -> <<"&lt;">>;
+		$> -> <<"&gt;">>;
+		$" -> <<"&quot;">>; % "
+		$' -> <<"&apos;">>; % '
+	       $\n  -> <<"&#xA;">>;
+	       $\t  -> <<"&#x9;">>;
+	       $\r  -> <<"&#xD;">>;
+		_  -> C
+	    end,
+    escape_attr_using_entities2(Rest, [New_C | New_CData]);
+escape_attr_using_entities2(<<>>, New_CData) ->
+    list_to_binary(lists:reverse(New_CData)).
+
 
 %% @spec (CData) -> Escaped_CData
 %%     CData = string() | binary()
