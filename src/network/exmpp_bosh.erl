@@ -151,17 +151,17 @@ handle_cast({send, Packet}, State) ->
 handle_cast(_Cast, State) ->         
     {noreply, State}.                
 %{http_response, NewVsn, StatusCode, Reason}
-handle_info({http, Socket, {http_response, Vsn, 200, <<"OK">>}}, State) ->
+handle_info({http, Socket, {http_response, Vsn, 200, StatusText}}, State) ->
         #state{stream_ref = Stream,                                       
                 open = Open,                                              
                 sid = Sid,                                                
                 queue = Queue,                                            
                 parsed_bosh_url = {Host, _, Path, _},                     
                 rid = Rid} = State,                                       
-        {ok, {{200, <<"OK">>}, _Hdrs, Resp}} = read_response(Socket, Vsn, {200, <<"OK">>}, [], <<>>),
-        {ok, NewStream} = exmpp_xmlstream:parse(Stream, Resp),                                       
-        %io:format("Got: ~s \n", [Resp]),                                                            
-        NewOpen = lists:keydelete(Socket, 1, Open),                                                  
+        {ok, {{200, StatusText}, _Hdrs, Resp}} = read_response(Socket, Vsn, {200, StatusText}, [], <<>>),
+        {ok, NewStream} = exmpp_xmlstream:parse(Stream, Resp),
+        %io:format("Got: ~s \n", [Resp]),
+        NewOpen = lists:keydelete(Socket, 1, Open),
         NewState2  = if                                                                              
                      NewOpen == [] andalso State#state.new =:= false ->                              
                         %io:format("Making empty request\n"),                                        
