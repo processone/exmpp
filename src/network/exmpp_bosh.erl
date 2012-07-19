@@ -212,8 +212,8 @@ make_request(Socket, Sid, Rid, Queue, Host, Path, Packet) when is_record(Packet,
 make_request(Socket,Host, Path, Body) ->                                                          
      Hdrs = [{"Content-Type", ?CONTENT_TYPE}, {"keep-alive", "true"}],                            
      Request = format_request(Path, "POST", Hdrs, Host, Body),                                    
-     ok = gen_tcp:send(Socket, Request).                                                          
-     %io:format("Sent: ~s \n", [Body]).                                                           
+     ok = gen_tcp:send(Socket, Request).
+     %io:format("Sent: ~s \n", [Body]).
 
 
 %% after stream restart, we must not sent this to the connection manager. The response is got in reset call
@@ -244,13 +244,31 @@ do_send(#xmlel{ns=?NS_XMPP, name='stream'}, State) ->
                 " xmlns:stream='http://etherx.jabber.org/streams' version='1.0'"                            
                 " from='" , Domain , "' id='" , AuthID , "'>"],                                             
     {ok, NewStreamRef} = exmpp_xmlstream:parse(StreamRef, StreamStart),                                     
-    exmpp_xmlstream:send_events(StreamRef, Events),                                                         
-        {noreply, NewState2#state{stream_ref = NewStreamRef,                                                
-                          rid = Rid +1,                                                                     
-                          open = [],                                                                        
-                          sid = SID,                                                                        
-                          max_requests = Requests,                                                          
-                          auth_id = AuthID}};                                                               
+    exmpp_xmlstream:send_events(NewStreamRef, Events),
+    % in case of empty <body/> events which would us make send request to server wouldn't be generated
+    % so we need to do that manually
+    NewState4 = if
+       Events == [] ->
+          {NewState3, Socket2} = new_socket(NewState2, once),
+          ok = make_empty_request(Socket2, SID, Rid+1, [], Host, Path),
+          %inet:setopts(Socket2, [{packet, http_bin}, {active, once}]),
+          NewState3#state{stream_ref = NewStreamRef,
+                          open = [{Socket2, Rid+1}],
+                          rid = Rid+2,
+                          sid = SID,
+                          max_requests = Requests,
+                          auth_id = AuthID,
+                          queue = []};
+       true ->
+          NewState2#state{stream_ref = NewStreamRef,
+                          rid = Rid+1,
+                          open = [],
+                          sid = SID,
+                          max_requests = Requests,
+                          auth_id = AuthID}
+    end,
+
+        {noreply, NewState4};
 
 do_send(Packet, State) ->
    #state{open = Open,   
