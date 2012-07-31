@@ -204,8 +204,8 @@ ul, ol, dl {
 }
 
 ul li {
-  list-style: inside;
-  padding-left: 20px;
+  list-style: square inside;
+  margin-bottom: 10px;
 }
 
 ol li {
@@ -277,11 +277,13 @@ Full-Width Styles
   margin: 0 auto;
 }
 
-#forkme_banner {
+#forkme_banner,
+#forkme_banner_p1 {
   display: block;
   position: absolute;
   top:0;
-  right: 10px;
+  right: 0;
+  min-width: 140px;
   z-index: 10;
   padding: 10px 50px 10px 10px;
   color: #fff;
@@ -292,13 +294,18 @@ Full-Width Styles
   border-bottom-right-radius: 2px;
 }
 
+#forkme_banner_p1 {
+	top: 60px;
+	border-radius: 2px;
+	
+	background-image: url('../images/p1bubb.png');
+}
+
 #header_wrap {
-  background: #212121;
-  background: -moz-linear-gradient(top, #373737, #212121);
-  background: -webkit-linear-gradient(top, #373737, #212121);
-  background: -ms-linear-gradient(top, #373737, #212121);
-  background: -o-linear-gradient(top, #373737, #212121);
-  background: linear-gradient(top, #373737, #212121);
+  background: url('../images/p1montage.jpg') top center no-repeat transparent;
+  background-size: 100% auto;
+  
+  -webkit-box-shadow: inset 0 -5px 10px rgba(0,0,0,0.5);
 }
 
 #header_wrap .inner {
@@ -310,7 +317,11 @@ Full-Width Styles
   color: #fff;
   font-size: 42px;
   font-weight: 700;
-  text-shadow: #111 0px 0px 10px;
+  text-shadow: #000 0px 0px 15px, #111 0px 1px 1px;
+  
+  text-indent: -9999px;
+  background: url('../images/logo_exmpp.png') left center no-repeat transparent;
+  margin-left: -25px;
 }
 
 #project_tagline {
@@ -318,7 +329,7 @@ Full-Width Styles
   font-size: 24px;
   font-weight: 300;
   background: none;
-  text-shadow: #111 0px 0px 10px;
+  text-shadow: #000 0px 0px 15px, #111 0px 1px 1px;
 }
 
 #downloads {
