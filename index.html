@@ -17,7 +17,7 @@
     <div id="header_wrap" class="outer">
         <header class="inner">
           <a id="forkme_banner" href="https://github.com/processone/exmpp">View on GitHub</a>
-          <a id="forkme_banner_p1" href="https://www.process-one.net/en/labs">View on ProcessOne</a>
+          <a id="forkme_banner_p1" href="https://www.process-one.net/">Visit ProcessOne</a>
 
           <h1 id="project_title">exmpp</h1>
           <h2 id="project_tagline">Erlang XMPP Library</h2>
@@ -36,19 +36,12 @@
 
 <p>exmpp is a fast and scalable library for the Extensible Messaging and Presence Protocol (<a href="http://xmpp.org/">XMPP</a>) written in <a href="http://www.erlang.org/">Erlang/OTP</a>. exmpp main features:</p>
 
-<ul>
+<ul class="expanded">
 	<li>Based on Erlang message reception and pattern matching. The programming style is close to Erlang approach and lead to very short pieces of code.</li>
 	<li>Support for both formating of client and server packets.</li>
 	<li>Based on Erlang atoms and binary to limit memory consumption. It can be used to write a highly scalable XMPP proxy or XMPP server.</li>
 	<li>SSL support.</li>
 	<li>Several different XML parsers can be used (expat, libxml2).</li>
-</ul>
-
-<h3>Roadmap</h3>
-
-<ul>
-	<li>More code helpers (for example for Multi-User Chat packets (MUC)).</li>
-	<li>More helpers for writing pubsub clients.</li>
 </ul>
 
 <h3>Efficiency</h3>
@@ -57,35 +50,94 @@
 
 <p>This graph shows the memory consumption of the parser for 900 parsers doing 1000 small XML parsing each. Memory consumption and CPU consumption is very stable, compared to both ejabberd and previous version of exmpp. This comparison takes only the parsing consumption into account not the processing of the result. The result of the parse is dropped immediately. The benefit is bigger for real life system, as the internal structure of exmpp are atoms and binaries.</p>
 
-<h3>Download</h3>
+<h3>Roadmap</h3>
 
-<p><b>Source packages</b> of released versions and daily snapshots are available at <a href="http://download.process-one.net/exmpp/">download.process-one.net/exmpp</a>.</p>
+<ul>
+	<li>More code helpers (for example for Multi-User Chat packets (MUC)).</li>
+	<li>More helpers for writing pubsub clients.</li>
+</ul>
+
+<h2>Download</h2>
+
+<p><strong>Source packages</strong> of released versions and daily snapshots are available at <a href="http://download.process-one.net/exmpp/">download.process-one.net/exmpp</a>.</p>
 	
 <ul>
-	<li><b>Git repository</b> has the development source code, see <a href="https://git.process-one.net/exmpp/mainline">exmpp Git repository</a>, and also <a href="http://github.com/processone/exmpp">exmpp on GitHub</a>.
+	<li><strong>Git repository</strong> with the development source code, see <a href="https://git.process-one.net/exmpp/mainline">exmpp Git repo</a> or <a href="http://github.com/processone/exmpp">exmpp on GitHub</a>:
 	
 		<pre>git clone git://git.process-one.net/exmpp/mainline.git exmpp</pre><br />
 	</li>
 
-	<li><b>Old Subversion repository:</b> This is the old Subversion repository. It is available for historical reasons, but not updated anymore. Can be browsed online at <a href="https://forge.process-one.net/browse/exmpp">ProcessOne forge</a> or download with:
+	<li><strong>Old Subversion repository</strong> is still available for historical reasons, but not updated anymore. Can be browsed online at <a href="https://forge.process-one.net/browse/exmpp">ProcessOne forge</a> or download with:
 	
 		<pre>svn co http://svn.process-one.net/exmpp/trunk exmpp-trunk</pre><br />
 	</li>
 </ul>
 
-<h3>Documentation</h3>
+<h3>Installation</h3>
+
+<ol>
+	<li>Download a released version or a snapshot from <a href="http://download.process-one.net/exmpp">download.process-one.net/exmpp</a></li>
+	<li>Make sure you have the following dependencies installed:
+	<ul>
+		<li>Erlang/OTP R12B-5 or later version</li>
+		<li>expat (tested with version 2.0.1)</li>
+	</ul>
+	</li>
+	<li>Type the following commands:
+	
+<pre>
+autoreconf -i
+./configure
+make
+sudo make install
+</pre>
+
+	</li>
+</ol>
+
+<h3>Installation from Git</h3>
+
+<p>You must have the latest version of the autotools, Erlang/OTP R12B-5 or later version and expat (tested with version 2.0.1).</p>
+
+<pre>
+git clone git://git.process-one.net/exmpp/mainline.git exmpp_mainline
+cd exmpp_mainline
+autoreconf -i
+./configure
+make
+sudo make install
+</pre>
+
+<h3>Troubleshooting</h3>
+
+<p>If you get this error message while compiling exmpp:</p>
+
+<pre>
+{"init terminating in do_boot",
+  {undef,[{make,all,[]},
+  {erl_eval,do_apply,5},
+  {erl_eval,expr,5},
+  {init,start_it,1},
+  {init,start_em,1}]}}
+</pre>
+
+<p>it means it couldn't find in your system the file make.beam, which is part of Erlang/OTP.</p>
+
+<p>If you use Debian or a related distribution: in older versions this file was included in the package erlang-nox, and in recent versions it is in erlang-tools. Of course, the package erlang-dev is also needed for the actual compiler.</p>
+
+<h2>Documentation</h2>
 
 <ul>
 	<li><a href="http://www.process-one.net/docs/exmpp/devdoc/trunk/">exmpp API documentation</a>
 
-	<li>Scalable XMPP bots with Erlang and exmpp (tutorial by Pablo Polvorin):
+	<li>Scalable XMPP bots with Erlang and exmpp (by Pablo Polvorin):
 		<ul>
-			<li><a href="http://www.process-one.net/en/blogs/article/scalable_xmpp_bots_with_erlang_and_exmpp_part_i/">Part I</a>: Data structures, Basic API, Non-blocking parser, Streams.</li>
-			<li><a href="http://www.process-one.net/en/blogs/article/scalable_xmpp_bots_with_erlang_and_exmpp_part_ii/">Part II</a>: Introducing the bot, Data Model, Component setup, User registration, ejabberd setup, Lets test it, On the wire, Handling HTTP requests.</li>
-			<li><a href="http://www.process-one.net/en/blogs/article/scalable_xmpp_bots_with_erlang_and_exmpp_part_iii/">Part III</a>: User subscription revisited, React to presence changes, Web page, Microblogging.</li>
+			<li><a href="http://www.process-one.net/en/blogs/article/scalable_xmpp_bots_with_erlang_and_exmpp_part_i/">Tutorial Part I</a>: Data structures, Basic API, Non-blocking parser, Streams.</li>
+			<li><a href="http://www.process-one.net/en/blogs/article/scalable_xmpp_bots_with_erlang_and_exmpp_part_ii/">Tutorial Part II</a>: Introducing the bot, Data Model, Component setup, User registration, ejabberd setup, Lets test it, On the wire, Handling HTTP requests.</li>
+			<li><a href="http://www.process-one.net/en/blogs/article/scalable_xmpp_bots_with_erlang_and_exmpp_part_iii/">Tutorial Part III</a>: User subscription revisited, React to presence changes, Web page, Microblogging.</li>
 		</ul>
 	</li>
-	<li><a href="http://pdincau.wordpress.com/2010/05/10/sending-and-receiving-stanzas-using-exmpp/">Sending and receiving stanzas using EXMPP</a> (tutorial by Paolo D'Incau)</li>
+	<li><a href="http://pdincau.wordpress.com/2010/05/10/sending-and-receiving-stanzas-using-exmpp/">Sending and receiving stanzas using EXMPP</a> (by Paolo D'Incau)</li>
 </ul>
 
 <h3>Support</h3>
@@ -97,6 +149,8 @@
 	<li>Mailing list: <a href="http://lists.jabber.ru/mailman/listinfo/ejabberd">ejabberd mailing list at jabber.ru</a></li>
 </ul>
 
+<hr />
+
 <h3>License</h3>
 
 <p>exmpp is released under the Erlang Public License 1.1 (EPL). A copy of the file EPLICENSE is included in the exmpp source code packages, and also available for online view as <a href="https://git.process-one.net/exmpp/mainline/blobs/raw/master/EPLICENSE">EPLICENSE in exmpp Git</a>, and as <a href="http://www.erlang.org/EPLICENSE">EPLICENSE in the Erlang home page</a>.</p>
@@ -107,7 +161,7 @@
     <!-- FOOTER  -->
     <div id="footer_wrap" class="outer">
       <footer class="inner">
-        <p class="copyright">exmpp is maintained by <a href="https://github.com/processone">ProcessOne</a></p>
+        <p class="copyright">exmpp is maintained by <a href="https://github.com/processone">ProcessOne</a>, experts in real-time messaging and push.</p>
         <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
       </footer>
     </div>
